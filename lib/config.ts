@@ -10,11 +10,10 @@ export const siteConfig = {
 } as const;
 
 export const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Speaking Challenge", href: "/speaking-challenge" },
-  { label: "Go Private", href: "/go-private" },
-  { label: "VIP Camp", href: "/vip-camp" },
-  { label: "School Camp", href: "/school-camp" },
+  { label: "Beranda", href: "/" },
+  { label: "Tentang Kami", href: "/tentang-kami" },
+  { label: "Program Kami", href: "/program-kami" },
+  { label: "Blog", href: "/blog" },
 ] as const;
 
 export function buildWhatsAppUrl(program: string) {

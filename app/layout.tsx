@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const syne = Syne({
   subsets: ["latin"],
@@ -52,7 +52,7 @@ export default function RootLayout({
         className={`${syne.variable} ${dmSans.variable} ${dmMono.variable} font-body h-full antialiased`}
       >
         <Navbar />
-        <main className="pt-18 lg:pt-20">{children}</main>
+        <main className="pt-14 lg:pt-18">{children}</main>
         <Footer />
       </body>
     </html>
