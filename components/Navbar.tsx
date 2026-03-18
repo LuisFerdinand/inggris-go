@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { navLinks, siteConfig } from "@/lib/config";
+import { buildWhatsAppUrl, navLinks, siteConfig } from "@/lib/config";
 import WAButton from "./ui/WAButton";
 import Image from "next/image";
 import {
@@ -21,11 +21,13 @@ import {
   BookOpen,
   Info,
   LayoutGrid,
+  Zap,
+  Users,
+  ArrowRight,
 } from "lucide-react";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-/* ── Program groups ────────────────────────────────────────────────── */
 const programGroups = [
   {
     label: "Program Online",
@@ -79,6 +81,108 @@ const programGroups = [
   },
 ];
 
+const leadMagnetPrograms = [
+  {
+    href: "/speaking-challenge",
+    icon: Mic,
+    iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
+    iconShadow: "rgba(255,107,53,0.3)",
+    badge: "Terjangkau",
+    badgeColor: "#FF6B35",
+    title: "Basic Speaking",
+    price: "Rp49.000",
+    highlights: ["10 pertemuan", "60 mnt/sesi", "Breakout room"],
+    cta: "Join Basic Speaking",
+    ctaHref: buildWhatsAppUrl("Basic Speaking"),
+    ctaExternal: true,
+  },
+  {
+    href: "/speaking-challenge",
+    icon: Zap,
+    iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
+    iconShadow: "rgba(255,107,53,0.28)",
+    badge: "Populer",
+    badgeColor: "#E8521C",
+    title: "Speaking Challenge",
+    price: "Rp49.000",
+    highlights: ["10 hari", "Via WhatsApp", "Feedback harian"],
+    cta: "Join Speaking Challenge",
+    ctaHref: buildWhatsAppUrl("Speaking Challenge"),
+    ctaExternal: true,
+  },
+];
+
+export const categoryCards = [
+  {
+    href: "/main-programs",
+    icon: Users,
+    /* Card gradient — warm teal tint, direction top-left to bottom-right */
+    cardGradient:
+      "linear-gradient(145deg, rgba(45,184,176,0.07) 0%, rgba(45,184,176,0.13) 100%)",
+    cardBorderDefault: "rgba(45,184,176,0.2)",
+    cardBorderHover: "rgba(45,184,176,0.38)",
+    iconGradient: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
+    iconShadow: "rgba(45,184,176,0.35)",
+    accentColor: "#1A9990",
+    /* Label + badge */
+    label: "Program Utama",
+    badgeEmoji: "👥",
+    badgeText: "Max 6–8 siswa",
+    /* Tagline — one punchy line */
+    tagline: "Speaking intensif dengan kelas kecil",
+    /* 2 bullet highlights */
+    bullets: ["Daily Conversation", "English for Kids Regular"],
+    /* CTA button */
+    ctaLabel: "Lihat Program Utama",
+    ctaBg: "rgba(45,184,176,0.13)",
+    ctaBgHover: "rgba(45,184,176,0.22)",
+    ctaColor: "#0E7B74",
+    ctaBorder: "rgba(45,184,176,0.3)",
+  },
+  {
+    href: "/camp-programs",
+    icon: Tent,
+    cardGradient:
+      "linear-gradient(145deg, rgba(15,35,64,0.04) 0%, rgba(15,35,64,0.09) 100%)",
+    cardBorderDefault: "rgba(15,35,64,0.13)",
+    cardBorderHover: "rgba(15,35,64,0.28)",
+    iconGradient: "linear-gradient(135deg, #0F2340 0%, #1A365D 100%)",
+    iconShadow: "rgba(15,35,64,0.25)",
+    accentColor: "#0F2340",
+    label: "Camp Program",
+    badgeEmoji: "📍",
+    badgeText: "Di Kampung Inggris Pare",
+    tagline: "Belajar imersif langsung di Pare",
+    bullets: ["VIP English Camp for Kids", "Aktivitas outdoor & speaking"],
+    ctaLabel: "Lihat Camp Program",
+    ctaBg: "rgba(15,35,64,0.07)",
+    ctaBgHover: "rgba(15,35,64,0.14)",
+    ctaColor: "#0F2340",
+    ctaBorder: "rgba(15,35,64,0.18)",
+  },
+  {
+    href: "/school-group-programs",
+    icon: School,
+    cardGradient:
+      "linear-gradient(145deg, rgba(124,58,237,0.05) 0%, rgba(124,58,237,0.11) 100%)",
+    cardBorderDefault: "rgba(124,58,237,0.18)",
+    cardBorderHover: "rgba(124,58,237,0.35)",
+    iconGradient: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
+    iconShadow: "rgba(124,58,237,0.3)",
+    accentColor: "#6D28D9",
+    label: "Grup Sekolah",
+    badgeEmoji: "⚙️",
+    badgeText: "Customizable",
+    tagline: "Khusus sekolah, pesantren & instansi",
+    bullets: ["1 hari s/d 1 bulan", "Tutor datang ke sekolah atau di Pare"],
+    ctaLabel: "Request Proposal",
+    ctaBg: "rgba(124,58,237,0.09)",
+    ctaBgHover: "rgba(124,58,237,0.17)",
+    ctaColor: "#6D28D9",
+    ctaBorder: "rgba(124,58,237,0.25)",
+  },
+];
+
 const allProgramHrefs = programGroups.flatMap((g) =>
   g.items.map((i) => i.href),
 );
@@ -96,17 +200,141 @@ const NAV_ICONS: Record<string, React.ElementType> = {
   "/contact": Phone,
 };
 
-/* ── Desktop dropdown (unchanged) ─────────────────────────────────── */
-function ProgramsDropdown({ onClose }: { onClose: () => void }) {
+function CategoryCard({
+  card,
+  onClose,
+}: {
+  card: (typeof categoryCards)[0];
+  onClose: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const Icon = card.icon;
+
+  return (
+    <Link
+      href={card.href}
+      onClick={onClose}
+      className="block rounded-xl overflow-hidden transition-all duration-200"
+      style={{
+        background: card.cardGradient,
+        border: `1.5px solid ${hovered ? card.cardBorderHover : card.cardBorderDefault}`,
+        transform: hovered ? "translateY(-2px)" : "none",
+        boxShadow: hovered ? `0 8px 28px ${card.iconShadow}` : "none",
+        textDecoration: "none",
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* ── Card top: icon + label + badge ── */}
+      <div className="flex items-start gap-3 px-3.5 pt-3.5 pb-2">
+        <motion.div
+          animate={
+            hovered ? { scale: 1.1, rotate: -6 } : { scale: 1, rotate: 0 }
+          }
+          transition={{ duration: 0.22, ease }}
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{
+            background: card.iconGradient,
+            boxShadow: `0 4px 12px ${card.iconShadow}`,
+          }}
+        >
+          <Icon className="w-4 h-4 text-white" />
+        </motion.div>
+
+        <div className="flex-1 min-w-0">
+          {/* Label row */}
+          <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
+            <p
+              className="font-display font-bold leading-tight"
+              style={{ fontSize: "0.8125rem", color: "#0F2340" }}
+            >
+              {card.label}
+            </p>
+            {/* Emoji badge */}
+            <span
+              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full font-display font-bold flex-shrink-0"
+              style={{
+                fontSize: "0.5rem",
+                letterSpacing: "0.03em",
+                background: `${card.accentColor}18`,
+                color: card.accentColor,
+                border: `1px solid ${card.cardBorderDefault}`,
+              }}
+            >
+              <span style={{ fontSize: "0.65rem" }}>{card.badgeEmoji}</span>
+              {card.badgeText}
+            </span>
+          </div>
+          {/* Tagline */}
+          <p
+            style={{
+              fontSize: "0.6875rem",
+              color: "#64748B",
+              lineHeight: "1.4",
+            }}
+          >
+            {card.tagline}
+          </p>
+        </div>
+      </div>
+
+      {/* ── Bullet highlights ── */}
+      <div className="px-3.5 pb-2.5">
+        <ul className="space-y-0.5">
+          {card.bullets.map((b) => (
+            <li
+              key={b}
+              className="flex items-center gap-1.5"
+              style={{ fontSize: "0.6875rem", color: "#475569" }}
+            >
+              <motion.div
+                animate={hovered ? { scale: 1.3 } : { scale: 1 }}
+                transition={{ duration: 0.18 }}
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: card.accentColor, opacity: 0.55 }}
+              />
+              {b}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* ── CTA button — full-width accent ── */}
+      <div className="px-2.5 pb-2.5">
+        <div
+          className="w-full flex items-center justify-center gap-1.5 font-display font-semibold rounded-lg py-2 transition-all duration-150"
+          style={{
+            fontSize: "0.75rem",
+            background: hovered ? card.ctaBgHover : card.ctaBg,
+            color: card.ctaColor,
+            border: `1px solid ${card.ctaBorder}`,
+          }}
+        >
+          {card.ctaLabel}
+          <motion.span
+            animate={hovered ? { x: 3 } : { x: 0 }}
+            transition={{ duration: 0.18, ease }}
+            className="inline-flex"
+          >
+            <ArrowRight className="w-3 h-3" />
+          </motion.span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 8, scale: 0.97 }}
-      transition={{ duration: 0.2, ease }}
-      className="absolute top-[calc(100%+14px)] left-1/2 -translate-x-1/2 z-50"
-      style={{ width: "540px" }}
+      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+      transition={{ duration: 0.18, ease }}
+      className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 z-50"
+      style={{ width: "700px" }}
     >
+      {/* Arrow tip */}
       <div className="flex justify-center mb-[-1px] relative z-10 pointer-events-none">
         <svg width="18" height="9" viewBox="0 0 18 9" fill="none">
           <path
@@ -117,17 +345,19 @@ function ProgramsDropdown({ onClose }: { onClose: () => void }) {
           />
         </svg>
       </div>
+
       <div
         className="rounded-2xl overflow-hidden"
         style={{
           background: "white",
           border: "1px solid rgba(15,35,64,0.08)",
           boxShadow:
-            "0 20px 60px rgba(15,35,64,0.14), 0 4px 16px rgba(15,35,64,0.06)",
+            "0 24px 64px rgba(15,35,64,0.13), 0 4px 16px rgba(15,35,64,0.05)",
         }}
       >
+        {/* Panel header */}
         <div
-          className="px-5 py-3 border-b"
+          className="px-5 py-3 border-b flex items-center justify-between"
           style={{ borderColor: "rgba(15,35,64,0.06)", background: "#FAFAFA" }}
         >
           <p
@@ -139,102 +369,169 @@ function ProgramsDropdown({ onClose }: { onClose: () => void }) {
               textTransform: "uppercase",
             }}
           >
-            Pilih Program Belajarmu
+            Semua Program Inggris Go
           </p>
+          <Link
+            href="/speaking-challenge"
+            onClick={onClose}
+            className="inline-flex items-center gap-1 font-display font-semibold transition-all duration-150 hover:gap-1.5"
+            style={{ fontSize: "0.6875rem", color: "#FF6B35" }}
+          >
+            Lihat semua <ChevronRight className="w-3 h-3" />
+          </Link>
         </div>
-        <div className="grid grid-cols-2">
-          {programGroups.map((group, gi) => (
-            <div
-              key={group.label}
-              className="p-4"
-              style={{
-                borderRight:
-                  gi === 0 ? "1px solid rgba(15,35,64,0.06)" : "none",
-              }}
-            >
+
+        {/* Body: 7/12 left + 5/12 right */}
+        <div className="grid grid-cols-12">
+          {/* ── LEFT: Lead Magnet Programs ── */}
+          <div
+            className="col-span-7 p-5 border-r"
+            style={{ borderColor: "rgba(15,35,64,0.06)" }}
+          >
+            <div className="flex items-center gap-2 mb-3.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-orange" />
               <p
-                className="font-display font-bold px-1 mb-3"
+                className="font-display font-bold"
                 style={{
                   fontSize: "0.625rem",
-                  letterSpacing: "0.07em",
-                  color: "#CBD5E1",
+                  letterSpacing: "0.08em",
+                  color: "#94A3B8",
                   textTransform: "uppercase",
                 }}
               >
-                {group.label}
+                Mulai dari Sini · Terjangkau
               </p>
-              <div className="space-y-1">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={onClose}
-                      className="group flex items-start gap-3 p-2.5 rounded-xl transition-colors duration-150"
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.background =
-                          "#FFF8F3";
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.background =
-                          "transparent";
+            </div>
+
+            <div className="space-y-2.5">
+              {leadMagnetPrograms.map((prog) => {
+                const Icon = prog.icon;
+                return (
+                  <div
+                    key={prog.title}
+                    className="group flex items-start gap-3.5 p-3.5 rounded-xl transition-all duration-150 cursor-pointer "
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.background =
+                        "#FFF8F3";
+                      (e.currentTarget as HTMLElement).style.borderColor =
+                        "rgba(255,107,53,0.12)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background =
+                        "transparent";
+                      (e.currentTarget as HTMLElement).style.borderColor =
+                        "transparent";
+                    }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 transition-transform duration-200 group-hover:scale-110"
+                      style={{
+                        background: prog.iconBg,
+                        boxShadow: `0 4px 12px ${prog.iconShadow}`,
                       }}
                     >
-                      <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110 mt-0.5"
-                        style={{
-                          background: item.iconBg,
-                          boxShadow: `0 4px 12px ${item.iconShadow}`,
-                        }}
-                      >
-                        <Icon className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span
-                            className="font-display font-bold"
-                            style={{
-                              fontSize: "0.8125rem",
-                              color: "#0F2340",
-                              lineHeight: "1.3",
-                            }}
-                          >
-                            {item.title}
-                          </span>
-                          <span
-                            className="px-1.5 py-0.5 rounded-full font-display font-bold flex-shrink-0"
-                            style={{
-                              fontSize: "0.5625rem",
-                              letterSpacing: "0.04em",
-                              background: `${item.badgeColor}18`,
-                              color: item.badgeColor,
-                            }}
-                          >
-                            {item.badge}
-                          </span>
-                        </div>
-                        <p
+                      <Icon className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span
+                          className="font-display font-bold"
+                          style={{ fontSize: "0.875rem", color: "#0F2340" }}
+                        >
+                          {prog.title}
+                        </span>
+                        <span
+                          className="px-1.5 py-0.5 rounded-full font-display font-bold flex-shrink-0"
                           style={{
-                            fontSize: "0.75rem",
-                            color: "#94A3B8",
-                            marginTop: "2px",
+                            fontSize: "0.5625rem",
+                            letterSpacing: "0.04em",
+                            background: `${prog.badgeColor}18`,
+                            color: prog.badgeColor,
                           }}
                         >
-                          {item.desc}
-                        </p>
+                          {prog.badge}
+                        </span>
+                        <span
+                          className="font-display font-bold ml-auto flex-shrink-0"
+                          style={{ fontSize: "0.875rem", color: "#FF6B35" }}
+                        >
+                          {prog.price}
+                        </span>
                       </div>
-                      <ChevronRight
-                        className="w-3.5 h-3.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-150 -translate-x-1 group-hover:translate-x-0 mt-1"
-                        style={{ color: "#FF6B35" }}
-                      />
-                    </Link>
-                  );
-                })}
-              </div>
+
+                      <div
+                        className="flex items-center flex-wrap mb-2.5"
+                        style={{ gap: "4px" }}
+                      >
+                        {prog.highlights.map((h, i) => (
+                          <span
+                            key={h}
+                            className="inline-flex items-center"
+                            style={{ fontSize: "0.6875rem", color: "#94A3B8" }}
+                          >
+                            {i > 0 && (
+                              <span
+                                style={{ marginRight: "4px", color: "#E2E8F0" }}
+                              >
+                                ·
+                              </span>
+                            )}
+                            {h}
+                          </span>
+                        ))}
+                      </div>
+
+                      <a
+                        href={prog.ctaHref}
+                        target={prog.ctaExternal ? "_blank" : undefined}
+                        rel={
+                          prog.ctaExternal ? "noopener noreferrer" : undefined
+                        }
+                        onClick={onClose}
+                        className="inline-flex items-center gap-1.5 font-display font-semibold rounded-lg px-3 py-1.5 text-white transition-all duration-150 hover:-translate-y-px active:translate-y-0"
+                        style={{
+                          fontSize: "0.75rem",
+                          background:
+                            "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
+                          boxShadow: "0 3px 10px rgba(255,107,53,0.3)",
+                        }}
+                      >
+                        {prog.cta}
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          </div>
+
+          {/* ── RIGHT: Category cards ── */}
+          <div className="col-span-5 p-4 flex flex-col gap-2.5">
+            <div className="flex items-center gap-2 mb-0.5">
+              <div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ background: "#CBD5E1" }}
+              />
+              <p
+                className="font-display font-bold"
+                style={{
+                  fontSize: "0.625rem",
+                  letterSpacing: "0.08em",
+                  color: "#94A3B8",
+                  textTransform: "uppercase",
+                }}
+              >
+                Jelajahi Program Lanjutan
+              </p>
+            </div>
+
+            {categoryCards.map((card) => (
+              <CategoryCard key={card.href} card={card} onClose={onClose} />
+            ))}
+          </div>
         </div>
+
+        {/* Footer */}
         <div
           className="px-5 py-3 border-t flex items-center justify-between"
           style={{ borderColor: "rgba(15,35,64,0.06)", background: "#FAFAFA" }}
@@ -255,18 +552,6 @@ function ProgramsDropdown({ onClose }: { onClose: () => void }) {
     </motion.div>
   );
 }
-
-/* ══════════════════════════════════════════════════════════════════════
- *  MobileNavRow — 4 visual states
- *
- *  DEFAULT  → light navy border, slate icon, navy text
- *  HOVER    → faint orange bg, orange-tinted border, orange-tinted icon
- *             (same direction as active, but weaker — ~40% of active)
- *  EXPANDED → same as hover (trigger shows hovered state when open)
- *             UNLESS it's also active → then active wins
- *  ACTIVE   → stronger orange bg, full orange border, filled icon, orange text
- *  MERGED   → when open, bottom radius removed so sub-panel connects flush
- * ══════════════════════════════════════════════════════════════════════ */
 
 type RowState = "default" | "hover" | "active";
 
@@ -409,7 +694,377 @@ function MobileNavRow({
   );
 }
 
-/* ── Mobile Drawer ─────────────────────────────────────────────────── */
+function MobileProgramPanel({
+  pathname,
+  onClose,
+}: {
+  pathname: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      style={{
+        background: "rgba(255,107,53,0.025)",
+        border: "1.5px solid rgba(255,107,53,0.18)",
+        borderTop: "none",
+        borderRadius: "0 0 1rem 1rem",
+        marginTop: "-1px",
+      }}
+    >
+      {/* ── Section 1: Lead Magnet ── */}
+      <div
+        style={{
+          background: "rgba(255,107,53,0.05)",
+          padding: "6px 16px 5px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
+        <div
+          style={{
+            width: "4px",
+            height: "4px",
+            borderRadius: "50%",
+            background: "#FF6B35",
+            flexShrink: 0,
+          }}
+        />
+        <span
+          className="font-display font-bold"
+          style={{
+            fontSize: "0.5625rem",
+            letterSpacing: "0.1em",
+            color: "rgba(255,107,53,0.7)",
+            textTransform: "uppercase",
+          }}
+        >
+          Mulai dari Sini
+        </span>
+      </div>
+
+      <div className="px-2 py-1 space-y-1">
+        {leadMagnetPrograms.map((prog, ii) => {
+          const Icon = prog.icon;
+          const isActive = pathname === prog.href;
+          const isLast = ii === leadMagnetPrograms.length - 1;
+          return (
+            <motion.div
+              key={prog.title}
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.03 * ii, duration: 0.22, ease }}
+            >
+              <div
+                className="flex items-start gap-3 px-3 py-3 rounded-xl transition-colors duration-150 border"
+                style={{
+                  background: isActive
+                    ? "rgba(255,107,53,0.08)"
+                    : "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive)
+                    (e.currentTarget as HTMLElement).style.background =
+                      "rgba(255,107,53,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive)
+                    (e.currentTarget as HTMLElement).style.background =
+                      "transparent";
+                }}
+              >
+                {/* Indent bar */}
+                <div
+                  className="flex-shrink-0 self-stretch flex items-center"
+                  style={{ width: "3px", marginRight: "2px" }}
+                >
+                  <div
+                    style={{
+                      width: "3px",
+                      height: "60%",
+                      borderRadius: "2px",
+                      background: isActive ? "#FF6B35" : "rgba(255,107,53,0.2)",
+                      transition: "background 0.15s",
+                    }}
+                  />
+                </div>
+
+                {/* Icon */}
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{
+                    background: prog.iconBg,
+                    boxShadow: `0 3px 10px ${prog.iconShadow}`,
+                  }}
+                >
+                  <Icon
+                    style={{ width: "1rem", height: "1rem", color: "white" }}
+                  />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  {/* Title row: name + badge + price */}
+                  <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                    <span
+                      className="font-display font-bold"
+                      style={{
+                        fontSize: "0.875rem",
+                        color: isActive ? "#FF6B35" : "#0F2340",
+                        lineHeight: "1.3",
+                      }}
+                    >
+                      {prog.title}
+                    </span>
+                    <span
+                      className="px-1.5 py-0.5 rounded-full font-display font-bold flex-shrink-0"
+                      style={{
+                        fontSize: "0.5rem",
+                        letterSpacing: "0.04em",
+                        background: `${prog.badgeColor}15`,
+                        color: prog.badgeColor,
+                      }}
+                    >
+                      {prog.badge}
+                    </span>
+                    <span
+                      className="font-display font-bold ml-auto flex-shrink-0"
+                      style={{ fontSize: "0.8125rem", color: "#FF6B35" }}
+                    >
+                      {prog.price}
+                    </span>
+                  </div>
+
+                  {/* Highlights */}
+                  <div
+                    className="flex items-center flex-wrap mb-2"
+                    style={{ gap: "3px" }}
+                  >
+                    {prog.highlights.map((h, hi) => (
+                      <span
+                        key={h}
+                        className="inline-flex items-center"
+                        style={{ fontSize: "0.625rem", color: "#94A3B8" }}
+                      >
+                        {hi > 0 && (
+                          <span
+                            style={{ marginRight: "3px", color: "#E2E8F0" }}
+                          >
+                            ·
+                          </span>
+                        )}
+                        {h}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* WA CTA button */}
+                  <a
+                    href={prog.ctaHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={onClose}
+                    className="inline-flex items-center gap-1.5 font-display font-semibold rounded-lg px-3 py-1.5 text-white active:scale-95 transition-transform"
+                    style={{
+                      fontSize: "0.6875rem",
+                      background:
+                        "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
+                      boxShadow: "0 3px 10px rgba(255,107,53,0.3)",
+                    }}
+                  >
+                    {prog.cta}
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* ── Section 2: Category Cards ── */}
+      <div
+        style={{
+          background: "rgba(255,107,53,0.05)",
+          borderTop: "1px solid rgba(255,107,53,0.1)",
+          padding: "6px 16px 5px",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
+        <div
+          style={{
+            width: "4px",
+            height: "4px",
+            borderRadius: "50%",
+            background: "#CBD5E1",
+            flexShrink: 0,
+          }}
+        />
+        <span
+          className="font-display font-bold"
+          style={{
+            fontSize: "0.5625rem",
+            letterSpacing: "0.1em",
+            color: "#94A3B8",
+            textTransform: "uppercase",
+          }}
+        >
+          Jelajahi Program Lanjutan
+        </span>
+      </div>
+
+      <div className="px-2 pt-1.5 pb-1.5 space-y-2">
+        {categoryCards.map((card, ci) => {
+          const Icon = card.icon;
+          const isActive = pathname === card.href;
+          return (
+            <motion.div
+              key={card.href}
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.04 + 0.05 * ci, duration: 0.22, ease }}
+            >
+              {/*
+               * Mobile category card — condensed version of desktop:
+               * Same gradient bg, same border, icon+label+tagline top,
+               * 2 bullet items, full-width CTA button.
+               * Slightly more compact padding than desktop.
+               */}
+              <Link
+                href={card.href}
+                onClick={onClose}
+                className="block rounded-xl overflow-hidden transition-all duration-150 active:scale-[0.99]"
+                style={{
+                  background: card.cardGradient,
+                  border: `1.5px solid ${isActive ? card.cardBorderHover : card.cardBorderDefault}`,
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor =
+                    card.cardBorderHover;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor = isActive
+                    ? card.cardBorderHover
+                    : card.cardBorderDefault;
+                }}
+              >
+                {/* Card top: icon + label + badge */}
+                <div className="flex items-start gap-2.5 px-3 pt-3 pb-2">
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{
+                      background: card.iconGradient,
+                      boxShadow: `0 3px 8px ${card.iconShadow}`,
+                    }}
+                  >
+                    <Icon
+                      style={{
+                        width: "0.875rem",
+                        height: "0.875rem",
+                        color: "white",
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
+                      <p
+                        className="font-display font-bold leading-tight"
+                        style={{
+                          fontSize: "0.8125rem",
+                          color: isActive ? card.accentColor : "#0F2340",
+                        }}
+                      >
+                        {card.label}
+                      </p>
+                      <span
+                        className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full font-display font-bold flex-shrink-0"
+                        style={{
+                          fontSize: "0.5rem",
+                          letterSpacing: "0.03em",
+                          background: `${card.accentColor}15`,
+                          color: card.accentColor,
+                          border: `1px solid ${card.cardBorderDefault}`,
+                        }}
+                      >
+                        <span style={{ fontSize: "0.6rem" }}>
+                          {card.badgeEmoji}
+                        </span>
+                        {card.badgeText}
+                      </span>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "0.6875rem",
+                        color: "#64748B",
+                        lineHeight: "1.4",
+                      }}
+                    >
+                      {card.tagline}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bullet items */}
+                <div className="px-3 pb-2.5">
+                  <ul className="space-y-0.5">
+                    {card.bullets.map((b) => (
+                      <li
+                        key={b}
+                        className="flex items-center gap-1.5"
+                        style={{ fontSize: "0.6875rem", color: "#475569" }}
+                      >
+                        <div
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ background: card.accentColor, opacity: 0.5 }}
+                        />
+                        {b}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* CTA button */}
+                <div className="px-2 pb-2.5">
+                  <div
+                    className="w-full flex items-center justify-center gap-1.5 font-display font-semibold rounded-lg py-2"
+                    style={{
+                      fontSize: "0.75rem",
+                      background: card.ctaBg,
+                      color: card.ctaColor,
+                      border: `1px solid ${card.ctaBorder}`,
+                    }}
+                  >
+                    {card.ctaLabel}
+                    <ArrowRight className="w-3 h-3" />
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Footer consult link */}
+      <div
+        className="flex items-center justify-between px-4 py-2.5 mx-1"
+        style={{ borderTop: "1px solid rgba(255,107,53,0.1)" }}
+      >
+        <p style={{ fontSize: "0.6875rem", color: "#94A3B8" }}>Belum tahu?</p>
+        <Link
+          href="/contact"
+          onClick={onClose}
+          className="inline-flex items-center gap-1 font-display font-semibold transition-all hover:gap-1.5"
+          style={{ fontSize: "0.6875rem", color: "#FF6B35" }}
+        >
+          Konsultasi gratis <ChevronRight className="w-3 h-3" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function MobileDrawer({
   onClose,
   pathname,
@@ -420,8 +1075,8 @@ function MobileDrawer({
   const [progOpen, setProgOpen] = useState(allProgramHrefs.includes(pathname));
   const regularLinks = navLinks.filter((l) => l.label !== "Program Kami");
   const isProgramActive = allProgramHrefs.includes(pathname);
-  const beforePrograms = regularLinks.filter((_, i) => i < 2);
-  const afterPrograms = regularLinks.filter((_, i) => i >= 2);
+  const beforePrograms = regularLinks.filter((_, i) => i < 1);
+  const afterPrograms = regularLinks.filter((_, i) => i >= 1);
 
   return (
     <>
@@ -445,7 +1100,7 @@ function MobileDrawer({
         transition={{ type: "spring", damping: 26, stiffness: 220 }}
         className="fixed top-0 right-0 bottom-0 z-50 lg:hidden flex flex-col"
         style={{
-          width: "min(88vw, 320px)",
+          width: "min(88vw, 340px)",
           background: "white",
           boxShadow: "-8px 0 60px rgba(15,35,64,0.2)",
         }}
@@ -489,7 +1144,7 @@ function MobileDrawer({
             />
           ))}
 
-          {/* Programs group — trigger + sub-panel as one visual unit */}
+          {/* Programs group — trigger connected to sub-panel */}
           <div>
             <MobileNavRow
               label="Program Kami"
@@ -500,7 +1155,6 @@ function MobileDrawer({
               onClick={() => setProgOpen((o) => !o)}
               merged={progOpen}
             />
-
             <AnimatePresence>
               {progOpen && (
                 <motion.div
@@ -510,225 +1164,7 @@ function MobileDrawer({
                   transition={{ duration: 0.28, ease }}
                   style={{ overflow: "hidden" }}
                 >
-                  {/*
-                   * Sub-panel design:
-                   * - No top border (connects flush to trigger's bottom border)
-                   * - No top radius (continuous with trigger)
-                   * - Slightly elevated bg to feel like "inside" the group
-                   * - marginTop: -1px to close the 1px seam at the join
-                   */}
-                  <div
-                    style={{
-                      background: "rgba(255,107,53,0.025)",
-                      border: "1.5px solid rgba(255,107,53,0.18)",
-                      borderTop: "none",
-                      borderRadius: "0 0 1rem 1rem",
-                      marginTop: "-1px",
-                    }}
-                  >
-                    {programGroups.map((group, gi) => (
-                      <div key={group.label}>
-                        {/*
-                         * Group header row — full-width tinted stripe
-                         * Acts as a visual "shelf" to separate the two groups
-                         */}
-                        <div
-                          style={{
-                            background:
-                              gi === 0
-                                ? "rgba(255,107,53,0.05)"
-                                : "rgba(255,107,53,0.05)",
-                            borderTop:
-                              gi > 0
-                                ? "1px solid rgba(255,107,53,0.1)"
-                                : "none",
-                            padding: "6px 16px 5px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          {/* Left dot accent */}
-                          <div
-                            style={{
-                              width: "4px",
-                              height: "4px",
-                              borderRadius: "50%",
-                              background: "rgba(255,107,53,0.4)",
-                              flexShrink: 0,
-                            }}
-                          />
-                          <span
-                            className="font-display font-bold"
-                            style={{
-                              fontSize: "0.5625rem",
-                              letterSpacing: "0.1em",
-                              color: "rgba(255,107,53,0.55)",
-                              textTransform: "uppercase",
-                            }}
-                          >
-                            {group.label}
-                          </span>
-                        </div>
-
-                        {/* Items */}
-                        <div className="px-2 pb-1">
-                          {group.items.map((item, ii) => {
-                            const Icon = item.icon;
-                            const isActive = pathname === item.href;
-                            const isLastInGroup = ii === group.items.length - 1;
-
-                            return (
-                              <motion.div
-                                key={item.href}
-                                initial={{ opacity: 0, x: 8 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{
-                                  delay: 0.03 * ii + 0.04 * gi,
-                                  duration: 0.22,
-                                  ease,
-                                }}
-                              >
-                                <Link
-                                  href={item.href}
-                                  onClick={onClose}
-                                  className="group flex items-start gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150"
-                                  style={{
-                                    background: isActive
-                                      ? "rgba(255,107,53,0.08)"
-                                      : "transparent",
-                                    /* Thin separator between items within a group */
-                                    borderBottom: !isLastInGroup
-                                      ? "1px solid rgba(255,107,53,0.06)"
-                                      : "none",
-                                    marginBottom: !isLastInGroup ? "0" : "0",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    if (!isActive)
-                                      (
-                                        e.currentTarget as HTMLElement
-                                      ).style.background =
-                                        "rgba(255,107,53,0.05)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    if (!isActive)
-                                      (
-                                        e.currentTarget as HTMLElement
-                                      ).style.background = "transparent";
-                                  }}
-                                >
-                                  {/* Indent marker — small left accent */}
-                                  <div
-                                    className="flex-shrink-0 self-stretch flex items-center"
-                                    style={{ width: "3px", marginRight: "2px" }}
-                                  >
-                                    <div
-                                      style={{
-                                        width: "3px",
-                                        height: "60%",
-                                        borderRadius: "2px",
-                                        background: isActive
-                                          ? "#FF6B35"
-                                          : "rgba(255,107,53,0.2)",
-                                        transition: "background 0.15s",
-                                      }}
-                                    />
-                                  </div>
-
-                                  {/* Icon */}
-                                  <div
-                                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
-                                    style={{
-                                      background: item.iconBg,
-                                      boxShadow: `0 3px 8px ${item.iconShadow}`,
-                                    }}
-                                  >
-                                    <Icon
-                                      style={{
-                                        width: "0.875rem",
-                                        height: "0.875rem",
-                                        color: "white",
-                                      }}
-                                    />
-                                  </div>
-
-                                  {/* Text — no truncate */}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start gap-1.5 flex-wrap mb-0.5">
-                                      <span
-                                        className="font-display font-semibold"
-                                        style={{
-                                          fontSize: "0.875rem",
-                                          color: isActive
-                                            ? "#FF6B35"
-                                            : "#0F2340",
-                                          lineHeight: "1.35",
-                                        }}
-                                      >
-                                        {item.title}
-                                      </span>
-                                      <span
-                                        className="px-1.5 py-0.5 rounded-full font-display font-bold flex-shrink-0"
-                                        style={{
-                                          fontSize: "0.5rem",
-                                          letterSpacing: "0.04em",
-                                          background: `${item.badgeColor}15`,
-                                          color: item.badgeColor,
-                                          marginTop: "2px",
-                                        }}
-                                      >
-                                        {item.badge}
-                                      </span>
-                                    </div>
-                                    <p
-                                      style={{
-                                        fontSize: "0.6875rem",
-                                        color: "#94A3B8",
-                                        lineHeight: "1.5",
-                                      }}
-                                    >
-                                      {item.desc}
-                                    </p>
-                                  </div>
-
-                                  {/* Right indicator */}
-                                  {isActive ? (
-                                    <div
-                                      className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-2"
-                                      style={{ background: "#FF6B35" }}
-                                    />
-                                  ) : (
-                                    <ChevronRight
-                                      className="w-3.5 h-3.5 flex-shrink-0 mt-1 opacity-25 group-hover:opacity-60 transition-opacity"
-                                      style={{ color: "#FF6B35" }}
-                                    />
-                                  )}
-                                </Link>
-                              </motion.div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-
-                    {/* Footer consult link */}
-                    <div
-                      className="flex items-center justify-between px-4 py-2.5 mx-1 mt-1"
-                      style={{ borderTop: "1px solid rgba(255,107,53,0.1)" }}
-                    >
-                      <p style={{ fontSize: "0.6875rem", color: "#94A3B8" }}>
-                        Belum tahu?
-                      </p>
-                      <Link
-                        href="/contact"
-                        onClick={onClose}
-                        className="inline-flex items-center gap-1 font-display font-semibold transition-all hover:gap-1.5"
-                        style={{ fontSize: "0.6875rem", color: "#FF6B35" }}
-                      >
-                        Konsultasi gratis <ChevronRight className="w-3 h-3" />
-                      </Link>
-                    </div>
-                  </div>
+                  <MobileProgramPanel pathname={pathname} onClose={onClose} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -786,7 +1222,6 @@ function MobileDrawer({
   );
 }
 
-/* ── Main Navbar ───────────────────────────────────────────────────── */
 export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
