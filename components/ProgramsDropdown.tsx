@@ -20,15 +20,8 @@ export const LEAD_PROGRAMS = [
     id: "speaking-challenge",
     title: "Speaking Challenge",
     href: "/speaking-challenge",
-    desc: "Belajar fleksibel via WhatsApp · 10 hari",
+    desc: "Belajar fleksibel via WhatsApp",
     icon: Zap,
-  },
-  {
-    id: "basic-speaking",
-    title: "Basic Speaking",
-    href: "/basic-speaking",
-    desc: "Kelas online via Zoom · 10 pertemuan",
-    icon: Mic,
   },
 ];
 
@@ -72,8 +65,8 @@ export const RIGHT_COLUMNS = [
   },
   {
     id: "offline",
-    label: "Camp & Offline",
-    href: "/camp",
+    label: "Holiday Camp",
+    href: "/holiday-camp",
     description: "Belajar langsung di Pare",
     icon: Tent,
     color: "#0F2340",
@@ -286,14 +279,22 @@ function CategoryGroup({
           {/* Toggle button ONLY */}
           <button
             onClick={() => setOpen((o) => !o)}
-            className="p-1 rounded hover:bg-slate-100 transition"
+            className="flex items-center justify-center w-6 h-6 rounded-md transition-all duration-150"
+            style={{
+              background: open ? "rgba(255,107,53,0.10)" : "transparent",
+            }}
           >
             <motion.span
               animate={{ rotate: open ? 180 : 0 }}
               transition={{ duration: 0.2 }}
-              className="inline-flex items-center"
+              className="flex items-center justify-center"
             >
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronDown
+                className="w-3.5 h-3.5 transition-colors"
+                style={{
+                  color: open ? "#FF6B35" : "#94A3B8",
+                }}
+              />
             </motion.span>
           </button>
         </div>
