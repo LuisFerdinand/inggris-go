@@ -1,11 +1,11 @@
-import HeroAnimated from "@/components/sections/HeroAnimated";
+import HeroAnimated from "@/components/sections/home/HeroAnimated";
 
-import ProblemSection from "@/components/sections/ProblemSection";
-import MethodSection from "@/components/sections/MethodSection";
-import ProgramsGrid from "@/components/sections/ProgramsGrid";
-import WhyUsSection from "@/components/sections/WhyUsSection";
-import TestimonialsSection from "@/components/sections/TestimonialsSection";
-import CtaSection from "@/components/sections/CtaSection";
+import ProblemSection from "@/components/sections/home/ProblemSection";
+import MethodSection from "@/components/sections/home/MethodSection";
+import ProgramsGrid from "@/components/sections/home/ProgramsGrid";
+import WhyUsSection from "@/components/sections/home/WhyUsSection";
+import TestimonialsSection from "@/components/sections/home/TestimonialsSection";
+import CTASection from "@/components/sections/home/CTASection";
 
 export default function HomePage() {
   return (
@@ -16,7 +16,7 @@ export default function HomePage() {
       <ProgramsGrid />
       <WhyUsSection />
       <TestimonialsSection />
-      <CtaSection />
+      <CTASection />
     </>
   );
 }

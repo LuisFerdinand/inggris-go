@@ -31,7 +31,7 @@ function Reveal({
   );
 }
 
-export default function CtaSection() {
+export default function CTASection() {
   return (
     <section
       className="relative w-full overflow-hidden"
