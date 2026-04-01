@@ -134,7 +134,6 @@ const features = [
   },
 ];
 
-/* ── Scroll reveal ─────────────────────────────────────────────────── */
 function Reveal({
   children,
   delay = 0,
@@ -159,7 +158,6 @@ function Reveal({
   );
 }
 
-/* ── Feature card — all hover via Tailwind group, zero rogue divs ──── */
 function FeatureCard({
   feature,
   index,
@@ -242,7 +240,6 @@ function FeatureCard({
   );
 }
 
-/* ── Geometric line decoration (replaces circles) ──────────────────── */
 function GeometricLines() {
   return (
     <svg
@@ -353,7 +350,6 @@ function GeometricLines() {
   );
 }
 
-/* ── Section ───────────────────────────────────────────────────────── */
 export default function WhyUsSection() {
   return (
     <section

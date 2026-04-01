@@ -17,9 +17,9 @@ import { useState } from "react";
 
 export const LEAD_PROGRAMS = [
   {
-    id: "speaking-challenge",
-    title: "Speaking Challenge",
-    href: "/speaking-challenge",
+    id: "lead",
+    title: "Program Starter",
+    href: "/program/lead",
     desc: "Belajar fleksibel via WhatsApp",
     icon: Zap,
   },
@@ -29,7 +29,7 @@ export const RIGHT_COLUMNS = [
   {
     id: "online",
     label: "Kelas Online",
-    href: "/kelas-online",
+    href: "/program-online",
     description: "Belajar intensif via Zoom",
     icon: BookOpen,
     color: "#2DB8B0",
@@ -66,7 +66,7 @@ export const RIGHT_COLUMNS = [
   {
     id: "offline",
     label: "Holiday Camp",
-    href: "/holiday-camp",
+    href: "/program/camp",
     description: "Belajar langsung di Pare",
     icon: Tent,
     color: "#0F2340",
@@ -88,7 +88,7 @@ export const RIGHT_COLUMNS = [
   {
     id: "school",
     label: "Program Sekolah",
-    href: "/program-sekolah",
+    href: "/program/custom",
     description: "Solusi custom untuk institusi",
     icon: School,
     color: "#7C3AED",

@@ -28,6 +28,8 @@ const buttonVariants = cva(
           "font-display font-semibold rounded-xl border-[1.5px] hover:-translate-y-px active:translate-y-0",
         "brand-ghost":
           "font-display font-semibold rounded-xl hover:-translate-y-px active:translate-y-0",
+        "brand-secondary":
+          "bg-white text-[#0F2340] font-display font-semibold rounded-2xl border border-[#E6EAF0] hover:-translate-y-px active:translate-y-0 active:scale-[0.98]",
       },
 
       size: {
@@ -73,6 +75,11 @@ const buttonVariants = cva(
         variant: "brand-ghost",
         className: "text-[#0F2340] hover:bg-orange-50 hover:text-[#FF6B35]",
       },
+      {
+        variant: "brand-secondary",
+        className:
+          "shadow-[0_2px_10px_rgba(15,35,64,0.06)] hover:border-[#FF6B35] hover:text-[#FF6B35] hover:shadow-[0_6px_20px_rgba(255,107,53,0.15)]",
+      },
     ],
 
     defaultVariants: {
@@ -104,5 +111,7 @@ function Button({
     />
   );
 }
+
+export type ButtonProps = React.ComponentProps<typeof Button>;
 
 export { Button, buttonVariants };

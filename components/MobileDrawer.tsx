@@ -593,34 +593,6 @@ export function MobileDrawer({
           className="flex-shrink-0 px-3 pb-8 pt-4 space-y-3"
           style={{ borderTop: "1px solid rgba(15,35,64,0.07)" }}
         >
-          {!session?.user && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="flex items-center justify-center gap-3"
-            >
-              <div className="flex -space-x-2">
-                {(["#FF6B35", "#2DB8B0", "#0F2340"] as const).map((bg, i) => (
-                  <div
-                    key={i}
-                    className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center font-bold text-white"
-                    style={{
-                      fontSize: "0.5rem",
-                      background: bg,
-                      zIndex: 3 - i,
-                    }}
-                  >
-                    {["R", "B", "S"][i]}
-                  </div>
-                ))}
-              </div>
-              <p style={{ fontSize: "0.75rem", color: "#64748B" }}>
-                <span style={{ color: "#FF6B35", fontWeight: 700 }}>500+</span>{" "}
-                siswa bergabung
-              </p>
-            </motion.div>
-          )}
           <MobileUserSection
             onClose={onClose}
             onOpenAuthModal={onOpenAuthModal}

@@ -223,5 +223,5 @@ export const NAV_ICONS: Record<string, React.ElementType> = {
   "/school-camp": School,
   "/tentang-kami": Info,
   "/hubungi-kami": Phone,
-  "/galeri": Images,
+  "/blog": Images,
 };
