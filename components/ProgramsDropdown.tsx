@@ -34,7 +34,7 @@ export const RIGHT_COLUMNS = [
     icon: BookOpen,
     color: "#2DB8B0",
     iconBg: "rgba(45,184,176,0.12)",
-    defaultOpen: true,
+    defaultOpen: false,
     items: [
       {
         label: "Daily Conversation",
@@ -71,7 +71,7 @@ export const RIGHT_COLUMNS = [
     icon: Tent,
     color: "#0F2340",
     iconBg: "rgba(15,35,64,0.08)",
-    defaultOpen: true,
+    defaultOpen: false,
     items: [
       {
         label: "VIP English for Kids",
@@ -93,7 +93,7 @@ export const RIGHT_COLUMNS = [
     icon: School,
     color: "#7C3AED",
     iconBg: "rgba(124,58,237,0.10)",
-    defaultOpen: true,
+    defaultOpen: false,
     items: [
       {
         label: "Request Proposal",
