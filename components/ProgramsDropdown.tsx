@@ -18,7 +18,7 @@ import { useState } from "react";
 export const LEAD_PROGRAMS = [
   {
     id: "lead",
-    title: "Program Starter",
+    title: "Speaking Challenge",
     href: "/program/lead",
     desc: "Belajar fleksibel via WhatsApp",
     icon: Zap,
@@ -29,7 +29,7 @@ export const RIGHT_COLUMNS = [
   {
     id: "online",
     label: "Kelas Online",
-    href: "/program-online",
+    href: "/program/online",
     description: "Belajar intensif via Zoom",
     icon: BookOpen,
     color: "#2DB8B0",
@@ -38,27 +38,27 @@ export const RIGHT_COLUMNS = [
     items: [
       {
         label: "Daily Conversation",
-        href: "/main-programs/daily-conversation",
+        href: "/program/online",
         desc: "Percakapan sehari-hari",
       },
       {
         label: "English for Kids",
-        href: "/main-programs/english-for-kids",
+        href: "/program/online",
         desc: "Usia 6–12 tahun",
       },
       {
         label: "Basic TOEFL",
-        href: "/main-programs/basic-toefl",
+        href: "/program/online",
         desc: "Persiapan tes TOEFL",
       },
       {
         label: "Grammar for Speaking",
-        href: "/main-programs/grammar-for-speaking",
+        href: "/program/online",
         desc: "Tata bahasa praktis",
       },
       {
         label: "Private Class",
-        href: "/main-programs/private-class",
+        href: "/program/online",
         desc: "1-on-1 dengan tutor",
       },
     ],
@@ -75,12 +75,12 @@ export const RIGHT_COLUMNS = [
     items: [
       {
         label: "VIP English for Kids",
-        href: "/camp-programs/vip-english-for-kids",
+        href: "/program/camp",
         desc: "English camp seru",
       },
       {
         label: "Program Rombongan",
-        href: "/camp-programs/rombongan",
+        href: "/program/camp",
         desc: "Untuk sekolah & pesantren",
       },
     ],
@@ -97,7 +97,7 @@ export const RIGHT_COLUMNS = [
     items: [
       {
         label: "Request Proposal",
-        href: "/school-group-programs",
+        href: "/program/custom",
         desc: "Hubungi kami untuk detail",
       },
     ],
