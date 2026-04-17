@@ -24,14 +24,17 @@ const missions = [
 
 export const VisionMissionSection = () => {
   return (
-    <section className="py-16 lg:py-24" style={{ background: BRAND.cream }}>
+    <section
+      className="py-16 lg:py-24"
+      style={{ background: BRAND.background }}
+    >
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 xl:px-12">
         {/* ── Header ── */}
         <Reveal className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div
               className="w-1.5 h-1.5 rounded-full"
-              style={{ background: BRAND.orange }}
+              style={{ background: BRAND.blueNavy }}
             />
             <span
               className="font-display font-bold"
@@ -50,7 +53,7 @@ export const VisionMissionSection = () => {
             style={{
               fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
               letterSpacing: "-0.022em",
-              color: BRAND.navy,
+              color: BRAND.blueNavy,
             }}
           >
             Arah & Tujuan Kami
@@ -61,7 +64,7 @@ export const VisionMissionSection = () => {
           {/* ════════════════════════════════════════════════════════
            *  VISION CARD — dark navy, aspirational feel
            *  Full card is navy bg (like the Company card) with
-           *  orange accent. The "big bold vision statement" deserves
+           *  blueNavy accent. The "big bold vision statement" deserves
            *  a bold, dark, confident look.
            * ════════════════════════════════════════════════════════ */}
           <Reveal delay={0.05}>
@@ -84,7 +87,7 @@ export const VisionMissionSection = () => {
                 }}
               />
 
-              {/* Orange glow — bottom right */}
+              {/* BlueNblueNavy glow — bottom right */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute"
@@ -125,8 +128,7 @@ export const VisionMissionSection = () => {
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
                     style={{
-                      background:
-                        "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
+                      background: `linear-gradient(135deg, ${BRAND.goldVivid} 0%, ${BRAND.goldMid} 100%)`,
                       boxShadow: "0 6px 20px rgba(255,107,53,0.35)",
                     }}
                   >
@@ -139,7 +141,7 @@ export const VisionMissionSection = () => {
                         fontSize: "0.625rem",
                         letterSpacing: "0.12em",
                         textTransform: "uppercase",
-                        color: "rgba(255,107,53,0.7)",
+                        color: BRAND.goldVivid,
                       }}
                     >
                       Visi
@@ -168,7 +170,7 @@ export const VisionMissionSection = () => {
                   Menjadi platform pembelajaran bahasa Inggris terdepan yang
                   melahirkan generasi Indonesia yang percaya diri berkomunikasi
                   secara global —
-                  <span style={{ color: BRAND.orange }}>
+                  <span style={{ color: BRAND.blueNavy }}>
                     {" "}
                     tanpa rasa takut, tanpa hambatan.
                   </span>
@@ -271,7 +273,7 @@ export const VisionMissionSection = () => {
                         className="font-display font-extrabold flex-shrink-0 mt-0.5"
                         style={{
                           fontSize: "0.75rem",
-                          color: BRAND.teal,
+                          color: BRAND.problem.teal.accent,
                           opacity: 0.5,
                           letterSpacing: "0.06em",
                           minWidth: "24px",
@@ -288,7 +290,7 @@ export const VisionMissionSection = () => {
                           height: "calc(100% - 4px)",
                           minHeight: "36px",
                           borderRadius: "2px",
-                          background: `linear-gradient(180deg, ${BRAND.teal} 0%, rgba(45,184,176,0.15) 100%)`,
+                          background: `linear-gradient(180deg, ${BRAND.problem.teal.accent} 0%, rgba(45,184,176,0.15) 100%)`,
                         }}
                       />
 

@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -24,9 +25,7 @@ const problems = [
         <path d="M12 8v4M12 16h.01" />
       </svg>
     ),
-    accent: "#FF6B35",
-    bg: "rgba(255,107,53,0.06)",
-    border: "rgba(255,107,53,0.18)",
+    color: BRAND.problem.orange,
   },
   {
     number: "02",
@@ -47,9 +46,7 @@ const problems = [
         <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
     ),
-    accent: "#2DB8B0",
-    bg: "rgba(45,184,176,0.06)",
-    border: "rgba(45,184,176,0.18)",
+    color: BRAND.problem.teal,
   },
   {
     number: "03",
@@ -69,9 +66,7 @@ const problems = [
         <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" />
       </svg>
     ),
-    accent: "#F59E0B",
-    bg: "rgba(245,158,11,0.06)",
-    border: "rgba(245,158,11,0.18)",
+    color: BRAND.problem.amber,
   },
   {
     number: "04",
@@ -90,9 +85,7 @@ const problems = [
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
     ),
-    accent: "#8B5CF6",
-    bg: "rgba(139,92,246,0.06)",
-    border: "rgba(139,92,246,0.18)",
+    color: BRAND.problem.purple,
   },
 ];
 
@@ -150,8 +143,8 @@ function ProblemCard({
       whileHover={{ y: -6, transition: { duration: 0.25, ease } }}
       className="group relative flex flex-col rounded-3xl p-7 cursor-default"
       style={{
-        background: problem.bg,
-        border: `1.5px solid ${problem.border}`,
+        background: problem.color.bg,
+        border: `1.5px solid ${problem.color.border}`,
         backdropFilter: "blur(8px)",
       }}
     >
@@ -160,7 +153,7 @@ function ProblemCard({
         className="absolute top-4 right-5 font-display font-black select-none pointer-events-none leading-none"
         style={{
           fontSize: "5rem",
-          color: problem.accent,
+          color: problem.color.accent,
           opacity: 0.07,
           lineHeight: 1,
         }}
@@ -171,7 +164,7 @@ function ProblemCard({
       {/* Icon circle */}
       <div
         className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
-        style={{ background: problem.accent, color: "white" }}
+        style={{ background: problem.color.accent, color: "white" }}
       >
         {problem.icon}
       </div>
@@ -179,7 +172,7 @@ function ProblemCard({
       {/* Number badge */}
       <span
         className="text-xs font-display font-bold tracking-widest uppercase mb-2"
-        style={{ color: problem.accent, opacity: 0.7 }}
+        style={{ color: problem.color.accent, opacity: 0.7 }}
       >
         {problem.number}
       </span>
@@ -201,7 +194,7 @@ function ProblemCard({
       <div
         className="absolute bottom-0 left-6 right-6 h-0.5 rounded-full origin-left transition-all duration-500"
         style={{
-          background: problem.accent,
+          background: problem.color.accent,
           opacity: 0,
           transform: "scaleX(0)",
         }}
@@ -223,7 +216,7 @@ export default function ProblemSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full overflow-hidden bg-white py-24 lg:py-36"
+      className="relative w-full overflow-hidden bg-background py-24 lg:py-36"
     >
       {/* Subtle background texture — two soft radial gradients */}
       <div
@@ -243,11 +236,11 @@ export default function ProblemSection() {
           <Reveal>
             <div className="inline-flex items-center gap-2 mb-6">
               <span
-                className="px-4 py-1.5 rounded-full text-xs font-display font-bold tracking-widest uppercase"
+                className="px-4 py-1.5 rounded-full text-xs font-display font-bold tracking-tight uppercase"
                 style={{
-                  background: "rgba(255,107,53,0.1)",
-                  color: "#E8521C",
-                  border: "1px solid rgba(255,107,53,0.2)",
+                  background: BRAND.background,
+                  color: BRAND.blueNavy,
+                  border: `1px solid ${BRAND.border}`,
                 }}
               >
                 Masalah Umum
@@ -261,21 +254,13 @@ export default function ProblemSection() {
               className="font-display font-extrabold leading-[1.07] mb-6 mx-auto"
               style={{
                 fontSize: "clamp(1rem, 4.5vw, 3rem)",
-                color: "#0F2340",
+                color: BRAND.blueNavy,
                 letterSpacing: "-0.025em",
                 maxWidth: "720px",
               }}
             >
               Mengapa Banyak Orang{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
+              <span style={GRADIENT_GOLD_TEXT}>
                 Tidak Pernah Berani Speaking?
               </span>
             </h2>
@@ -285,7 +270,7 @@ export default function ProblemSection() {
           <Reveal delay={0.16}>
             <p
               className="text-lg leading-relaxed mx-auto"
-              style={{ color: "#64748B", maxWidth: "520px" }}
+              style={{ color: BRAND.textMuted, maxWidth: "520px" }}
             >
               Banyak orang sudah belajar bahasa Inggris bertahun-tahun tetapi
               masih merasa takut berbicara.
@@ -347,10 +332,10 @@ export default function ProblemSection() {
             {/* Text */}
             <p
               className="text-base sm:text-lg font-medium relative z-10"
-              style={{ color: "#0F2340" }}
+              style={{ color: BRAND.blueNavy }}
             >
               Belajar bahasa Inggris seharusnya{" "}
-              <span className="font-bold" style={{ color: "#FF6B35" }}>
+              <span className="font-bold" style={{ color: BRAND.goldVivid }}>
                 tidak membuat kamu merasa takut!
               </span>
             </p>

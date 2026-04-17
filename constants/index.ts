@@ -97,24 +97,10 @@ export const leadMagnetPrograms = [
     ctaHref: buildWhatsAppUrl("Basic Speaking"),
     ctaExternal: true,
   },
-  {
-    href: "/speaking-challenge",
-    icon: Zap,
-    iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    iconShadow: "rgba(255,107,53,0.28)",
-    badge: "Populer",
-    badgeColor: "#E8521C",
-    title: "Speaking Challenge",
-    price: "Rp49.000",
-    highlights: ["10 hari", "Via WhatsApp", "Feedback harian"],
-    cta: "Join Speaking Challenge",
-    ctaHref: buildWhatsAppUrl("Speaking Challenge"),
-    ctaExternal: true,
-  },
 ];
 export const categoryCards = [
   {
-    href: "/main-programs",
+    href: "/online",
     icon: Users,
     cardGradient:
       "linear-gradient(145deg, rgba(45,184,176,0.07) 0%, rgba(45,184,176,0.13) 100%)",
@@ -123,7 +109,7 @@ export const categoryCards = [
     iconGradient: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
     iconShadow: "rgba(45,184,176,0.35)",
     accentColor: "#1A9990",
-    label: "Program Utama",
+    label: "Kelas Online",
     desc: "Kelas speaking intensif dengan tutor personal, max 6–8 siswa.",
     ctaLabel: "Lihat Program Utama",
     ctaBg: "rgba(45,184,176,0.12)",
@@ -132,7 +118,7 @@ export const categoryCards = [
     ctaBorder: "rgba(45,184,176,0.28)",
   },
   {
-    href: "/camp-programs",
+    href: "/offline",
     icon: Tent,
     cardGradient:
       "linear-gradient(145deg, rgba(15,35,64,0.04) 0%, rgba(15,35,64,0.09) 100%)",
@@ -141,7 +127,7 @@ export const categoryCards = [
     iconGradient: "linear-gradient(135deg, #0F2340 0%, #1A365D 100%)",
     iconShadow: "rgba(15,35,64,0.25)",
     accentColor: "#0F2340",
-    label: "Camp Program",
+    label: "Kelas Offline",
     desc: "VIP English Camp for Kids di Kampung Inggris Pare.",
     ctaLabel: "Lihat Camp Program",
     ctaBg: "rgba(15,35,64,0.07)",
@@ -149,30 +135,12 @@ export const categoryCards = [
     ctaColor: "#0F2340",
     ctaBorder: "rgba(15,35,64,0.16)",
   },
-  {
-    href: "/school-group-programs",
-    icon: School,
-    cardGradient:
-      "linear-gradient(145deg, rgba(124,58,237,0.05) 0%, rgba(124,58,237,0.11) 100%)",
-    cardBorderDefault: "rgba(124,58,237,0.18)",
-    cardBorderHover: "rgba(124,58,237,0.35)",
-    iconGradient: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
-    iconShadow: "rgba(124,58,237,0.3)",
-    accentColor: "#6D28D9",
-    label: "Grup Sekolah",
-    desc: "Program rombongan sekolah & pesantren, customizable.",
-    ctaLabel: "Request Proposal",
-    ctaBg: "rgba(124,58,237,0.09)",
-    ctaBgHover: "rgba(124,58,237,0.18)",
-    ctaColor: "#6D28D9",
-    ctaBorder: "rgba(124,58,237,0.22)",
-  },
 ];
 
 export const PROGRAM_CATEGORIES = [
   {
     key: "online",
-    label: "Kelas Online",
+    label: "Program Online",
     desc: "Belajar intensif via Zoom",
     items: [
       {
@@ -198,8 +166,8 @@ export const PROGRAM_CATEGORIES = [
     ],
   },
   {
-    key: "camp",
-    label: "Holiday Camp",
+    key: "offline",
+    label: "Program Offline",
     desc: "Belajar langsung di Pare",
     items: [
       {

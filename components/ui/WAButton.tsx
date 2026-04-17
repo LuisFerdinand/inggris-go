@@ -52,7 +52,7 @@ export default function WAButton({
         rel="noopener noreferrer"
       >
         {icon && <WhatsAppIcon className="size-5" />}
-        <span>{label}</span>
+        <span className="">{label}</span>
       </a>
     </Button>
   );

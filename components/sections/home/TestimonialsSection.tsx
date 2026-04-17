@@ -9,6 +9,7 @@ import {
   useTransform,
   animate,
 } from "framer-motion";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const AUTO_DELAY = 4800; // ms per slide
@@ -467,10 +468,7 @@ export default function TestimonialsSection() {
   );
 
   return (
-    <section
-      className="relative w-full overflow-hidden py-20 lg:py-28"
-      style={{ background: "#FFF8F3" }}
-    >
+    <section className="relative w-full overflow-hidden py-20 lg:py-28 bg-background">
       {/* Warm radial bg */}
       <div
         aria-hidden
@@ -485,16 +483,18 @@ export default function TestimonialsSection() {
         {/* ── Header ────────────────────────────────────────────── */}
         <div className="flex flex-col items-center text-center mb-12 lg:mb-16">
           <Reveal>
-            <span
-              className="inline-block px-5 py-2 rounded-full font-display font-semibold mb-5 text-white"
-              style={{
-                fontSize: "0.8125rem",
-                background: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                boxShadow: "0 4px 16px rgba(255,107,53,0.28)",
-              }}
-            >
-              Testimoni
-            </span>
+            <div className="inline-flex items-center gap-2 mb-6">
+              <span
+                className="px-4 py-1.5 rounded-full text-xs font-display font-bold tracking-tight uppercase"
+                style={{
+                  background: BRAND.background,
+                  color: BRAND.blueNavy,
+                  border: `1px solid ${BRAND.border}`,
+                }}
+              >
+                Testimoni
+              </span>
+            </div>
           </Reveal>
           <Reveal delay={0.08}>
             <h2
@@ -502,29 +502,18 @@ export default function TestimonialsSection() {
               style={{
                 fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
                 letterSpacing: "-0.022em",
-                color: "#0F2340",
+                color: BRAND.blueNavy,
               }}
             >
               Apa Kata Mereka Tentang{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Inggris Go
-              </span>
-              ?
+              <span style={GRADIENT_GOLD_TEXT}>Inggris Go</span>?
             </h2>
           </Reveal>
           <Reveal delay={0.15}>
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "#64748B",
+                color: BRAND.blueAbyss,
                 maxWidth: "400px",
               }}
               className="leading-relaxed"
@@ -729,7 +718,7 @@ export default function TestimonialsSection() {
                   height: "7px",
                   background:
                     i === current
-                      ? "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)"
+                      ? `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`
                       : "rgba(15,35,64,0.14)",
                 }}
               />
@@ -749,7 +738,7 @@ export default function TestimonialsSection() {
               background: "white",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "#FF6B35";
+              (e.currentTarget as HTMLElement).style.borderColor = BRAND.blue;
               (e.currentTarget as HTMLElement).style.background =
                 "rgba(255,107,53,0.05)";
             }}
@@ -771,16 +760,16 @@ export default function TestimonialsSection() {
           </button>
 
           {/* Divider */}
-          <div
+          {/* <div
             style={{
               width: "1px",
               height: "20px",
               background: "rgba(15,35,64,0.1)",
             }}
-          />
+          /> */}
 
           {/* Pause / Play toggle */}
-          <button
+          {/* <button
             onClick={() => setUserPaused((p) => !p)}
             aria-label={userPaused ? "Play autoplay" : "Pause autoplay"}
             className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200"
@@ -808,11 +797,11 @@ export default function TestimonialsSection() {
             }}
           >
             {userPaused ? <PlayIcon /> : <PauseIcon />}
-          </button>
+          </button> */}
         </div>
 
         {/* Auto-play progress bar */}
-        <div className="flex justify-center">
+        {/* <div className="flex justify-center">
           <div
             className="rounded-full overflow-hidden"
             style={{
@@ -833,7 +822,7 @@ export default function TestimonialsSection() {
               }}
             />
           </div>
-        </div>
+        </div> */}
       </div>
     </section>
   );

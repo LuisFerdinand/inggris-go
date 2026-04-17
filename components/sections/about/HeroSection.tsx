@@ -1,7 +1,7 @@
 "use client";
 
 import Reveal from "@/components/ui/Reveal";
-import { BRAND } from "@/constants/brand";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, Users, Star, BookOpen } from "lucide-react";
 
@@ -10,13 +10,13 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const teamAvatars = [
   {
     initials: "YR",
-    color: BRAND.orange,
+    color: BRAND.problem.orange.accent,
     name: "Yuma Rafi",
     role: "CEO & Founder",
   },
   {
     initials: "MA",
-    color: BRAND.teal,
+    color: BRAND.problem.teal.accent,
     name: "Marissa",
     role: "Head of Education",
   },
@@ -28,7 +28,7 @@ const teamAvatars = [
   },
   {
     initials: "DV",
-    color: BRAND.purple,
+    color: BRAND.problem.purple.accent,
     name: "Devi",
     role: "Finance Manager",
   },
@@ -83,7 +83,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
                 cx={col * 20 + 10}
                 cy={row * 20 + 10}
                 r="2.5"
-                fill={BRAND.orange}
+                fill={BRAND.blueNavy}
                 fillOpacity={0.18 - row * 0.015}
               />
             )),
@@ -103,7 +103,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
         >
           <motion.path
             d="M 90 10 A 80 80 0 0 0 10 90"
-            stroke={BRAND.orange}
+            stroke={BRAND.blue}
             strokeWidth="2"
             strokeLinecap="round"
             strokeOpacity="0.25"
@@ -122,7 +122,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
             left: "30px",
             width: "36px",
             height: "36px",
-            border: `2px solid ${BRAND.orange}`,
+            border: `2px solid ${BRAND.blueNavy}`,
             borderRadius: "4px",
             transform: "rotate(45deg)",
             opacity: 0.22,
@@ -140,7 +140,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
             left: "16px",
             width: "10px",
             height: "10px",
-            background: BRAND.orange,
+            background: BRAND.blueNavy,
             borderRadius: "2px",
             transform: "rotate(45deg)",
             opacity: 0.3,
@@ -163,7 +163,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
             y1="0"
             x2="2"
             y2="80"
-            stroke={BRAND.orange}
+            stroke={BRAND.blueNavy}
             strokeWidth="1.5"
             strokeDasharray="4 6"
             strokeOpacity="0.2"
@@ -193,7 +193,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
                 cx="10"
                 cy="10"
                 r="8"
-                stroke={BRAND.orange}
+                stroke={BRAND.blueNavy}
                 strokeWidth="1.5"
                 strokeOpacity="0.28"
               />
@@ -201,7 +201,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
                 cx="10"
                 cy="10"
                 r="3"
-                fill={BRAND.orange}
+                fill={BRAND.blueNavy}
                 fillOpacity="0.2"
               />
             </svg>
@@ -237,7 +237,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
             cx="60"
             cy="60"
             r="52"
-            stroke={BRAND.teal}
+            stroke={BRAND.problem.teal.accent}
             strokeWidth="1"
             strokeOpacity="0.15"
             fill="none"
@@ -246,7 +246,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
             cx="60"
             cy="60"
             r="38"
-            stroke={BRAND.teal}
+            stroke={BRAND.problem.teal.accent}
             strokeWidth="1"
             strokeOpacity="0.18"
             fill="none"
@@ -255,19 +255,37 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
             cx="60"
             cy="60"
             r="22"
-            stroke={BRAND.teal}
+            stroke={BRAND.problem.teal.accent}
             strokeWidth="1.5"
             strokeOpacity="0.22"
             fill="none"
           />
-          <circle cx="60" cy="60" r="6" fill={BRAND.teal} fillOpacity="0.2" />
+          <circle
+            cx="60"
+            cy="60"
+            r="6"
+            fill={BRAND.problem.teal.accent}
+            fillOpacity="0.2"
+          />
         </motion.svg>
 
         {/* Cross / plus marks */}
         {[
-          { x: 10, y: 190, size: 12, color: BRAND.teal, delay: 0.6 },
-          { x: 80, y: 170, size: 8, color: BRAND.orange, delay: 0.75 },
-          { x: 30, y: 320, size: 10, color: BRAND.teal, delay: 0.85 },
+          {
+            x: 10,
+            y: 190,
+            size: 12,
+            color: BRAND.problem.teal.accent,
+            delay: 0.6,
+          },
+          { x: 80, y: 170, size: 8, color: BRAND.blueNavy, delay: 0.75 },
+          {
+            x: 30,
+            y: 320,
+            size: 10,
+            color: BRAND.problem.teal.accent,
+            delay: 0.85,
+          },
         ].map((cross, i) => (
           <motion.svg
             key={i}
@@ -326,7 +344,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
         >
           <path
             d="M22 4 L40 36 L4 36 Z"
-            stroke={BRAND.teal}
+            stroke={BRAND.problem.teal.accent}
             strokeWidth="1.5"
             strokeOpacity="0.28"
             fill="none"
@@ -349,7 +367,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
                 cx={col * 20 + 10}
                 cy={row * 20 + 10}
                 r="2"
-                fill={BRAND.teal}
+                fill={BRAND.problem.teal.accent}
                 fillOpacity={0.15 + row * 0.02}
               />
             )),
@@ -385,7 +403,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
                 width="12"
                 height="12"
                 rx="2"
-                stroke={BRAND.teal}
+                stroke={BRAND.problem.teal.accent}
                 strokeWidth="1.5"
                 strokeOpacity="0.4"
                 fill="none"
@@ -407,7 +425,7 @@ function Decorations({ reduced }: { reduced: boolean | null }) {
             y1="2"
             x2="80"
             y2="2"
-            stroke={BRAND.teal}
+            stroke={BRAND.problem.teal.accent}
             strokeWidth="1.5"
             strokeDasharray="5 7"
             strokeOpacity="0.2"
@@ -426,12 +444,7 @@ export const HeroSection = () => {
   const reduced = useReducedMotion();
 
   return (
-    <section
-      className="relative w-full overflow-hidden pt-28 pb-0 lg:pt-36"
-      style={{
-        background: "linear-gradient(180deg, #FFF8F3 0%, #FFFFFF 100%)",
-      }}
-    >
+    <section className="relative w-full overflow-hidden pt-28 pb-0 lg:pt-36 bg-background">
       {/* Ambient radial glow */}
       <div
         aria-hidden
@@ -467,7 +480,7 @@ export const HeroSection = () => {
               style={{
                 fontSize: "0.75rem",
                 background: "white",
-                color: BRAND.navy,
+                color: BRAND.blueNavy,
                 border: "1px solid rgba(15,35,64,0.1)",
                 boxShadow: "0 2px 12px rgba(15,35,64,0.07)",
               }}
@@ -484,7 +497,7 @@ export const HeroSection = () => {
               </span>
               <MapPin
                 className="w-3 h-3 flex-shrink-0"
-                style={{ color: BRAND.orange }}
+                style={{ color: BRAND.blueNavy }}
               />
               Kampung Inggris Pare, Kediri
             </span>
@@ -494,7 +507,7 @@ export const HeroSection = () => {
                 fontSize: "0.75rem",
                 letterSpacing: "0.04em",
                 background: "rgba(255,107,53,0.09)",
-                color: BRAND.orange,
+                color: BRAND.blueNavy,
                 border: "1px solid rgba(255,107,53,0.2)",
               }}
             >
@@ -510,21 +523,12 @@ export const HeroSection = () => {
             style={{
               fontSize: "clamp(2rem, 5vw, 3.5rem)",
               letterSpacing: "-0.025em",
-              color: BRAND.navy,
+              color: BRAND.blueNavy,
             }}
           >
             Membangun Kepercayaan Diri
             <br />
-            <span
-              style={{
-                background: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              Berbahasa Inggris
-            </span>
+            <span style={GRADIENT_GOLD_TEXT}>Berbahasa Inggris</span>
           </h1>
         </Reveal>
 
@@ -571,11 +575,11 @@ export const HeroSection = () => {
                   <div className="flex items-center gap-3 px-5 py-4 sm:px-6">
                     <div
                       className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: "rgba(255,107,53,0.08)" }}
+                      style={{ background: BRAND.background }}
                     >
                       <Icon
                         className="w-4 h-4"
-                        style={{ color: BRAND.orange }}
+                        style={{ color: BRAND.blueNavy }}
                       />
                     </div>
                     <div className="text-left">
@@ -583,7 +587,7 @@ export const HeroSection = () => {
                         className="font-display font-extrabold leading-none"
                         style={{
                           fontSize: "1.375rem",
-                          color: BRAND.orange,
+                          color: BRAND.blueNavy,
                           letterSpacing: "-0.03em",
                         }}
                       >
@@ -651,7 +655,7 @@ export const HeroSection = () => {
             <div className="text-left">
               <p
                 className="font-display font-semibold"
-                style={{ fontSize: "0.875rem", color: BRAND.navy }}
+                style={{ fontSize: "0.875rem", color: BRAND.blueNavy }}
               >
                 Tim Inggris Go
               </p>
@@ -671,7 +675,7 @@ export const HeroSection = () => {
         >
           <div
             className="lg:col-span-8 px-8 py-8 lg:px-12 lg:py-10 flex items-center gap-6"
-            style={{ background: BRAND.navy }}
+            style={{ background: BRAND.blueNavy }}
           >
             <svg
               viewBox="0 0 48 36"
@@ -681,7 +685,7 @@ export const HeroSection = () => {
             >
               <path
                 d="M0 23.4C0 30.6 4.275 36 11.7 36c6.3 0 10.8-4.5 10.8-10.8 0-5.85-4.05-9.9-9.45-9.9-.45 0-1.125 0-1.8.225C12.6 9.9 17.1 5.4 22.5 2.7L18.9 0C8.55 4.5 0 13.05 0 23.4zm25 0C25 30.6 29.275 36 36.7 36 43 36 47.5 31.5 47.5 25.2c0-5.85-4.05-9.9-9.45-9.9-.45 0-1.125 0-1.8.225C37.6 9.9 42.1 5.4 47.5 2.7L43.9 0C33.55 4.5 25 13.05 25 23.4z"
-                fill={BRAND.orange}
+                fill={BRAND.blueNavy}
                 fillOpacity={0.3}
               />
             </svg>
@@ -740,7 +744,7 @@ export const HeroSection = () => {
                 </p>
                 <p
                   className="font-display font-bold"
-                  style={{ fontSize: "0.875rem", color: BRAND.navy }}
+                  style={{ fontSize: "0.875rem", color: BRAND.blueNavy }}
                 >
                   {fact.value}
                 </p>

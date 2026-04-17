@@ -51,7 +51,7 @@ import Link from "next/link";
           style={{
             fontSize: "0.9375rem",
             background: "white",
-            color: BRAND.orange,
+            color: BRAND.blueNavy,
             boxShadow: "0 6px 24px rgba(0,0,0,0.14)",
           }}
         >

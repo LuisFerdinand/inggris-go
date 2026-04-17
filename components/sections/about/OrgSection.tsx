@@ -10,7 +10,7 @@ export const OrgSection = () => {
           <div className="flex items-center justify-center gap-2 mb-4">
             <div
               className="w-1.5 h-1.5 rounded-full"
-              style={{ background: BRAND.orange }}
+              style={{ background: BRAND.blueNavy }}
             />
             <span
               className="font-display font-bold"
@@ -29,7 +29,7 @@ export const OrgSection = () => {
             style={{
               fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
               letterSpacing: "-0.022em",
-              color: BRAND.navy,
+              color: BRAND.blueNavy,
             }}
           >
             Tim Inggris Go

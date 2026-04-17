@@ -33,20 +33,20 @@ export default function Navbar() {
   const isProgramActive = allProgramHrefs.includes(pathname);
   const regularLinks = navLinks.filter((l) => l.label !== "Program Kami");
 
-  // Scroll shadow
+  // ── Scroll shadow ────────────────────────────────────────────────────────
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close everything on route change
+  // ── Close everything on route change ────────────────────────────────────
   useEffect(() => {
     setMobileOpen(false);
     setProgramsOpen(false);
   }, [pathname]);
 
-  // Close programs dropdown on outside click
+  // ── Close programs dropdown on outside click ─────────────────────────────
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -71,20 +71,32 @@ export default function Navbar() {
 
   return (
     <>
-      {/* ── Navbar bar ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+          Navbar bar
+      ══════════════════════════════════════════════════════════════════ */}
       <nav
-        className={`fixed top-0 inset-x-0 z-50 overflow-visible bg-white transition-all duration-300 ${
-          scrolled ? "shadow-sm border-b border-slate-900/5" : "shadow-sm"
-        }`}
         role="navigation"
         aria-label="Main navigation"
+        className={[
+          // Layout
+          "fixed top-0 inset-x-0 z-[1000] isolate overflow-visible",
+          // Background — white with blue-tinted surface
+          "bg-[var(--color-brand-surface)]",
+          // Smooth transition for scroll state
+          "transition-all duration-300",
+          // Scroll shadow — uses brand border + card shadow
+          scrolled
+            ? "shadow-[0_1px_0_var(--color-brand-border),0_4px_24px_var(--color-brand-shadow-soft)]"
+            : "shadow-[0_1px_0_var(--color-brand-border-soft)]",
+        ].join(" ")}
       >
+        {/* ── Inner container ── */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
           <div className="flex items-center justify-between h-14 lg:h-[72px] overflow-visible">
-            {/* Logo */}
+            {/* ── Logo ─────────────────────────────────────────────────── */}
             <Link
               href="/"
-              className="flex-shrink-0"
+              className="flex-shrink-0 transition-opacity duration-200 hover:opacity-85"
               aria-label="Inggris Go — Beranda"
             >
               <Image
@@ -97,8 +109,9 @@ export default function Navbar() {
               />
             </Link>
 
-            {/* ── Desktop nav ── */}
+            {/* ── Desktop nav ──────────────────────────────────────────── */}
             <div className="hidden lg:flex items-center gap-6 xl:gap-8 overflow-visible">
+              {/* Left nav links */}
               {regularLinks.slice(0, 2).map((link) => (
                 <Link
                   key={link.href}
@@ -118,11 +131,14 @@ export default function Navbar() {
               >
                 <button
                   onClick={() => setProgramsOpen((o) => !o)}
-                  className={`nav-link flex items-center gap-1 bg-transparent border-0 p-0 cursor-pointer ${
-                    isProgramActive ? "active" : ""
-                  }`}
                   aria-haspopup="true"
                   aria-expanded={programsOpen}
+                  className={[
+                    "nav-link",
+                    "flex items-center gap-1",
+                    "bg-transparent border-0 p-0 cursor-pointer",
+                    isProgramActive ? "active" : "",
+                  ].join(" ")}
                 >
                   Program Kami
                   <motion.span
@@ -144,6 +160,7 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
 
+              {/* Right nav links */}
               {regularLinks.slice(2).map((link) => (
                 <Link
                   key={link.href}
@@ -154,30 +171,39 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              {/* WhatsApp CTA */}
+              {/* ── WhatsApp CTA — gold gradient (primary brand CTA) ──── */}
               <WAButton
                 program="Konsultasi"
                 label="Hubungi Kami"
                 size="default"
-                className="px-6 py-2.5 text-sm"
+                variant="default"
+                className="px-5 py-2 text-sm font-semibold"
               />
 
-              {/* Visual separator */}
+              {/* ── Visual separator ──────────────────────────────────── */}
               <div
                 className="h-6 w-px flex-shrink-0"
-                style={{ background: "rgba(15,35,64,0.1)" }}
+                style={{ background: "var(--color-brand-border)" }}
                 aria-hidden="true"
               />
 
-              {/* UserNav — far right */}
+              {/* ── UserNav — far right ───────────────────────────────── */}
               <UserNav onOpenAuthModal={() => setAuthModalOpen(true)} />
             </div>
 
-            {/* ── Mobile hamburger ── */}
+            {/* ── Mobile hamburger ─────────────────────────────────────── */}
             <Button
-              variant={"brand-outline"}
+              variant="brand-outline"
+              size="icon"
               onClick={() => setMobileOpen((o) => !o)}
-              className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center transition-colors hover:bg-gray-100 cursor-pointer"
+              className={[
+                "lg:hidden",
+                "rounded-xl",
+                // Blue border on default, gold on open
+                mobileOpen
+                  ? "border-[var(--color-brand-gold)] text-[var(--color-brand-gold-dark)] bg-[var(--color-brand-gold-cream)]"
+                  : "",
+              ].join(" ")}
               aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-drawer"
@@ -189,9 +215,13 @@ export default function Navbar() {
                     initial={{ rotate: -90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
+                    transition={{ duration: 0.18, ease: EASE }}
+                    style={{ display: "inline-flex" }}
                   >
-                    <X className="w-5 h-5 text-brand-navy" />
+                    <X
+                      className="w-5 h-5"
+                      style={{ color: "var(--color-brand-gold-dark)" }}
+                    />
                   </motion.span>
                 ) : (
                   <motion.span
@@ -199,18 +229,48 @@ export default function Navbar() {
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
+                    transition={{ duration: 0.18, ease: EASE }}
+                    style={{ display: "inline-flex" }}
                   >
-                    <Menu className="w-5 h-5 text-brand-navy" />
+                    <Menu
+                      className="w-5 h-5"
+                      style={{ color: "var(--color-brand-blue-navy)" }}
+                    />
                   </motion.span>
                 )}
               </AnimatePresence>
             </Button>
           </div>
         </div>
+
+        {/* ── Gold accent line — only visible when scrolled ───────────── */}
+        <AnimatePresence>
+          {scrolled && (
+            <motion.div
+              key="gold-line"
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: 1, opacity: 1 }}
+              exit={{ scaleX: 0, opacity: 0 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: "2px",
+                background:
+                  "linear-gradient(90deg, var(--color-brand-gold-vivid) 0%, var(--color-brand-gold-dark) 100%)",
+                transformOrigin: "left center",
+              }}
+            />
+          )}
+        </AnimatePresence>
       </nav>
 
-      {/* ── Mobile Drawer ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+          Mobile Drawer
+      ══════════════════════════════════════════════════════════════════ */}
       <AnimatePresence>
         {mobileOpen && (
           <MobileDrawer
@@ -225,7 +285,9 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* ── Auth Modal Portal ── */}
+      {/* ══════════════════════════════════════════════════════════════════
+          Auth Modal Portal
+      ══════════════════════════════════════════════════════════════════ */}
       <AuthModalPortal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}

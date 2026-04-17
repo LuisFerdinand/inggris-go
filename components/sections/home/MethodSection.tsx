@@ -2,10 +2,10 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-/* ── Step data — richer with tags and a short "what you'll do" line ── */
 const steps = [
   {
     num: "1",
@@ -13,9 +13,8 @@ const steps = [
     subtitle: "Pahami Dasarnya",
     body: "Memahami kalimat sederhana dan struktur dasar bahasa Inggris dengan metode yang mudah dicerna.",
     tags: ["Kosakata dasar", "Pola kalimat", "Listening"],
-    squareBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    accentBg: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
-    accentColor: "#2DB8B0",
+    squareBg: BRAND.gradientBlue,
+    accentBg: BRAND.gradientNavy,
     rotate: "-6deg",
     icon: (
       <svg
@@ -38,9 +37,8 @@ const steps = [
     subtitle: "Tiru & Rasakan",
     body: "Meniru cara bicara tutor berpengalaman — intonasi, ritme, dan ekspresi yang natural.",
     tags: ["Shadowing", "Pronunciation", "Intonasi"],
-    squareBg: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
-    accentBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    accentColor: "#FF6B35",
+    squareBg: BRAND.gradientGold,
+    accentBg: BRAND.gradientBlue,
     rotate: "5deg",
     icon: (
       <svg
@@ -63,9 +61,8 @@ const steps = [
     subtitle: "Latihan Rutin",
     body: "Latihan berbicara secara konsisten dengan feedback langsung dari tutor yang supportif.",
     tags: ["Feedback tutor", "Speaking drill", "Koreksi langsung"],
-    squareBg: "linear-gradient(135deg, #0F2340 0%, #1A365D 100%)",
-    accentBg: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
-    accentColor: "#2DB8B0",
+    squareBg: BRAND.gradientNavy,
+    accentBg: BRAND.gradientGold,
     rotate: "-4deg",
     icon: (
       <svg
@@ -88,9 +85,8 @@ const steps = [
     subtitle: "Berani Bicara!",
     body: "Gunakan bahasa Inggris dengan percaya diri di situasi nyata — tanpa rasa takut salah.",
     tags: ["Percaya diri", "Situasi nyata", "No fear!"],
-    squareBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    accentBg: "linear-gradient(135deg, #0F2340 0%, #1A365D 100%)",
-    accentColor: "#0F2340",
+    squareBg: BRAND.gradientBlue,
+    accentBg: BRAND.gradientNavy,
     rotate: "6deg",
     icon: (
       <svg
@@ -109,7 +105,6 @@ const steps = [
   },
 ];
 
-/* ── Scroll reveal ─────────────────────────────────────────────────── */
 function Reveal({
   children,
   delay = 0,
@@ -134,7 +129,6 @@ function Reveal({
   );
 }
 
-/* ── Desktop step card ─────────────────────────────────────────────── */
 function DesktopStepCard({
   step,
   index,
@@ -151,12 +145,9 @@ function DesktopStepCard({
       initial={{ opacity: 0, y: 36 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, delay: index * 0.12, ease }}
-      /* group — children react to card hover */
       className="group flex flex-col items-center text-center flex-1 min-w-0 cursor-default"
     >
-      {/* ── Dual-square icon block ── */}
       <div className="relative mb-5" style={{ width: "88px", height: "88px" }}>
-        {/* Large square — unrotates and scales on group hover */}
         <motion.div
           className="group-hover:scale-105 transition-all duration-300"
           style={{
@@ -171,13 +162,11 @@ function DesktopStepCard({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
+            boxShadow: BRAND.shadowBlueBtn,
             transition:
               "transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease",
           }}
-          /* On group hover, unrotate via inline style override via CSS class below */
         >
-          {/* Inner rotate resets on group hover via a wrapper trick */}
           <span
             className="font-display font-black text-white select-none"
             style={{
@@ -190,7 +179,6 @@ function DesktopStepCard({
           </span>
         </motion.div>
 
-        {/* Small accent square — bounces up on group hover */}
         <div
           className="
             absolute bottom-0 right-0 z-10
@@ -203,43 +191,53 @@ function DesktopStepCard({
             height: "32px",
             borderRadius: "10px",
             background: step.accentBg,
-            boxShadow: "0 4px 14px rgba(0,0,0,0.22)",
+            boxShadow: BRAND.shadowBlueBtn,
           }}
         >
           {step.icon}
         </div>
       </div>
 
-      {/* Subtitle — small eyebrow above title */}
       <span
         className="font-display font-semibold mb-1 transition-colors duration-200"
         style={{
           fontSize: "0.6875rem",
           letterSpacing: "0.08em",
-          color: "#94A3B8",
+          color: BRAND.textFaint,
           textTransform: "uppercase",
         }}
       >
         {step.subtitle}
       </span>
 
-      {/* Title */}
       <h3
-        className="font-display font-bold mb-2 leading-snug group-hover:text-brand-orange transition-colors duration-200"
-        style={{ fontSize: "1.0625rem", color: "#0F2340" }}
+        className="font-display font-bold mb-2 leading-snug transition-colors duration-200"
+        style={{
+          fontSize: "1.0625rem",
+          color: BRAND.blueNavy,
+          transition: "color 0.2s",
+        }}
+        onMouseEnter={(e) =>
+          ((e.currentTarget as HTMLElement).style.color = BRAND.goldVivid)
+        }
+        onMouseLeave={(e) =>
+          ((e.currentTarget as HTMLElement).style.color = BRAND.blueNavy)
+        }
       >
         {step.title}
       </h3>
 
-      {/* Body */}
       <p
         className="leading-relaxed mb-4"
-        style={{ fontSize: "0.8125rem", color: "#64748B", maxWidth: "176px" }}
+        style={{
+          fontSize: "0.8125rem",
+          color: BRAND.textMuted,
+          maxWidth: "176px",
+        }}
       >
         {step.body}
       </p>
 
-      {/* Tags — appear on hover with a slight fade-up */}
       <div className="flex flex-wrap justify-center gap-1.5">
         {step.tags.map((tag) => (
           <span
@@ -248,9 +246,9 @@ function DesktopStepCard({
               opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0"
             style={{
               fontSize: "0.6875rem",
-              background: "rgba(255,107,53,0.08)",
-              color: "#E8521C",
-              border: "1px solid rgba(255,107,53,0.15)",
+              background: BRAND.overlayGoldIcon,
+              color: BRAND.goldMid,
+              border: `1px solid var(--color-brand-overlay-gold-blob)`,
               transitionDelay: "40ms",
             }}
           >
@@ -262,7 +260,6 @@ function DesktopStepCard({
   );
 }
 
-/* ── Mobile vertical step — timeline layout ───────────────────────── */
 function MobileStep({
   step,
   index,
@@ -281,14 +278,10 @@ function MobileStep({
       initial={{ opacity: 0, x: -20 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.55, delay: index * 0.1, ease }}
-      /* group for hover */
       className="group relative flex gap-5"
     >
-      {/* ── Left: icon + vertical line ── */}
       <div className="flex flex-col items-center flex-shrink-0">
-        {/* Dual-square icon */}
         <div className="relative" style={{ width: "68px", height: "68px" }}>
-          {/* Large square */}
           <div
             className="absolute top-0 left-0 flex items-center justify-center
               group-hover:scale-105 transition-transform duration-300"
@@ -298,7 +291,7 @@ function MobileStep({
               borderRadius: "16px",
               background: step.squareBg,
               transform: `rotate(${step.rotate})`,
-              boxShadow: "0 6px 20px rgba(0,0,0,0.16)",
+              boxShadow: BRAND.shadowBlueBtn,
               transition:
                 "transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.3s ease",
             }}
@@ -315,7 +308,6 @@ function MobileStep({
             </span>
           </div>
 
-          {/* Small accent square */}
           <div
             className="absolute bottom-0 right-0 z-10 flex items-center justify-center
               group-hover:-translate-y-1.5 group-hover:scale-110 transition-transform duration-300"
@@ -324,28 +316,25 @@ function MobileStep({
               height: "26px",
               borderRadius: "8px",
               background: step.accentBg,
-              boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+              boxShadow: BRAND.shadowBlueBtn,
             }}
           >
             {step.icon}
           </div>
         </div>
 
-        {/* Vertical connector line */}
         {!isLast && (
           <div
             className="mt-3 flex-1 flex flex-col items-center"
             style={{ minHeight: "40px" }}
           >
-            {/* Animated dashed line */}
             <motion.div
               initial={{ height: 0 }}
               animate={inView ? { height: "100%" } : {}}
               transition={{ duration: 0.7, delay: index * 0.1 + 0.3, ease }}
               style={{
                 width: "2px",
-                background:
-                  "linear-gradient(180deg, rgba(255,107,53,0.6) 0%, rgba(255,107,53,0.1) 100%)",
+                background: `linear-gradient(180deg, ${BRAND.blueVivid} 0%, ${BRAND.blueFrost} 100%)`,
                 borderRadius: "2px",
                 flex: 1,
               }}
@@ -354,38 +343,33 @@ function MobileStep({
         )}
       </div>
 
-      {/* ── Right: text content ── */}
       <div className="pb-10 flex-1 pt-1">
-        {/* Step label */}
         <span
           className="font-display font-semibold block mb-1"
           style={{
             fontSize: "0.6875rem",
             letterSpacing: "0.08em",
-            color: "#94A3B8",
+            color: BRAND.textFaint,
             textTransform: "uppercase",
           }}
         >
           Langkah {step.num} · {step.subtitle}
         </span>
 
-        {/* Title */}
         <h3
-          className="font-display font-bold mb-2 leading-snug group-hover:text-brand-orange transition-colors duration-200"
-          style={{ fontSize: "1.0625rem", color: "#0F2340" }}
+          className="font-display font-bold mb-2 leading-snug transition-colors duration-200"
+          style={{ fontSize: "1.0625rem", color: BRAND.blueNavy }}
         >
           {step.title}
         </h3>
 
-        {/* Body */}
         <p
           className="leading-relaxed mb-3"
-          style={{ fontSize: "0.8125rem", color: "#64748B" }}
+          style={{ fontSize: "0.8125rem", color: BRAND.textMuted }}
         >
           {step.body}
         </p>
 
-        {/* Tags — always visible on mobile (no hover) */}
         <div className="flex flex-wrap gap-1.5">
           {step.tags.map((tag) => (
             <span
@@ -393,9 +377,9 @@ function MobileStep({
               className="px-2.5 py-1 rounded-full font-medium"
               style={{
                 fontSize: "0.6875rem",
-                background: "rgba(255,107,53,0.08)",
-                color: "#E8521C",
-                border: "1px solid rgba(255,107,53,0.15)",
+                background: BRAND.overlayGoldIcon,
+                color: BRAND.goldMid,
+                border: `1px solid var(--color-brand-overlay-gold-blob)`,
               }}
             >
               {tag}
@@ -407,49 +391,42 @@ function MobileStep({
   );
 }
 
-/* ── Section ───────────────────────────────────────────────────────── */
 export default function MethodSection() {
   return (
-    <section
-      className="relative w-full overflow-hidden py-20 lg:py-28"
-      style={{
-        background: "linear-gradient(180deg, #FFF8F3 0%, #FFF0E6 100%)",
-      }}
-    >
-      {/* Subtle radial bg tints */}
+    <section className="relative w-full overflow-hidden py-20 lg:py-28 bg-background">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at 85% 15%, rgba(255,107,53,0.06) 0%, transparent 60%)," +
-            "radial-gradient(ellipse 50% 60% at 15% 85%, rgba(45,184,176,0.05) 0%, transparent 55%)",
+            `radial-gradient(ellipse 60% 50% at 85% 15%, ${BRAND.overlayBlueBlob} 0%, transparent 60%),` +
+            `radial-gradient(ellipse 50% 60% at 15% 85%, ${BRAND.overlayGoldBlob} 0%, transparent 55%)`,
         }}
       />
 
-      {/* CSS for group-hover rotate reset on large square */}
       <style>{`
         .group:hover .step-large-square {
           transform: rotate(0deg) !important;
-          box-shadow: 0 16px 48px rgba(0,0,0,0.22) !important;
+          box-shadow: var(--shadow-glow-blue-btn-hover) !important;
         }
       `}</style>
 
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 xl:px-12">
-        {/* ── Header ────────────────────────────────────────────── */}
+        {/* Header */}
         <div className="flex flex-col items-center text-center mb-14 lg:mb-20">
-          {/* Solid orange pill */}
           <Reveal>
-            <span
-              className="inline-block px-5 py-2 rounded-full font-display font-semibold mb-5 text-white"
-              style={{
-                fontSize: "0.8125rem",
-                background: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                boxShadow: "0 4px 16px rgba(255,107,53,0.28)",
-              }}
-            >
-              Metode Kami
-            </span>
+            <div className="inline-flex items-center gap-2 mb-6">
+              <span
+                className="px-4 py-1.5 rounded-full text-xs font-display font-bold tracking-tight uppercase"
+                style={{
+                  background: BRAND.background,
+                  color: BRAND.blueNavy,
+                  border: `1px solid ${BRAND.border}`,
+                }}
+              >
+                Metode kami
+              </span>
+            </div>
           </Reveal>
 
           <Reveal delay={0.08}>
@@ -458,21 +435,10 @@ export default function MethodSection() {
               style={{
                 fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
                 letterSpacing: "-0.022em",
-                color: "#0F2340",
+                color: BRAND.blueNavy,
               }}
             >
-              Metode Belajar{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Inggris Go
-              </span>
+              Metode Belajar <span style={GRADIENT_GOLD_TEXT}>Inggris Go</span>
             </h2>
           </Reveal>
 
@@ -481,7 +447,7 @@ export default function MethodSection() {
               className="leading-relaxed"
               style={{
                 fontSize: "0.9375rem",
-                color: "#64748B",
+                color: BRAND.textMuted,
                 maxWidth: "420px",
               }}
             >
@@ -491,13 +457,12 @@ export default function MethodSection() {
           </Reveal>
         </div>
 
-        {/* ── DESKTOP: horizontal row with connector dashes ──────── */}
+        {/* Desktop */}
         <div className="hidden lg:flex items-start justify-center gap-0">
           {steps.map((step, i) => (
             <div key={step.num} className="flex items-start">
               <DesktopStepCard step={step} index={i} />
 
-              {/* Connector dash between steps */}
               {i < steps.length - 1 && (
                 <div
                   className="flex-shrink-0 flex items-start justify-center"
@@ -508,8 +473,7 @@ export default function MethodSection() {
                       width: "40px",
                       height: "3px",
                       borderRadius: "2px",
-                      background:
-                        "linear-gradient(90deg, #FF6B35, rgba(255,107,53,0.2))",
+                      background: BRAND.gradientGold,
                     }}
                   />
                 </div>
@@ -518,7 +482,7 @@ export default function MethodSection() {
           ))}
         </div>
 
-        {/* ── MOBILE: vertical timeline flow ────────────────────── */}
+        {/* Mobile */}
         <div className="lg:hidden max-w-sm mx-auto">
           {steps.map((step, i) => (
             <MobileStep
@@ -530,30 +494,32 @@ export default function MethodSection() {
           ))}
         </div>
 
-        {/* ── Bottom note — subtle reassurance line ─────────────── */}
+        {/* Bottom note */}
         <Reveal delay={0.1} className="mt-14 lg:mt-16">
           <div className="flex items-center justify-center gap-2.5">
             <div
               style={{
                 width: "32px",
                 height: "1px",
-                background: "rgba(255,107,53,0.35)",
+                background: BRAND.gradientGold,
                 borderRadius: "1px",
               }}
             />
             <p
               className="font-display font-medium text-center"
-              style={{ fontSize: "0.8125rem", color: "#94A3B8" }}
+              style={{ fontSize: "0.8125rem", color: BRAND.textFaint }}
             >
               Sudah terbukti membantu{" "}
-              <span style={{ color: "#FF6B35", fontWeight: 700 }}>500+</span>{" "}
+              <span style={{ color: BRAND.goldVivid, fontWeight: 700 }}>
+                500+
+              </span>{" "}
               siswa dari nol jadi berani speaking
             </p>
             <div
               style={{
                 width: "32px",
                 height: "1px",
-                background: "rgba(255,107,53,0.35)",
+                background: BRAND.gradientGold,
                 borderRadius: "1px",
               }}
             />

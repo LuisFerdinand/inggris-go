@@ -108,7 +108,7 @@ export function UserAvatar({
         width: size,
         height: size,
         fontSize: size * 0.34,
-        background: `linear-gradient(135deg, ${BRAND.orange} 0%, #E8521C 100%)`,
+        background: `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`,
         boxShadow: `0 2px 8px rgba(255,107,53,0.4)`,
       }}
     >
@@ -227,7 +227,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
       style={{ background: "rgba(15,35,64,0.55)", backdropFilter: "blur(8px)" }}
       onClick={(e) => e.target === overlayRef.current && onClose()}
       role="dialog"
@@ -250,7 +250,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
         <div
           className="relative px-7 pt-8 pb-6 overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${BRAND.navy} 0%, #1a3a5c 100%)`,
+            background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
           }}
         >
           <div
@@ -264,13 +264,13 @@ function AuthModal({ onClose }: { onClose: () => void }) {
           <div
             className="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-20"
             style={{
-              background: `radial-gradient(circle, ${BRAND.orange}, transparent 70%)`,
+              background: `radial-gradient(circle, ${BRAND.blue}, transparent 70%)`,
             }}
           />
           <div
             className="absolute -bottom-6 -left-6 w-28 h-28 rounded-full opacity-15"
             style={{
-              background: `radial-gradient(circle, ${BRAND.orange}, transparent 70%)`,
+              background: `radial-gradient(circle, ${BRAND.blue}, transparent 70%)`,
             }}
           />
 
@@ -283,12 +283,12 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                   border: "1px solid rgba(255,107,53,0.3)",
                 }}
               >
-                <Sparkles className="w-3 h-3" style={{ color: BRAND.orange }} />
+                <Sparkles className="w-3 h-3" style={{ color: BRAND.blue }} />
                 <span
                   className="font-display font-bold"
                   style={{
                     fontSize: "0.5625rem",
-                    color: BRAND.orange,
+                    color: BRAND.blue,
                     letterSpacing: "0.08em",
                   }}
                 >
@@ -346,7 +346,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                 className="relative flex-1 py-2 rounded-lg font-display font-semibold transition-colors duration-150 cursor-pointer"
                 style={{
                   fontSize: "0.8125rem",
-                  color: tab === t ? BRAND.navy : "rgba(255,255,255,0.6)",
+                  color: tab === t ? BRAND.blueNavy : "rgba(255,255,255,0.6)",
                   zIndex: 1,
                 }}
               >
@@ -382,11 +382,11 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                   className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
                   style={{ background: "rgba(255,107,53,0.1)" }}
                 >
-                  <Mail className="w-6 h-6" style={{ color: BRAND.orange }} />
+                  <Mail className="w-6 h-6" style={{ color: BRAND.blue }} />
                 </div>
                 <p
                   className="font-display font-bold mb-1.5"
-                  style={{ fontSize: "1rem", color: BRAND.navy }}
+                  style={{ fontSize: "1rem", color: BRAND.blueNavy }}
                 >
                   Cek emailmu!
                 </p>
@@ -398,7 +398,10 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                   }}
                 >
                   Kami kirim magic link ke{" "}
-                  <span className="font-semibold" style={{ color: BRAND.navy }}>
+                  <span
+                    className="font-semibold"
+                    style={{ color: BRAND.blueNavy }}
+                  >
                     {magicEmail}
                   </span>
                   . Klik link tersebut untuk masuk.
@@ -409,7 +412,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                     setMagicEmail("");
                   }}
                   className="mt-5 text-sm font-display font-semibold transition-colors"
-                  style={{ color: BRAND.orange }}
+                  style={{ color: BRAND.blue }}
                 >
                   Ganti email?
                 </button>
@@ -429,7 +432,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                   className="w-full flex items-center justify-center gap-3 rounded-xl py-3 font-display font-semibold transition-all duration-150 disabled:opacity-60 hover:-translate-y-px active:translate-y-0"
                   style={{
                     fontSize: "0.875rem",
-                    color: BRAND.navy,
+                    color: BRAND.blueNavy,
                     border: "1.5px solid rgba(15,35,64,0.12)",
                     background: "white",
                     boxShadow: "0 1px 4px rgba(15,35,64,0.06)",
@@ -457,7 +460,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                   />
                 </div>
 
-                <div
+                {/* <div
                   className="flex rounded-xl p-0.5"
                   style={{
                     background: "#F1F5F9",
@@ -474,7 +477,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                       className="relative flex-1 py-1.5 rounded-[10px] font-display font-semibold transition-all duration-150 cursor-pointer text-center"
                       style={{
                         fontSize: "0.75rem",
-                        color: authMethod === m ? BRAND.navy : "#94A3B8",
+                        color: authMethod === m ? BRAND.blueNavy : "#94A3B8",
                         background: authMethod === m ? "white" : "transparent",
                         boxShadow:
                           authMethod === m
@@ -485,7 +488,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                       {m === "email" ? "Email & Password" : "Magic Link"}
                     </button>
                   ))}
-                </div>
+                </div> */}
 
                 <AnimatePresence mode="wait">
                   {authMethod === "email" ? (
@@ -519,14 +522,14 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                             className="w-full px-3.5 py-2.5 rounded-xl outline-none transition-all duration-150"
                             style={{
                               fontSize: "0.875rem",
-                              color: BRAND.navy,
+                              color: BRAND.blueNavy,
                               border: "1.5px solid rgba(15,35,64,0.12)",
                               background: "#FAFAFA",
                             }}
                             onFocus={(e) => {
                               (
                                 e.currentTarget as HTMLElement
-                              ).style.borderColor = BRAND.orange;
+                              ).style.borderColor = BRAND.blue;
                               (
                                 e.currentTarget as HTMLElement
                               ).style.background = "white";
@@ -561,13 +564,13 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                           className="w-full px-3.5 py-2.5 rounded-xl outline-none transition-all duration-150"
                           style={{
                             fontSize: "0.875rem",
-                            color: BRAND.navy,
+                            color: BRAND.blueNavy,
                             border: "1.5px solid rgba(15,35,64,0.12)",
                             background: "#FAFAFA",
                           }}
                           onFocus={(e) => {
                             (e.currentTarget as HTMLElement).style.borderColor =
-                              BRAND.orange;
+                              BRAND.blue;
                             (e.currentTarget as HTMLElement).style.background =
                               "white";
                           }}
@@ -603,14 +606,14 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                             className="w-full px-3.5 py-2.5 pr-10 rounded-xl outline-none transition-all duration-150"
                             style={{
                               fontSize: "0.875rem",
-                              color: BRAND.navy,
+                              color: BRAND.blueNavy,
                               border: "1.5px solid rgba(15,35,64,0.12)",
                               background: "#FAFAFA",
                             }}
                             onFocus={(e) => {
                               (
                                 e.currentTarget as HTMLElement
-                              ).style.borderColor = BRAND.orange;
+                              ).style.borderColor = BRAND.blue;
                               (
                                 e.currentTarget as HTMLElement
                               ).style.background = "white";
@@ -669,7 +672,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                         className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-display font-bold text-white transition-all duration-150 disabled:opacity-70 hover:-translate-y-px active:translate-y-0"
                         style={{
                           fontSize: "0.875rem",
-                          background: `linear-gradient(135deg, ${BRAND.orange} 0%, #E8521C 100%)`,
+                          background: `linear-gradient(135deg, ${BRAND.blue} 0%, #E8521C 100%)`,
                           boxShadow: "0 4px 16px rgba(255,107,53,0.4)",
                         }}
                       >
@@ -709,13 +712,13 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                           className="w-full px-3.5 py-2.5 rounded-xl outline-none transition-all duration-150"
                           style={{
                             fontSize: "0.875rem",
-                            color: BRAND.navy,
+                            color: BRAND.blueNavy,
                             border: "1.5px solid rgba(15,35,64,0.12)",
                             background: "#FAFAFA",
                           }}
                           onFocus={(e) => {
                             (e.currentTarget as HTMLElement).style.borderColor =
-                              BRAND.orange;
+                              BRAND.blue;
                             (e.currentTarget as HTMLElement).style.background =
                               "white";
                           }}
@@ -763,7 +766,7 @@ function AuthModal({ onClose }: { onClose: () => void }) {
                         className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-display font-bold text-white transition-all duration-150 disabled:opacity-50 hover:-translate-y-px active:translate-y-0"
                         style={{
                           fontSize: "0.875rem",
-                          background: `linear-gradient(135deg, ${BRAND.orange} 0%, #E8521C 100%)`,
+                          background: `linear-gradient(135deg, ${BRAND.blue} 0%, #E8521C 100%)`,
                           boxShadow: "0 4px 16px rgba(255,107,53,0.4)",
                         }}
                       >
@@ -864,7 +867,7 @@ function UserDropdown({
         <div
           className="relative px-4 py-4 overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${BRAND.navy} 0%, #1a3a5c 100%)`,
+            background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
           }}
         >
           <div
@@ -878,7 +881,7 @@ function UserDropdown({
           <div
             className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-15"
             style={{
-              background: `radial-gradient(circle, ${BRAND.orange}, transparent 70%)`,
+              background: `radial-gradient(circle, ${BRAND.blue}, transparent 70%)`,
             }}
           />
           <div className="relative flex items-center gap-3">
@@ -938,7 +941,7 @@ function UserDropdown({
                   <div className="flex-1 min-w-0">
                     <p
                       className="font-display font-semibold transition-colors duration-150 group-hover:text-orange-600"
-                      style={{ fontSize: "0.8125rem", color: BRAND.navy }}
+                      style={{ fontSize: "0.8125rem", color: BRAND.blueNavy }}
                     >
                       {item.label}
                     </p>
@@ -948,7 +951,7 @@ function UserDropdown({
                   </div>
                   <ChevronRight
                     className="w-3 h-3 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all duration-150"
-                    style={{ color: BRAND.orange }}
+                    style={{ color: BRAND.blue }}
                   />
                 </Link>
               </motion.div>
@@ -1048,7 +1051,7 @@ export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
         style={{
           fontSize: "0.8125rem",
           color: "white",
-          background: `linear-gradient(135deg, ${BRAND.navy} 0%, #1a3a5c 100%)`,
+          background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
           border: "1.5px solid rgba(255,255,255,0.08)",
           boxShadow: `0 2px 8px rgba(15,35,64,0.25)`,
         }}
@@ -1076,8 +1079,8 @@ export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
         className="flex items-center gap-2 rounded-xl pl-1.5 pr-3 py-1.5 transition-all duration-200 cursor-pointer"
         style={{
           background: dropdownOpen
-            ? `linear-gradient(135deg, ${BRAND.navy} 0%, #1a3a5c 100%)`
-            : `linear-gradient(135deg, ${BRAND.navy} 0%, #1a3a5c 100%)`,
+            ? `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`
+            : `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
           border: dropdownOpen
             ? `1.5px solid rgba(255,107,53,0.35)`
             : `1.5px solid rgba(255,255,255,0.07)`,
@@ -1183,7 +1186,7 @@ export function MobileUserSection({
         <div
           className="flex items-center gap-3 px-3.5 py-3"
           style={{
-            background: `linear-gradient(135deg, ${BRAND.navy} 0%, #1a3a5c 100%)`,
+            background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
           }}
         >
           <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse flex-shrink-0" />
@@ -1219,7 +1222,7 @@ export function MobileUserSection({
         style={{
           fontSize: "0.875rem",
           color: "white",
-          background: `linear-gradient(135deg, ${BRAND.orange} 0%, #E8521C 100%)`,
+          background: `linear-gradient(135deg, ${BRAND.blue} 0%, #E8521C 100%)`,
           boxShadow: "0 4px 16px rgba(255,107,53,0.35)",
         }}
       >
@@ -1246,7 +1249,7 @@ export function MobileUserSection({
         onClick={() => setExpanded((o) => !o)}
         className="relative w-full flex items-center gap-2.5 px-3.5 py-3 overflow-hidden cursor-pointer"
         style={{
-          background: `linear-gradient(135deg, ${BRAND.navy} 0%, #18355a 100%)`,
+          background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #18355a 100%)`,
         }}
         aria-expanded={expanded}
         aria-label="Toggle user menu"
@@ -1271,7 +1274,7 @@ export function MobileUserSection({
           <UserAvatar user={user} size={32} />
           <div
             className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
-            style={{ background: "#22C55E", borderColor: BRAND.navy }}
+            style={{ background: "#22C55E", borderColor: BRAND.blueNavy }}
           />
         </div>
 
@@ -1314,7 +1317,7 @@ export function MobileUserSection({
             <div
               style={{
                 height: "2px",
-                background: `linear-gradient(90deg, ${BRAND.orange} 0%, rgba(255,107,53,0) 100%)`,
+                background: `linear-gradient(90deg, ${BRAND.blue} 0%, rgba(255,107,53,0) 100%)`,
                 opacity: 0.25,
               }}
             />
@@ -1351,7 +1354,7 @@ export function MobileUserSection({
                     >
                       <Icon
                         className="w-3.5 h-3.5"
-                        style={{ color: BRAND.orange }}
+                        style={{ color: BRAND.blue }}
                       />
                     </motion.div>
                     <motion.span

@@ -2,14 +2,13 @@
 
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const features = [
   {
-    iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    iconShadow: "rgba(255,107,53,0.45)",
-    accentColor: "#FF6B35",
+    iconBg: BRAND.gradientBlue,
     title: "Metode Praktis",
     desc: "Dirancang khusus untuk pemula — langsung speaking dari hari pertama, tanpa basa-basi teori.",
     icon: (
@@ -27,9 +26,7 @@ const features = [
     ),
   },
   {
-    iconBg: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
-    iconShadow: "rgba(45,184,176,0.45)",
-    accentColor: "#2DB8B0",
+    iconBg: BRAND.gradientNavy,
     title: "Tutor Berpengalaman",
     desc: "Tim tutor profesional dari Kampung Inggris Pare dengan jam terbang tinggi dan dedikasi penuh.",
     icon: (
@@ -49,9 +46,7 @@ const features = [
     ),
   },
   {
-    iconBg: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
-    iconShadow: "rgba(124,58,237,0.45)",
-    accentColor: "#7C3AED",
+    iconBg: BRAND.gradientGold,
     title: "Online & Offline",
     desc: "Belajar dari rumah secara online, atau datang langsung ke Pare untuk pengalaman belajar imersif.",
     icon: (
@@ -70,9 +65,7 @@ const features = [
     ),
   },
   {
-    iconBg: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
-    iconShadow: "rgba(245,158,11,0.45)",
-    accentColor: "#F59E0B",
+    iconBg: BRAND.gradientSky,
     title: "Kampung Inggris Pare",
     desc: "Lingkungan belajar autentik di pusat bahasa Inggris terbesar Indonesia — ekosistem terbaik untuk berkembang.",
     icon: (
@@ -91,9 +84,7 @@ const features = [
     ),
   },
   {
-    iconBg: "linear-gradient(135deg, #EC4899 0%, #DB2777 100%)",
-    iconShadow: "rgba(236,72,153,0.45)",
-    accentColor: "#EC4899",
+    iconBg: BRAND.gradientBlue,
     title: "Fokus Speaking",
     desc: "Setiap program kami punya satu tujuan: membuatmu berani dan lancar bicara bahasa Inggris.",
     icon: (
@@ -112,9 +103,7 @@ const features = [
     ),
   },
   {
-    iconBg: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
-    iconShadow: "rgba(16,185,129,0.45)",
-    accentColor: "#10B981",
+    iconBg: BRAND.gradientNavy,
     title: "Garansi Belajar",
     desc: "Komitmen kualitas penuh — pendampingan berkelanjutan hingga kamu mencapai target yang ditetapkan.",
     icon: (
@@ -175,44 +164,29 @@ function FeatureCard({
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.55, delay: index * 0.08, ease }}
       whileHover={{ y: -6, transition: { duration: 0.28, ease } }}
-      /* "group" lives here — no extra absolute children */
       className="group relative flex flex-col rounded-2xl p-6 overflow-hidden cursor-default"
       style={{
         background: "rgba(255,255,255,0.04)",
         border: "1px solid rgba(255,255,255,0.08)",
-        transition:
-          "background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease",
+        transition: "background 0.3s ease, border-color 0.3s ease",
       }}
-      /* Framer handles y; Tailwind group handles everything else */
       onMouseEnter={(e) => {
         const el = e.currentTarget as HTMLElement;
-        el.style.background = "rgba(255,255,255,0.075)";
-        el.style.borderColor = "rgba(255,255,255,0.15)";
-        el.style.boxShadow = "0 24px 56px rgba(0,0,0,0.35)";
+        el.style.background = "rgba(255,255,255,0.07)";
+        el.style.borderColor = "rgba(255,255,255,0.13)";
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget as HTMLElement;
         el.style.background = "rgba(255,255,255,0.04)";
         el.style.borderColor = "rgba(255,255,255,0.08)";
-        el.style.boxShadow = "none";
       }}
     >
-      {/* Top accent line — CSS transition via group, no rogue div */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[2px] origin-left
-          scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-tr-full"
-        style={{ background: feature.iconBg }}
-      />
-
       {/* Icon */}
       <div
         className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 flex-shrink-0
-          transition-all duration-300 ease-out
+          transition-transform duration-300 ease-out
           group-hover:scale-110 group-hover:-rotate-3"
-        style={{
-          background: feature.iconBg,
-          boxShadow: `0 6px 20px ${feature.iconShadow}`,
-        }}
+        style={{ background: feature.iconBg }}
       >
         {feature.icon}
       </div>
@@ -252,31 +226,23 @@ function GeometricLines() {
       <path
         d="M 0 180 L 0 40 Q 0 0 40 0 L 180 0"
         fill="none"
-        stroke="rgba(255,255,255,0.05)"
+        stroke="rgba(255,255,255,0.04)"
         strokeWidth="1"
       />
       <path
         d="M 0 140 L 0 60 Q 0 24 24 24 L 140 24"
         fill="none"
-        stroke="rgba(255,255,255,0.04)"
+        stroke="rgba(255,255,255,0.03)"
         strokeWidth="1"
       />
 
-      {/* Bottom-right corner bracket */}
-      <path
-        d="M 100% 100% L calc(100% - 180px) 100% M 100% 100% L 100% calc(100% - 180px)"
-        fill="none"
-        stroke="rgba(255,255,255,0.05)"
-        strokeWidth="1"
-      />
-
-      {/* Diagonal accent lines — top-right quadrant */}
+      {/* Diagonal accent lines — top-right, blue-tinted */}
       <line
         x1="75%"
         y1="0"
         x2="100%"
         y2="30%"
-        stroke="rgba(255,107,53,0.06)"
+        stroke="rgba(26,82,200,0.08)"
         strokeWidth="1"
       />
       <line
@@ -284,7 +250,7 @@ function GeometricLines() {
         y1="0"
         x2="100%"
         y2="20%"
-        stroke="rgba(255,107,53,0.04)"
+        stroke="rgba(26,82,200,0.06)"
         strokeWidth="1"
       />
       <line
@@ -292,17 +258,17 @@ function GeometricLines() {
         y1="0"
         x2="100%"
         y2="12%"
-        stroke="rgba(255,107,53,0.03)"
+        stroke="rgba(26,82,200,0.04)"
         strokeWidth="1"
       />
 
-      {/* Diagonal accent lines — bottom-left quadrant */}
+      {/* Diagonal accent lines — bottom-left, gold-tinted */}
       <line
         x1="0"
         y1="70%"
         x2="25%"
         y2="100%"
-        stroke="rgba(45,184,176,0.05)"
+        stroke="rgba(245,168,0,0.06)"
         strokeWidth="1"
       />
       <line
@@ -310,11 +276,11 @@ function GeometricLines() {
         y1="80%"
         x2="18%"
         y2="100%"
-        stroke="rgba(45,184,176,0.04)"
+        stroke="rgba(245,168,0,0.04)"
         strokeWidth="1"
       />
 
-      {/* Subtle horizontal rule through mid-section */}
+      {/* Subtle horizontal rule */}
       <line
         x1="5%"
         y1="50%"
@@ -325,21 +291,21 @@ function GeometricLines() {
         strokeDasharray="6 18"
       />
 
-      {/* Small cross/plus marks */}
+      {/* Small cross marks — white only */}
       <g stroke="rgba(255,255,255,0.07)" strokeWidth="1">
         <line x1="8%" y1="19%" x2="8%" y2="23%" />
         <line x1="6%" y1="21%" x2="10%" y2="21%" />
       </g>
-      <g stroke="rgba(255,107,53,0.15)" strokeWidth="1">
+      <g stroke="rgba(255,255,255,0.06)" strokeWidth="1">
         <line x1="92%" y1="77%" x2="92%" y2="81%" />
         <line x1="90%" y1="79%" x2="94%" y2="79%" />
       </g>
-      <g stroke="rgba(45,184,176,0.15)" strokeWidth="1">
+      <g stroke="rgba(255,255,255,0.05)" strokeWidth="1">
         <line x1="50%" y1="8%" x2="50%" y2="11%" />
         <line x1="48.5%" y1="9.5%" x2="51.5%" y2="9.5%" />
       </g>
 
-      {/* Small diamond shapes */}
+      {/* Diamond */}
       <polygon
         points="88,44 96,52 88,60 80,52"
         fill="none"
@@ -354,22 +320,21 @@ export default function WhyUsSection() {
   return (
     <section
       className="relative w-full overflow-hidden py-20 lg:py-28"
-      style={{ background: "#0A1628" }}
+      style={{ background: BRAND.blueAbyss }}
     >
       {/* Dot-grid texture */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.035'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='1' fill='%23ffffff' fill-opacity='0.03'/%3E%3C/svg%3E")`,
           backgroundSize: "24px 24px",
         }}
       />
 
-      {/* Geometric line decorations — replace the circles */}
       <GeometricLines />
 
-      {/* Ambient glow blobs — atmosphere only */}
+      {/* Ambient blobs — blue only, no glow filter */}
       <div
         aria-hidden
         className="pointer-events-none absolute"
@@ -379,9 +344,7 @@ export default function WhyUsSection() {
           width: "600px",
           height: "600px",
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(255,107,53,0.07) 0%, transparent 65%)",
-          filter: "blur(60px)",
+          background: `radial-gradient(circle, ${BRAND.overlayBlueBlob} 0%, transparent 65%)`,
         }}
       />
       <div
@@ -393,24 +356,22 @@ export default function WhyUsSection() {
           width: "500px",
           height: "500px",
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(45,184,176,0.06) 0%, transparent 65%)",
-          filter: "blur(60px)",
+          background: `radial-gradient(circle, ${BRAND.overlayGoldBlob} 0%, transparent 65%)`,
         }}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 xl:px-12">
-        {/* ── Header ────────────────────────────────────────────── */}
+        {/* Header */}
         <div className="flex flex-col items-center text-center mb-12 lg:mb-16">
           <Reveal>
             <span
-              className="inline-block px-4 py-1.5 rounded-full font-display font-semibold mb-5"
+              className="inline-block px-4 py-1.5 rounded-full font-display font-semibold mb-5 uppercase tracking-tight"
               style={{
                 fontSize: "0.75rem",
                 letterSpacing: "0.05em",
-                background: "rgba(255,255,255,0.07)",
-                color: "rgba(255,255,255,0.5)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: BRAND.overlayBlueIconStrong,
+                color: BRAND.blueSky,
+                border: `1px solid ${BRAND.overlayBlueCard}`,
               }}
             >
               Keunggulan Kami
@@ -426,18 +387,7 @@ export default function WhyUsSection() {
               }}
             >
               Mengapa Belajar di{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Inggris Go
-              </span>
-              ?
+              <span style={GRADIENT_GOLD_TEXT}>Inggris Go</span>?
             </h2>
           </Reveal>
 
@@ -456,34 +406,29 @@ export default function WhyUsSection() {
           </Reveal>
         </div>
 
-        {/* ── 3×2 grid ──────────────────────────────────────────── */}
+        {/* 3×2 grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5 mb-16">
           {features.map((f, i) => (
             <FeatureCard key={f.title} feature={f} index={i} />
           ))}
         </div>
 
-        {/* ── Bottom CTA band ────────────────────────────────────
-         *   Replaces stats — a single warm callout that nudges action.
-         *   Feels earned after seeing 6 reasons to trust.
-         ─────────────────────────────────────────────────────────── */}
+        {/* Bottom CTA band */}
         <Reveal delay={0.1}>
           <div
             className="relative overflow-hidden rounded-2xl px-8 py-7
               flex flex-col sm:flex-row items-center justify-between gap-5"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(255,107,53,0.12) 0%, rgba(255,107,53,0.06) 100%)",
-              border: "1px solid rgba(255,107,53,0.2)",
+              background: BRAND.overlayBlueCard,
+              border: `1px solid ${BRAND.overlayBlueIcon}`,
             }}
           >
-            {/* Faint diagonal stripe texture */}
+            {/* Subtle diagonal stripe */}
             <div
               aria-hidden
               className="absolute inset-0 pointer-events-none"
               style={{
-                backgroundImage:
-                  "repeating-linear-gradient(45deg, rgba(255,107,53,0.03) 0px, rgba(255,107,53,0.03) 1px, transparent 1px, transparent 12px)",
+                backgroundImage: `repeating-linear-gradient(45deg, ${BRAND.overlayBlueIcon} 0px, ${BRAND.overlayBlueIcon} 1px, transparent 1px, transparent 14px)`,
               }}
             />
 
@@ -508,18 +453,19 @@ export default function WhyUsSection() {
               href="#programs"
               className="relative z-10 inline-flex items-center gap-2 font-display font-bold
                 rounded-full px-6 py-3 flex-shrink-0 text-white
-                transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
+                transition-all duration-200 hover:-translate-y-0.5"
               style={{
                 fontSize: "0.875rem",
-                background: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                boxShadow: "0 6px 20px rgba(255,107,53,0.35)",
+                background: BRAND.gradientGold,
+                boxShadow: BRAND.shadowGoldBtn,
+                color: BRAND.blueNavy,
               }}
             >
               Lihat Program Kami
               <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
                 <path
                   d="M3 8h10M9 4l4 4-4 4"
-                  stroke="white"
+                  stroke="currentColor"
                   strokeWidth={1.7}
                   strokeLinecap="round"
                   strokeLinejoin="round"

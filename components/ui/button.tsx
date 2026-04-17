@@ -9,12 +9,24 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "text-primary-foreground bg-orange-gradient shadow-sm hover:-translate-y-px active:translate-y-0",
+        default: [
+          "bg-gold-btn",
+          "text-[var(--color-brand-blue-abyss)]", // dark text
+          "shadow-[var(--shadow-glow-gold-btn)]",
+          "hover:shadow-[var(--shadow-glow-gold-btn-hover)]",
+          "hover:-translate-y-px",
+          "active:translate-y-0 active:scale-[0.98]",
+        ].join(" "),
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+        secondary: [
+          "bg-navy-gradient",
+          "text-white",
+          "shadow-[var(--shadow-glow-navy-btn)]",
+          "hover:shadow-[var(--shadow-glow-navy-btn-hover)]",
+          "hover:-translate-y-px",
+          "active:translate-y-0 active:scale-[0.98]",
+        ].join(" "),
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
         destructive:
@@ -63,8 +75,12 @@ const buttonVariants = cva(
     compoundVariants: [
       {
         variant: "brand",
-        className:
-          "bg-[linear-gradient(135deg,#FF6B35_0%,#E8521C_100%)] shadow-[0_4px_16px_rgba(255,107,53,0.4)]",
+        className: [
+          "bg-gold-btn",
+          "text-[var(--color-brand-blue-abyss)]",
+          "shadow-[var(--shadow-glow-gold-btn)]",
+          "hover:shadow-[var(--shadow-glow-gold-btn-hover)]",
+        ].join(" "),
       },
       {
         variant: "brand-outline",

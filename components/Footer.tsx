@@ -4,7 +4,6 @@ import { siteConfig, navLinks, buildWhatsAppUrl } from "@/lib/config";
 import MapWrapper from "./Map/MapWrapper";
 import { useState, useEffect, useRef } from "react";
 
-/* ─── Social links ─────────────────────────────────────────────────────────── */
 const socials = [
   {
     label: "Instagram",
@@ -68,7 +67,6 @@ const socials = [
   },
 ];
 
-/* ─── Animated counter ─────────────────────────────────────────────────────── */
 function useCounter(target: number, duration = 1600, start = false) {
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -85,7 +83,6 @@ function useCounter(target: number, duration = 1600, start = false) {
   return count;
 }
 
-/* ─── Stats ────────────────────────────────────────────────────────────────── */
 const stats = [
   { label: "Alumni", value: 2400, suffix: "+" },
   { label: "Program", value: 12, suffix: "" },
@@ -109,7 +106,10 @@ function StatItem({
     <div className="flex flex-col items-center gap-0.5">
       <span className="text-2xl font-bold text-white tabular-nums">
         {stat.decimal ? (count / 10).toFixed(1) : count.toLocaleString()}
-        <span className="text-brand-orange">{stat.suffix}</span>
+        {/* Gold suffix — star/+ are stat highlights, same role as heading accent */}
+        <span style={{ color: "var(--color-brand-gold-vivid)" }}>
+          {stat.suffix}
+        </span>
       </span>
       <span className="text-white/40 text-xs uppercase tracking-widest">
         {stat.label}
@@ -118,7 +118,6 @@ function StatItem({
   );
 }
 
-/* ─── Footer ───────────────────────────────────────────────────────────────── */
 export default function Footer() {
   const statsRef = useRef<HTMLDivElement>(null);
   const [statsVisible, setStatsVisible] = useState(false);
@@ -137,14 +136,17 @@ export default function Footer() {
   }, []);
 
   return (
-    <footer className="relative bg-brand-navy text-white overflow-hidden">
-      {/* Decorative glow blobs */}
+    <footer
+      className="relative text-white overflow-hidden"
+      style={{ background: "var(--color-brand-blue-abyss)" }}
+    >
+      {/* Decorative glow blobs — blue top-left, gold bottom-right */}
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)",
+            "radial-gradient(circle, rgba(26,82,200,0.10) 0%, transparent 70%)",
         }}
       />
       <div
@@ -152,15 +154,15 @@ export default function Footer() {
         className="pointer-events-none absolute -bottom-20 right-0 w-[400px] h-[400px] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(249,115,22,0.05) 0%, transparent 70%)",
+            "radial-gradient(circle, rgba(245,168,0,0.07) 0%, transparent 70%)",
         }}
       />
 
-      {/* ── Stats band ──────────────────────────────────────────────────── */}
+      {/* ── Stats band ── */}
       <div
         ref={statsRef}
         className="border-b border-white/6"
-        style={{ background: "rgba(249,115,22,0.06)" }}
+        style={{ background: "rgba(245,168,0,0.05)" }}
       >
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 divide-x-0 sm:divide-x divide-white/10">
@@ -171,17 +173,32 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── Main content ────────────────────────────────────────────────── */}
+      {/* ── Main content ── */}
       <div className="border-b border-white/6 py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-8 xl:gap-16">
-            {/* Brand */}
+            {/* Brand column */}
             <div className="lg:col-span-4 flex flex-col gap-6">
               <Link
                 href="/"
                 className="inline-flex items-center gap-3 group w-fit"
               >
-                <div className="w-11 h-11 rounded-2xl bg-orange-gradient flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:scale-105 group-hover:shadow-orange-500/40 transition-all duration-300">
+                <div
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-105"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-brand-blue) 0%, var(--color-brand-blue-vivid) 100%)",
+                    boxShadow: "0 4px 20px rgba(26,82,200,0.35)",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLElement).style.boxShadow =
+                      "0 6px 28px rgba(26,82,200,0.55)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLElement).style.boxShadow =
+                      "0 4px 20px rgba(26,82,200,0.35)")
+                  }
+                >
                   <svg
                     className="w-6 h-6 text-white"
                     fill="currentColor"
@@ -215,11 +232,7 @@ export default function Footer() {
                       rel="noopener noreferrer"
                       aria-label={s.label}
                       title={s.label}
-                      className={`
-                        w-9 h-9 rounded-xl bg-white/6 flex items-center justify-center
-                        text-white/50 hover:text-white transition-all duration-200
-                        hover:scale-110 hover:shadow-lg ${s.color}
-                      `}
+                      className={`w-9 h-9 rounded-xl bg-white/6 flex items-center justify-center text-white/50 hover:text-white transition-all duration-200 hover:scale-110 hover:shadow-lg ${s.color}`}
                     >
                       {s.icon}
                     </a>
@@ -228,11 +241,18 @@ export default function Footer() {
               </div>
 
               {/* Location pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/4 w-fit">
+              <div
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full w-fit"
+                style={{
+                  border: "1px solid rgba(214,232,255,0.12)",
+                  background: "rgba(26,82,200,0.08)",
+                }}
+              >
                 <svg
-                  className="w-3.5 h-3.5 text-brand-orange flex-shrink-0"
+                  className="w-3.5 h-3.5 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 24 24"
+                  style={{ color: "var(--color-brand-blue-sky)" }}
                 >
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                 </svg>
@@ -254,7 +274,21 @@ export default function Footer() {
                       href={link.href}
                       className="group flex items-center gap-2 text-white/50 hover:text-white transition-colors duration-200 text-sm"
                     >
-                      <span className="w-1 h-1 rounded-full bg-brand-orange/40 group-hover:bg-brand-orange group-hover:scale-125 transition-all duration-200 flex-shrink-0" />
+                      {/* Gold hover dot — matches heading accent system */}
+                      <span
+                        className="w-1 h-1 rounded-full transition-all duration-200 flex-shrink-0"
+                        style={{
+                          background: "rgba(245,168,0,0.35)",
+                        }}
+                        onMouseEnter={(e) =>
+                          ((e.currentTarget as HTMLElement).style.background =
+                            "var(--color-brand-gold-vivid)")
+                        }
+                        onMouseLeave={(e) =>
+                          ((e.currentTarget as HTMLElement).style.background =
+                            "rgba(245,168,0,0.35)")
+                        }
+                      />
                       {link.label}
                     </Link>
                   </li>
@@ -275,7 +309,10 @@ export default function Footer() {
                     rel="noopener noreferrer"
                     className="group flex items-center gap-2.5 text-white/50 hover:text-white transition-colors duration-200 text-sm"
                   >
-                    <span className="w-7 h-7 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 flex items-center justify-center flex-shrink-0 transition-colors duration-200">
+                    <span
+                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-200"
+                      style={{ background: "rgba(34,197,94,0.10)" }}
+                    >
                       <svg
                         className="w-3.5 h-3.5 text-green-400"
                         fill="currentColor"
@@ -292,12 +329,16 @@ export default function Footer() {
                     href={`mailto:${siteConfig.email}`}
                     className="group flex items-center gap-2.5 text-white/50 hover:text-white transition-colors duration-200 text-sm"
                   >
-                    <span className="w-7 h-7 rounded-lg bg-brand-orange/10 group-hover:bg-brand-orange/20 flex items-center justify-center flex-shrink-0 transition-colors duration-200">
+                    <span
+                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-200 group-hover:bg-[rgba(26,82,200,0.25)]"
+                      style={{ background: "rgba(26,82,200,0.12)" }}
+                    >
                       <svg
-                        className="w-3.5 h-3.5 text-brand-orange"
+                        className="w-3.5 h-3.5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        style={{ color: "var(--color-brand-blue-sky)" }}
                       >
                         <path
                           strokeLinecap="round"
@@ -315,12 +356,16 @@ export default function Footer() {
                     href="/contact"
                     className="group flex items-center gap-2.5 text-white/50 hover:text-white transition-colors duration-200 text-sm"
                   >
-                    <span className="w-7 h-7 rounded-lg bg-brand-orange/10 group-hover:bg-brand-orange/20 flex items-center justify-center flex-shrink-0 transition-colors duration-200">
+                    <span
+                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-200 group-hover:bg-[rgba(26,82,200,0.25)]"
+                      style={{ background: "rgba(26,82,200,0.12)" }}
+                    >
                       <svg
-                        className="w-3.5 h-3.5 text-brand-orange"
+                        className="w-3.5 h-3.5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        style={{ color: "var(--color-brand-blue-sky)" }}
                       >
                         <path
                           strokeLinecap="round"
@@ -346,7 +391,16 @@ export default function Footer() {
                   href="https://maps.app.goo.gl/gD93KnZpFX1BYbha8"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] text-brand-orange/70 hover:text-brand-orange transition-colors flex items-center gap-1"
+                  className="text-[10px] transition-colors flex items-center gap-1"
+                  style={{ color: "rgba(245,168,0,0.6)" }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLElement).style.color =
+                      "var(--color-brand-gold-vivid)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLElement).style.color =
+                      "rgba(245,168,0,0.6)")
+                  }
                 >
                   Buka di Maps
                   <svg
@@ -365,30 +419,46 @@ export default function Footer() {
                 </a>
               </div>
 
-              {/* Map card with ring + glow effect */}
               <div className="relative group">
-                <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-brand-orange/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                {/* Gold-tinted hover ring */}
                 <div
-                  className="relative rounded-2xl overflow-hidden border border-white/8 group-hover:border-brand-orange/25 transition-colors duration-500"
-                  style={{ height: 240 }}
+                  className="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(245,168,0,0.20) 0%, transparent 60%)",
+                  }}
+                />
+                <div
+                  className="relative rounded-2xl overflow-hidden transition-colors duration-500"
+                  style={{
+                    height: 240,
+                    border: "1px solid rgba(214,232,255,0.08)",
+                  }}
+                  onMouseEnter={(e) =>
+                    ((e.currentTarget as HTMLElement).style.borderColor =
+                      "rgba(245,168,0,0.20)")
+                  }
+                  onMouseLeave={(e) =>
+                    ((e.currentTarget as HTMLElement).style.borderColor =
+                      "rgba(214,232,255,0.08)")
+                  }
                 >
                   <MapWrapper />
-                  {/* Map overlay shimmer on hover */}
                   <div
                     className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                     style={{
                       background:
-                        "linear-gradient(135deg, rgba(249,115,22,0.04) 0%, transparent 60%)",
+                        "linear-gradient(135deg, rgba(26,82,200,0.05) 0%, transparent 60%)",
                     }}
                   />
                 </div>
 
-                {/* Address tag below map */}
                 <div className="mt-3 flex items-start gap-2">
                   <svg
-                    className="w-3.5 h-3.5 text-brand-orange flex-shrink-0 mt-0.5"
+                    className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
                     fill="currentColor"
                     viewBox="0 0 24 24"
+                    style={{ color: "var(--color-brand-blue-sky)" }}
                   >
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                   </svg>
@@ -403,10 +473,10 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── CTA strip ───────────────────────────────────────────────────── */}
+      {/* ── CTA strip ── */}
       <div
         className="border-b border-white/6"
-        style={{ background: "rgba(249,115,22,0.05)" }}
+        style={{ background: "rgba(245,168,0,0.04)" }}
       >
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/50 text-sm text-center sm:text-left">
@@ -416,7 +486,21 @@ export default function Footer() {
             href={buildWhatsAppUrl("Daftar Program")}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-brand-orange hover:bg-orange-500 text-white text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/30 flex-shrink-0"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 flex-shrink-0"
+            style={{
+              background:
+                "linear-gradient(135deg, #E8940A 0%, var(--color-brand-gold-mid) 50%, var(--color-brand-gold-vivid) 100%)",
+              color: "#3a1c00",
+              boxShadow: "0 4px 18px rgba(180,100,0,0.35)",
+            }}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLElement).style.boxShadow =
+                "0 8px 28px rgba(180,100,0,0.52)")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLElement).style.boxShadow =
+                "0 4px 18px rgba(180,100,0,0.35)")
+            }
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -426,7 +510,7 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── Bottom bar ──────────────────────────────────────────────────── */}
+      {/* ── Bottom bar ── */}
       <div className="py-5">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-white/25 text-xs">

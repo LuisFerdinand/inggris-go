@@ -3,28 +3,12 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { buildWhatsAppUrl } from "@/lib/config";
-import { CATEGORIES } from "./data";
+import { CATEGORIES, ProgramMeta } from "./data";
 import { Button, ButtonProps } from "@/components/ui/button";
 import Reveal from "@/components/ui/Reveal";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 
 const LEAD = CATEGORIES["lead"];
-
-type Benefit = { title: string; description: string; icon: string };
-type Program = {
-  title: string;
-  slug: string;
-  description: string;
-  price: string;
-  badge?: string;
-  highlight?: string;
-  tags: string[];
-  icon: string;
-  link: string;
-  benefits?: Benefit[];
-  duration?: string;
-  format?: string;
-  level?: string;
-};
 
 type SP = { size?: number; className?: string };
 const Target = ({ size = 20, className }: SP) => (
@@ -259,7 +243,7 @@ function Icon({
   size?: number;
   className?: string;
 }) {
-  const C = ICON_MAP[name] ?? Target;
+  const C = ICON_MAP[name] ?? ChevR;
   return <C size={size} className={className} />;
 }
 type FId = "all" | "beginner" | "confidence" | "career";
@@ -346,7 +330,7 @@ function useMousePosition() {
 
 function Pill({
   children,
-  color = "orange",
+  color = "navy",
 }: {
   children: React.ReactNode;
   color?: "orange" | "navy" | "green";
@@ -354,12 +338,12 @@ function Pill({
   const styles = {
     orange: {
       background: "rgba(255,107,53,0.1)",
-      color: "#FF6B35",
+      color: BRAND.goldVivid,
       border: "1px solid rgba(255,107,53,0.2)",
     },
     navy: {
-      background: "rgba(15,35,64,0.08)",
-      color: "#0F2340",
+      background: BRAND.background,
+      color: BRAND.blue,
       border: "1px solid rgba(15,35,64,0.12)",
     },
     green: {
@@ -539,16 +523,14 @@ function HeroSection() {
       ref={mouseRef as React.RefObject<HTMLElement>}
       className="relative min-h-[92vh] flex flex-col overflow-hidden"
       style={{
-        background:
-          "linear-gradient(160deg, #FFF8F3 0%, #FFFAF7 45%, #FFF3EC 100%)",
+        background: BRAND.background,
       }}
     >
       {/* Interactive gradient orb following mouse */}
       <div
         className="pointer-events-none absolute w-[600px] h-[600px] rounded-full opacity-30 transition-transform duration-700 ease-out"
         style={{
-          background:
-            "radial-gradient(circle, rgba(255,107,53,0.35) 0%, transparent 70%)",
+          background: `radial-gradient(circle, ${BRAND.background} 0%, transparent 70%)`,
           left: pos.x - 300,
           top: pos.y - 300,
           filter: "blur(40px)",
@@ -562,7 +544,7 @@ function HeroSection() {
       >
         <div
           className="absolute top-0 right-0 w-[55%] h-[70%] rounded-bl-[80px]"
-          style={{ background: "rgba(255,107,53,0.04)" }}
+          style={{ background: BRAND.background }}
         />
         <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full border border-brand-orange/6" />
         <div className="absolute -top-16 -right-16 w-[300px] h-[300px] rounded-full border border-brand-orange/8" />
@@ -578,7 +560,7 @@ function HeroSection() {
                 cx={c * 26 + 10}
                 cy={r * 26 + 10}
                 r="2"
-                fill="#FF6B35"
+                fill={BRAND.blue}
               />
             )),
           )}
@@ -600,20 +582,14 @@ function HeroSection() {
             >
               Beranda
             </Link>
-            <Icon
-              name="chevron-right"
-              className="w-3 h-3 text-brand-charcoal/25"
-            />
+            <span>/</span>
             <Link
               href="/programs"
               className="text-xs text-brand-charcoal/40 hover:text-brand-orange transition-colors font-medium"
             >
               Program
             </Link>
-            <Icon
-              name="chevron-right"
-              className="w-3 h-3 text-brand-charcoal/25"
-            />
+            <span>/</span>
             <span className="text-xs text-brand-orange font-semibold">
               Starter Program
             </span>
@@ -627,8 +603,11 @@ function HeroSection() {
           {/* Left */}
           <div className="max-w-xl">
             <div style={a(0.1)}>
-              <Pill color="orange">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-orange animate-pulse" />
+              <Pill color="navy">
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ background: BRAND.blue }}
+                />
                 Starter Program
               </Pill>
             </div>
@@ -639,7 +618,7 @@ function HeroSection() {
             >
               {LEAD.tagline}
               <br />
-              <span className="relative" style={{ color: "#FF6B35" }}>
+              <span className="relative" style={{ color: BRAND.blueNavy }}>
                 {LEAD.taglineAccent}
                 {/* Underline accent */}
                 <svg
@@ -654,7 +633,7 @@ function HeroSection() {
                 >
                   <path
                     d="M0 5 Q50 1 100 4 Q150 7 200 3"
-                    stroke="#FF6B35"
+                    stroke={BRAND.goldVivid}
                     strokeWidth="2.5"
                     fill="none"
                     strokeLinecap="round"
@@ -747,8 +726,7 @@ function HeroCard() {
         <div
           className="h-1"
           style={{
-            background:
-              "linear-gradient(90deg, #FF6B35 0%, #FFB89A 60%, #FF6B35 100%)",
+            background: `linear-gradient(90deg, ${BRAND.blue} 0%, ${BRAND.blueVivid} 60%, ${BRAND.blueNavy} 100%)`,
           }}
         />
 
@@ -763,7 +741,7 @@ function HeroCard() {
                 {LEAD.programs[0].title}
               </h3>
             </div>
-            <Pill color="orange">{LEAD.programs[0].badge}</Pill>
+            <Pill color="navy">{LEAD.programs[0].badge}</Pill>
           </div>
 
           {/* Day tracker */}
@@ -785,7 +763,7 @@ function HeroCard() {
                   style={{
                     background:
                       i < activeDay
-                        ? "linear-gradient(135deg, #FF6B35, #E8521C)"
+                        ? `linear-gradient(135deg, ${BRAND.blue}, ${BRAND.blueNavy})`
                         : i === activeDay - 1
                           ? "rgba(255,107,53,0.15)"
                           : "rgba(15,35,64,0.05)",
@@ -793,7 +771,7 @@ function HeroCard() {
                       i < activeDay
                         ? "white"
                         : i === activeDay - 1
-                          ? "#FF6B35"
+                          ? BRAND.goldVivid
                           : "rgba(15,35,64,0.3)",
                     transform:
                       i === activeDay - 1 ? "scaleY(1.08)" : "scaleY(1)",
@@ -835,12 +813,12 @@ function HeroCard() {
               </p>
             </div>
             <a
-              href={LEAD.programs[0].link}
+              href={LEAD.programs[0].href}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 hover:shadow-lg"
               style={{
-                background: "linear-gradient(135deg, #FF6B35, #E8521C)",
+                background: `linear-gradient(135deg, ${BRAND.blue}, ${BRAND.blueNavy})`,
                 boxShadow: "0 4px 16px rgba(255,107,53,0.35)",
               }}
             >
@@ -853,21 +831,23 @@ function HeroCard() {
 
       {/* Floating badges */}
       <div
-        className="absolute -top-5 -left-8 bg-brand-navy text-white text-xs font-bold px-4 py-2.5 rounded-2xl flex items-center gap-2"
+        className="absolute -top-5 -left-8  text-white text-xs font-bold px-4 py-2.5 rounded-2xl flex items-center gap-2"
         style={{
           boxShadow: "0 8px 24px rgba(15,35,64,0.3)",
           animation: "float 5s ease-in-out infinite",
+          color: BRAND.goldVivid,
+          background: BRAND.blueNavy,
         }}
       >
-        <Icon name="check" className="w-3.5 h-3.5 text-brand-orange" />
+        <Icon name="check" className="w-3.5 h-3.5" />
         Mulai dari nol
       </div>
       <div
         className="absolute -bottom-5 -right-6 text-xs font-bold px-4 py-2.5 rounded-2xl flex items-center gap-2"
         style={{
-          background: "#FFF0E8",
-          color: "#FF6B35",
-          boxShadow: "0 8px 24px rgba(255,107,53,0.25)",
+          background: BRAND.background,
+          color: BRAND.blueNavy,
+          // boxShadow: "0 8px 24px rgba(255,107,53,0.25)",
           animation: "float 5s ease-in-out 2s infinite",
         }}
       >
@@ -878,7 +858,9 @@ function HeroCard() {
       {/* Background glow */}
       <div
         className="absolute -z-10 inset-4 rounded-[32px] blur-2xl opacity-20"
-        style={{ background: "linear-gradient(135deg, #FF6B35, #FFB89A)" }}
+        style={{
+          background: `linear-gradient(135deg, ${BRAND.blueNavy}, ${BRAND.blueSky})`,
+        }}
       />
     </div>
   );
@@ -961,7 +943,7 @@ function PainCard({ p, i }: { p: any; i: number }) {
       transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className="relative group rounded-3xl p-6 overflow-hidden cursor-default"
       style={{
-        background: "linear-gradient(180deg, #ffffff 0%, #fffaf7 100%)",
+        background: BRAND.background,
         border: "1px solid rgba(15,35,64,0.06)",
         boxShadow: "0 2px 20px rgba(15,35,64,0.06)",
       }}
@@ -988,7 +970,7 @@ function PainCard({ p, i }: { p: any; i: number }) {
         transition={{ duration: 0.35, delay: 0.05 }}
         className="absolute top-0 left-0 right-0 h-[2px] origin-left"
         style={{
-          background: "linear-gradient(90deg, #FF6B35 0%, #E8521C 100%)",
+          background: `linear-gradient(90deg, ${BRAND.blue}, ${BRAND.blueNavy})`,
         }}
       />
 
@@ -1017,9 +999,8 @@ function PainCard({ p, i }: { p: any; i: number }) {
           }}
           className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
           style={{
-            background:
-              "linear-gradient(135deg, rgba(255,107,53,0.12), rgba(255,107,53,0.04))",
-            border: "1px solid rgba(255,107,53,0.15)",
+            background: BRAND.background,
+            border: `1px solid ${BRAND.border}`,
           }}
         >
           <Icon name={p.icon || "book"} className="w-5 h-5 text-brand-orange" />
@@ -1084,9 +1065,7 @@ function PainSection() {
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            "radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,107,53,0.08), transparent 60%)," +
-            "radial-gradient(ellipse 50% 50% at 85% 90%, rgba(45,184,176,0.06), transparent 60%)",
+          background: BRAND.background,
         }}
       />
 
@@ -1153,7 +1132,7 @@ function PainSection() {
 
 function SolutionSection() {
   return (
-    <Section bg="#FFF8F3">
+    <Section bg={BRAND.background}>
       {/* Decorative side accent */}
       <div
         aria-hidden
@@ -1245,7 +1224,7 @@ function SolutionSection() {
                 >
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-                    style={{ background: "#FFF0E8" }}
+                    style={{ background: BRAND.background }}
                   >
                     <Icon
                       name={b.icon || "book"}
@@ -1275,7 +1254,7 @@ function SolutionSection() {
   );
 }
 
-function ProgramsSection({ programs }: { programs: Program[] }) {
+function ProgramsSection({ programs }: { programs: ProgramMeta[] }) {
   const [filter, setFilter] = useState<FId>("all");
   const [activeIdx, setIdx] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -1324,8 +1303,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
       id="programs"
       className="relative overflow-hidden py-20 lg:py-28"
       style={{
-        background:
-          "linear-gradient(180deg,#FFF8F3 0%,#fff 22%,#FFF8F3 80%,#FFF0E8 100%)",
+        background: BRAND.background,
       }}
     >
       {/* Ambient blob */}
@@ -1344,14 +1322,14 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
           <div className="inline-flex items-center gap-3 mb-4">
             <div
               className="h-px w-6 opacity-60"
-              style={{ background: "#FF6B35" }}
+              style={{ background: BRAND.goldVivid }}
             />
             <span className="text-[10px] font-bold uppercase tracking-[.2em] text-brand-orange">
               Program Tersedia
             </span>
             <div
               className="h-px w-6 opacity-60"
-              style={{ background: "#FF6B35" }}
+              style={{ background: BRAND.goldVivid }}
             />
           </div>
           <h2
@@ -1368,15 +1346,17 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
           {/* Social proof */}
           <div className="flex items-center justify-center gap-2 mt-4">
             <div className="flex -space-x-2">
-              {["#FF6B35", "#2DB8B0", "#7C3AED", "#0F2340"].map((bg, i) => (
-                <div
-                  key={i}
-                  className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white"
-                  style={{ background: bg, zIndex: 4 - i }}
-                >
-                  {"ARSD"[i]}
-                </div>
-              ))}
+              {[BRAND.goldVivid, "#2DB8B0", "#7C3AED", "#0F2340"].map(
+                (bg, i) => (
+                  <div
+                    key={i}
+                    className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white"
+                    style={{ background: bg, zIndex: 4 - i }}
+                  >
+                    {"ARSD"[i]}
+                  </div>
+                ),
+              )}
             </div>
             <span className="text-[11px] text-brand-charcoal/40 font-medium">
               1.200+ peserta bergabung
@@ -1412,7 +1392,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
                     className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl text-[12.5px] font-semibold select-none"
                     style={{
                       background: active
-                        ? "linear-gradient(135deg,#FF6B35,#E8521C)"
+                        ? `linear-gradient(135deg,${BRAND.blue},${BRAND.blueNavy})`
                         : "white",
                       color: active ? "white" : "rgba(15,35,64,.55)",
                       border: `1.5px solid ${active ? "transparent" : "rgba(15,35,64,.09)"}`,
@@ -1441,7 +1421,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
           {filter !== "all" && (
             <p
               className="text-center text-[11px] mt-2.5 font-medium"
-              style={{ color: "rgba(255,107,53,.65)" }}
+              style={{ color: BRAND.blue }}
             >
               {af.sub} · {af.slugs.length} program tersedia
             </p>
@@ -1513,7 +1493,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
                   activeIdx === 0
                     ? "rgba(15,35,64,.1)"
                     : "rgba(255,107,53,.35)",
-                color: activeIdx === 0 ? "rgba(15,35,64,.2)" : "#FF6B35",
+                color: activeIdx === 0 ? "rgba(15,35,64,.2)" : BRAND.goldVivid,
                 background:
                   activeIdx === 0 ? "transparent" : "rgba(255,107,53,.06)",
               }}
@@ -1532,7 +1512,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
                     width: activeIdx === i ? 18 : 6,
                     height: 6,
                     background:
-                      activeIdx === i ? "#FF6B35" : "rgba(15,35,64,.15)",
+                      activeIdx === i ? BRAND.goldVivid : "rgba(15,35,64,.15)",
                   }}
                 />
               ))}
@@ -1551,7 +1531,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
                 color:
                   activeIdx >= programs.length - 1
                     ? "rgba(15,35,64,.2)"
-                    : "#FF6B35",
+                    : BRAND.goldVivid,
                 background:
                   activeIdx >= programs.length - 1
                     ? "transparent"
@@ -1587,7 +1567,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
               >
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: "#FFF0E8" }}
+                  style={{ background: BRAND.background }}
                 >
                   <IC size={18} className="text-brand-orange" />
                 </div>
@@ -1603,7 +1583,7 @@ function ProgramsSection({ programs }: { programs: Program[] }) {
   );
 }
 
-function ProgramCard({ prog, faded }: { prog: Program; faded: boolean }) {
+function ProgramCard({ prog, faded }: { prog: ProgramMeta; faded: boolean }) {
   return (
     <div
       className="pgc group relative bg-white rounded-[22px] flex flex-col h-full overflow-hidden"
@@ -1619,7 +1599,7 @@ function ProgramCard({ prog, faded }: { prog: Program; faded: boolean }) {
         .pgc{transition:transform 0.3s cubic-bezier(.16,1,.3,1),box-shadow 0.3s ease;}
         .pgc:hover{transform:translateY(-6px);box-shadow:0 22px 52px rgba(15,35,64,.12),0 0 0 1.5px rgba(255,107,53,.2)!important;}
         .pgc:hover .pgc-ic{transform:scale(1.12) rotate(-5deg);}
-        .pgc:hover .pgc-t{color:#FF6B35;}
+        .pgc:hover .pgc-t{color:${BRAND.blueNavy};}
         .pgc:hover .pgc-btn{box-shadow:0 8px 26px rgba(255,107,53,.45)!important;transform:scale(1.05);}
         .pgc-ic{transition:transform .3s cubic-bezier(.16,1,.3,1);}
         .pgc-t{transition:color .2s ease;}
@@ -1627,24 +1607,21 @@ function ProgramCard({ prog, faded }: { prog: Program; faded: boolean }) {
       `}</style>
 
       {/* Top bar */}
-      <div
-        className="h-[3px]"
-        style={{ background: "linear-gradient(90deg,#FF6B35,#FFB89A)" }}
-      />
+      <div className="h-[3px]" style={{ background: BRAND.background }} />
 
       <div className="p-5 sm:p-6 flex flex-col flex-1 gap-3">
         {/* Icon + badge */}
         <div className="flex items-start justify-between">
           <div
             className="pgc-ic w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "#FFF0E8" }}
+            style={{ background: BRAND.background }}
           >
             <Icon name={prog.icon} size={22} className="text-brand-orange" />
           </div>
           {prog.badge && (
             <span
-              className="text-[10px] font-bold px-2.5 py-1 rounded-full"
-              style={{ background: "#FFF0E8", color: "#FF6B35" }}
+              className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-gold-btn"
+              style={{ color: BRAND.blueNavy }}
             >
               {prog.badge}
             </span>
@@ -1659,8 +1636,8 @@ function ProgramCard({ prog, faded }: { prog: Program; faded: boolean }) {
         {/* Highlight */}
         {prog.highlight && (
           <div
-            className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg w-fit"
-            style={{ background: "#FFF0E8", color: "#FF6B35" }}
+            className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-lg w-fit bg-gold-btn"
+            style={{ color: BRAND.blueNavy }}
           >
             <CheckIcon size={10} />
             {prog.highlight}
@@ -1732,12 +1709,12 @@ function ProgramCard({ prog, faded }: { prog: Program; faded: boolean }) {
             </p>
           </div>
           <a
-            href={prog.link}
+            href={prog.href}
             target="_blank"
             rel="noopener noreferrer"
             className="pgc-btn inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12.5px] font-bold text-white flex-shrink-0"
             style={{
-              background: "linear-gradient(135deg,#FF6B35,#E8521C)",
+              background: `linear-gradient(135deg,${BRAND.blue},${BRAND.blueNavy})`,
               boxShadow: "0 4px 14px rgba(255,107,53,.3)",
             }}
           >
@@ -1754,7 +1731,7 @@ function StepsSection() {
   const { ref, inView } = useInView(0.1);
 
   return (
-    <Section bg="#FFF8F3">
+    <Section bg={BRAND.background}>
       <Container>
         <Reveal className="text-center mb-16">
           <SectionLabel align="center">Cara Kerja</SectionLabel>
@@ -1772,8 +1749,7 @@ function StepsSection() {
           <div
             className="hidden lg:block absolute top-10 left-[calc(50%/3+10%)] right-[calc(50%/3+10%)] h-px"
             style={{
-              background:
-                "repeating-linear-gradient(90deg, #FF6B35 0px, #FF6B35 8px, transparent 8px, transparent 18px)",
+              background: `repeating-linear-gradient(90deg, ${BRAND.blueNavy} 0px, ${BRAND.blueNavy} 8px, transparent 8px, transparent 18px)`,
               opacity: 0.25,
             }}
           />
@@ -1794,7 +1770,7 @@ function StepsSection() {
                   <div
                     className="w-20 h-20 rounded-2xl flex items-center justify-center relative z-10"
                     style={{
-                      background: "linear-gradient(135deg, #FF6B35, #E8521C)",
+                      background: `linear-gradient(135deg, ${BRAND.blue}, ${BRAND.blueNavy})`,
                       boxShadow: "0 12px 36px rgba(255,107,53,0.35)",
                     }}
                   >
@@ -1806,7 +1782,7 @@ function StepsSection() {
                   <div
                     className="absolute inset-0 rounded-2xl blur-xl opacity-40"
                     style={{
-                      background: "linear-gradient(135deg, #FF6B35, #E8521C)",
+                      background: `linear-gradient(135deg, ${BRAND.blue}, ${BRAND.blueNavy})`,
                     }}
                   />
                 </div>
@@ -1824,7 +1800,7 @@ function StepsSection() {
 
         {/* CTA nudge */}
         <Reveal delay={0.4} className="text-center mt-12">
-          <BtnPrimary href={LEAD.programs[0].link} external size="lg">
+          <BtnPrimary href={LEAD.programs[0].href} external size="lg">
             Mulai Sekarang
             <Icon
               name="arrow-right"
@@ -1862,7 +1838,7 @@ function ReassuranceSection() {
   ];
 
   return (
-    <Section bg="white">
+    <Section bg={BRAND.background}>
       <Container>
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           <div>
@@ -1873,7 +1849,7 @@ function ReassuranceSection() {
                 style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)" }}
               >
                 Rancangan yang{" "}
-                <span className="text-brand-orange">mendukung kamu</span>
+                <span style={GRADIENT_GOLD_TEXT}>mendukung kamu</span>
                 <br />
                 bukan membebani
               </h2>
@@ -1885,14 +1861,14 @@ function ReassuranceSection() {
                   <div
                     className="rounded-2xl p-5 h-full group hover:-translate-y-1 transition-all duration-300"
                     style={{
-                      background: i % 2 === 0 ? "#FFF8F3" : "white",
+                      background: "white",
                       border: "1px solid rgba(15,35,64,0.06)",
                       boxShadow: "0 2px 12px rgba(15,35,64,0.05)",
                     }}
                   >
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300"
-                      style={{ background: "#FFF0E8" }}
+                      style={{ background: BRAND.background }}
                     >
                       <Icon
                         name={r.icon}
@@ -1939,8 +1915,7 @@ function ReassuranceSection() {
                     <div
                       className="absolute left-0 top-4 bottom-4 w-1 rounded-r-full"
                       style={{
-                        background:
-                          "linear-gradient(180deg, #FF6B35, #FF6B3555)",
+                        background: `linear-gradient(180deg, ${BRAND.blue}, ${BRAND.blueNavy})`,
                       }}
                     />
 
@@ -1957,8 +1932,7 @@ function ReassuranceSection() {
                           <div
                             className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
                             style={{
-                              background:
-                                "linear-gradient(135deg, #FF6B35, #E8521C)",
+                              background: `linear-gradient(180deg, ${BRAND.blue}, ${BRAND.blueNavy})`,
                             }}
                           >
                             {t.name?.[0]}
@@ -2073,12 +2047,13 @@ function CtaSection() {
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <a
-                  href={LEAD.programs[0].link}
+                  href={LEAD.programs[0].href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-2xl text-white font-bold text-base transition-all hover:scale-[1.03] active:scale-[0.97] group"
                   style={{
-                    background: "linear-gradient(135deg, #FF6B35, #E8521C)",
+                    background: `linear-gradient(135deg, ${BRAND.goldVivid}, ${BRAND.goldMid})`,
+                    color: BRAND.blueNavy,
                     boxShadow: "0 6px 28px rgba(255,107,53,0.45)",
                   }}
                 >
@@ -2126,7 +2101,6 @@ function CtaSection() {
 export default function LeadPageClient() {
   return (
     <main className="min-h-screen bg-white">
-      {/* Keyframes injected globally */}
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px); }

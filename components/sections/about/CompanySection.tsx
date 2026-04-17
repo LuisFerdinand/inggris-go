@@ -21,7 +21,7 @@ export const CompanySection = () => {
               <div className="flex items-center gap-2 mb-5">
                 <div
                   className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: BRAND.orange }}
+                  style={{ background: BRAND.blueNavy }}
                 />
                 <span
                   className="font-display font-bold"
@@ -41,7 +41,7 @@ export const CompanySection = () => {
                 style={{
                   fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
                   letterSpacing: "-0.022em",
-                  color: BRAND.navy,
+                  color: BRAND.blueNavy,
                 }}
               >
                 Siapa Kami?
@@ -56,7 +56,7 @@ export const CompanySection = () => {
                 }}
               >
                 <p>
-                  <strong style={{ color: BRAND.navy }}>Inggris Go</strong>{" "}
+                  <strong style={{ color: BRAND.blueNavy }}>Inggris Go</strong>{" "}
                   adalah lembaga belajar bahasa Inggris berbasis di Kampung
                   Inggris Pare, Kediri — pusat bahasa Inggris terbesar di
                   Indonesia. Kami didirikan dengan satu keyakinan: rasa takut
@@ -82,15 +82,15 @@ export const CompanySection = () => {
                     key={item.text}
                     className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl"
                     style={{
-                      background: BRAND.cream,
+                      background: BRAND.background,
                       border: "1px solid rgba(255,107,53,0.14)",
                       fontSize: "0.8125rem",
-                      color: BRAND.navy,
+                      color: BRAND.blueNavy,
                     }}
                   >
                     <item.icon
                       className="w-3.5 h-3.5 flex-shrink-0"
-                      style={{ color: BRAND.orange }}
+                      style={{ color: BRAND.blueNavy }}
                     />
                     {item.text}
                   </div>
@@ -268,7 +268,7 @@ export const CompanySection = () => {
                       width: "5px",
                       height: "5px",
                       borderRadius: "50%",
-                      background: BRAND.teal,
+                      background: BRAND.problem.teal.accent,
                       opacity: 0.55,
                       flexShrink: 0,
                     }}

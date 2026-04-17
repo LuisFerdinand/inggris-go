@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  LEAD_PROGRAMS,
-  RIGHT_COLUMNS,
+  leadPrograms,
+  rightColumns,
   allProgramHrefs,
 } from "./ProgramsDropdown";
 import { AnimatePresence, motion } from "framer-motion";
@@ -94,8 +94,6 @@ function MobileNavRow({
   );
 }
 
-// ─── SectionLabel ─────────────────────────────────────────────────────────────
-
 function SectionLabel({
   children,
   color = "#94A3B8",
@@ -126,7 +124,7 @@ function MobileCategoryGroup({
   onClose,
   animDelay = 0,
 }: {
-  col: (typeof RIGHT_COLUMNS)[0];
+  col: (typeof rightColumns)[0];
   pathname: string;
   onClose: () => void;
   animDelay?: number;
@@ -266,7 +264,7 @@ function MobileProgramPanel({
         className="mx-4"
         style={{ borderLeft: "2px solid rgba(255,107,53,0.2)" }}
       >
-        {LEAD_PROGRAMS.map((prog, i) => {
+        {leadPrograms.map((prog, i) => {
           const isActive = pathname === prog.href;
           return (
             <motion.div
@@ -276,7 +274,7 @@ function MobileProgramPanel({
               transition={{ delay: 0.03 * i, duration: 0.24, ease: EASE }}
               style={{
                 borderBottom:
-                  i < LEAD_PROGRAMS.length - 1
+                  i < leadPrograms.length - 1
                     ? "1px solid rgba(15,35,64,0.05)"
                     : "none",
               }}
@@ -318,7 +316,7 @@ function MobileProgramPanel({
       <SectionLabel>Semua program</SectionLabel>
 
       <div className="px-4 space-y-3">
-        {RIGHT_COLUMNS.map((col, ci) => (
+        {rightColumns.map((col, ci) => (
           <MobileCategoryGroup
             key={col.id}
             col={col}

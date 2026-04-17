@@ -13,101 +13,55 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+import * as Icons from "lucide-react";
+import { CATEGORIES } from "@/app/programs/[category]/data";
+import { BRAND } from "@/constants/brand";
 
-export const LEAD_PROGRAMS = [
-  {
-    id: "lead",
-    title: "Speaking Challenge",
-    href: "/program/lead",
-    desc: "Belajar fleksibel via WhatsApp",
-    icon: Zap,
-  },
-];
+function getIcon(name?: string) {
+  if (!name) return Icons.Circle;
+  const key = name
+    .split("-")
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join("");
 
-export const RIGHT_COLUMNS = [
-  {
-    id: "online",
-    label: "Kelas Online",
-    href: "/program/online",
-    description: "Belajar intensif via Zoom",
-    icon: BookOpen,
-    color: "#2DB8B0",
-    iconBg: "rgba(45,184,176,0.12)",
-    defaultOpen: false,
-    items: [
-      {
-        label: "Daily Conversation",
-        href: "/program/online",
-        desc: "Percakapan sehari-hari",
-      },
-      {
-        label: "English for Kids",
-        href: "/program/online",
-        desc: "Usia 6–12 tahun",
-      },
-      {
-        label: "Basic TOEFL",
-        href: "/program/online",
-        desc: "Persiapan tes TOEFL",
-      },
-      {
-        label: "Grammar for Speaking",
-        href: "/program/online",
-        desc: "Tata bahasa praktis",
-      },
-      {
-        label: "Private Class",
-        href: "/program/online",
-        desc: "1-on-1 dengan tutor",
-      },
-    ],
-  },
-  {
-    id: "offline",
-    label: "Holiday Camp",
-    href: "/program/camp",
-    description: "Belajar langsung di Pare",
-    icon: Tent,
-    color: "#0F2340",
-    iconBg: "rgba(15,35,64,0.08)",
-    defaultOpen: false,
-    items: [
-      {
-        label: "VIP English for Kids",
-        href: "/program/camp",
-        desc: "English camp seru",
-      },
-      {
-        label: "Program Rombongan",
-        href: "/program/camp",
-        desc: "Untuk sekolah & pesantren",
-      },
-    ],
-  },
-  {
-    id: "school",
-    label: "Program Sekolah",
-    href: "/program/custom",
-    description: "Solusi custom untuk institusi",
-    icon: School,
-    color: "#7C3AED",
-    iconBg: "rgba(124,58,237,0.10)",
-    defaultOpen: false,
-    items: [
-      {
-        label: "Request Proposal",
-        href: "/program/custom",
-        desc: "Hubungi kami untuk detail",
-      },
-    ],
-  },
-];
+  return (Icons as any)[key] || Icons.Circle;
+}
+
+export const leadCategory = CATEGORIES["lead"];
+
+export const leadPrograms = leadCategory.programs.map((p) => ({
+  id: p.slug,
+  title: p.title,
+  href: p.href,
+  desc: p.description,
+  icon: getIcon(p.icon),
+}));
+
+export const categories = Object.values(CATEGORIES).filter(
+  (cat) => cat.key !== "lead",
+);
+
+export const rightColumns = categories.map((cat) => ({
+  id: cat.key,
+  label: cat.label,
+  href: cat.href,
+  description: cat.tagline,
+  icon: getIcon(cat.icon),
+  color: cat.color,
+  iconBg: cat.iconBg,
+  defaultOpen: false,
+
+  items: cat.programs.map((p) => ({
+    label: p.title,
+    href: p.href,
+    desc: p.description,
+  })),
+}));
 
 // Single source of truth for active-state detection — consumed by Navbar + MobileDrawer
 export const allProgramHrefs = [
-  ...LEAD_PROGRAMS.map((p) => p.href),
-  ...RIGHT_COLUMNS.flatMap((col) => col.items.map((item) => item.href)),
+  ...leadPrograms.map((p) => p.href),
+  ...rightColumns.flatMap((col) => col.items.map((item) => item.href)),
 ];
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -118,7 +72,7 @@ function LeadProgramCard({
   prog,
   onClose,
 }: {
-  prog: (typeof LEAD_PROGRAMS)[0];
+  prog: (typeof leadPrograms)[0];
   onClose: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -144,21 +98,21 @@ function LeadProgramCard({
           className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150"
           style={{
             background: hovered
-              ? "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)"
+              ? `linear-gradient(135deg, ${BRAND.goldVivid} 0%, ${BRAND.goldMid} 100%)`
               : "rgba(255,107,53,0.12)",
-            boxShadow: hovered ? "0 3px 10px rgba(255,107,53,0.28)" : "none",
+            // boxShadow: hovered ? "0 3px 10px rgba(255,107,53,0.28)" : "none",
           }}
         >
           <Icon
             className="w-3.5 h-3.5 transition-colors duration-150"
-            style={{ color: hovered ? "white" : "#FF6B35" }}
+            style={{ color: hovered ? "white" : BRAND.goldVivid }}
           />
         </div>
         <span
           className="font-semibold transition-colors duration-150"
           style={{
             fontSize: "0.8125rem",
-            color: hovered ? "#CC4D1F" : "#0F2340",
+            color: hovered ? BRAND.goldMid : "#0F2340",
           }}
         >
           {prog.title}
@@ -168,14 +122,23 @@ function LeadProgramCard({
           transition={{ duration: 0.15 }}
           className="ml-auto flex-shrink-0"
         >
-          <ChevronRight className="w-3.5 h-3.5" style={{ color: "#FF6B35" }} />
+          <ChevronRight
+            className="w-3.5 h-3.5"
+            style={{ color: BRAND.goldVivid }}
+          />
         </motion.span>
       </div>
-      <p
-        style={{ fontSize: "0.6875rem", color: "#94A3B8", lineHeight: "1.45" }}
-      >
-        {prog.desc}
-      </p>
+      {prog.desc && (
+        <p
+          style={{
+            fontSize: "0.6875rem",
+            color: "#94A3B8",
+            lineHeight: "1.45",
+          }}
+        >
+          {prog.desc}
+        </p>
+      )}
     </Link>
   );
 }
@@ -187,7 +150,7 @@ function NavItem({
   onClose,
   isLast,
 }: {
-  item: (typeof RIGHT_COLUMNS)[0]["items"][0];
+  item: (typeof rightColumns)[0]["items"][0];
   onClose: () => void;
   isLast: boolean;
 }) {
@@ -211,7 +174,7 @@ function NavItem({
           className="font-medium leading-tight transition-colors duration-100"
           style={{
             fontSize: "0.78125rem",
-            color: hovered ? "#FF6B35" : "#1E293B",
+            color: hovered ? BRAND.goldVivid : "#1E293B",
           }}
         >
           {item.label}
@@ -227,7 +190,7 @@ function NavItem({
         transition={{ duration: 0.12 }}
         className="flex-shrink-0 ml-2"
       >
-        <ChevronRight className="w-3 h-3" style={{ color: "#FF6B35" }} />
+        <ChevronRight className="w-3 h-3" style={{ color: BRAND.goldVivid }} />
       </motion.span>
     </Link>
   );
@@ -239,7 +202,7 @@ function CategoryGroup({
   col,
   onClose,
 }: {
-  col: (typeof RIGHT_COLUMNS)[0];
+  col: (typeof rightColumns)[0];
   onClose: () => void;
 }) {
   const [open, setOpen] = useState(col.defaultOpen);
@@ -292,7 +255,7 @@ function CategoryGroup({
               <ChevronDown
                 className="w-3.5 h-3.5 transition-colors"
                 style={{
-                  color: open ? "#FF6B35" : "#94A3B8",
+                  color: open ? BRAND.goldVivid : "#94A3B8",
                 }}
               />
             </motion.span>
@@ -369,16 +332,19 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
             }}
           >
             <div className="flex items-center gap-1.5 mb-3">
-              <div className="w-[5px] h-[5px] rounded-full bg-[#FF6B35]" />
+              <div
+                className={`w-[5px] h-[5px] rounded-full `}
+                style={{ background: BRAND.goldVivid }}
+              />
               <p
                 className="font-bold uppercase tracking-[0.1em]"
-                style={{ fontSize: "0.5625rem", color: "#FF6B35" }}
+                style={{ fontSize: "0.5625rem", color: BRAND.goldVivid }}
               >
                 Mulai dari Sini
               </p>
             </div>
             <div className="space-y-1.5">
-              {LEAD_PROGRAMS.map((prog) => (
+              {leadPrograms.map((prog) => (
                 <LeadProgramCard key={prog.id} prog={prog} onClose={onClose} />
               ))}
             </div>
@@ -396,7 +362,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
               </p>
             </div>
             <div className="space-y-2">
-              {RIGHT_COLUMNS.map((col) => (
+              {rightColumns.map((col) => (
                 <CategoryGroup key={col.id} col={col} onClose={onClose} />
               ))}
             </div>
@@ -420,7 +386,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
             className="inline-flex items-center gap-1 font-semibold transition-all duration-150 hover:gap-[7px]"
             style={{
               fontSize: "0.6875rem",
-              color: "#FF6B35",
+              color: BRAND.goldVivid,
               textDecoration: "none",
             }}
           >

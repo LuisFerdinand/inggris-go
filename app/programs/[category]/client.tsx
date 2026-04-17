@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { buildWhatsAppUrl } from "@/lib/config";
-import type { CategoryMeta, Program } from "./data";
+import type { CategoryMeta, ProgramMeta } from "./data";
 import LeadPageClient from "./lead";
 
 function useInView(threshold = 0.15) {
@@ -82,7 +82,7 @@ function ProgramCard({
   index,
   inView,
 }: {
-  program: Program;
+  program: ProgramMeta;
   accent: string;
   accentLight: string;
   index: number;
@@ -195,11 +195,11 @@ function ProgramCard({
                   {program.price}
                 </p>
               </div>
-              {program.link && (
+              {program.href && (
                 <Link
-                  href={program.link ?? `/programs/${program.slug}`}
-                  target={program.link ? "_blank" : undefined}
-                  rel={program.link ? "noopener noreferrer" : undefined}
+                  href={program.href ?? `/programs/${program.slug}`}
+                  target={program.href ? "_blank" : undefined}
+                  rel={program.href ? "noopener noreferrer" : undefined}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
                   style={{
                     background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
@@ -240,9 +240,9 @@ function ProgramCard({
                 ))}
               </div>
               <Link
-                href={program.link ?? `/programs/${program.slug}`}
-                target={program.link ? "_blank" : undefined}
-                rel={program.link ? "noopener noreferrer" : undefined}
+                href={program.href ?? `/programs/${program.slug}`}
+                target={program.href ? "_blank" : undefined}
+                rel={program.href ? "noopener noreferrer" : undefined}
                 className="w-full text-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02] active:scale-95 block"
                 style={{
                   background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
@@ -253,9 +253,9 @@ function ProgramCard({
             </div>
           ) : (
             <Link
-              href={program.link ?? `/programs/${program.slug}`}
-              target={program.link ? "_blank" : undefined}
-              rel={program.link ? "noopener noreferrer" : undefined}
+              href={program.href ?? `/programs/${program.slug}`}
+              target={program.href ? "_blank" : undefined}
+              rel={program.href ? "noopener noreferrer" : undefined}
               className="w-full text-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5"
               style={{
                 background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
@@ -713,11 +713,11 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
 
   const isSchool = meta.key === "school";
   const isOnline = meta.key === "online";
-  const isCamp = meta.key === "camp";
+  const isCamp = meta.key === "offline";
   const isLead = meta.key === "lead";
 
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <main className="min-h-screen bg-background">
       {/* ── HERO ───────────────────────────────────────────────────────── */}
       <section
         className="relative overflow-hidden pt-4 pb-16 lg:pb-24"

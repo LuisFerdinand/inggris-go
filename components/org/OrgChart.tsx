@@ -113,7 +113,7 @@ export function OrgChart() {
           <div className="flex items-center gap-2">
             <div
               className="w-1.5 h-1.5 rounded-full"
-              style={{ background: BRAND.orange, opacity: 0.5 }}
+              style={{ background: BRAND.blue, opacity: 0.5 }}
             />
             <p style={{ fontSize: "0.75rem", color: "#94A3B8" }}>
               Struktur organisasi per 2025
@@ -127,7 +127,7 @@ export function OrgChart() {
               style={{
                 fontSize: "0.8125rem",
                 background: "rgba(255,107,53,0.07)",
-                color: BRAND.orange,
+                color: BRAND.blue,
                 border: "1.5px solid rgba(255,107,53,0.2)",
               }}
               onMouseEnter={(e) => {
@@ -151,21 +151,21 @@ export function OrgChart() {
               style={{
                 fontSize: "0.8125rem",
                 background: "white",
-                color: BRAND.navy,
+                color: BRAND.blueNavy,
                 border: "1.5px solid rgba(15,35,64,0.14)",
                 boxShadow: "0 2px 12px rgba(15,35,64,0.08)",
                 textDecoration: "none",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.borderColor =
-                  BRAND.orange;
-                (e.currentTarget as HTMLAnchorElement).style.color =
-                  BRAND.orange;
+                  BRAND.blue;
+                (e.currentTarget as HTMLAnchorElement).style.color = BRAND.blue;
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLAnchorElement).style.borderColor =
                   "rgba(15,35,64,0.14)";
-                (e.currentTarget as HTMLAnchorElement).style.color = BRAND.navy;
+                (e.currentTarget as HTMLAnchorElement).style.color =
+                  BRAND.blueNavy;
               }}
             >
               <Download className="w-3.5 h-3.5" />

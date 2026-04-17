@@ -14,6 +14,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { buildWhatsAppUrl } from "@/lib/config";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -23,34 +24,12 @@ const ease = [0.22, 1, 0.36, 1] as const;
  * ════════════════════════════════════════════════════════════════════ */
 const leadMagnetPrograms = [
   {
-    icon: Mic,
-    iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    iconShadow: "rgba(255,107,53,0.35)",
-    badge: "Terjangkau",
-    badgeColor: "#FF6B35",
-    badgeBg: "rgba(255,107,53,0.1)",
-    title: "Basic Speaking",
-    subtitle: "Kelas speaking online via Zoom untuk pemula",
-    price: "Rp49.000",
-    desc: "Program online via Zoom khusus pemula. Dalam 10 pertemuan selama 2 minggu, kamu akan langsung berlatih percakapan di breakout room kecil bersama tutor.",
-    highlights: [
-      "10 pertemuan · 60 mnt/sesi",
-      "Breakout room kecil",
-      "Interaktif & langsung speaking",
-    ],
-    cta: "Join Basic Speaking",
-    ctaHref: buildWhatsAppUrl("Basic Speaking"),
-    cardBg: "linear-gradient(145deg, #FFF5F0 0%, #FFE8DC 100%)",
-    cardBorder: "rgba(255,107,53,0.15)",
-    cardAccent: "#FF6B35",
-  },
-  {
     icon: Zap,
-    iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    iconShadow: "rgba(255,107,53,0.32)",
+    iconBg: `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`,
+    iconShadow: BRAND.shadowSoft,
     badge: "Populer",
-    badgeColor: "#E8521C",
-    badgeBg: "rgba(232,82,28,0.1)",
+    badgeColor: BRAND.blueNavy,
+    badgeBg: BRAND.background,
     title: "Speaking Challenge",
     subtitle: "Challenge speaking 10 hari via WhatsApp",
     price: "Rp49.000",
@@ -62,9 +41,9 @@ const leadMagnetPrograms = [
     ],
     cta: "Join Speaking Challenge",
     ctaHref: buildWhatsAppUrl("Speaking Challenge"),
-    cardBg: "linear-gradient(145deg, #FFF5F0 0%, #FFE8DC 100%)",
-    cardBorder: "rgba(232,82,28,0.15)",
-    cardAccent: "#E8521C",
+    cardBg: BRAND.gradientPage,
+    cardBorder: BRAND.border,
+    cardAccent: "BRAND.blueNavy",
   },
 ];
 
@@ -73,7 +52,7 @@ const leadMagnetPrograms = [
  * ════════════════════════════════════════════════════════════════════ */
 const categoryCards = [
   {
-    href: "/main-programs",
+    href: "/programs/online",
     icon: Users,
     iconGradient: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
     iconShadow: "rgba(45,184,176,0.35)",
@@ -82,20 +61,20 @@ const categoryCards = [
     cardBorderHover: "rgba(45,184,176,0.4)",
     accentColor: "#1A9990",
     shadowHover: "rgba(45,184,176,0.18)",
-    label: "Program Utama",
+    label: "Program Online",
     badgeEmoji: "👥",
     badgeText: "Max 6–8 siswa",
     tagline: "Speaking intensif untuk kelas kecil",
     desc: "Kelas reguler yang intensif dengan jumlah siswa terbatas, memastikan setiap peserta mendapatkan perhatian penuh dari tutor.",
     bullets: ["Daily Conversation", "English for Kids Regular"],
-    cta: "Lihat Program Utama",
+    cta: "Lihat Program Online",
     ctaBg: "rgba(45,184,176,0.12)",
     ctaBgHover: "rgba(45,184,176,0.22)",
     ctaBorder: "rgba(45,184,176,0.28)",
     ctaColor: "#0E7B74",
   },
   {
-    href: "/camp-programs",
+    href: "/programs/offline",
     icon: Tent,
     iconGradient: "linear-gradient(135deg, #0F2340 0%, #1A365D 100%)",
     iconShadow: "rgba(15,35,64,0.28)",
@@ -104,39 +83,17 @@ const categoryCards = [
     cardBorderHover: "rgba(15,35,64,0.3)",
     accentColor: "#0F2340",
     shadowHover: "rgba(15,35,64,0.12)",
-    label: "Camp Program",
+    label: "Program Offline",
     badgeEmoji: "📍",
     badgeText: "Di Kampung Inggris Pare",
     tagline: "Pengalaman belajar imersif di Pare",
     desc: "Belajar bahasa Inggris langsung di pusat bahasa terbesar Indonesia. Suasana belajar yang unik dan intensif untuk anak-anak.",
     bullets: ["VIP English Camp for Kids", "Aktivitas outdoor & speaking"],
-    cta: "Lihat Camp Program",
+    cta: "Lihat Program Offline",
     ctaBg: "rgba(15,35,64,0.07)",
     ctaBgHover: "rgba(15,35,64,0.14)",
     ctaBorder: "rgba(15,35,64,0.18)",
     ctaColor: "#0F2340",
-  },
-  {
-    href: "/school-group-programs",
-    icon: School,
-    iconGradient: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
-    iconShadow: "rgba(124,58,237,0.32)",
-    cardGradient: "linear-gradient(145deg, #FAF5FF 0%, #EDE9FE 100%)",
-    cardBorder: "rgba(124,58,237,0.16)",
-    cardBorderHover: "rgba(124,58,237,0.38)",
-    accentColor: "#6D28D9",
-    shadowHover: "rgba(124,58,237,0.16)",
-    label: "Grup Sekolah",
-    badgeEmoji: "⚙️",
-    badgeText: "Customizable",
-    tagline: "Program khusus sekolah & pesantren",
-    desc: "Program belajar bahasa Inggris yang dapat disesuaikan untuk sekolah, pesantren, atau instansi dengan durasi fleksibel.",
-    bullets: ["1 hari s/d 1 bulan", "Tutor datang ke sekolah atau di Pare"],
-    cta: "Request Proposal",
-    ctaBg: "rgba(124,58,237,0.09)",
-    ctaBgHover: "rgba(124,58,237,0.18)",
-    ctaBorder: "rgba(124,58,237,0.22)",
-    ctaColor: "#6D28D9",
   },
 ];
 
@@ -268,7 +225,7 @@ function LeadMagnetSlider() {
                     width: i === current ? "20px" : "7px",
                     height: "7px",
                     background:
-                      i === current ? "#FF6B35" : "rgba(15,35,64,0.15)",
+                      i === current ? "BRAND.blue" : "rgba(15,35,64,0.15)",
                   }}
                 />
               ))}
@@ -366,7 +323,7 @@ function LeadMagnetCard({
               className="font-display font-extrabold"
               style={{
                 fontSize: "1.25rem",
-                color: "#FF6B35",
+                color: "BRAND.blue",
                 lineHeight: "1.2",
               }}
             >
@@ -439,7 +396,7 @@ function LeadMagnetCard({
           className="relative z-10 flex items-center justify-center gap-2 font-display font-bold rounded-2xl py-3.5 text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
           style={{
             fontSize: "0.9375rem",
-            background: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
+            background: `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`,
             boxShadow: `0 6px 20px ${prog.iconShadow}`,
           }}
           onMouseEnter={(e) => {
@@ -526,19 +483,6 @@ function CategoryCard({
               >
                 {card.label}
               </h3>
-              <span
-                className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full font-display font-bold flex-shrink-0"
-                style={{
-                  fontSize: "0.5625rem",
-                  letterSpacing: "0.03em",
-                  background: `${card.accentColor}15`,
-                  color: card.accentColor,
-                  border: `1px solid ${card.cardBorder}`,
-                }}
-              >
-                <span style={{ fontSize: "0.7rem" }}>{card.badgeEmoji}</span>
-                {card.badgeText}
-              </span>
             </div>
             <p
               className="font-display font-semibold"
@@ -665,18 +609,18 @@ export default function ProgramsGrid() {
         {/* ── Header ────────────────────────────────────────────── */}
         <div className="flex flex-col items-center text-center mb-12 lg:mb-14">
           <Reveal>
-            <span
-              className="inline-block px-4 py-1.5 rounded-full font-display font-semibold mb-5"
-              style={{
-                fontSize: "0.75rem",
-                letterSpacing: "0.04em",
-                background: "rgba(45,184,176,0.1)",
-                color: "#1A9990",
-                border: "1px solid rgba(45,184,176,0.2)",
-              }}
-            >
-              Program Kami
-            </span>
+            <div className="inline-flex items-center gap-2 mb-6">
+              <span
+                className="px-4 py-1.5 rounded-full text-xs font-display font-bold tracking-tight uppercase"
+                style={{
+                  background: BRAND.background,
+                  color: BRAND.blueNavy,
+                  border: `1px solid ${BRAND.border}`,
+                }}
+              >
+                program kami
+              </span>
+            </div>
           </Reveal>
           <Reveal delay={0.08}>
             <h2
@@ -687,18 +631,7 @@ export default function ProgramsGrid() {
                 color: "#0F2340",
               }}
             >
-              Program Belajar{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Inggris Go
-              </span>
+              Program Belajar <span style={GRADIENT_GOLD_TEXT}>Inggris Go</span>
             </h2>
           </Reveal>
           <Reveal delay={0.15}>
@@ -724,7 +657,7 @@ export default function ProgramsGrid() {
           <div className="flex items-center gap-2.5 mb-6">
             <div
               className="w-2 h-2 rounded-full"
-              style={{ background: "#FF6B35" }}
+              style={{ background: "BRAND.blue" }}
             />
             <span
               className="font-display font-bold"
@@ -788,7 +721,7 @@ export default function ProgramsGrid() {
             <Link
               href="/contact"
               className="inline-flex items-center gap-1.5 font-display font-semibold transition-all duration-200 hover:gap-3"
-              style={{ fontSize: "0.875rem", color: "#FF6B35" }}
+              style={{ fontSize: "0.875rem", color: "BRAND.blue" }}
             >
               Konsultasi gratis dengan admin
               <ArrowRight className="w-4 h-4" />

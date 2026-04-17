@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import Link from "next/link";
 import { buildWhatsAppUrl } from "@/lib/config";
+import { BRAND } from "@/constants/brand";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -36,7 +37,7 @@ export default function CTASection() {
     <section
       className="relative w-full overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
+        background: `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`,
       }}
     >
       {/* ── Plus / cross pattern — matches template exactly ───────
@@ -112,7 +113,7 @@ export default function CTASection() {
               style={{
                 fontSize: "0.9375rem",
                 background: "white",
-                color: "#E8521C",
+                color: BRAND.blueNavy,
                 padding: "0.875rem 2rem",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
               }}
