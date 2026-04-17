@@ -3,6 +3,7 @@ import Link from "next/link";
 import { siteConfig, navLinks, buildWhatsAppUrl } from "@/lib/config";
 import MapWrapper from "./Map/MapWrapper";
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 const socials = [
   {
@@ -184,28 +185,22 @@ export default function Footer() {
                 className="inline-flex items-center gap-3 group w-fit"
               >
                 <div
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-105"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, var(--color-brand-blue) 0%, var(--color-brand-blue-vivid) 100%)",
-                    boxShadow: "0 4px 20px rgba(26,82,200,0.35)",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLElement).style.boxShadow =
-                      "0 6px 28px rgba(26,82,200,0.55)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLElement).style.boxShadow =
-                      "0 4px 20px rgba(26,82,200,0.35)")
-                  }
+                  className="
+    w-11 h-11 rounded-2xl flex items-center justify-center
+    bg-white/5 backdrop-blur-sm
+    border border-white/10
+    transition-all duration-300
+    group-hover:scale-105
+    group-hover:bg-white/10
+  "
                 >
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                  </svg>
+                  <Image
+                    src="/logo.png"
+                    alt="Logo"
+                    width={28}
+                    height={28}
+                    className="object-contain transition-transform duration-300 group-hover:scale-110"
+                  />
                 </div>
                 <span className="font-display font-bold text-xl tracking-tight">
                   {siteConfig.name}

@@ -199,7 +199,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         highlight: "Mulai dari nol tanpa tekanan",
         tags: ["Self-paced", "7 Hari", "Pemula"],
         icon: "target",
-        href: "/speaking-challenge",
+        href: "/programs/lead",
         benefits: [
           {
             title: "Latihan langsung",

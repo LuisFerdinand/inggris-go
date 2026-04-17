@@ -84,7 +84,7 @@ export const marketingStaff = [
 
 export const leadMagnetPrograms = [
   {
-    href: "/speaking-challenge",
+    href: "/program/lead",
     icon: Mic,
     iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
     iconShadow: "rgba(255,107,53,0.3)",
