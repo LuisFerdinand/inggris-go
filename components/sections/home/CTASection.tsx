@@ -134,7 +134,10 @@ export default function CTASection() {
 
             {/* Secondary — ghost/outline */}
             <a
-              href={buildWhatsAppUrl("Konsultasi CTA")}
+              href={buildWhatsAppUrl({
+                intent: "simple",
+                title: "konsultasi dari CTA section",
+              })}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 font-display font-bold rounded-full

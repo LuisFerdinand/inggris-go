@@ -447,7 +447,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     href: "/programs/offline",
 
     icon: "tent",
-    theme: { primary: "#ffc107" },
+    theme: { primary: "#f7b500" },
 
     quickDecisionLabel: "Saya ingin perubahan cepat",
     quickDecisionDesc: "Immersive full di Kampung Inggris Pare",

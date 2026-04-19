@@ -31,16 +31,14 @@ export default function ContactForm() {
   } = useForm<FormValues>();
 
   const onSubmit = async (data: FormValues) => {
-    // Build WA message from form data
-    const msg = encodeURIComponent(
-      `Halo Inggris Go! 👋\n\nSaya ingin bertanya tentang program Anda.\n\n` +
-        `*Nama:* ${data.name}\n` +
-        `*Email:* ${data.email}\n` +
-        `*No. HP:* ${data.phone || "-"}\n` +
-        `*Program:* ${data.program}\n\n` +
-        `*Pesan:*\n${data.message}`,
-    );
-    const waUrl = `https://wa.me/6281234567890?text=${msg}`;
+    const waUrl = buildWhatsAppUrl({
+      intent: "form",
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      title: data.program,
+      message: data.message,
+    });
 
     // Small artificial delay for UX
     await new Promise((r) => setTimeout(r, 600));

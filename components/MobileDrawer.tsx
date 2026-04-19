@@ -5,6 +5,7 @@ import {
   rightColumns,
   allProgramHrefs,
 } from "./ProgramsDropdown";
+import { leadCategory } from "./ProgramsDropdown";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -15,10 +16,14 @@ import { MobileUserSection } from "./UserNav";
 import { WhatsAppIcon } from "./ui/WAButton";
 import { Button } from "./ui/button";
 import { BRAND } from "@/constants/brand";
+import { generateTheme } from "@/lib/utils";
 
 export { allProgramHrefs };
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+// Derived once — mirrors ProgramsDropdown
+const leadTheme = generateTheme(leadCategory.theme.primary);
 
 // ─── MobileNavRow ─────────────────────────────────────────────────────────────
 
@@ -42,7 +47,7 @@ function MobileNavRow({
   const inner = (
     <div className="relative flex items-center justify-between w-full py-3 pl-4 pr-1">
       <motion.div
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-full "
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-full"
         animate={{ height: isActive ? 20 : 0, opacity: isActive ? 1 : 0 }}
         transition={{ duration: 0.22, ease: EASE }}
         style={{ background: BRAND.blue }}
@@ -132,17 +137,45 @@ function MobileCategoryGroup({
   animDelay?: number;
 }) {
   const [open, setOpen] = useState(col.defaultOpen);
+  const theme = generateTheme(col.theme.primary);
 
   return (
     <motion.div
       initial={{ opacity: 0, x: 8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: animDelay, duration: 0.24, ease: EASE }}
+      className=""
     >
-      {/* Colored left rail — the only visual grouping mechanism */}
-      <div style={{ borderLeft: `2px solid ${col.color}33` }}>
+      <div
+        className="rounded-xl overflow-hidden transition-all duration-200 PL"
+        style={{
+          border: `1px solid ${open ? theme.border : "rgba(15,35,64,0.07)"}`,
+          boxShadow: open ? `0 2px 12px ${theme.soft}` : "none",
+          transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+        }}
+      >
+        {/* Colored top accent line when open */}
+        <motion.div
+          initial={false}
+          animate={{ scaleX: open ? 1 : 0, opacity: open ? 1 : 0 }}
+          transition={{ duration: 0.25, ease: EASE }}
+          style={{
+            height: "2px",
+            background: `linear-gradient(90deg, ${theme.primary} 0%, transparent 100%)`,
+            transformOrigin: "left",
+          }}
+        />
+
         {/* Category header */}
-        <div className="flex items-center justify-between pl-3 pr-0 py-2">
+        <div
+          className="flex items-center justify-between transition-colors duration-150"
+          style={{
+            padding: "9px 10px 9px 12px",
+            background: open ? theme.soft : "transparent",
+            transition: "background 0.15s ease",
+          }}
+        >
+          {/* Left: icon + label — taps to category page */}
           <Link
             href={col.href}
             onClick={onClose}
@@ -150,49 +183,93 @@ function MobileCategoryGroup({
             style={{ textDecoration: "none" }}
           >
             <div
-              className="w-[6px] h-[6px] rounded-full flex-shrink-0"
-              style={{ background: col.color }}
-            />
-            <span
-              className="font-bold uppercase tracking-[0.12em]"
-              style={{ fontSize: "0.625rem", color: col.color }}
+              className="w-[22px] h-[22px] rounded-[6px] flex items-center justify-center flex-shrink-0 transition-all duration-150"
+              style={{
+                background: open ? theme.softStrong : theme.soft,
+                border: `1px solid ${theme.border}`,
+              }}
             >
-              {col.label}
-            </span>
-            {/* <span
-              className="truncate"
-              style={{ fontSize: "0.625rem", color: "#CBD5E1" }}
-            >
-              {col.description}
-            </span> */}
+              {(() => {
+                const Icon = col.icon;
+                return (
+                  <Icon
+                    style={{
+                      width: "11px",
+                      height: "11px",
+                      color: theme.primary,
+                    }}
+                  />
+                );
+              })()}
+            </div>
+
+            <div className="min-w-0">
+              <p
+                className="font-semibold leading-tight transition-colors duration-150"
+                style={{
+                  fontSize: "0.75rem",
+                  color: open ? theme.strong : "#0F2340",
+                }}
+              >
+                {col.label}
+              </p>
+              <p
+                style={{
+                  fontSize: "0.625rem",
+                  color: open ? theme.primary : "#94A3B8",
+                  lineHeight: "1.35",
+                  transition: "color 0.15s ease",
+                }}
+              >
+                {col.description}
+              </p>
+            </div>
           </Link>
 
-          <button
-            onClick={() => setOpen((o) => !o)}
-            className="flex items-center gap-1 pl-2 pr-1 py-1 flex-shrink-0"
-            aria-label={open ? "Tutup" : "Buka"}
-          >
+          {/* Right: count + toggle */}
+          <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
             <span
+              className="font-semibold transition-all duration-150"
               style={{
                 fontSize: "0.5625rem",
-                color: "#CBD5E1",
-                fontWeight: 600,
+                padding: "2px 6px",
+                borderRadius: "999px",
+                background: open ? theme.soft : "rgba(15,35,64,0.06)",
+                color: open ? theme.primary : "#94A3B8",
+                border: `1px solid ${open ? theme.border : "transparent"}`,
                 fontVariantNumeric: "tabular-nums",
+                transition:
+                  "background 0.15s ease, color 0.15s ease, border-color 0.15s ease",
               }}
             >
               {col.items.length}
             </span>
-            <motion.span
-              animate={{ rotate: open ? 180 : 0 }}
-              transition={{ duration: 0.22, ease: EASE }}
-              className="inline-flex"
+
+            <button
+              onClick={() => setOpen((o) => !o)}
+              className="flex items-center justify-center w-6 h-6 rounded-md transition-all duration-150"
+              style={{
+                background: open ? theme.softStrong : "transparent",
+                border: `1px solid ${open ? theme.border : "transparent"}`,
+              }}
+              aria-label={open ? "Tutup" : "Buka"}
             >
-              <ChevronDown
-                className="w-3 h-3"
-                style={{ color: open ? col.color : "#CBD5E1" }}
-              />
-            </motion.span>
-          </button>
+              <motion.span
+                animate={{ rotate: open ? 180 : 0 }}
+                transition={{ duration: 0.22, ease: EASE }}
+                className="inline-flex"
+              >
+                <ChevronDown
+                  style={{
+                    width: "0.75rem",
+                    height: "0.75rem",
+                    color: open ? theme.primary : "#CBD5E1",
+                    transition: "color 0.15s ease",
+                  }}
+                />
+              </motion.span>
+            </button>
+          </div>
         </div>
 
         {/* Expandable items */}
@@ -202,8 +279,15 @@ function MobileCategoryGroup({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: EASE }}
-              style={{ overflow: "hidden" }}
+              transition={{
+                height: { duration: 0.25, ease: EASE },
+                opacity: { duration: 0.18 },
+              }}
+              style={{
+                overflow: "hidden",
+                borderTop: `1px solid ${theme.border}`,
+              }}
+              className=""
             >
               {col.items.map((item, ii) => {
                 const isActive = pathname === item.href;
@@ -212,33 +296,100 @@ function MobileCategoryGroup({
                     key={item.href}
                     href={item.href}
                     onClick={onClose}
-                    className="flex items-center justify-between pl-5 pr-1"
+                    className="flex items-center justify-between transition-all duration-150"
                     style={{
-                      paddingTop: "0.5rem",
-                      paddingBottom: "0.5rem",
-                      borderTop: "1px solid rgba(15,35,64,0.04)",
+                      padding: "8px 10px 8px 12px",
+                      background: isActive ? theme.soft : "transparent",
+                      borderBottom:
+                        ii < col.items.length - 1
+                          ? `1px solid rgba(15,35,64,0.04)`
+                          : "none",
+                      borderLeft: `2px solid ${isActive ? theme.primary : "transparent"}`,
                       textDecoration: "none",
+                      transition:
+                        "background 0.15s ease, border-color 0.15s ease",
                     }}
                   >
-                    <span
-                      className="font-normal transition-colors duration-150"
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className="font-medium leading-tight transition-colors duration-150"
+                          style={{
+                            fontSize: "0.8125rem",
+                            color: isActive ? theme.primary : "#1E293B",
+                          }}
+                        >
+                          {item.label}
+                        </span>
+                        {/* {item.badge && (
+                          <span
+                            className="flex-shrink-0 font-bold px-1.5 py-0.5 rounded-full"
+                            style={{
+                              fontSize: "0.5rem",
+                              letterSpacing: "0.05em",
+                              textTransform: "uppercase",
+                              background: theme.soft,
+                              color: theme.primary,
+                              border: `1px solid ${theme.border}`,
+                            }}
+                          >
+                            {item.badge}
+                          </span>
+                        )} */}
+                      </div>
+                      {item.desc && (
+                        <span
+                          style={{
+                            fontSize: "0.6875rem",
+                            color: "#94A3B8",
+                            marginTop: "1px",
+                            lineHeight: "1.4",
+                          }}
+                        >
+                          {item.desc}
+                        </span>
+                      )}
+                    </div>
+
+                    <ChevronRight
                       style={{
-                        fontSize: "0.7rem",
-                        color: isActive ? col.color : "#334155",
+                        width: "0.75rem",
+                        height: "0.75rem",
+                        color: isActive ? theme.primary : "#CBD5E1",
+                        flexShrink: 0,
+                        marginLeft: "0.5rem",
                       }}
-                    >
-                      {item.label}
-                    </span>
-                    {/* <span
-                      className="ml-3 flex-shrink-0"
-                      style={{ fontSize: "0.6875rem", color: "#CBD5E1" }}
-                    >
-                      {item.desc}
-                    </span> */}
+                    />
                   </Link>
                 );
               })}
-              <div style={{ height: 6 }} />
+
+              {/* Per-category "see all" footer */}
+              <Link
+                href={col.href}
+                onClick={onClose}
+                className="flex items-center justify-between"
+                style={{
+                  padding: "8px 10px 8px 12px",
+                  background: theme.soft,
+                  borderTop: `1px solid ${theme.border}`,
+                  textDecoration: "none",
+                }}
+              >
+                <span
+                  className="font-semibold"
+                  style={{ fontSize: "0.6875rem", color: theme.primary }}
+                >
+                  Lihat semua {col.shortLabel}
+                </span>
+                <ChevronRight
+                  style={{
+                    width: "0.75rem",
+                    height: "0.75rem",
+                    color: theme.primary,
+                  }}
+                />
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>
@@ -257,67 +408,187 @@ function MobileProgramPanel({
   onClose: () => void;
 }) {
   return (
-    <div className="pl-6 pb-3">
-      {/* ── Lead programs ── */}
-      <SectionLabel color={BRAND.blue}>Mulai dari sini</SectionLabel>
-
-      {/* Orange left rail groups the lead programs as a visual unit */}
+    <div className="pb-3 pl-4">
+      {/* ══ Lead programs ══════════════════════════════════════ */}
       <div
-        className="mx-4"
-        style={{ borderLeft: "2px solid rgba(255,107,53,0.2)" }}
+        className="mx-4 mb-4 rounded-xl overflow-hidden"
+        style={{
+          background: leadTheme.soft,
+          border: `1px solid ${leadTheme.border}`,
+        }}
       >
-        {leadPrograms.map((prog, i) => {
-          const isActive = pathname === prog.href;
-          return (
-            <motion.div
-              key={prog.id}
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.03 * i, duration: 0.24, ease: EASE }}
-              style={{
-                borderBottom:
-                  i < leadPrograms.length - 1
-                    ? "1px solid rgba(15,35,64,0.05)"
-                    : "none",
-              }}
+        {/* Panel header */}
+        <div
+          className="flex items-center justify-between px-3 py-2.5"
+          style={{ borderBottom: `1px solid ${leadTheme.border}` }}
+        >
+          <div className="flex items-center gap-1.5">
+            <div
+              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ background: leadTheme.primary }}
+            />
+            <p
+              className="font-bold uppercase tracking-[0.12em]"
+              style={{ fontSize: "0.5625rem", color: leadTheme.primary }}
             >
-              <Link
-                href={prog.href}
-                onClick={onClose}
-                className="flex items-center justify-between pl-4 pr-3 py-3 group"
-                style={{ textDecoration: "none" }}
+              Mulai dari Sini
+            </p>
+          </div>
+          <Link
+            href={leadCategory.href}
+            onClick={onClose}
+            className="flex items-center gap-0.5 font-semibold transition-opacity duration-150 hover:opacity-70"
+            style={{
+              fontSize: "0.5625rem",
+              color: leadTheme.primary,
+              textDecoration: "none",
+              letterSpacing: "0.04em",
+            }}
+          >
+            Lihat semua
+            <ChevronRight style={{ width: "0.6875rem", height: "0.6875rem" }} />
+          </Link>
+        </div>
+
+        {/* Lead program items */}
+        <div
+          className="divide-y"
+          style={{ "--divide-color": leadTheme.border } as React.CSSProperties}
+        >
+          {leadPrograms.map((prog, i) => {
+            const isActive = pathname === prog.href;
+            const Icon = prog.icon;
+
+            return (
+              <motion.div
+                key={prog.id}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.03 * i, duration: 0.24, ease: EASE }}
+                style={{
+                  borderTop: i > 0 ? `1px solid ${leadTheme.border}` : "none",
+                }}
               >
-                <div className="min-w-0">
-                  <p
-                    className="font-semibold leading-tight transition-colors duration-150"
+                <Link
+                  href={prog.href}
+                  onClick={onClose}
+                  className="flex items-center gap-3 px-3 py-3 group"
+                  style={{
+                    background: isActive ? leadTheme.softStrong : "transparent",
+                    borderLeft: `2px solid ${isActive ? leadTheme.primary : "transparent"}`,
+                    textDecoration: "none",
+                    transition:
+                      "background 0.15s ease, border-color 0.15s ease",
+                  }}
+                >
+                  {/* Icon */}
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                     style={{
-                      fontSize: "0.9375rem",
-                      color: isActive ? BRAND.blue : "#0F2340",
+                      background: isActive ? leadTheme.softStrong : "white",
+                      border: `1px solid ${leadTheme.border}`,
                     }}
                   >
-                    {prog.title}
-                  </p>
-                  <p
-                    className="mt-0.5 leading-tight"
-                    style={{ fontSize: "0.75rem", color: "#94A3B8" }}
-                  >
-                    {prog.desc}
-                  </p>
-                </div>
-                <ChevronRight
-                  className="w-3.5 h-3.5 flex-shrink-0 ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                  style={{ color: BRAND.blue }}
-                />
-              </Link>
-            </motion.div>
-          );
-        })}
+                    <Icon
+                      style={{
+                        width: "0.875rem",
+                        height: "0.875rem",
+                        color: leadTheme.primary,
+                      }}
+                    />
+                  </div>
+
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p
+                        className="font-semibold leading-tight"
+                        style={{
+                          fontSize: "0.875rem",
+                          color: isActive ? leadTheme.primary : "#0F2340",
+                        }}
+                      >
+                        {prog.title}
+                      </p>
+                      {/* {prog.badge && (
+                        <span
+                          className="font-bold px-1.5 py-0.5 rounded-full"
+                          style={{
+                            fontSize: "0.5rem",
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase",
+                            background: "white",
+                            color: leadTheme.primary,
+                            border: `1px solid ${leadTheme.border}`,
+                          }}
+                        >
+                          {prog.badge}
+                        </span>
+                      )} */}
+                    </div>
+                    {/* {prog.desc && (
+                      <p
+                        className="mt-0.5 leading-tight"
+                        style={{
+                          fontSize: "0.6875rem",
+                          color: "#94A3B8",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        {prog.desc}
+                      </p>
+                    )} */}
+                  </div>
+
+                  <ChevronRight
+                    className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                    style={{
+                      width: "0.875rem",
+                      height: "0.875rem",
+                      color: leadTheme.primary,
+                    }}
+                  />
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Price hint footer */}
+        {/* <div
+          className="flex items-center gap-2 px-3 py-2"
+          style={{ borderTop: `1px solid ${leadTheme.border}` }}
+        >
+          <div
+            className="w-1 h-4 rounded-full flex-shrink-0"
+            style={{ background: leadTheme.primary, opacity: 0.3 }}
+          />
+          <p
+            style={{
+              fontSize: "0.625rem",
+              color: "rgba(15,35,64,0.4)",
+              lineHeight: "1.45",
+            }}
+          >
+            Mulai dari{" "}
+            <strong style={{ color: leadTheme.primary }}>Rp 49.000</strong> —
+            cocok untuk pemula
+          </p>
+        </div> */}
       </div>
 
-      {/* ── All programs ── */}
-      <SectionLabel>Semua program</SectionLabel>
+      {/* ══ All programs (category accordions) ════════════════ */}
+      <div className="flex items-center gap-2 px-4 mb-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-slate-300 flex-shrink-0" />
+        <p
+          className="font-bold uppercase tracking-[0.12em]"
+          style={{ fontSize: "0.5625rem", color: "#94A3B8" }}
+        >
+          Semua Program
+        </p>
+      </div>
 
-      <div className="px-4 space-y-3">
+      <div className="px-4 space-y-2">
         {rightColumns.map((col, ci) => (
           <MobileCategoryGroup
             key={col.id}
@@ -329,7 +600,7 @@ function MobileProgramPanel({
         ))}
       </div>
 
-      {/* ── Consult nudge ── */}
+      {/* ══ Consult nudge ══════════════════════════════════════ */}
       <div
         className="flex items-center justify-between mx-4 mt-5 pt-3"
         style={{ borderTop: "1px solid rgba(15,35,64,0.06)" }}
@@ -373,8 +644,7 @@ export function MobileDrawer({
   const regularLinks = navLinks.filter((l) => l.label !== "Program Kami");
   const beforePrograms = regularLinks.slice(0, 2);
   const afterPrograms = regularLinks.slice(2);
-  const isProgramActive = allProgramHrefs.includes(pathname);
-
+  const isProgramActive = pathname.startsWith("/programs");
   return (
     <>
       <motion.div

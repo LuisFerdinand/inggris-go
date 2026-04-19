@@ -82,61 +82,6 @@ export const marketingStaff = [
   { name: "Ana", role: "Marketing Staff", initials: "AN" },
 ];
 
-export const leadMagnetPrograms = [
-  {
-    href: "/program/lead",
-    icon: Mic,
-    iconBg: "linear-gradient(135deg, #FF6B35 0%, #E8521C 100%)",
-    iconShadow: "rgba(255,107,53,0.3)",
-    badge: "Terjangkau",
-    badgeColor: "#FF6B35",
-    title: "Basic Speaking",
-    price: "Rp49.000",
-    highlights: ["10 pertemuan", "60 mnt/sesi", "Breakout room"],
-    cta: "Join Basic Speaking",
-    ctaHref: buildWhatsAppUrl("Basic Speaking"),
-    ctaExternal: true,
-  },
-];
-export const categoryCards = [
-  {
-    href: "/online",
-    icon: Users,
-    cardGradient:
-      "linear-gradient(145deg, rgba(45,184,176,0.07) 0%, rgba(45,184,176,0.13) 100%)",
-    cardBorderDefault: "rgba(45,184,176,0.2)",
-    cardBorderHover: "rgba(45,184,176,0.38)",
-    iconGradient: "linear-gradient(135deg, #2DB8B0 0%, #1A9990 100%)",
-    iconShadow: "rgba(45,184,176,0.35)",
-    accentColor: "#1A9990",
-    label: "Kelas Online",
-    desc: "Kelas speaking intensif dengan tutor personal, max 6–8 siswa.",
-    ctaLabel: "Lihat Program Utama",
-    ctaBg: "rgba(45,184,176,0.12)",
-    ctaBgHover: "rgba(45,184,176,0.22)",
-    ctaColor: "#0E7B74",
-    ctaBorder: "rgba(45,184,176,0.28)",
-  },
-  {
-    href: "/offline",
-    icon: Tent,
-    cardGradient:
-      "linear-gradient(145deg, rgba(15,35,64,0.04) 0%, rgba(15,35,64,0.09) 100%)",
-    cardBorderDefault: "rgba(15,35,64,0.13)",
-    cardBorderHover: "rgba(15,35,64,0.28)",
-    iconGradient: "linear-gradient(135deg, #0F2340 0%, #1A365D 100%)",
-    iconShadow: "rgba(15,35,64,0.25)",
-    accentColor: "#0F2340",
-    label: "Kelas Offline",
-    desc: "VIP English Camp for Kids di Kampung Inggris Pare.",
-    ctaLabel: "Lihat Camp Program",
-    ctaBg: "rgba(15,35,64,0.07)",
-    ctaBgHover: "rgba(15,35,64,0.14)",
-    ctaColor: "#0F2340",
-    ctaBorder: "rgba(15,35,64,0.16)",
-  },
-];
-
 export const PROGRAM_CATEGORIES = [
   {
     key: "online",

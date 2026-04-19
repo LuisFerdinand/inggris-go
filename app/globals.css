@@ -12,6 +12,11 @@
   --color-brand-blue-vivid: #1e6eee;
   --color-brand-blue-sky: #3a8ff5;
 
+  --color-brand-gold: #f7b500; /* base gold (balanced between mid & vivid) */
+
+  --color-brand-gold-soft: rgba(255, 193, 7, 0.08);
+  --color-brand-gold-border: rgba(255, 193, 7, 0.22);
+
   /* ── Gold — primary CTA button + heading highlight ────── */
   --color-brand-gold-vivid: #ffc107;
   --color-brand-gold-mid: #f5a800;

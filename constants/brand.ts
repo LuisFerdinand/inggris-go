@@ -102,9 +102,9 @@ export const BRAND = {
       border: "var(--color-support-teal-border)",
     },
     amber: {
-      accent: "var(--color-support-amber)",
-      bg: "var(--color-support-amber-soft)",
-      border: "var(--color-support-amber-border)",
+      accent: "var(--color-brand-gold)",
+      bg: "var(--color-brand-gold-soft)",
+      border: "var(--color-brand-gold-border)",
     },
     purple: {
       accent: "var(--color-support-purple)",

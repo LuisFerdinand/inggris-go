@@ -1,15 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BookOpen,
-  ChevronDown,
-  ChevronRight,
-  Mic,
-  School,
-  Tent,
-  Zap,
-} from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -18,48 +10,56 @@ import { CATEGORIES } from "@/app/programs/[category]/data";
 import { BRAND } from "@/constants/brand";
 import { generateTheme } from "@/lib/utils";
 
+/* ─── helpers ─────────────────────────────────────────────────── */
 function getIcon(name?: string) {
   if (!name) return Icons.Circle;
   const key = name
     .split("-")
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .join("");
-
-  return (Icons as any)[key] || Icons.Circle;
+  return (
+    ((Icons as Record<string, unknown>)[key] as React.ElementType) ||
+    Icons.Circle
+  );
 }
 
+/* ─── Derived data ────────────────────────────────────────────── */
 export const leadCategory = CATEGORIES["lead"];
+const leadTheme = generateTheme(leadCategory.theme.primary);
 
 export const leadPrograms = leadCategory.programs.map((p) => ({
   id: p.slug,
   title: p.title,
   href: p.href,
-  desc: p.shortDesc,
+  desc: p.shortDesc ?? p.description?.slice(0, 72) + "…",
   icon: getIcon(p.icon),
+  badge: p.badge,
 }));
 
 export const categories = Object.values(CATEGORIES).filter(
   (cat) => cat.key !== "lead",
 );
 
-export const rightColumns = categories.map((cat) => ({
-  id: cat.key,
-  label: cat.label,
-  href: cat.href,
-  description: cat.tagline,
-  icon: getIcon(cat.icon),
-  color: generateTheme(cat.theme.primary).primary,
-  iconBg: generateTheme(cat.theme.primary).softStrong,
-  defaultOpen: false,
+export const rightColumns = categories.map((cat) => {
+  const theme = generateTheme(cat.theme.primary);
+  return {
+    id: cat.key,
+    label: cat.label,
+    shortLabel: cat.shortLabel,
+    href: cat.href,
+    description: cat.tagline,
+    icon: getIcon(cat.icon),
+    theme,
+    defaultOpen: false,
+    items: cat.programs.map((p) => ({
+      label: p.title,
+      href: p.href,
+      desc: p.shortDesc ?? p.highlight ?? "",
+      badge: p.badge,
+    })),
+  };
+});
 
-  items: cat.programs.map((p) => ({
-    label: p.title,
-    href: p.href,
-    desc: p.description,
-  })),
-}));
-
-// Single source of truth for active-state detection — consumed by Navbar + MobileDrawer
 export const allProgramHrefs = [
   ...leadPrograms.map((p) => p.href),
   ...rightColumns.flatMap((col) => col.items.map((item) => item.href)),
@@ -67,8 +67,9 @@ export const allProgramHrefs = [
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// ─── LeadProgramCard ──────────────────────────────────────────────────────────
-
+/* ══════════════════════════════════════════════════════════════
+ * LeadProgramCard — themed from lead category's primary color
+ * ══════════════════════════════════════════════════════════════ */
 function LeadProgramCard({
   prog,
   onClose,
@@ -85,81 +86,131 @@ function LeadProgramCard({
       onClick={onClose}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="block rounded-[10px] p-[11px_13px] relative overflow-hidden transition-all duration-150"
+      className="group block rounded-xl overflow-hidden transition-all duration-200"
       style={{
-        background: hovered
-          ? "var(--color-support-orange-soft)"
-          : "rgba(26,82,200,0.04)",
-
-        border: hovered
-          ? "1px solid var(--color-support-orange-border)"
-          : "var(--color-support-orange-border)",
-
-        boxShadow: hovered ? "var(--shadow-card)" : "none",
+        background: hovered ? leadTheme.soft : "rgba(255,255,255,0.6)",
+        border: `1px solid ${hovered ? leadTheme.border : "rgba(15,35,64,0.06)"}`,
+        boxShadow: hovered ? `0 4px 20px ${leadTheme.soft}` : "none",
         textDecoration: "none",
+        padding: "10px 12px",
       }}
     >
-      <div className="flex items-center gap-2.5 mb-1.5">
-        <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150"
+      {/* Top: icon + title + arrow */}
+      <div className="flex items-center gap-2.5">
+        <motion.div
+          animate={
+            hovered ? { scale: 1.08, rotate: -4 } : { scale: 1, rotate: 0 }
+          }
+          transition={{ duration: 0.2, ease: EASE }}
+          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
           style={{
-            background: hovered
-              ? "var(--color-support-orange-soft)"
-              : "var(--color-support-orange-soft)",
-            border: hovered
-              ? "1px solid var(--color-support-orange-border)"
-              : "",
+            background: hovered ? leadTheme.softStrong : leadTheme.soft,
+            border: `1px solid ${leadTheme.border}`,
           }}
         >
-          <Icon
-            className="w-3.5 h-3.5 transition-colors duration-150"
-            style={{
-              color: hovered
-                ? "var(--color-support-orange)"
-                : "var(--color-support-orange)",
-            }}
-          />
+          <Icon className="w-3.5 h-3.5" style={{ color: leadTheme.primary }} />
+        </motion.div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="font-semibold leading-tight truncate transition-colors duration-150"
+              style={{
+                fontSize: "0.8125rem",
+                color: hovered ? leadTheme.primary : "#0F2340",
+              }}
+            >
+              {prog.title}
+            </span>
+            {/* {prog.badge && (
+              <span
+                className="flex-shrink-0 px-1.5 py-0.5 rounded-full font-bold"
+                style={{
+                  fontSize: "0.5rem",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  background: leadTheme.soft,
+                  color: leadTheme.primary,
+                  border: `1px solid ${leadTheme.border}`,
+                }}
+              >
+                {prog.badge}
+              </span>
+            )} */}
+          </div>
         </div>
-        <span
-          className="font-semibold transition-colors duration-150"
-          style={{
-            fontSize: "0.8125rem",
-            color: hovered ? "var(--color-support-orange)" : "#0F2340",
-          }}
-        >
-          {prog.title}
-        </span>
+
         <motion.span
-          animate={hovered ? { x: 0, opacity: 1 } : { x: -6, opacity: 0 }}
+          animate={hovered ? { x: 0, opacity: 1 } : { x: -5, opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="ml-auto flex-shrink-0"
+          className="flex-shrink-0 ml-auto"
         >
-          <ChevronRight className="w-3.5 h-3.5" style={{ color: BRAND.blue }} />
+          <ChevronRight
+            className="w-3.5 h-3.5"
+            style={{ color: leadTheme.primary }}
+          />
         </motion.span>
       </div>
-      {prog.desc && (
+
+      {/* Desc */}
+      {/* {prog.desc && (
         <p
+          className="mt-1.5 leading-snug transition-colors duration-150"
           style={{
             fontSize: "0.6875rem",
-            color: "#94A3B8",
+            color: hovered ? "rgba(15,35,64,0.55)" : "#94A3B8",
             lineHeight: "1.45",
+            paddingLeft: "2.25rem", // align with title
           }}
         >
           {prog.desc}
         </p>
-      )}
+      )} */}
+
+      {/* Bottom CTA strip */}
+      <motion.div
+        initial={false}
+        animate={{
+          opacity: hovered ? 1 : 0,
+          height: hovered ? "auto" : 0,
+          marginTop: hovered ? "8px" : 0,
+        }}
+        transition={{ duration: 0.2, ease: EASE }}
+        className="overflow-hidden"
+      >
+        <div
+          className="flex items-center justify-between px-2.5 py-1.5 rounded-lg"
+          style={{
+            background: leadTheme.primary,
+          }}
+        >
+          <span
+            className="font-bold"
+            style={{ fontSize: "0.6875rem", color: leadTheme.text }}
+          >
+            Mulai Sekarang
+          </span>
+          <ChevronRight
+            className="w-3 h-3"
+            style={{ color: leadTheme.text, opacity: 0.8 }}
+          />
+        </div>
+      </motion.div>
     </Link>
   );
 }
 
-// ─── NavItem ──────────────────────────────────────────────────────────────────
-
+/* ══════════════════════════════════════════════════════════════
+ * NavItem — themed per parent category
+ * ══════════════════════════════════════════════════════════════ */
 function NavItem({
   item,
+  theme,
   onClose,
   isLast,
 }: {
   item: (typeof rightColumns)[0]["items"][0];
+  theme: ReturnType<typeof generateTheme>;
   onClose: () => void;
   isLast: boolean;
 }) {
@@ -171,42 +222,71 @@ function NavItem({
       onClick={onClose}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="flex items-center justify-between py-[7px] px-[11px] transition-colors duration-100"
+      className="flex items-center justify-between transition-all duration-150"
       style={{
-        background: hovered ? "rgba(15,35,64,0.03)" : "transparent",
-        borderBottom: isLast ? "none" : "0.5px solid rgba(15,35,64,0.06)",
+        padding: "7px 11px",
+        background: hovered ? theme.soft : "transparent",
+        borderBottom: isLast ? "none" : "0.5px solid rgba(15,35,64,0.055)",
+        borderLeft: `2px solid ${hovered ? theme.primary : "transparent"}`,
         textDecoration: "none",
+        transition: "background 0.15s ease, border-color 0.15s ease",
       }}
     >
-      <div className="flex flex-col">
-        <span
-          className="font-medium leading-tight transition-colors duration-100"
-          style={{
-            fontSize: "0.78125rem",
-            color: hovered ? BRAND.blue : "#1E293B",
-          }}
-        >
-          {item.label}
-        </span>
-        <span
-          style={{ fontSize: "0.65625rem", color: "#94A3B8", marginTop: 1 }}
-        >
-          {item.desc}
-        </span>
+      <div className="flex flex-col min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span
+            className="font-medium leading-tight truncate transition-colors duration-150"
+            style={{
+              fontSize: "0.78125rem",
+              color: hovered ? theme.strong : "#1E293B",
+            }}
+          >
+            {item.label}
+          </span>
+          {/* {item.badge && (
+            <span
+              className="flex-shrink-0 px-1.5 py-0.5 rounded-full font-bold"
+              style={{
+                fontSize: "0.5rem",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                background: theme.soft,
+                color: theme.primary,
+                border: `1px solid ${theme.border}`,
+              }}
+            >
+              {item.badge}
+            </span>
+          )} */}
+        </div>
+        {item.desc && (
+          <span
+            style={{
+              fontSize: "0.65625rem",
+              color: "#94A3B8",
+              marginTop: "1px",
+              lineHeight: "1.4",
+            }}
+          >
+            {item.desc}
+          </span>
+        )}
       </div>
+
       <motion.span
         animate={hovered ? { x: 0, opacity: 1 } : { x: -4, opacity: 0 }}
         transition={{ duration: 0.12 }}
         className="flex-shrink-0 ml-2"
       >
-        <ChevronRight className="w-3 h-3" style={{ color: BRAND.blue }} />
+        <ChevronRight className="w-3 h-3" style={{ color: theme.primary }} />
       </motion.span>
     </Link>
   );
 }
 
-// ─── CategoryGroup ────────────────────────────────────────────────────────────
-
+/* ══════════════════════════════════════════════════════════════
+ * CategoryGroup — themed accordion with consistent accent
+ * ══════════════════════════════════════════════════════════════ */
 function CategoryGroup({
   col,
   onClose,
@@ -215,56 +295,124 @@ function CategoryGroup({
   onClose: () => void;
 }) {
   const [open, setOpen] = useState(col.defaultOpen);
+  const [headerHovered, setHeaderHovered] = useState(false);
   const Icon = col.icon;
+  const { theme } = col;
 
   return (
-    <div className="rounded-[10px] overflow-hidden border border-[rgba(15,35,64,0.08)]">
-      <div className="flex items-center justify-between px-[11px] py-[9px]">
-        {/* LEFT: Clickable content */}
+    <div
+      className="rounded-xl overflow-hidden transition-all duration-200"
+      style={{
+        border: `1px solid ${open ? theme.border : "rgba(15,35,64,0.08)"}`,
+        boxShadow: open ? `0 2px 12px ${theme.soft}` : "none",
+        transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+      }}
+    >
+      {/* Colored top accent line when open */}
+      <motion.div
+        initial={false}
+        animate={{ scaleX: open ? 1 : 0, opacity: open ? 1 : 0 }}
+        transition={{ duration: 0.25, ease: EASE }}
+        style={{
+          height: "2px",
+          background: `linear-gradient(90deg, ${theme.primary} 0%, transparent 100%)`,
+          transformOrigin: "left",
+        }}
+      />
+
+      {/* Header */}
+      <div
+        className="flex items-center justify-between transition-colors duration-150"
+        style={{
+          padding: "9px 11px",
+          background: open
+            ? theme.soft
+            : headerHovered
+              ? "rgba(15,35,64,0.02)"
+              : "transparent",
+          transition: "background 0.15s ease",
+        }}
+        onMouseEnter={() => setHeaderHovered(true)}
+        onMouseLeave={() => setHeaderHovered(false)}
+      >
+        {/* Clickable label → goes to category page */}
         <Link
           href={col.href}
           onClick={onClose}
-          className="flex items-center gap-2 flex-1 min-w-0 group"
+          className="flex items-center gap-2 flex-1 min-w-0"
+          style={{ textDecoration: "none" }}
         >
           <div
-            className="w-5 h-5 rounded-[5px] flex items-center justify-center"
-            style={{ background: col.iconBg }}
+            className="w-[22px] h-[22px] rounded-[6px] flex items-center justify-center flex-shrink-0 transition-all duration-150"
+            style={{
+              background: headerHovered || open ? theme.softStrong : theme.soft,
+              border: `1px solid ${theme.border}`,
+            }}
           >
-            <Icon className="w-[11px] h-[11px]" style={{ color: col.color }} />
+            <Icon
+              style={{
+                width: "11px",
+                height: "11px",
+                color: theme.primary,
+              }}
+            />
           </div>
 
-          <div>
-            <p className="font-semibold text-[0.72rem] text-[#0F2340] group-hover:text-foreground transition-colors">
+          <div className="min-w-0">
+            <p
+              className="font-semibold leading-tight transition-colors duration-150"
+              style={{
+                fontSize: "0.72rem",
+                color: headerHovered || open ? theme.strong : "#0F2340",
+              }}
+            >
               {col.label}
             </p>
-            <p className="text-[0.625rem] text-[#94A3B8]">{col.description}</p>
+            <p
+              style={{
+                fontSize: "0.625rem",
+                color: open ? theme.primary : "#94A3B8",
+                lineHeight: "1.35",
+                transition: "color 0.15s ease",
+              }}
+            >
+              {col.description}
+            </p>
           </div>
         </Link>
 
-        {/* RIGHT: Actions */}
-        <div className="flex items-center gap-1.5 ml-2">
-          {/* Item count */}
-          <span className="text-[0.56rem] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">
+        {/* Right: count + toggle */}
+        <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+          <span
+            className="text-[0.56rem] px-1.5 py-0.5 rounded-full font-semibold transition-all duration-150"
+            style={{
+              background: open ? theme.soft : "rgba(15,35,64,0.06)",
+              color: open ? theme.primary : "#94A3B8",
+              border: `1px solid ${open ? theme.border : "transparent"}`,
+            }}
+          >
             {col.items.length}
           </span>
 
-          {/* Toggle button ONLY */}
           <button
             onClick={() => setOpen((o) => !o)}
             className="flex items-center justify-center w-6 h-6 rounded-md transition-all duration-150"
             style={{
-              background: open ? "rgba(255,107,53,0.10)" : "transparent",
+              background: open ? theme.softStrong : "transparent",
+              border: `1px solid ${open ? theme.border : "transparent"}`,
             }}
           >
             <motion.span
               animate={{ rotate: open ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.22, ease: EASE }}
               className="flex items-center justify-center"
             >
               <ChevronDown
-                className="w-3.5 h-3.5 transition-colors"
                 style={{
-                  color: open ? BRAND.blue : "#94A3B8",
+                  width: "0.875rem",
+                  height: "0.875rem",
+                  color: open ? theme.primary : "#94A3B8",
+                  transition: "color 0.15s ease",
                 }}
               />
             </motion.span>
@@ -272,23 +420,61 @@ function CategoryGroup({
         </div>
       </div>
 
-      {/* Accordion */}
+      {/* Accordion body */}
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
+            key="accordion"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              height: { duration: 0.25, ease: EASE },
+              opacity: { duration: 0.18 },
+            }}
             className="overflow-hidden"
+            style={{
+              borderTop: `1px solid ${theme.border}`,
+            }}
           >
             {col.items.map((item, i) => (
               <NavItem
                 key={item.href}
                 item={item}
+                theme={theme}
                 onClose={onClose}
                 isLast={i === col.items.length - 1}
               />
             ))}
+
+            {/* "See all" footer per category */}
+            <Link
+              href={col.href}
+              onClick={onClose}
+              className="flex items-center justify-end gap-1 transition-all duration-150 group/see"
+              style={{
+                padding: "7px 11px",
+                background: theme.soft,
+                borderTop: `1px solid ${theme.border}`,
+                textDecoration: "none",
+              }}
+            >
+              <span
+                className="font-semibold transition-colors duration-150 group-hover/see:underline"
+                style={{ fontSize: "0.6875rem", color: theme.primary }}
+              >
+                Lihat semua {col.shortLabel}
+              </span>
+              <motion.span className="inline-flex">
+                <ChevronRight
+                  style={{
+                    width: "0.75rem",
+                    height: "0.75rem",
+                    color: theme.primary,
+                  }}
+                />
+              </motion.span>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
@@ -296,8 +482,9 @@ function CategoryGroup({
   );
 }
 
-// ─── ProgramsDropdown ─────────────────────────────────────────────────────────
-
+/* ══════════════════════════════════════════════════════════════
+ * ProgramsDropdown — root
+ * ══════════════════════════════════════════════════════════════ */
 export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
   return (
     <motion.div
@@ -310,7 +497,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
       role="menu"
       aria-label="Program Kami"
     >
-      {/* Arrow tip */}
+      {/* Caret tip */}
       <div className="flex justify-center mb-[-1px] relative z-10 pointer-events-none">
         <svg width="16" height="8" viewBox="0 0 16 8" fill="none">
           <path
@@ -332,37 +519,86 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
         }}
       >
         <div className="grid grid-cols-5">
-          {/* ── LEFT: Lead programs ── */}
+          {/* ── LEFT: Lead programs panel ─────────────────────── */}
           <div
-            className="col-span-2 p-[18px_16px]"
+            className="col-span-2 flex flex-col"
             style={{
-              background: "rgba(255,107,53,0.03)",
-              borderRight: "0.5px solid rgba(15,35,64,0.07)",
+              background: leadTheme.soft,
+              borderRight: `0.5px solid ${leadTheme.border}`,
             }}
           >
-            <div className="flex items-center gap-1.5 mb-3">
+            {/* Panel header */}
+            <div
+              className="flex items-center gap-2 px-4 pt-4 pb-3"
+              style={{ borderBottom: `1px solid ${leadTheme.border}` }}
+            >
               <div
-                className={`w-[5px] h-[5px] rounded-full `}
-                style={{ background: BRAND.blue }}
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: leadTheme.primary }}
               />
               <p
                 className="font-bold uppercase tracking-[0.1em]"
-                style={{ fontSize: "0.5625rem", color: BRAND.blue }}
+                style={{ fontSize: "0.5625rem", color: leadTheme.primary }}
               >
                 Mulai dari Sini
               </p>
+              {/* Category page link */}
+              <Link
+                href={leadCategory.href}
+                onClick={onClose}
+                className="ml-auto flex items-center gap-0.5 font-semibold transition-all duration-150 hover:opacity-70"
+                style={{
+                  fontSize: "0.5625rem",
+                  color: leadTheme.primary,
+                  textDecoration: "none",
+                  letterSpacing: "0.04em",
+                }}
+              >
+                Lihat semua
+                <ChevronRight
+                  style={{ width: "0.6875rem", height: "0.6875rem" }}
+                />
+              </Link>
             </div>
-            <div className="space-y-1.5">
+
+            {/* Program cards */}
+            <div className="p-3 space-y-1.5 flex-1">
               {leadPrograms.map((prog) => (
                 <LeadProgramCard key={prog.id} prog={prog} onClose={onClose} />
               ))}
             </div>
+
+            {/* Lead panel footer: price hint */}
+            {/* <div
+              className="px-4 py-3 flex items-center gap-2"
+              style={{ borderTop: `1px solid ${leadTheme.border}` }}
+            >
+              <div
+                className="w-1.5 h-5 rounded-full flex-shrink-0"
+                style={{ background: leadTheme.primary, opacity: 0.35 }}
+              />
+              <p
+                style={{
+                  fontSize: "0.625rem",
+                  color: "rgba(15,35,64,0.4)",
+                  lineHeight: "1.45",
+                }}
+              >
+                Mulai dari{" "}
+                <strong style={{ color: leadTheme.primary }}>Rp 49.000</strong>{" "}
+                — cocok untuk pemula
+              </p>
+            </div> */}
           </div>
 
-          {/* ── RIGHT: Accordion categories ── */}
-          <div className="col-span-3 p-[18px_16px]">
-            <div className="flex items-center gap-1.5 mb-3">
-              <div className="w-[5px] h-[5px] rounded-full bg-slate-300" />
+          {/* ── RIGHT: Category accordions ────────────────────── */}
+          <div className="col-span-3 flex flex-col">
+            {/* Panel header */}
+            <div
+              className="flex items-center gap-2 px-4 pt-4 pb-3"
+              style={{ borderBottom: "0.5px solid rgba(15,35,64,0.07)" }}
+            >
+              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-slate-300" />
               <p
                 className="font-bold uppercase tracking-[0.1em]"
                 style={{ fontSize: "0.5625rem", color: "#94A3B8" }}
@@ -370,7 +606,9 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
                 Semua Program
               </p>
             </div>
-            <div className="space-y-2">
+
+            {/* Accordion groups */}
+            <div className="p-3 space-y-2 flex-1">
               {rightColumns.map((col) => (
                 <CategoryGroup key={col.id} col={col} onClose={onClose} />
               ))}
@@ -378,7 +616,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        {/* Footer */}
+        {/* ── Global footer ──────────────────────────────────── */}
         <div
           className="px-5 py-[10px] flex items-center justify-between"
           style={{
@@ -389,7 +627,6 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
           <p style={{ fontSize: "0.6875rem", color: "#94A3B8" }}>
             Masih bingung memilih?
           </p>
-
           <Link
             href="/programs"
             onClick={onClose}
@@ -397,6 +634,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
             style={{
               fontSize: "0.6875rem",
               color: BRAND.blue,
+              textDecoration: "none",
             }}
           >
             Lihat semua program

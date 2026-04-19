@@ -14,7 +14,7 @@ export default function AboutPage() {
       <HeroSection></HeroSection>
       <CompanySection></CompanySection>
       <VisionMissionSection></VisionMissionSection>
-      <OrgSection></OrgSection>
+      {/* <OrgSection></OrgSection> */}
       <CtaSection></CtaSection>
     </main>
   );

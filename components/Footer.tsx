@@ -299,7 +299,10 @@ export default function Footer() {
               <ul className="space-y-3">
                 <li>
                   <a
-                    href={buildWhatsAppUrl("Konsultasi")}
+                    href={buildWhatsAppUrl({
+                      title: "Konsultasi Belajar Bahasa Inggris",
+                      intent: "consultation",
+                    })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex items-center gap-2.5 text-white/50 hover:text-white transition-colors duration-200 text-sm"
@@ -478,7 +481,10 @@ export default function Footer() {
             Siap mulai perjalanan belajar Bahasa Inggris kamu?
           </p>
           <a
-            href={buildWhatsAppUrl("Daftar Program")}
+            href={buildWhatsAppUrl({
+              title: "Pendaftaran Program Inggris Go",
+              intent: "enroll",
+            })}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 flex-shrink-0"
