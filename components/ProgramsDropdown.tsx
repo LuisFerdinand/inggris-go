@@ -86,10 +86,15 @@ function LeadProgramCard({
       onMouseLeave={() => setHovered(false)}
       className="block rounded-[10px] p-[11px_13px] relative overflow-hidden transition-all duration-150"
       style={{
-        background: hovered ? "rgba(255,107,53,0.09)" : "rgba(255,107,53,0.06)",
-        border: `0.5px solid ${hovered ? "rgba(255,107,53,0.22)" : "transparent"}`,
-        transform: hovered ? "translateY(-1px)" : "none",
-        boxShadow: hovered ? "0 4px 16px rgba(255,107,53,0.10)" : "none",
+        background: hovered
+          ? "var(--color-support-orange-soft)"
+          : "rgba(26,82,200,0.04)",
+
+        border: hovered
+          ? "1px solid var(--color-support-orange-border)"
+          : "var(--color-support-orange-border)",
+
+        boxShadow: hovered ? "var(--shadow-card)" : "none",
         textDecoration: "none",
       }}
     >
@@ -98,21 +103,27 @@ function LeadProgramCard({
           className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150"
           style={{
             background: hovered
-              ? `linear-gradient(135deg, ${BRAND.goldVivid} 0%, ${BRAND.goldMid} 100%)`
-              : "rgba(255,107,53,0.12)",
-            // boxShadow: hovered ? "0 3px 10px rgba(255,107,53,0.28)" : "none",
+              ? "var(--color-support-orange-soft)"
+              : "var(--color-support-orange-soft)",
+            border: hovered
+              ? "1px solid var(--color-support-orange-border)"
+              : "",
           }}
         >
           <Icon
             className="w-3.5 h-3.5 transition-colors duration-150"
-            style={{ color: hovered ? "white" : BRAND.goldVivid }}
+            style={{
+              color: hovered
+                ? "var(--color-support-orange)"
+                : "var(--color-support-orange)",
+            }}
           />
         </div>
         <span
           className="font-semibold transition-colors duration-150"
           style={{
             fontSize: "0.8125rem",
-            color: hovered ? BRAND.goldMid : "#0F2340",
+            color: hovered ? "var(--color-support-orange)" : "#0F2340",
           }}
         >
           {prog.title}
@@ -122,10 +133,7 @@ function LeadProgramCard({
           transition={{ duration: 0.15 }}
           className="ml-auto flex-shrink-0"
         >
-          <ChevronRight
-            className="w-3.5 h-3.5"
-            style={{ color: BRAND.goldVivid }}
-          />
+          <ChevronRight className="w-3.5 h-3.5" style={{ color: BRAND.blue }} />
         </motion.span>
       </div>
       {prog.desc && (
@@ -174,7 +182,7 @@ function NavItem({
           className="font-medium leading-tight transition-colors duration-100"
           style={{
             fontSize: "0.78125rem",
-            color: hovered ? BRAND.goldVivid : "#1E293B",
+            color: hovered ? BRAND.blue : "#1E293B",
           }}
         >
           {item.label}
@@ -190,7 +198,7 @@ function NavItem({
         transition={{ duration: 0.12 }}
         className="flex-shrink-0 ml-2"
       >
-        <ChevronRight className="w-3 h-3" style={{ color: BRAND.goldVivid }} />
+        <ChevronRight className="w-3 h-3" style={{ color: BRAND.blue }} />
       </motion.span>
     </Link>
   );
@@ -225,7 +233,7 @@ function CategoryGroup({
           </div>
 
           <div>
-            <p className="font-semibold text-[0.72rem] text-[#0F2340] group-hover:text-[#FF6B35] transition-colors">
+            <p className="font-semibold text-[0.72rem] text-[#0F2340] group-hover:text-foreground transition-colors">
               {col.label}
             </p>
             <p className="text-[0.625rem] text-[#94A3B8]">{col.description}</p>
@@ -255,7 +263,7 @@ function CategoryGroup({
               <ChevronDown
                 className="w-3.5 h-3.5 transition-colors"
                 style={{
-                  color: open ? BRAND.goldVivid : "#94A3B8",
+                  color: open ? BRAND.blue : "#94A3B8",
                 }}
               />
             </motion.span>
@@ -334,11 +342,11 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
             <div className="flex items-center gap-1.5 mb-3">
               <div
                 className={`w-[5px] h-[5px] rounded-full `}
-                style={{ background: BRAND.goldVivid }}
+                style={{ background: BRAND.blue }}
               />
               <p
                 className="font-bold uppercase tracking-[0.1em]"
-                style={{ fontSize: "0.5625rem", color: BRAND.goldVivid }}
+                style={{ fontSize: "0.5625rem", color: BRAND.blue }}
               >
                 Mulai dari Sini
               </p>
@@ -386,7 +394,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
             className="inline-flex items-center gap-1 font-semibold transition-all duration-150 hover:gap-[7px]"
             style={{
               fontSize: "0.6875rem",
-              color: BRAND.goldVivid,
+              color: BRAND.blue,
               textDecoration: "none",
             }}
           >

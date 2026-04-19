@@ -85,16 +85,17 @@ const buttonVariants = cva(
       {
         variant: "brand-outline",
         className:
-          "border-[rgba(15,35,64,0.14)] text-[#0F2340] hover:border-[#FF6B35] hover:text-[#FF6B35]",
+          "border-[rgba(15,35,64,0.14)] text-[#0F2340] hover:border-[var(--color-brand-blue)] hover:text-[var(--color-brand-blue)]",
       },
       {
         variant: "brand-ghost",
-        className: "text-[#0F2340] hover:bg-orange-50 hover:text-[#FF6B35]",
+        className:
+          "text-[#0F2340] hover:bg-orange-50 hover:text-[var(--color-brand-blue)]",
       },
       {
         variant: "brand-secondary",
         className:
-          "shadow-[0_2px_10px_rgba(15,35,64,0.06)] hover:border-[#FF6B35] hover:text-[#FF6B35] hover:shadow-[0_6px_20px_rgba(255,107,53,0.15)]",
+          "shadow-[0_2px_10px_rgba(15,35,64,0.06)] hover:border-[var(--color-brand-blue)] hover:text-[var(--color-brand-blue)] hover:shadow-[0_6px_20px_rgba(255,107,53,0.15)]",
       },
     ],
 

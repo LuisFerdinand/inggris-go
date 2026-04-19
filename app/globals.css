@@ -11,8 +11,6 @@
   --color-brand-blue: #1a52c8;
   --color-brand-blue-vivid: #1e6eee;
   --color-brand-blue-sky: #3a8ff5;
-  --color-brand-blue-ice: #d6e8ff;
-  --color-brand-blue-frost: #eef4ff;
 
   /* ── Gold — primary CTA button + heading highlight ────── */
   --color-brand-gold-vivid: #ffc107;
@@ -26,10 +24,6 @@
   --color-support-teal: #2db8b0;
   --color-support-teal-soft: rgba(45, 184, 176, 0.06);
   --color-support-teal-border: rgba(45, 184, 176, 0.18);
-
-  --color-support-amber: #f59e0b;
-  --color-support-amber-soft: rgba(245, 158, 11, 0.06);
-  --color-support-amber-border: rgba(245, 158, 11, 0.18);
 
   --color-support-purple: #8b5cf6;
   --color-support-purple-soft: rgba(139, 92, 246, 0.06);
@@ -134,11 +128,6 @@
     outline-color: var(--ring);
   }
 
-  /* ── Grain texture ───────────────────────────────────── */
-  .bg-grain {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  }
-
   /* ── Hero mesh — blue radials only ─────────────────── */
   .bg-hero-mesh {
     background-image:
@@ -152,16 +141,6 @@
         rgba(58, 143, 245, 0.1) 0%,
         transparent 50%
       );
-  }
-
-  /* ── Page background — blue-tinted ─────────────────── */
-  .bg-page-gradient {
-    background: linear-gradient(
-      135deg,
-      var(--color-brand-bg) 0%,
-      var(--color-brand-blue-ice) 50%,
-      var(--color-brand-bg) 100%
-    );
   }
 
   /* ── PRIMARY button — vivid blue ────────────────────── */
@@ -198,6 +177,22 @@
       var(--color-brand-overlay-blue-icon-strong) 0%,
       var(--color-brand-overlay-blue-card) 100%
     );
+  }
+
+  /* base */
+  .card {
+    transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* variants */
+  .card-default {
+    border: 1.5px solid var(--color-brand-border-soft);
+    box-shadow: var(--shadow-badge);
+  }
+
+  .card-center {
+    border: 2px solid var(--color-brand-border);
+    box-shadow: var(--shadow-card-hover);
   }
 
   /* ── Warm gradient (section bg) ─────────────────────── */
@@ -283,7 +278,6 @@
     background: var(--color-support-teal);
   }
   .bg-support-amber {
-    background: var(--color-support-amber);
   }
   .bg-support-purple {
     background: var(--color-support-purple);
@@ -297,7 +291,6 @@
     border-color: var(--color-support-teal-border);
   }
   .border-support-amber {
-    border-color: var(--color-support-amber-border);
   }
   .border-support-purple {
     border-color: var(--color-support-purple-border);
@@ -311,7 +304,6 @@
     color: var(--color-support-teal);
   }
   .text-support-amber {
-    color: var(--color-support-amber);
   }
   .text-support-purple {
     color: var(--color-support-purple);
@@ -434,6 +426,14 @@
 
 /* ─── Light mode ───────────────────────────────────────────── */
 :root {
+  :root {
+    --navbar-height: 56px; /* mobile */
+  }
+  @media (min-width: 1024px) {
+    :root {
+      --navbar-height: 72px; /* desktop */
+    }
+  }
   --background: var(--color-brand-bg);
   --foreground: var(--color-brand-text);
 

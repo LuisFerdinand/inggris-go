@@ -12,7 +12,7 @@ export const siteConfig = {
 export const navLinks = [
   { label: "Beranda", href: "/" },
   { label: "Tentang Kami", href: "/tentang-kami" },
-  { label: "Program Kami", href: "/program-kami" },
+  { label: "Program Kami", href: "/programs" },
   { label: "Blog", href: "/blog" },
 ] as const;
 

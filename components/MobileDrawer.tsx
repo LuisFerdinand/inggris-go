@@ -14,6 +14,7 @@ import { authClient } from "@/lib/auth/client";
 import { MobileUserSection } from "./UserNav";
 import { WhatsAppIcon } from "./ui/WAButton";
 import { Button } from "./ui/button";
+import { BRAND } from "@/constants/brand";
 
 export { allProgramHrefs };
 
@@ -41,15 +42,16 @@ function MobileNavRow({
   const inner = (
     <div className="relative flex items-center justify-between w-full py-3 pl-4 pr-1">
       <motion.div
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-full bg-[#FF6B35]"
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-full "
         animate={{ height: isActive ? 20 : 0, opacity: isActive ? 1 : 0 }}
         transition={{ duration: 0.22, ease: EASE }}
+        style={{ background: BRAND.blue }}
       />
       <span
         className="font-display font-semibold tracking-[-0.01em] transition-colors duration-200"
         style={{
           fontSize: "1.0625rem",
-          color: isActive ? "#FF6B35" : "#0F2340",
+          color: isActive ? BRAND.blue : "#0F2340",
         }}
       >
         {label}
@@ -62,7 +64,7 @@ function MobileNavRow({
         >
           <ChevronDown
             className="w-4 h-4 transition-colors duration-200"
-            style={{ color: chevronOpen ? "#FF6B35" : "#CBD5E1" }}
+            style={{ color: chevronOpen ? BRAND.blue : "#CBD5E1" }}
           />
         </motion.span>
       )}
@@ -257,7 +259,7 @@ function MobileProgramPanel({
   return (
     <div className="pl-6 pb-3">
       {/* ── Lead programs ── */}
-      <SectionLabel color="#FF6B35">Mulai dari sini</SectionLabel>
+      <SectionLabel color={BRAND.blue}>Mulai dari sini</SectionLabel>
 
       {/* Orange left rail groups the lead programs as a visual unit */}
       <div
@@ -290,7 +292,7 @@ function MobileProgramPanel({
                     className="font-semibold leading-tight transition-colors duration-150"
                     style={{
                       fontSize: "0.9375rem",
-                      color: isActive ? "#FF6B35" : "#0F2340",
+                      color: isActive ? BRAND.blue : "#0F2340",
                     }}
                   >
                     {prog.title}
@@ -304,7 +306,7 @@ function MobileProgramPanel({
                 </div>
                 <ChevronRight
                   className="w-3.5 h-3.5 flex-shrink-0 ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                  style={{ color: "#FF6B35" }}
+                  style={{ color: BRAND.blue }}
                 />
               </Link>
             </motion.div>
@@ -341,7 +343,7 @@ function MobileProgramPanel({
           className="inline-flex items-center gap-1 font-semibold"
           style={{
             fontSize: "0.75rem",
-            color: "#FF6B35",
+            color: BRAND.blue,
             textDecoration: "none",
           }}
         >

@@ -126,17 +126,17 @@ export function OrgChart() {
               className="inline-flex items-center gap-2 font-display font-semibold rounded-xl px-4 py-2.5 transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
               style={{
                 fontSize: "0.8125rem",
-                background: "rgba(255,107,53,0.07)",
+                background: BRAND.background,
                 color: BRAND.blue,
-                border: "1.5px solid rgba(255,107,53,0.2)",
+                border: "1.5px solid var(--color-brand-border)",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.background =
-                  "rgba(255,107,53,0.12)";
+                  BRAND.background;
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.background =
-                  "rgba(255,107,53,0.07)";
+                  BRAND.background;
               }}
               aria-label="Perbesar gambar"
             >

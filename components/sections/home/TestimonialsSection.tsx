@@ -5,14 +5,15 @@ import {
   motion,
   useInView,
   AnimatePresence,
+  animate,
   useMotionValue,
   useTransform,
-  animate,
 } from "framer-motion";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 
-const EASE = [0.22, 1, 0.36, 1] as const;
-const AUTO_DELAY = 4800; // ms per slide
+const EASE = [0.32, 0.72, 0, 1] as const;
+const EASE_OUT = [0.32, 0, 0.68, 0] as const;
+const AUTO_DELAY = 4800;
 
 /* ── Data ──────────────────────────────────────────────────────────── */
 const testimonials = [
@@ -143,18 +144,13 @@ function TestimonialCard({ t, position, onClick }: CardProps) {
   return (
     <div
       onClick={onClick}
-      className="flex flex-col h-full w-full rounded-2xl"
+      className={`flex flex-col h-full w-full rounded-2xl card ${isCenter ? "card-center" : "card-default"}`}
       style={{
         padding: isCenter ? "1.75rem" : "1.25rem 1.5rem",
         background: isCenter
           ? "linear-gradient(145deg, #ffffff 0%, #FFF8F3 100%)"
           : "#ffffff",
-        border: isCenter
-          ? "2px solid rgba(255,107,53,0.2)"
-          : "1.5px solid rgba(15,35,64,0.07)",
-        boxShadow: isCenter
-          ? "0 20px 60px rgba(255,107,53,0.11), 0 4px 20px rgba(0,0,0,0.06)"
-          : "0 2px 12px rgba(15,35,64,0.05)",
+
         cursor: onClick ? "pointer" : "default",
       }}
     >
@@ -233,28 +229,6 @@ function TestimonialCard({ t, position, onClick }: CardProps) {
   );
 }
 
-/* ── Pause / Play icon ─────────────────────────────────────────────── */
-function PauseIcon() {
-  return (
-    <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
-      <rect x="3" y="2" width="4" height="12" rx="1.5" />
-      <rect x="9" y="2" width="4" height="12" rx="1.5" />
-    </svg>
-  );
-}
-function PlayIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      className="w-3.5 h-3.5"
-      style={{ marginLeft: "1px" }}
-    >
-      <path d="M4 2.5l10 5.5-10 5.5V2.5z" />
-    </svg>
-  );
-}
-
 /* ── Scroll reveal ─────────────────────────────────────────────────── */
 function Reveal({
   children,
@@ -281,12 +255,239 @@ function Reveal({
 }
 
 /* ══════════════════════════════════════════════════════════════════════
- *  MOBILE TRACK — true spatial drag carousel
- *  - All cards rendered in a horizontal flex track
- *  - Track slides via transform translateX
- *  - No AnimatePresence — no content-swap flicker
+ * DESKTOP 3-UP CAROUSEL
+ * - Side cards use layout animations — no key remount, no flicker
+ * - Center uses cross-fade + translate (mode="popLayout" for instant swap)
  * ══════════════════════════════════════════════════════════════════════ */
-function MobileTrack({
+function DesktopCarousel({
+  current,
+  direction,
+  onPrev,
+  onNext,
+  onManual,
+}: {
+  current: number;
+  direction: 1 | -1;
+  onPrev: () => void;
+  onNext: () => void;
+  onManual: () => void;
+}) {
+  const total = testimonials.length;
+  const prevIdx = mod(current - 1, total);
+  const nextIdx = mod(current + 1, total);
+
+  const slideVariants = {
+    enter: (d: number) => ({
+      opacity: 0,
+      x: d === 1 ? 60 : -60,
+      scale: 0.97,
+    }),
+    center: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: { duration: 0.42, ease: EASE },
+    },
+    exit: (d: number) => ({
+      opacity: 0,
+      x: d === 1 ? -60 : 60,
+      scale: 0.97,
+      transition: { duration: 0.32, ease: EASE_OUT },
+    }),
+  };
+
+  const sideVariants = {
+    enter: (d: number) => ({ opacity: 0, x: d === 1 ? 30 : -30 }),
+    visible: {
+      opacity: 0.6,
+      x: 0,
+      scale: 0.93,
+      transition: { duration: 0.42, ease: EASE },
+    },
+    exit: (d: number) => ({
+      opacity: 0,
+      x: d === 1 ? -30 : 30,
+      transition: { duration: 0.3, ease: EASE_OUT },
+    }),
+  };
+
+  return (
+    <div
+      className="grid grid-cols-12 gap-5 items-stretch"
+      style={{ minHeight: "300px" }}
+    >
+      {/* LEFT */}
+      <div
+        className="col-span-3 flex"
+        style={{ transformOrigin: "right center" }}
+      >
+        <AnimatePresence mode="popLayout" custom={direction}>
+          <motion.div
+            key={`left-${prevIdx}`}
+            className="w-full"
+            custom={direction}
+            variants={sideVariants}
+            initial="enter"
+            animate="visible"
+            exit="exit"
+            onClick={() => {
+              onPrev();
+              onManual();
+            }}
+            style={{ cursor: "pointer", filter: "blur(0.4px)" }}
+          >
+            <TestimonialCard t={testimonials[prevIdx]} position="side" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* CENTER */}
+      <div className="col-span-6 flex" style={{ zIndex: 10 }}>
+        <AnimatePresence mode="popLayout" custom={direction}>
+          <motion.div
+            key={`center-${current}`}
+            className="w-full"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+          >
+            <TestimonialCard t={testimonials[current]} position="center" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* RIGHT */}
+      <div
+        className="col-span-3 flex"
+        style={{ transformOrigin: "left center" }}
+      >
+        <AnimatePresence mode="popLayout" custom={direction}>
+          <motion.div
+            key={`right-${nextIdx}`}
+            className="w-full"
+            custom={direction}
+            variants={sideVariants}
+            initial="enter"
+            animate="visible"
+            exit="exit"
+            onClick={() => {
+              onNext();
+              onManual();
+            }}
+            style={{ cursor: "pointer", filter: "blur(0.4px)" }}
+          >
+            <TestimonialCard t={testimonials[nextIdx]} position="side" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * TABLET CAROUSEL (sm–lg): center + right side-by-side
+ * ══════════════════════════════════════════════════════════════════════ */
+function TabletCarousel({
+  current,
+  direction,
+  onNext,
+  onManual,
+}: {
+  current: number;
+  direction: 1 | -1;
+  onNext: () => void;
+  onManual: () => void;
+}) {
+  const total = testimonials.length;
+  const nextIdx = mod(current + 1, total);
+
+  const slideVariants = {
+    enter: (d: number) => ({ opacity: 0, x: d === 1 ? 50 : -50, scale: 0.97 }),
+    center: {
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: { duration: 0.42, ease: EASE },
+    },
+    exit: (d: number) => ({
+      opacity: 0,
+      x: d === 1 ? -50 : 50,
+      scale: 0.97,
+      transition: { duration: 0.3, ease: EASE_OUT },
+    }),
+  };
+
+  const sideVariants = {
+    enter: () => ({ opacity: 0, x: 30 }),
+    visible: {
+      opacity: 0.6,
+      x: 0,
+      scale: 0.94,
+      transition: { duration: 0.42, ease: EASE },
+    },
+    exit: () => ({
+      opacity: 0,
+      x: -30,
+      transition: { duration: 0.3, ease: EASE_OUT },
+    }),
+  };
+
+  return (
+    <div
+      className="grid grid-cols-12 gap-4 items-stretch"
+      style={{ minHeight: "280px" }}
+    >
+      <div className="col-span-7 flex" style={{ zIndex: 10 }}>
+        <AnimatePresence mode="popLayout" custom={direction}>
+          <motion.div
+            key={`tablet-center-${current}`}
+            className="w-full"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+          >
+            <TestimonialCard t={testimonials[current]} position="center" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <div
+        className="col-span-5 flex"
+        style={{ transformOrigin: "left center" }}
+      >
+        <AnimatePresence mode="popLayout" custom={direction}>
+          <motion.div
+            key={`tablet-right-${nextIdx}`}
+            className="w-full"
+            custom={direction}
+            variants={sideVariants}
+            initial="enter"
+            animate="visible"
+            exit="exit"
+            onClick={() => {
+              onNext();
+              onManual();
+            }}
+            style={{ cursor: "pointer", filter: "blur(0.3px)" }}
+          >
+            <TestimonialCard t={testimonials[nextIdx]} position="side" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * MOBILE DRAG CAROUSEL
+ * - Framer Motion drag with constraints + snap-on-release
+ * - Momentum-aware: velocity decides next slide
+ * - No imperative animate() calls — fully declarative
+ * ══════════════════════════════════════════════════════════════════════ */
+function MobileCarousel({
   current,
   onNext,
   onPrev,
@@ -297,121 +498,215 @@ function MobileTrack({
   onPrev: () => void;
   onManual: () => void;
 }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const dragStartX = useRef(0);
-  const isDragging = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
   const total = testimonials.length;
 
-  /* Card width = 82vw, gap = 12px */
-  const CARD_W_VW = 82;
+  const CARD_RATIO = 0.84; // fraction of container width
   const GAP = 12;
 
-  const getOffset = useCallback((idx: number) => {
-    if (!trackRef.current) return 0;
-    const vw = trackRef.current.parentElement?.offsetWidth ?? window.innerWidth;
-    const cardW = (CARD_W_VW / 100) * vw;
-    /* Center the active card */
-    const containerCenter = vw / 2;
-    const cardCenter = cardW / 2;
-    return -(idx * (cardW + GAP)) + containerCenter - cardCenter;
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) =>
+      setContainerWidth(e.contentRect.width),
+    );
+    ro.observe(el);
+    setContainerWidth(el.offsetWidth);
+    return () => ro.disconnect();
   }, []);
 
-  /* Animate track on current change */
+  const cardW = containerWidth * CARD_RATIO;
+  const stepW = cardW + GAP;
+
+  // Center offset so active card is centered in container
+  const getX = useCallback(
+    (idx: number) => {
+      if (!containerWidth) return 0;
+      return (containerWidth - cardW) / 2 - idx * stepW;
+    },
+    [containerWidth, cardW, stepW],
+  );
+
+  const x = useMotionValue(0);
+
+  // Sync x to current index
   useEffect(() => {
-    if (!trackRef.current) return;
-    const offset = getOffset(current);
-    animate(trackRef.current, { x: offset }, { duration: 0.5, ease: EASE });
-  }, [current, getOffset]);
+    if (!containerWidth) return;
+    animate(x, getX(current), {
+      type: "spring",
+      stiffness: 380,
+      damping: 36,
+      mass: 0.8,
+    });
+  }, [current, containerWidth, getX, x]);
 
-  const handleDragStart = (e: React.TouchEvent | React.MouseEvent) => {
-    dragStartX.current = "touches" in e ? e.touches[0].clientX : e.clientX;
-    isDragging.current = false;
-    onManual();
-  };
-
-  const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
-    const x = "touches" in e ? e.touches[0].clientX : e.clientX;
-    if (Math.abs(x - dragStartX.current) > 5) isDragging.current = true;
-  };
-
-  const handleDragEnd = (e: React.TouchEvent | React.MouseEvent) => {
-    if (!isDragging.current) return;
-    const endX =
-      "changedTouches" in e ? e.changedTouches[0].clientX : e.clientX;
-    const delta = dragStartX.current - endX;
-    if (delta > 40) onNext();
-    else if (delta < -40) onPrev();
-  };
+  const handleDragEnd = useCallback(
+    (_: unknown, info: { velocity: { x: number }; offset: { x: number } }) => {
+      const vx = info.velocity.x;
+      const ox = info.offset.x;
+      // velocity threshold OR offset threshold
+      if (vx < -200 || (vx >= -200 && ox < -stepW * 0.35)) {
+        onNext();
+      } else if (vx > 200 || (vx <= 200 && ox > stepW * 0.35)) {
+        onPrev();
+      } else {
+        // snap back
+        animate(x, getX(current), {
+          type: "spring",
+          stiffness: 380,
+          damping: 36,
+          mass: 0.8,
+        });
+      }
+      onManual();
+    },
+    [current, stepW, onNext, onPrev, onManual, x, getX],
+  );
 
   return (
     <div
+      ref={containerRef}
       className="relative overflow-hidden"
       style={{ touchAction: "pan-y" }}
-      onMouseDown={handleDragStart}
-      onMouseMove={handleDragMove}
-      onMouseUp={handleDragEnd}
-      onTouchStart={handleDragStart}
-      onTouchMove={handleDragMove}
-      onTouchEnd={handleDragEnd}
     >
       {/* Fade edges */}
       <div
-        className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-8"
+        className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-10"
         style={{
-          background: "linear-gradient(to right, #FFF8F3, transparent)",
+          background: "linear-gradient(to right, #FFF8F3 10%, transparent)",
         }}
       />
       <div
-        className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-8"
-        style={{ background: "linear-gradient(to left, #FFF8F3, transparent)" }}
+        className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-10"
+        style={{
+          background: "linear-gradient(to left, #FFF8F3 10%, transparent)",
+        }}
       />
 
-      {/* Sliding track */}
-      <div
-        ref={trackRef}
+      <motion.div
         className="flex"
-        style={{
-          gap: `${GAP}px`,
-          willChange: "transform",
-          paddingTop: "8px",
-          paddingBottom: "8px",
-        }}
+        style={{ x, gap: `${GAP}px`, paddingTop: 8, paddingBottom: 8 }}
+        drag="x"
+        dragConstraints={{ left: -stepW * 1.5, right: stepW * 1.5 }}
+        dragElastic={0.08}
+        onDragEnd={handleDragEnd}
+        onDragStart={onManual}
       >
         {testimonials.map((t, i) => {
           const isActive = i === current;
           return (
-            <div
+            <motion.div
               key={i}
-              onClick={() => {
-                if (!isDragging.current) {
-                  if (i === mod(current - 1, total)) onPrev();
-                  else if (i === mod(current + 1, total)) onNext();
-                }
-              }}
               style={{
-                width: `${CARD_W_VW}vw`,
+                width: cardW || `${CARD_RATIO * 100}vw`,
                 flexShrink: 0,
-                transition:
-                  "transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease",
-                transform: isActive ? "scale(1)" : "scale(0.94)",
-                opacity: isActive ? 1 : 0.55,
-                cursor: isActive ? "default" : "pointer",
               }}
+              animate={{
+                scale: isActive ? 1 : 0.93,
+                opacity: isActive ? 1 : 0.5,
+              }}
+              transition={{ duration: 0.35, ease: EASE }}
             >
-              <TestimonialCard t={t} position={isActive ? "center" : "side"} />
-            </div>
+              <TestimonialCard
+                t={t}
+                position={isActive ? "center" : "side"}
+                onClick={() => {
+                  if (i === mod(current - 1, total)) {
+                    onPrev();
+                    onManual();
+                  } else if (i === mod(current + 1, total)) {
+                    onNext();
+                    onManual();
+                  }
+                }}
+              />
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-/* ── MAIN SECTION ──────────────────────────────────────────────────── */
+/* ── Progress dots with animated active pill ──────────────────────── */
+function ProgressDots({
+  total,
+  current,
+  onGoTo,
+  onManual,
+}: {
+  total: number;
+  current: number;
+  onGoTo: (i: number) => void;
+  onManual: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {Array.from({ length: total }).map((_, i) => (
+        <motion.button
+          key={i}
+          onClick={() => {
+            onGoTo(i);
+            onManual();
+          }}
+          aria-label={`Testimonial ${i + 1}`}
+          className="rounded-full"
+          animate={{
+            width: i === current ? 22 : 7,
+            background:
+              i === current
+                ? `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`
+                : "rgba(15,35,64,0.14)",
+          }}
+          transition={{ duration: 0.3, ease: EASE }}
+          style={{ height: 7, border: "none", padding: 0, cursor: "pointer" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ── Nav Button ────────────────────────────────────────────────────── */
+function NavButton({
+  onClick,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <motion.button
+      onClick={onClick}
+      aria-label={label}
+      whileHover={{
+        scale: 1.06,
+        borderColor: BRAND.blue,
+        backgroundColor: BRAND.background,
+      }}
+      whileTap={{ scale: 0.94 }}
+      transition={{ duration: 0.15 }}
+      className="w-9 h-9 rounded-full flex items-center justify-center"
+      style={{
+        border: "1.5px solid rgba(15,35,64,0.14)",
+        background: "white",
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * MAIN SECTION
+ * ══════════════════════════════════════════════════════════════════════ */
 export default function TestimonialsSection() {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [userPaused, setUserPaused] = useState(false); // explicit pause/play toggle
+  const [userPaused, setUserPaused] = useState(false);
   const [direction, setDirection] = useState<1 | -1>(1);
   const total = testimonials.length;
 
@@ -440,32 +735,10 @@ export default function TestimonialsSection() {
   const next = useCallback(() => goTo(current + 1, 1), [current, goTo]);
 
   const handleManual = useCallback(() => {
-    /* Temporarily pause auto-play for 6s after manual interaction */
     setIsPaused(true);
-    const t = setTimeout(() => setIsPaused(false), 6000);
+    const t = setTimeout(() => setIsPaused(false), 7000);
     return () => clearTimeout(t);
   }, []);
-
-  const prevIdx = mod(current - 1, total);
-  const nextIdx = mod(current + 1, total);
-
-  /* Center card slide variants — direction-aware */
-  const slideVariants = useMemo(
-    () => ({
-      enter: (d: number) => ({
-        opacity: 0,
-        x: d === 1 ? "12%" : "-12%",
-        scale: 0.96,
-      }),
-      center: { opacity: 1, x: 0, scale: 1 },
-      exit: (d: number) => ({
-        opacity: 0,
-        x: d === 1 ? "-12%" : "12%",
-        scale: 0.96,
-      }),
-    }),
-    [],
-  );
 
   return (
     <section className="relative w-full overflow-hidden py-20 lg:py-28 bg-background">
@@ -524,171 +797,44 @@ export default function TestimonialsSection() {
           </Reveal>
         </div>
 
-        {/* ════════════════════════════════════════════════════════
-         *  DESKTOP: 3-column — prev (3) | center (6) | next (3)
-         * ════════════════════════════════════════════════════════ */}
+        {/* ── DESKTOP ───────────────────────────────────────────── */}
         <Reveal delay={0.1} className="hidden lg:block mb-10">
-          <div
-            className="grid grid-cols-12 gap-5 items-stretch"
-            style={{ minHeight: "300px" }}
-          >
-            {/* LEFT — prev, dimmed, clickable */}
-            <motion.div
-              key={`left-${prevIdx}`}
-              className="col-span-3 flex"
-              initial={{
-                opacity: 0,
-                x: direction === 1 ? "-20%" : "20%",
-                scale: 0.9,
-              }}
-              animate={{ opacity: 0.6, x: 0, scale: 0.93 }}
-              transition={{ duration: 0.5, ease: EASE }}
-              onClick={() => {
-                prev();
-                handleManual();
-              }}
-              style={{ cursor: "pointer", transformOrigin: "right center" }}
-            >
-              <div className="w-full" style={{ filter: "blur(0.4px)" }}>
-                <TestimonialCard t={testimonials[prevIdx]} position="side" />
-              </div>
-            </motion.div>
-
-            {/* CENTER — featured */}
-            <div className="col-span-6 flex" style={{ zIndex: 10 }}>
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={`center-${current}`}
-                  className="w-full"
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.48, ease: EASE }}
-                >
-                  <TestimonialCard
-                    t={testimonials[current]}
-                    position="center"
-                  />
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* RIGHT — next, dimmed, clickable */}
-            <motion.div
-              key={`right-${nextIdx}`}
-              className="col-span-3 flex"
-              initial={{
-                opacity: 0,
-                x: direction === 1 ? "20%" : "-20%",
-                scale: 0.9,
-              }}
-              animate={{ opacity: 0.6, x: 0, scale: 0.93 }}
-              transition={{ duration: 0.5, ease: EASE }}
-              onClick={() => {
-                next();
-                handleManual();
-              }}
-              style={{ cursor: "pointer", transformOrigin: "left center" }}
-            >
-              <div className="w-full" style={{ filter: "blur(0.4px)" }}>
-                <TestimonialCard t={testimonials[nextIdx]} position="side" />
-              </div>
-            </motion.div>
-          </div>
-        </Reveal>
-
-        {/* ════════════════════════════════════════════════════════
-         *  TABLET (sm–lg): 2-col — center + next side-by-side
-         * ════════════════════════════════════════════════════════ */}
-        <Reveal delay={0.1} className="hidden sm:block lg:hidden mb-10">
-          <div
-            className="grid grid-cols-12 gap-4 items-stretch"
-            style={{ minHeight: "280px" }}
-          >
-            {/* Center */}
-            <div className="col-span-7 flex" style={{ zIndex: 10 }}>
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={`tablet-center-${current}`}
-                  className="w-full"
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.45, ease: EASE }}
-                >
-                  <TestimonialCard
-                    t={testimonials[current]}
-                    position="center"
-                  />
-                </motion.div>
-              </AnimatePresence>
-            </div>
-            {/* Right (next) */}
-            <motion.div
-              key={`tablet-right-${nextIdx}`}
-              className="col-span-5 flex"
-              initial={{ opacity: 0, x: "15%" }}
-              animate={{ opacity: 0.6, x: 0, scale: 0.94 }}
-              transition={{ duration: 0.5, ease: EASE }}
-              onClick={() => {
-                next();
-                handleManual();
-              }}
-              style={{ cursor: "pointer", transformOrigin: "left center" }}
-            >
-              <div className="w-full" style={{ filter: "blur(0.3px)" }}>
-                <TestimonialCard t={testimonials[nextIdx]} position="side" />
-              </div>
-            </motion.div>
-          </div>
-        </Reveal>
-
-        {/* ════════════════════════════════════════════════════════
-         *  MOBILE: true spatial drag track
-         *  Cards stay mounted — only track position changes
-         * ════════════════════════════════════════════════════════ */}
-        <div className="sm:hidden mb-10">
-          <MobileTrack
+          <DesktopCarousel
             current={current}
-            onNext={() => {
-              next();
-              handleManual();
-            }}
-            onPrev={() => {
-              prev();
-              handleManual();
-            }}
+            direction={direction}
+            onPrev={prev}
+            onNext={next}
+            onManual={handleManual}
+          />
+        </Reveal>
+
+        {/* ── TABLET ────────────────────────────────────────────── */}
+        <Reveal delay={0.1} className="hidden sm:block lg:hidden mb-10">
+          <TabletCarousel
+            current={current}
+            direction={direction}
+            onNext={next}
+            onManual={handleManual}
+          />
+        </Reveal>
+
+        {/* ── MOBILE ────────────────────────────────────────────── */}
+        <div className="sm:hidden mb-10">
+          <MobileCarousel
+            current={current}
+            onNext={next}
+            onPrev={prev}
             onManual={handleManual}
           />
         </div>
 
         {/* ── Controls ──────────────────────────────────────────── */}
-        <div className="flex items-center justify-center gap-4 mb-5">
-          {/* Prev */}
-          <button
+        <div className="flex items-center justify-center gap-4">
+          <NavButton
+            label="Previous"
             onClick={() => {
               prev();
               handleManual();
-            }}
-            aria-label="Previous"
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200"
-            style={{
-              border: "1.5px solid rgba(15,35,64,0.14)",
-              background: "white",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "#FF6B35";
-              (e.currentTarget as HTMLElement).style.background =
-                "rgba(255,107,53,0.05)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor =
-                "rgba(15,35,64,0.14)";
-              (e.currentTarget as HTMLElement).style.background = "white";
             }}
           >
             <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
@@ -700,52 +846,20 @@ export default function TestimonialsSection() {
                 strokeLinejoin="round"
               />
             </svg>
-          </button>
+          </NavButton>
 
-          {/* Dots */}
-          <div className="flex items-center gap-1.5">
-            {testimonials.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  goTo(i);
-                  handleManual();
-                }}
-                aria-label={`Testimonial ${i + 1}`}
-                className="rounded-full transition-all duration-300"
-                style={{
-                  width: i === current ? "22px" : "7px",
-                  height: "7px",
-                  background:
-                    i === current
-                      ? `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`
-                      : "rgba(15,35,64,0.14)",
-                }}
-              />
-            ))}
-          </div>
+          <ProgressDots
+            total={total}
+            current={current}
+            onGoTo={goTo}
+            onManual={handleManual}
+          />
 
-          {/* Next */}
-          <button
+          <NavButton
+            label="Next"
             onClick={() => {
               next();
               handleManual();
-            }}
-            aria-label="Next"
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200"
-            style={{
-              border: "1.5px solid rgba(15,35,64,0.14)",
-              background: "white",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = BRAND.blue;
-              (e.currentTarget as HTMLElement).style.background =
-                "rgba(255,107,53,0.05)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor =
-                "rgba(15,35,64,0.14)";
-              (e.currentTarget as HTMLElement).style.background = "white";
             }}
           >
             <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
@@ -757,72 +871,8 @@ export default function TestimonialsSection() {
                 strokeLinejoin="round"
               />
             </svg>
-          </button>
-
-          {/* Divider */}
-          {/* <div
-            style={{
-              width: "1px",
-              height: "20px",
-              background: "rgba(15,35,64,0.1)",
-            }}
-          /> */}
-
-          {/* Pause / Play toggle */}
-          {/* <button
-            onClick={() => setUserPaused((p) => !p)}
-            aria-label={userPaused ? "Play autoplay" : "Pause autoplay"}
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200"
-            style={{
-              border: "1.5px solid rgba(15,35,64,0.14)",
-              background: "white",
-              color: "#0F2340",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "#FF6B35";
-              (e.currentTarget as HTMLElement).style.background =
-                "rgba(255,107,53,0.05)";
-              (e.currentTarget as HTMLElement).style.color = "#FF6B35";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = userPaused
-                ? "#FF6B35"
-                : "rgba(15,35,64,0.14)";
-              (e.currentTarget as HTMLElement).style.background = userPaused
-                ? "rgba(255,107,53,0.08)"
-                : "white";
-              (e.currentTarget as HTMLElement).style.color = userPaused
-                ? "#FF6B35"
-                : "#0F2340";
-            }}
-          >
-            {userPaused ? <PlayIcon /> : <PauseIcon />}
-          </button> */}
+          </NavButton>
         </div>
-
-        {/* Auto-play progress bar */}
-        {/* <div className="flex justify-center">
-          <div
-            className="rounded-full overflow-hidden"
-            style={{
-              width: "100px",
-              height: "2px",
-              background: "rgba(15,35,64,0.08)",
-            }}
-          >
-            <motion.div
-              key={`progress-${current}-${effectivelyPaused}`}
-              className="h-full rounded-full"
-              style={{ background: "linear-gradient(90deg, #FF6B35, #E8521C)" }}
-              initial={{ width: "0%" }}
-              animate={{ width: effectivelyPaused ? "0%" : "100%" }}
-              transition={{
-                duration: effectivelyPaused ? 0.15 : AUTO_DELAY / 1000,
-                ease: "linear",
-              }}
-            />
-          </div>
-        </div> */}
       </div>
     </section>
   );

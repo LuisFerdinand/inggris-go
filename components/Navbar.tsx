@@ -13,8 +13,6 @@ import { MobileDrawer, allProgramHrefs } from "./MobileDrawer";
 import { UserNav, AuthModalPortal } from "./UserNav";
 import { Button } from "./ui/button";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
@@ -30,7 +28,7 @@ export default function Navbar() {
   const programsRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isProgramActive = allProgramHrefs.includes(pathname);
+  const isProgramActive = pathname.startsWith("/programs");
   const regularLinks = navLinks.filter((l) => l.label !== "Program Kami");
 
   // ── Scroll shadow ────────────────────────────────────────────────────────
@@ -199,10 +197,23 @@ export default function Navbar() {
               className={[
                 "lg:hidden",
                 "rounded-xl",
-                // Blue border on default, gold on open
+                "transition-all duration-200",
+
                 mobileOpen
-                  ? "border-[var(--color-brand-gold)] text-[var(--color-brand-gold-dark)] bg-[var(--color-brand-gold-cream)]"
-                  : "",
+                  ? [
+                      // ✅ ACTIVE = solid blue button
+                      "bg-background",
+                      "text-[var(--color-brand-blue-navy)]",
+                      "border-transparent",
+                      "shadow-glow-blue-btn",
+                    ].join(" ")
+                  : [
+                      // ✅ DEFAULT = subtle blue outline
+                      "border-[var(--color-brand-border)]",
+                      "bg-[var(--color-brand-surface)]",
+                      "text-[var(--color-brand-blue-navy)]",
+                      "hover:bg-[var(--color-brand-surface-soft)]",
+                    ].join(" "),
               ].join(" ")}
               aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
               aria-expanded={mobileOpen}

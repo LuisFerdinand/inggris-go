@@ -1,5 +1,5 @@
 import Reveal from "@/components/ui/Reveal";
-import { BRAND } from "@/constants/brand";
+import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { Eye, Target } from "lucide-react";
 import React from "react";
 
@@ -170,7 +170,7 @@ export const VisionMissionSection = () => {
                   Menjadi platform pembelajaran bahasa Inggris terdepan yang
                   melahirkan generasi Indonesia yang percaya diri berkomunikasi
                   secara global —
-                  <span style={{ color: BRAND.blueNavy }}>
+                  <span style={GRADIENT_GOLD_TEXT}>
                     {" "}
                     tanpa rasa takut, tanpa hambatan.
                   </span>
@@ -183,7 +183,7 @@ export const VisionMissionSection = () => {
                       height: "2px",
                       width: "32px",
                       borderRadius: "2px",
-                      background: "linear-gradient(90deg, #FF6B35, #E8521C)",
+                      background: `linear-gradient(90deg, ${BRAND.blue}, ${BRAND.blueNavy})`,
                     }}
                   />
                   <p

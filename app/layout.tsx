@@ -53,7 +53,7 @@ export default function RootLayout({
         className={`${syne.variable} ${dmSans.variable} ${dmMono.variable} font-body h-full antialiased`}
       >
         <Navbar />
-        <main className="pt-14 lg:pt-18">{children}</main>
+        <main style={{ paddingTop: "var(--navbar-height)" }}>{children}</main>
         <Footer />
       </body>
     </html>
