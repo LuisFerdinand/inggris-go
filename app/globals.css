@@ -426,14 +426,8 @@
 
 /* ─── Light mode ───────────────────────────────────────────── */
 :root {
-  :root {
-    --navbar-height: 56px; /* mobile */
-  }
-  @media (min-width: 1024px) {
-    :root {
-      --navbar-height: 72px; /* desktop */
-    }
-  }
+  --navbar-height: 56px; /* mobile */
+
   --background: var(--color-brand-bg);
   --foreground: var(--color-brand-text);
 
@@ -475,6 +469,12 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --navbar-height: 72px; /* desktop */
+  }
 }
 
 /* ─── Dark mode ────────────────────────────────────────────── */

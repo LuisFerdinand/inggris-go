@@ -34,7 +34,7 @@ export const leadPrograms = leadCategory.programs.map((p) => ({
   id: p.slug,
   title: p.title,
   href: p.href,
-  desc: p.description,
+  desc: p.shortDesc,
   icon: getIcon(p.icon),
 }));
 

@@ -164,6 +164,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
 
     tagline: "Mulai ngomong Bahasa Inggris",
     taglineAccent: "tanpa takut salah",
+
     description:
       "Program ringan untuk kamu yang ingin mulai belajar Bahasa Inggris tanpa tekanan. Cocok untuk pemula yang ingin coba dulu sebelum komitmen lebih besar.",
     forWho: "Pemula, orang sibuk, atau kamu yang masih ragu untuk mulai",
@@ -291,7 +292,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
       description:
         "Tidak perlu menunggu sampai siap. Mulai dari langkah kecil yang tepat hari ini.",
       primaryLabel: "Mulai Speaking Challenge",
-      primaryHref: "/speaking-challenge",
+      primaryHref: "/programs/lead/speaking-challenge",
       secondaryLabel: "Tanya Admin Dulu",
       secondaryHref: "/contact",
     },
@@ -322,7 +323,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         slug: "daily-conversation",
         description:
           "Latihan percakapan sehari-hari via Zoom selama 2 minggu. Fokus pada kelancaran bicara, kepercayaan diri, dan kosakata praktis.",
-        href: "/daily-conversation",
+        href: "/programs/online/daily-conversation",
         price: "Rp 299.000",
         badge: "Terlaris",
         highlight: "10 sesi intensif, Senin–Jumat jam 19.00 WIB",
@@ -340,7 +341,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         highlight: "Belajar lewat game, lagu, dan cerita interaktif",
         tags: ["Anak-anak", "Interaktif", "Menyenangkan", "Zoom"],
         icon: "star",
-        href: "/english-for-kids",
+        href: "/programs/online/english-for-kids",
       },
       {
         title: "Basic TOEFL",
@@ -352,7 +353,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         highlight: "Free 2x simulasi TOEFL penuh (awal & akhir program)",
         tags: ["Zoom", "10x Pertemuan", "Jam 20.00", "TOEFL"],
         icon: "bar-chart",
-        href: "/basic-toefl",
+        href: "/programs/online/basic-toefl",
       },
       {
         title: "Grammar for Speaking",
@@ -363,12 +364,13 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         highlight: "Grammar yang langsung kamu pakai saat ngobrol",
         tags: ["Zoom", "10x Pertemuan", "Praktis", "Grammar"],
         icon: "pen-line",
-        href: "/grammar-for-speaking",
+        href: "/programs/online/grammar-for-speaking",
       },
       {
         title: "Private Class",
         slug: "private-class",
         price: "Rp 499.000",
+        href: "/programs/online/private-class",
         description:
           "Kelas 1-on-1 eksklusif dengan mentor berdedikasi. Jadwal sepenuhnya fleksibel, materi disesuaikan 100% dengan kebutuhan kamu.",
         priceTiers: [
@@ -382,7 +384,6 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         highlight: "Jadwal & materi 100% disesuaikan khusus untukmu",
         tags: ["1-on-1", "Jadwal Bebas", "Custom Materi", "Zoom"],
         icon: "user",
-        href: "https://inggrisgo.my.canva.site/c4zp6mtyrfp2qqc3",
       },
     ],
 
