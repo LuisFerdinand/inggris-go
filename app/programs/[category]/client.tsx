@@ -1,1147 +1,2520 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { buildWhatsAppUrl } from "@/lib/config";
-import type { CategoryMeta, ProgramMeta } from "./data";
-import LeadPageClient from "./lead";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
+import {
+  motion,
+  useInView,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
+import { CategoryMeta } from "./data";
+import { Icon } from "@/components/Icon";
+import { generateTheme } from "@/lib/utils";
 
-function useInView(threshold = 0.15) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          obs.disconnect();
-        }
-      },
-      { threshold },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, inView };
-}
+/* ══════════════════════════════════════════════════════════════
+ * TYPES & CONSTANTS
+ * ══════════════════════════════════════════════════════════════ */
+type Theme = ReturnType<typeof generateTheme>;
+const EASE = [0.22, 1, 0.36, 1] as const;
+const EASE_OUT = [0, 0, 0.38, 1] as const;
 
-function Section({
+/* ══════════════════════════════════════════════════════════════
+ * SHARED PRIMITIVES
+ * ══════════════════════════════════════════════════════════════ */
+function Reveal({
   children,
-  className = "",
   delay = 0,
+  y = 24,
+  className = "",
+  once = true,
 }: {
   children: React.ReactNode;
-  className?: string;
   delay?: number;
+  y?: number;
+  className?: string;
+  once?: boolean;
 }) {
-  const { ref, inView } = useInView();
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once, margin: "-40px 0px" });
   return (
-    <div
+    <motion.div
       ref={ref}
       className={className}
+      initial={{ opacity: 0, y }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: EASE }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function SectionPill({
+  children,
+  theme,
+}: {
+  children: React.ReactNode;
+  theme: Theme;
+}) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-display font-bold uppercase"
       style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(24px)",
-        transition: `opacity 0.6s ease ${delay}s, transform 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+        fontSize: "0.625rem",
+        letterSpacing: "0.14em",
+        background: theme.soft,
+        color: theme.primary,
+        border: `1.5px solid ${theme.border}`,
+        boxShadow: `0 2px 12px ${theme.border}`,
       }}
     >
       {children}
+    </span>
+  );
+}
+
+function SectionDivider({ theme }: { theme: Theme }) {
+  return (
+    <div className="flex items-center gap-3 my-6">
+      <div
+        className="flex-1 h-px"
+        style={{ background: "var(--color-brand-border-soft)" }}
+      />
+      <div
+        className="w-1.5 h-1.5 rounded-full"
+        style={{ background: theme.primary, opacity: 0.5 }}
+      />
+      <div
+        className="flex-1 h-px"
+        style={{ background: "var(--color-brand-border-soft)" }}
+      />
     </div>
   );
 }
 
-function Eyebrow({
-  children,
-  color,
+function StatCard({
+  value,
+  label,
+  theme,
+  delay = 0,
 }: {
-  children: React.ReactNode;
-  color: string;
+  value: string;
+  label: string;
+  theme: Theme;
+  delay?: number;
 }) {
   return (
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-5 h-px" style={{ background: color }} />
-      <span
-        className="text-[11px] font-semibold uppercase tracking-[0.15em]"
-        style={{ color }}
+    <Reveal delay={delay}>
+      <div
+        className="rounded-2xl p-4 flex flex-col"
+        style={{
+          background: theme.soft,
+          border: `1.5px solid ${theme.border}`,
+        }}
       >
-        {children}
-      </span>
+        <span
+          className="font-display font-black leading-none"
+          style={{
+            fontSize: "1.5rem",
+            color: theme.primary,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          {value}
+        </span>
+        <span
+          className="mt-1"
+          style={{
+            fontSize: "0.6875rem",
+            color: "var(--color-brand-text-faint)",
+          }}
+        >
+          {label}
+        </span>
+      </div>
+    </Reveal>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 1. HERO — Split Layout with Dynamic Right Panel
+ * ══════════════════════════════════════════════════════════════ */
+
+/** Adaptive right panel: priority — experience > steps > benefits */
+function HeroRightPanel({
+  category,
+  theme,
+}: {
+  category: CategoryMeta;
+  theme: Theme;
+}) {
+  const experience = category.experience ?? [];
+  const steps = category.steps ?? [];
+  const benefits = category.benefits ?? [];
+
+  // Panel: Experience cards
+  if (experience.length > 0) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p
+          className="font-display font-bold uppercase"
+          style={{
+            fontSize: "0.5875rem",
+            letterSpacing: "0.16em",
+            color: "var(--color-brand-text-faint)",
+            marginBottom: "0.25rem",
+          }}
+        >
+          Apa yang kamu rasakan
+        </p>
+        {experience.map((item, i) => (
+          <motion.div
+            key={item.title}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35 + i * 0.1, duration: 0.55, ease: EASE }}
+            whileHover={{ x: 4, scale: 1.015 }}
+            className="flex items-start gap-3 p-4 rounded-2xl"
+            style={{
+              background:
+                i % 2 === 0 ? theme.soft : "var(--color-brand-surface)",
+              border: `1.5px solid ${theme.border}`,
+              boxShadow: "var(--shadow-badge)",
+            }}
+          >
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: theme.softStrong,
+                border: `1px solid ${theme.border}`,
+              }}
+            >
+              {item.icon && (
+                <Icon
+                  name={item.icon as any}
+                  className="w-4 h-4"
+                  style={{ color: theme.primary }}
+                />
+              )}
+            </div>
+            <div>
+              <p
+                className="font-display font-bold"
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-brand-blue-navy)",
+                }}
+              >
+                {item.title}
+              </p>
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--color-brand-text-muted)",
+                  lineHeight: "1.5",
+                  marginTop: "2px",
+                }}
+              >
+                {item.description}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  // Panel: Mini step flow
+  if (steps.length > 0) {
+    return (
+      <div className="flex flex-col gap-1">
+        <p
+          className="font-display font-bold uppercase"
+          style={{
+            fontSize: "0.5875rem",
+            letterSpacing: "0.16em",
+            color: "var(--color-brand-text-faint)",
+            marginBottom: "0.5rem",
+          }}
+        >
+          Cara mulai
+        </p>
+        {steps.map((step, i) => (
+          <motion.div
+            key={step.title}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 + i * 0.1, duration: 0.5, ease: EASE }}
+            className="flex items-start gap-3 relative"
+          >
+            {/* Connector line */}
+            {i < steps.length - 1 && (
+              <div
+                className="absolute left-[17px] top-9 w-px z-0"
+                style={{ height: "calc(100% + 4px)", background: theme.border }}
+              />
+            )}
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center font-display font-black flex-shrink-0 relative z-10"
+              style={{
+                background: theme.primary,
+                color: "white",
+                fontSize: "0.75rem",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {step.n ?? String(i + 1).padStart(2, "0")}
+            </div>
+            <div className="pb-4 flex-1">
+              <p
+                className="font-display font-bold"
+                style={{
+                  fontSize: "0.875rem",
+                  color: "var(--color-brand-blue-navy)",
+                }}
+              >
+                {step.title}
+              </p>
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--color-brand-text-muted)",
+                  lineHeight: "1.5",
+                  marginTop: "2px",
+                }}
+              >
+                {step.description}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  // Panel: Benefits grid
+  if (benefits.length > 0) {
+    return (
+      <div className="grid grid-cols-2 gap-3">
+        {benefits.map((b, i) => (
+          <motion.div
+            key={b.title}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + i * 0.09, duration: 0.5, ease: EASE }}
+            whileHover={{ y: -3, scale: 1.02 }}
+            className="p-4 rounded-2xl"
+            style={{
+              background:
+                i % 2 === 0 ? theme.soft : "var(--color-brand-surface)",
+              border: `1.5px solid ${theme.border}`,
+              boxShadow: "var(--shadow-badge)",
+            }}
+          >
+            {b.icon && (
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center mb-2.5"
+                style={{ background: theme.softStrong }}
+              >
+                <Icon
+                  name={b.icon as any}
+                  className="w-4 h-4"
+                  style={{ color: theme.primary }}
+                />
+              </div>
+            )}
+            <p
+              className="font-display font-bold"
+              style={{
+                fontSize: "0.8125rem",
+                color: "var(--color-brand-blue-navy)",
+                lineHeight: 1.3,
+              }}
+            >
+              {b.title}
+            </p>
+            <p
+              style={{
+                fontSize: "0.6875rem",
+                color: "var(--color-brand-text-muted)",
+                lineHeight: 1.5,
+                marginTop: "3px",
+              }}
+            >
+              {b.description}
+            </p>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  // Fallback: program mini-list
+  return (
+    <div className="flex flex-col gap-3">
+      <p
+        className="font-display font-bold uppercase"
+        style={{
+          fontSize: "0.5875rem",
+          letterSpacing: "0.16em",
+          color: "var(--color-brand-text-faint)",
+        }}
+      >
+        Program tersedia
+      </p>
+      {category.programs.slice(0, 3).map((p, i) => (
+        <motion.div
+          key={p.slug}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 + i * 0.08 }}
+          className="flex items-center gap-3 p-3 rounded-xl"
+          style={{
+            background: theme.soft,
+            border: `1px solid ${theme.border}`,
+          }}
+        >
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: theme.softStrong }}
+          >
+            <Icon
+              name={p.icon as any}
+              className="w-4 h-4"
+              style={{ color: theme.primary }}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p
+              className="font-display font-bold truncate"
+              style={{
+                fontSize: "0.8125rem",
+                color: "var(--color-brand-blue-navy)",
+              }}
+            >
+              {p.title}
+            </p>
+            <p
+              style={{
+                fontSize: "0.625rem",
+                color: theme.primary,
+                fontWeight: 600,
+              }}
+            >
+              {p.price}
+            </p>
+          </div>
+        </motion.div>
+      ))}
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   PROGRAM CARD
-───────────────────────────────────────────────────────────────────────────── */
-function ProgramCard({
-  program,
-  accent,
-  accentLight,
-  index,
-  inView,
+function CategoryHero({
+  category,
+  theme,
 }: {
-  program: ProgramMeta;
-  accent: string;
-  accentLight: string;
-  index: number;
-  inView: boolean;
+  category: CategoryMeta;
+  theme: Theme;
 }) {
-  const [hovered, setHovered] = useState(false);
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 400], [0, -40]);
+  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.6]);
 
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="group relative bg-white rounded-3xl overflow-hidden flex flex-col"
+    <section
+      className="relative overflow-hidden"
       style={{
-        opacity: inView ? 1 : 0,
-        transform: inView
-          ? hovered
-            ? "translateY(-4px)"
-            : "translateY(0)"
-          : "translateY(32px)",
-        boxShadow: hovered
-          ? "0 20px 60px rgba(15,35,64,0.14)"
-          : "0 4px 24px rgba(15,35,64,0.07)",
-        transition: `
-          opacity 0.5s ease ${index * 0.1}s,
-          transform 0.5s cubic-bezier(0.22,1,0.36,1) ${index * 0.1}s,
-          box-shadow 0.3s ease
-        `,
+        background: "var(--color-brand-surface)",
+        minHeight: "min(90vh, 760px)",
+        display: "flex",
+        alignItems: "center",
       }}
     >
-      {/* Top accent strip */}
+      {/* Multi-layer background */}
       <div
-        className="h-1 w-full flex-shrink-0"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: theme.gradient }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
         style={{
-          background: `linear-gradient(90deg, ${accent}, ${accent}88)`,
-          opacity: hovered ? 1 : 0.5,
-          transition: "opacity 0.3s",
+          backgroundImage: `radial-gradient(${theme.primary} 0.7px, transparent 0.7px)`,
+          backgroundSize: "24px 24px",
+          opacity: 0.025,
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `repeating-linear-gradient(45deg, ${theme.primary} 0px, ${theme.primary} 0.4px, transparent 0.4px, transparent 22px)`,
+          opacity: 0.018,
         }}
       />
 
-      <div className="p-6 flex flex-col flex-1 gap-4">
-        {/* Badge row */}
-        <div className="flex items-start justify-between gap-3">
-          <span className="text-3xl">{program.icon}</span>
-          {program.badge && (
-            <span
-              className="text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
-              style={{ background: accentLight, color: accent }}
-            >
-              {program.badge}
-            </span>
-          )}
-        </div>
+      {/* Animated blobs */}
+      <motion.div
+        className="pointer-events-none absolute"
+        style={{
+          width: 560,
+          height: 560,
+          top: "-24%",
+          right: "5%",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${theme.soft} 0%, transparent 70%)`,
+          filter: "blur(70px)",
+        }}
+        animate={{ scale: [1, 1.1, 1], rotate: [0, 10, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="pointer-events-none absolute"
+        style={{
+          width: 340,
+          height: 340,
+          bottom: "-5%",
+          left: "-4%",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${theme.soft} 0%, transparent 70%)`,
+          filter: "blur(80px)",
+        }}
+        animate={{ scale: [1, 1.15, 1] }}
+        transition={{
+          duration: 14,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 3,
+        }}
+      />
 
-        {/* Title & desc */}
-        <div className="flex flex-col gap-2">
-          <h3 className="font-display font-bold text-xl text-brand-navy leading-tight">
-            {program.title}
-          </h3>
-          <p className="text-brand-charcoal/60 text-sm leading-relaxed">
+      <motion.div
+        style={{ y: heroY, opacity: heroOpacity }}
+        className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-20 lg:py-28"
+      >
+        <div className="grid lg:grid-cols-[1fr_420px] xl:grid-cols-[1fr_460px] gap-12 lg:gap-16 items-start">
+          {/* LEFT COLUMN */}
+          <div>
+            {/* Breadcrumb */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="flex items-center gap-2 mb-6"
+            >
+              <a
+                href="/programs"
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--color-brand-text-faint)",
+                  textDecoration: "none",
+                  fontWeight: 500,
+                }}
+                className="hover:opacity-70 transition-opacity font-display"
+              >
+                Program
+              </a>
+              <svg viewBox="0 0 16 16" className="w-3 h-3" fill="none">
+                <path
+                  d="M6 4l4 4-4 4"
+                  stroke="var(--color-brand-text-faint)"
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span
+                className="font-display font-semibold"
+                style={{ fontSize: "0.8125rem", color: theme.primary }}
+              >
+                {category.shortLabel ?? category.label}
+              </span>
+            </motion.div>
+
+            {/* Category pill */}
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.06, ease: EASE }}
+              className="mb-5"
+            >
+              <SectionPill theme={theme}>
+                <Icon
+                  name={category.icon as any}
+                  className="w-3.5 h-3.5"
+                  style={{ color: theme.primary }}
+                />
+                {category.shortLabel ?? category.label}
+              </SectionPill>
+            </motion.div>
+
+            {/* Main heading */}
+            <motion.h1
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.12, ease: EASE }}
+              className="font-display font-extrabold leading-[1.04] mb-5"
+              style={{
+                fontSize: "clamp(2.3rem, 5.5vw, 4rem)",
+                letterSpacing: "-0.03em",
+                color: "var(--color-brand-blue-navy)",
+              }}
+            >
+              {category.tagline}{" "}
+              {category.taglineAccent && (
+                <span style={{ color: theme.primary }}>
+                  {category.taglineAccent}
+                </span>
+              )}
+            </motion.h1>
+
+            {/* Description */}
+            <motion.p
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.18, ease: EASE }}
+              style={{
+                fontSize: "clamp(0.9375rem, 1.5vw, 1.0625rem)",
+                color: "var(--color-brand-text-muted)",
+                lineHeight: "1.78",
+                maxWidth: "540px",
+                marginBottom: "2rem",
+              }}
+            >
+              {category.description}
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3, ease: EASE }}
+              className="flex flex-wrap gap-3"
+            >
+              <motion.a
+                href={category.cta.primaryHref}
+                className="font-display font-bold px-7 py-3.5 rounded-xl flex items-center gap-2 text-white"
+                style={{
+                  fontSize: "0.9375rem",
+                  background: theme.primary,
+                  boxShadow: `0 6px 28px ${theme.border}`,
+                  textDecoration: "none",
+                  border: "none",
+                }}
+                whileHover={{
+                  scale: 1.04,
+                  boxShadow: `0 12px 40px ${theme.border}`,
+                }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.2, ease: EASE }}
+              >
+                {category.cta.primaryLabel}
+                <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
+                  <path
+                    d="M3 8h10M9 4l4 4-4 4"
+                    stroke="white"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.a>
+              {category.cta.secondaryLabel && (
+                <motion.a
+                  href={category.cta.secondaryHref ?? "/contact"}
+                  className="font-display font-semibold px-6 py-3.5 rounded-xl flex items-center gap-2"
+                  style={{
+                    fontSize: "0.9375rem",
+                    color: theme.primary,
+                    background: theme.soft,
+                    border: `1.5px solid ${theme.border}`,
+                    textDecoration: "none",
+                  }}
+                  whileHover={{ scale: 1.02, background: theme.softStrong }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {category.cta.secondaryLabel}
+                </motion.a>
+              )}
+            </motion.div>
+
+            {/* For who + stats */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.38 }}
+              className="mt-8 pt-7"
+              style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
+            >
+              <div className="flex items-center gap-2.5 mb-5">
+                <div
+                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: theme.soft,
+                    border: `1px solid ${theme.border}`,
+                  }}
+                >
+                  <svg viewBox="0 0 16 16" className="w-3.5 h-3.5" fill="none">
+                    <circle
+                      cx="8"
+                      cy="5"
+                      r="2.5"
+                      stroke={theme.primary}
+                      strokeWidth="1.4"
+                    />
+                    <path
+                      d="M3 13c0-2.76 2.24-5 5-5s5 2.24 5 5"
+                      stroke={theme.primary}
+                      strokeWidth="1.4"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <p
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--color-brand-text-muted)",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      color: "var(--color-brand-blue-navy)",
+                    }}
+                  >
+                    Untuk:{" "}
+                  </span>
+                  {category.forWho}
+                </p>
+              </div>
+
+              {/* Inline mini-stats */}
+              <div className="flex flex-wrap gap-4">
+                {[
+                  { v: `${category.programs.length}`, l: "Program" },
+                  { v: "500+", l: "Siswa" },
+                  { v: "4.9★", l: "Rating" },
+                ].map((s) => (
+                  <div key={s.l} className="flex items-baseline gap-1.5">
+                    <span
+                      className="font-display font-black"
+                      style={{
+                        fontSize: "1.25rem",
+                        color: theme.primary,
+                        letterSpacing: "-0.03em",
+                      }}
+                    >
+                      {s.v}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--color-brand-text-faint)",
+                      }}
+                    >
+                      {s.l}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+
+          {/* RIGHT COLUMN — Context Visual Panel */}
+          <motion.div
+            initial={{ opacity: 0, x: 36 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.75, delay: 0.2, ease: EASE }}
+            className="hidden lg:block"
+          >
+            <div
+              className="rounded-3xl overflow-hidden"
+              style={{
+                background: "var(--color-brand-surface)",
+                border: `1.5px solid ${theme.border}`,
+                boxShadow: `0 32px 80px ${theme.border}, 0 4px 20px rgba(10,45,135,0.08)`,
+              }}
+            >
+              {/* Panel accent top bar */}
+              <div
+                style={{
+                  height: "3px",
+                  background: `linear-gradient(90deg, ${theme.primary} 0%, ${theme.strong} 100%)`,
+                }}
+              />
+
+              {/* Panel header */}
+              <div
+                className="px-5 pt-4 pb-4 flex items-center justify-between"
+                style={{ borderBottom: `1px solid ${theme.border}` }}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center"
+                    style={{ background: theme.soft }}
+                  >
+                    <Icon
+                      name={category.icon as any}
+                      className="w-3.5 h-3.5"
+                      style={{ color: theme.primary }}
+                    />
+                  </div>
+                  <span
+                    className="font-display font-bold"
+                    style={{
+                      fontSize: "0.8125rem",
+                      color: "var(--color-brand-blue-navy)",
+                    }}
+                  >
+                    {category.shortLabel}
+                  </span>
+                </div>
+                <span
+                  className="flex items-center gap-1.5"
+                  style={{
+                    fontSize: "0.625rem",
+                    color: "var(--color-brand-text-faint)",
+                  }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: "#4ade80" }}
+                  />
+                  Aktif
+                </span>
+              </div>
+
+              <div className="p-5">
+                <HeroRightPanel category={category} theme={theme} />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 2. PROGRAM LIST — Rich Cards
+ * ══════════════════════════════════════════════════════════════ */
+function ProgramCard({
+  program,
+  theme,
+  index,
+}: {
+  program: CategoryMeta["programs"][number];
+  theme: Theme;
+  index: number;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const startingPrice = program.priceTiers
+    ? (() => {
+        const nums = program.priceTiers
+          .map((t) => parseInt(t.price.replace(/[^0-9]/g, ""), 10))
+          .filter((n) => !isNaN(n));
+        return nums.length > 0
+          ? `Rp ${Math.min(...nums).toLocaleString("id-ID")}`
+          : program.priceTiers[0].price;
+      })()
+    : null;
+
+  return (
+    <Reveal delay={index * 0.08} y={32}>
+      <motion.a
+        href={program.href}
+        onHoverStart={() => setHovered(true)}
+        onHoverEnd={() => setHovered(false)}
+        whileHover={{ scale: 1.018, y: -7 }}
+        whileTap={{ scale: 0.99 }}
+        transition={{ duration: 0.28, ease: EASE }}
+        className="flex flex-col rounded-2xl overflow-hidden h-full"
+        style={{
+          background: "var(--color-brand-surface)",
+          border: `1.5px solid ${hovered ? theme.border : "var(--color-brand-border-soft)"}`,
+          boxShadow: hovered
+            ? `0 24px 64px ${theme.border}, 0 4px 20px rgba(10,45,135,0.08)`
+            : "var(--shadow-badge)",
+          transition: "border-color 0.25s ease, box-shadow 0.25s ease",
+          textDecoration: "none",
+        }}
+      >
+        {/* Theme accent top strip */}
+        <div
+          style={{
+            height: "3px",
+            background: hovered
+              ? `linear-gradient(90deg, ${theme.primary} 0%, ${theme.strong} 100%)`
+              : `linear-gradient(90deg, ${theme.border} 0%, transparent 100%)`,
+            transition: "background 0.3s ease",
+          }}
+        />
+
+        <div className="flex flex-col flex-1 p-5">
+          {/* Icon + title */}
+          <div className="flex items-start gap-3.5 mb-4">
+            <motion.div
+              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{
+                background: hovered ? theme.softStrong : theme.soft,
+                border: `1.5px solid ${theme.border}`,
+                transition: "background 0.25s ease",
+              }}
+            >
+              <Icon
+                name={program.icon as any}
+                className="w-6 h-6"
+                style={{ color: theme.primary }}
+              />
+            </motion.div>
+            <div className="flex-1 min-w-0">
+              <p
+                className="font-display font-bold leading-snug"
+                style={{
+                  fontSize: "1.0625rem",
+                  color: "var(--color-brand-blue-navy)",
+                }}
+              >
+                {program.title}
+              </p>
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {program.badge && (
+                  <span
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full font-display font-bold"
+                    style={{
+                      fontSize: "0.5875rem",
+                      background: theme.primary,
+                      color: "white",
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {program.badge}
+                  </span>
+                )}
+                {program.level && (
+                  <span
+                    className="inline-flex items-center px-2 py-0.5 rounded-full font-display font-semibold"
+                    style={{
+                      fontSize: "0.5875rem",
+                      background: theme.soft,
+                      color: theme.primary,
+                      border: `1px solid ${theme.border}`,
+                    }}
+                  >
+                    {program.level}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <p
+            className="mb-4"
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--color-brand-text-muted)",
+              lineHeight: "1.68",
+            }}
+          >
             {program.description}
           </p>
-        </div>
 
-        {/* Tags */}
-        {program.tags && (
-          <div className="flex flex-wrap gap-1.5">
-            {program.tags.map((tag) => (
+          {/* Highlight block */}
+          {program.highlight && (
+            <div
+              className="flex items-start gap-2.5 mb-4 p-3.5 rounded-xl"
+              style={{
+                background: theme.soft,
+                border: `1px solid ${theme.border}`,
+              }}
+            >
+              <div className="mt-0.5 flex-shrink-0">
+                <svg viewBox="0 0 14 14" className="w-4 h-4" fill="none">
+                  <circle
+                    cx="7"
+                    cy="7"
+                    r="6"
+                    fill={theme.primary}
+                    opacity="0.18"
+                  />
+                  <path
+                    d="M4.5 7l2 2 3.5-3.5"
+                    stroke={theme.primary}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--color-brand-text-muted)",
+                  lineHeight: "1.5",
+                }}
+              >
+                {program.highlight}
+              </p>
+            </div>
+          )}
+
+          {/* Meta chips: duration, format */}
+          {(program.duration || program.format) && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {[program.duration, program.format].filter(Boolean).map((v) => (
+                <span
+                  key={v}
+                  className="px-2.5 py-1 rounded-full font-display font-semibold"
+                  style={{
+                    fontSize: "0.625rem",
+                    background: theme.softStrong,
+                    color: theme.primary,
+                    border: `1px solid ${theme.border}`,
+                  }}
+                >
+                  {v}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {program.tags.slice(0, 4).map((tag) => (
               <span
                 key={tag}
-                className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-brand-sand text-brand-navy/60"
+                className="px-2 py-0.5 rounded-full"
+                style={{
+                  fontSize: "0.5875rem",
+                  background: "var(--color-brand-surface-soft)",
+                  color: "var(--color-brand-text-muted)",
+                  border: "1px solid var(--color-brand-border-soft)",
+                }}
               >
                 {tag}
               </span>
             ))}
           </div>
-        )}
 
-        {/* Highlight */}
-        {program.highlight && (
-          <div
-            className="flex items-center gap-2 text-sm font-medium rounded-xl px-3 py-2"
-            style={{ background: accentLight, color: accent }}
-          >
-            <svg
-              className="w-3.5 h-3.5 flex-shrink-0"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            {program.highlight}
-          </div>
-        )}
-
-        <div className="flex-1" />
-
-        {/* Price / CTA */}
-        <div className="border-t border-brand-sand pt-4">
-          {program.price ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[11px] text-brand-charcoal/40 uppercase tracking-wider mb-0.5">
-                  Harga
-                </p>
-                <p className="text-2xl font-bold text-brand-navy">
-                  {program.price}
-                </p>
-              </div>
-              {program.href && (
-                <Link
-                  href={program.href ?? `/programs/${program.slug}`}
-                  target={program.href ? "_blank" : undefined}
-                  rel={program.href ? "noopener noreferrer" : undefined}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
-                  style={{
-                    background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-                  }}
-                >
-                  Lihat Detail
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </Link>
-              )}
-            </div>
-          ) : program.priceTiers ? (
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-2">
+          {/* Price tiers grid */}
+          {program.priceTiers && program.priceTiers.length > 0 && (
+            <div className="mb-4">
+              <p
+                className="font-display font-bold uppercase mb-2"
+                style={{
+                  fontSize: "0.5875rem",
+                  letterSpacing: "0.1em",
+                  color: "var(--color-brand-text-faint)",
+                }}
+              >
+                Pilih Paket
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
                 {program.priceTiers.slice(0, 4).map((tier) => (
                   <div
                     key={tier.label}
-                    className="rounded-xl bg-brand-sand p-2 text-center"
+                    className="rounded-xl p-2.5"
+                    style={{
+                      background: theme.soft,
+                      border: `1px solid ${theme.border}`,
+                    }}
                   >
-                    <p className="text-[10px] text-brand-charcoal/50 mb-0.5">
+                    <p
+                      className="font-display font-semibold"
+                      style={{
+                        fontSize: "0.5875rem",
+                        color: "var(--color-brand-text-faint)",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                      }}
+                    >
                       {tier.label}
                     </p>
-                    <p className="text-sm font-bold text-brand-navy">
+                    <p
+                      className="font-display font-black"
+                      style={{
+                        fontSize: "0.9375rem",
+                        color: theme.primary,
+                        letterSpacing: "-0.02em",
+                      }}
+                    >
                       {tier.price}
                     </p>
                   </div>
                 ))}
               </div>
-              <Link
-                href={program.href ?? `/programs/${program.slug}`}
-                target={program.href ? "_blank" : undefined}
-                rel={program.href ? "noopener noreferrer" : undefined}
-                className="w-full text-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02] active:scale-95 block"
+            </div>
+          )}
+
+          <div className="flex-1" />
+
+          {/* Price + CTA footer */}
+          <div
+            className="flex items-center justify-between pt-4"
+            style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
+          >
+            <div>
+              <p
                 style={{
-                  background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
+                  fontSize: "0.5875rem",
+                  color: "var(--color-brand-text-faint)",
                 }}
               >
-                Lihat Semua Paket →
-              </Link>
-            </div>
-          ) : (
-            <Link
-              href={program.href ?? `/programs/${program.slug}`}
-              target={program.href ? "_blank" : undefined}
-              rel={program.href ? "noopener noreferrer" : undefined}
-              className="w-full text-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5"
-              style={{
-                background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-              }}
-            >
-              Lihat Detail →
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   FOR-WHO CARDS
-───────────────────────────────────────────────────────────────────────────── */
-function ForWhoCards({
-  accent,
-  accentLight,
-  categoryKey,
-}: {
-  accent: string;
-  accentLight: string;
-  categoryKey: string;
-}) {
-  const items: Record<
-    string,
-    { emoji: string; title: string; desc: string }[]
-  > = {
-    lead: [
-      {
-        emoji: "⏰",
-        title: "Kamu super sibuk",
-        desc: "Tidak punya waktu join Zoom tapi tetap mau belajar",
-      },
-      {
-        emoji: "😰",
-        title: "Takut salah ngomong",
-        desc: "Pengin latihan tapi malu kalau langsung di kelas",
-      },
-      {
-        emoji: "💸",
-        title: "Budget terbatas",
-        desc: "Mau coba dulu sebelum investasi lebih besar",
-      },
-    ],
-    online: [
-      {
-        emoji: "🏠",
-        title: "Belajar dari rumah",
-        desc: "Tidak perlu ke mana-mana, cukup buka laptop",
-      },
-      {
-        emoji: "📅",
-        title: "Butuh jadwal tetap",
-        desc: "Suka belajar rutin dengan struktur yang jelas",
-      },
-      {
-        emoji: "🎓",
-        title: "Ingin ada mentor",
-        desc: "Belajar terasa lebih efektif dengan bimbingan langsung",
-      },
-    ],
-    camp: [
-      {
-        emoji: "🔥",
-        title: "Mau hasil cepat",
-        desc: "Belajar intensif full immersion dalam waktu singkat",
-      },
-      {
-        emoji: "🌏",
-        title: "Suka pengalaman baru",
-        desc: "Tidak hanya belajar — tapi juga petualangan di Pare",
-      },
-      {
-        emoji: "👫",
-        title: "Ingin komunitas",
-        desc: "Belajar bareng teman baru dari seluruh Indonesia",
-      },
-    ],
-    school: [],
-  };
-
-  const data = items[categoryKey] ?? [];
-  if (!data.length) return null;
-
-  return (
-    <div className="grid sm:grid-cols-3 gap-4">
-      {data.map((item) => (
-        <div
-          key={item.title}
-          className="flex items-start gap-3 rounded-2xl p-4 transition-all"
-          style={{ background: accentLight }}
-        >
-          <span className="text-2xl flex-shrink-0">{item.emoji}</span>
-          <div>
-            <p className="font-semibold text-brand-navy text-sm mb-1">
-              {item.title}
-            </p>
-            <p className="text-brand-charcoal/60 text-xs leading-relaxed">
-              {item.desc}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   CAMP EXPERIENCE
-───────────────────────────────────────────────────────────────────────────── */
-function CampExperience({ accent }: { accent: string }) {
-  const pillars = [
-    {
-      icon: "🌍",
-      title: "Full Immersion",
-      desc: "Lingkungan yang mendorong kamu hanya berbicara Bahasa Inggris sepanjang hari.",
-    },
-    {
-      icon: "🤝",
-      title: "Komunitas Aktif",
-      desc: "Teman belajar dari seluruh Indonesia — networking yang berharga.",
-    },
-    {
-      icon: "📍",
-      title: "Langsung di Pare",
-      desc: "Merasakan atmosfer Kampung Inggris yang legendaris secara langsung.",
-    },
-    {
-      icon: "⚡",
-      title: "Intensif & Terukur",
-      desc: "Program terstruktur dengan target pencapaian harian yang jelas.",
-    },
-  ];
-  return (
-    <div className="grid sm:grid-cols-2 gap-5">
-      {pillars.map((p) => (
-        <div
-          key={p.title}
-          className="flex items-start gap-4 bg-white rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
-        >
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-            style={{ background: `${accent}12` }}
-          >
-            {p.icon}
-          </div>
-          <div>
-            <h4 className="font-display font-bold text-brand-navy mb-1">
-              {p.title}
-            </h4>
-            <p className="text-brand-charcoal/60 text-sm leading-relaxed">
-              {p.desc}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   ONLINE COMPARISON TABLE
-───────────────────────────────────────────────────────────────────────────── */
-function OnlineComparison() {
-  const rows = [
-    {
-      label: "Format",
-      daily: "Zoom",
-      kids: "Zoom + Games",
-      toefl: "Zoom",
-      grammar: "Zoom",
-      priv: "Zoom/Offline",
-    },
-    {
-      label: "Untuk siapa",
-      daily: "Umum",
-      kids: "Anak 6–12 th",
-      toefl: "Mahasiswa/Kerja",
-      grammar: "Pemula",
-      priv: "Semua",
-    },
-    {
-      label: "Fokus utama",
-      daily: "Speaking",
-      kids: "Vocabulary",
-      toefl: "Tes TOEFL",
-      grammar: "Tata Bahasa",
-      priv: "Custom",
-    },
-    {
-      label: "Harga mulai",
-      daily: "299K",
-      kids: "349K",
-      toefl: "399K",
-      grammar: "299K",
-      priv: "499K",
-    },
-    {
-      label: "Jadwal",
-      daily: "Sen–Jum",
-      kids: "Flexible",
-      toefl: "Sen–Jum 20.00",
-      grammar: "Sen–Jum",
-      priv: "Bebas",
-    },
-  ];
-  const headers = ["Daily Conv.", "Kids", "TOEFL", "Grammar", "Private"];
-  return (
-    <div className="overflow-x-auto rounded-2xl border border-brand-sand">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-brand-sand">
-            <th className="text-left px-4 py-3 text-brand-navy/40 font-medium text-xs uppercase tracking-wider bg-brand-cream w-32">
-              Perbandingan
-            </th>
-            {headers.map((h) => (
-              <th
-                key={h}
-                className="px-4 py-3 text-center text-brand-navy font-semibold bg-brand-cream whitespace-nowrap"
+                {startingPrice ? "Mulai dari" : "Harga"}
+              </p>
+              <p
+                className="font-display font-black"
+                style={{
+                  fontSize: "1.125rem",
+                  color: theme.primary,
+                  letterSpacing: "-0.025em",
+                }}
               >
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr
-              key={row.label}
-              className={i % 2 === 0 ? "bg-white" : "bg-brand-cream/50"}
-            >
-              <td className="px-4 py-3 text-brand-navy/50 font-medium text-xs">
-                {row.label}
-              </td>
-              {[row.daily, row.kids, row.toefl, row.grammar, row.priv].map(
-                (val, j) => (
-                  <td
-                    key={j}
-                    className="px-4 py-3 text-center text-brand-charcoal/70 whitespace-nowrap"
-                  >
-                    {val}
-                  </td>
-                ),
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   SCHOOL PAGE (special case — no program list)
-───────────────────────────────────────────────────────────────────────────── */
-function SchoolPage({ meta }: { meta: CategoryMeta }) {
-  const { ref: cardsRef, inView: cardsInView } = useInView();
-
-  const benefits = [
-    {
-      icon: "📚",
-      title: "Kurikulum Custom",
-      desc: "Disesuaikan dengan level, usia, dan tujuan siswa sekolah kamu.",
-    },
-    {
-      icon: "🗓️",
-      title: "Jadwal Fleksibel",
-      desc: "Tidak mengganggu jam pelajaran utama — kami yang menyesuaikan.",
-    },
-    {
-      icon: "👥",
-      title: "Belajar Kelompok",
-      desc: "Metode grup yang interaktif dan kompetitif — lebih seru dan efektif.",
-    },
-    {
-      icon: "📈",
-      title: "Laporan Berkala",
-      desc: "Progress siswa dilaporkan secara transparan kepada pihak sekolah.",
-    },
-    {
-      icon: "🏆",
-      title: "Tutor Berpengalaman",
-      desc: "Pengajar yang sudah terbiasa mengajar di lingkungan sekolah formal.",
-    },
-    {
-      icon: "💡",
-      title: "Metode Modern",
-      desc: "Pendekatan komunikatif yang membuat siswa tidak takut berbicara.",
-    },
-  ];
-
-  const steps = [
-    {
-      n: "01",
-      title: "Konsultasi Gratis",
-      desc: "Ceritakan kebutuhan sekolah kamu — kami dengarkan dulu.",
-    },
-    {
-      n: "02",
-      title: "Proposal Custom",
-      desc: "Kami siapkan kurikulum, jadwal, dan paket harga yang sesuai.",
-    },
-    {
-      n: "03",
-      title: "Pelaksanaan",
-      desc: "Program berjalan dengan mentor berpengalaman dan monitoring berkala.",
-    },
-  ];
-
-  return (
-    <>
-      <Section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-16 lg:py-24">
-        <div className="text-center mb-12">
-          <Eyebrow color={meta.accent}>Kenapa Pilih Kami</Eyebrow>
-          <h2 className="font-display font-bold text-display-md text-brand-navy">
-            Apa yang kami tawarkan
-            <br />
-            <span style={{ color: meta.accent }}>untuk institusi kamu</span>
-          </h2>
-        </div>
-        <div
-          ref={cardsRef}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
-        >
-          {benefits.map((b, i) => (
-            <div
-              key={b.title}
-              className="bg-white rounded-2xl p-6 shadow-card"
-              style={{
-                opacity: cardsInView ? 1 : 0,
-                transform: cardsInView ? "translateY(0)" : "translateY(24px)",
-                transition: `opacity 0.5s ease ${i * 0.08}s, transform 0.5s cubic-bezier(0.22,1,0.36,1) ${i * 0.08}s`,
-              }}
-            >
-              <span className="text-3xl mb-3 block">{b.icon}</span>
-              <h3 className="font-display font-bold text-brand-navy mb-2">
-                {b.title}
-              </h3>
-              <p className="text-brand-charcoal/60 text-sm leading-relaxed">
-                {b.desc}
+                {startingPrice ?? program.price}
               </p>
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section className="bg-brand-navy py-16 lg:py-24">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-          <div className="text-center mb-12">
-            <Eyebrow color={meta.accent}>Proses Kerja Sama</Eyebrow>
-            <h2 className="font-display font-bold text-display-md text-white">
-              3 langkah mudah
-              <br />
-              <span style={{ color: meta.accent }}>untuk mulai</span>
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {steps.map((s) => (
-              <div
-                key={s.n}
-                className="flex flex-col items-center text-center gap-4"
-              >
-                <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center font-display font-bold text-2xl text-white"
-                  style={{
-                    background: `linear-gradient(135deg, ${meta.accent}, ${meta.accent}99)`,
-                  }}
-                >
-                  {s.n}
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-white text-lg mb-2">
-                    {s.title}
-                  </h3>
-                  <p className="text-white/50 text-sm leading-relaxed">
-                    {s.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      <Section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-20">
-        <div
-          className="rounded-3xl p-10 lg:p-16 text-center"
-          style={{
-            background: meta.heroGradient,
-            backgroundColor: meta.accentLight,
-          }}
-        >
-          <h2 className="font-display font-bold text-display-md text-brand-navy mb-4">
-            Tertarik bekerja sama?
-          </h2>
-          <p className="text-brand-charcoal/60 max-w-lg mx-auto mb-8">
-            Ceritakan kebutuhan sekolah atau institusi kamu. Konsultasi awal
-            gratis, tanpa komitmen apapun.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl text-white font-semibold text-base transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+            <motion.div
+              className="flex items-center gap-1.5 font-display font-bold px-4 py-2.5 rounded-xl text-white"
               style={{
-                background: `linear-gradient(135deg, ${meta.accent}, ${meta.accent}cc)`,
+                fontSize: "0.875rem",
+                background: theme.primary,
+                boxShadow: `0 4px 16px ${theme.border}`,
+              }}
+              animate={hovered ? { x: 3 } : { x: 0 }}
+              transition={{ duration: 0.2 }}
+              whileHover={{
+                scale: 1.04,
+                boxShadow: `0 8px 28px ${theme.border}`,
               }}
             >
-              Ajukan Proposal
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              Daftar
+              <svg viewBox="0 0 16 16" className="w-3.5 h-3.5" fill="none">
                 <path
+                  d="M3 8h10M9 4l4 4-4 4"
+                  stroke="white"
+                  strokeWidth={1.8}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
                 />
               </svg>
-            </Link>
-            <a
-              href={buildWhatsAppUrl("Program Sekolah")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-semibold text-base border-2 transition-all hover:scale-105 active:scale-95"
-              style={{ borderColor: meta.accent, color: meta.accent }}
-            >
-              Chat WhatsApp
-            </a>
+            </motion.div>
           </div>
         </div>
-      </Section>
-    </>
+      </motion.a>
+    </Reveal>
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   MAIN CLIENT COMPONENT
-───────────────────────────────────────────────────────────────────────────── */
-export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
-  if (meta.key === "lead") return <LeadPageClient />;
-
-  const { ref: programsRef, inView: programsInView } = useInView();
-  const [heroVisible, setHeroVisible] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setHeroVisible(true), 80);
-    return () => clearTimeout(t);
-  }, []);
-
-  const isSchool = meta.key === "school";
-  const isOnline = meta.key === "online";
-  const isCamp = meta.key === "offline";
-  const isLead = meta.key === "lead";
+function ProgramList({
+  category,
+  theme,
+}: {
+  category: CategoryMeta;
+  theme: Theme;
+}) {
+  const colClass =
+    category.programs.length === 1
+      ? "max-w-md mx-auto"
+      : category.programs.length === 2
+        ? "sm:grid-cols-2 max-w-2xl mx-auto"
+        : category.programs.length >= 4
+          ? "sm:grid-cols-2 lg:grid-cols-3"
+          : "sm:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* ── HERO ───────────────────────────────────────────────────────── */}
-      <section
-        className="relative overflow-hidden pt-4 pb-16 lg:pb-24"
-        style={{ background: meta.heroGradient, backgroundColor: "#FFF8F3" }}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-30"
-          style={{
-            background: `radial-gradient(circle, ${meta.accent}22 0%, transparent 70%)`,
-          }}
-        />
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-          {/* Breadcrumb */}
-          <div
-            className="flex items-center gap-2 text-sm text-brand-charcoal/40 mb-10"
-            style={{
-              opacity: heroVisible ? 1 : 0,
-              transition: "opacity 0.4s ease",
-            }}
-          >
-            <Link
-              href="/"
-              className="hover:text-brand-orange transition-colors"
-            >
-              Beranda
-            </Link>
-            <span>/</span>
-            <Link
-              href="/programs"
-              className="hover:text-brand-orange transition-colors"
-            >
-              Program
-            </Link>
-            <span>/</span>
-            <span style={{ color: meta.accent }}>{meta.label}</span>
-          </div>
+    <section
+      id="program-list"
+      className="relative py-20 lg:py-28"
+      style={{ background: "var(--color-brand-bg)" }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `radial-gradient(ellipse 50% 40% at 100% 0%, ${theme.soft} 0%, transparent 55%), radial-gradient(ellipse 40% 50% at 0% 100%, ${theme.soft} 0%, transparent 55%)`,
+        }}
+      />
 
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Left */}
-            <div>
-              <div
-                style={{
-                  opacity: heroVisible ? 1 : 0,
-                  transform: heroVisible ? "translateY(0)" : "translateY(20px)",
-                  transition:
-                    "opacity 0.6s ease 0.1s, transform 0.6s cubic-bezier(0.22,1,0.36,1) 0.1s",
-                }}
-              >
-                <Eyebrow color={meta.accent}>{meta.label}</Eyebrow>
-              </div>
-
-              <h1
-                className="font-display font-bold text-display-lg text-brand-navy leading-[1.1] mb-5"
-                style={{
-                  opacity: heroVisible ? 1 : 0,
-                  transform: heroVisible ? "translateY(0)" : "translateY(24px)",
-                  transition:
-                    "opacity 0.6s ease 0.2s, transform 0.6s cubic-bezier(0.22,1,0.36,1) 0.2s",
-                }}
-              >
-                {meta.tagline.split("—")[0]}
-                {meta.tagline.includes("—") && (
-                  <>
-                    <span className="text-brand-charcoal/30"> — </span>
-                    <span style={{ color: meta.accent }}>
-                      {meta.tagline.split("—")[1]}
-                    </span>
-                  </>
-                )}
-              </h1>
-
-              <p
-                className="text-brand-charcoal/60 text-base lg:text-lg leading-relaxed mb-8 max-w-lg"
-                style={{
-                  opacity: heroVisible ? 1 : 0,
-                  transform: heroVisible ? "translateY(0)" : "translateY(24px)",
-                  transition:
-                    "opacity 0.6s ease 0.3s, transform 0.6s cubic-bezier(0.22,1,0.36,1) 0.3s",
-                }}
-              >
-                {meta.description}
-              </p>
-
-              <div
-                className="flex flex-wrap gap-3"
-                style={{
-                  opacity: heroVisible ? 1 : 0,
-                  transform: heroVisible ? "translateY(0)" : "translateY(24px)",
-                  transition:
-                    "opacity 0.6s ease 0.4s, transform 0.6s cubic-bezier(0.22,1,0.36,1) 0.4s",
-                }}
-              >
-                {!isSchool ? (
-                  <a
-                    href="#programs"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-semibold text-sm transition-all hover:scale-105 hover:shadow-lg active:scale-95"
-                    style={{
-                      background: `linear-gradient(135deg, ${meta.accent}, ${meta.accent}cc)`,
-                      boxShadow: `0 4px 20px ${meta.accent}40`,
-                    }}
-                  >
-                    Lihat Program
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </a>
-                ) : (
-                  <Link
-                    href="/contact"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-semibold text-sm transition-all hover:scale-105 hover:shadow-lg active:scale-95"
-                    style={{
-                      background: `linear-gradient(135deg, ${meta.accent}, ${meta.accent}cc)`,
-                      boxShadow: `0 4px 20px ${meta.accent}40`,
-                    }}
-                  >
-                    Ajukan Proposal →
-                  </Link>
-                )}
-                <a
-                  href={buildWhatsAppUrl(`Tanya ${meta.label}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm border-2 transition-all hover:scale-105 active:scale-95"
-                  style={{
-                    borderColor: `${meta.accent}40`,
-                    color: meta.accent,
-                  }}
-                >
-                  Konsultasi Dulu
-                </a>
-              </div>
-            </div>
-
-            {/* Right: hero card */}
-            <div
-              className="hidden lg:flex justify-end"
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="flex flex-col items-center text-center mb-14">
+          <Reveal>
+            <SectionPill theme={theme}>✦ Program Tersedia</SectionPill>
+          </Reveal>
+          <Reveal delay={0.07}>
+            <h2
+              className="font-display font-extrabold mt-5 mb-4 leading-[1.07]"
               style={{
-                opacity: heroVisible ? 1 : 0,
-                transform: heroVisible ? "translateX(0)" : "translateX(32px)",
-                transition:
-                  "opacity 0.7s ease 0.3s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s",
+                fontSize: "clamp(1.9rem, 3.5vw, 2.75rem)",
+                letterSpacing: "-0.024em",
+                color: "var(--color-brand-blue-navy)",
               }}
             >
-              <div className="relative">
-                <div className="w-[340px] rounded-3xl p-8 bg-white shadow-float">
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl mb-5"
-                    style={{ background: meta.accentLight }}
-                  >
-                    {isLead ? "🎯" : isOnline ? "💻" : isCamp ? "🏕️" : "🏫"}
-                  </div>
-                  <h3 className="font-display font-bold text-brand-navy text-xl mb-2">
-                    {meta.label}
-                  </h3>
-                  <p className="text-brand-charcoal/50 text-sm leading-relaxed mb-5">
-                    Cocok untuk:{" "}
-                    <span className="text-brand-navy font-medium">
-                      {meta.forWho}
-                    </span>
-                  </p>
-                  <div
-                    className="h-px w-full mb-5"
-                    style={{ background: `${meta.accent}20` }}
+              Pilih program yang{" "}
+              <span style={{ color: theme.primary }}>paling cocok untukmu</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.13}>
+            <p
+              style={{
+                fontSize: "0.9375rem",
+                color: "var(--color-brand-text-muted)",
+                maxWidth: "450px",
+                lineHeight: "1.72",
+              }}
+            >
+              Semua program dirancang khusus untuk kebutuhan{" "}
+              {category.shortLabel}. Klik untuk detail lengkap dan pendaftaran.
+            </p>
+          </Reveal>
+        </div>
+
+        <div className={`grid gap-6 ${colClass}`}>
+          {category.programs.map((prog, i) => (
+            <ProgramCard
+              key={prog.slug}
+              program={prog}
+              theme={theme}
+              index={i}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 3. PAIN → SOLUTION FLOW (redesigned as two-column narrative)
+ * ══════════════════════════════════════════════════════════════ */
+function PainSolutionSection({
+  painPoints,
+  benefits,
+  theme,
+}: {
+  painPoints: NonNullable<CategoryMeta["painPoints"]>;
+  benefits: NonNullable<CategoryMeta["benefits"]>;
+  theme: Theme;
+}) {
+  return (
+    <section
+      className="relative py-20 lg:py-28 overflow-hidden"
+      style={{ background: "var(--color-brand-surface)" }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `radial-gradient(ellipse 55% 55% at 0% 60%, ${theme.soft} 0%, transparent 55%), radial-gradient(ellipse 45% 45% at 100% 40%, rgba(255,107,53,0.04) 0%, transparent 55%)`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <Reveal>
+            <SectionPill theme={theme}>✦ Kamu Tidak Sendirian</SectionPill>
+          </Reveal>
+          <Reveal delay={0.07}>
+            <h2
+              className="font-display font-extrabold mt-5 mb-4 leading-[1.07]"
+              style={{
+                fontSize: "clamp(1.9rem, 3.5vw, 2.75rem)",
+                letterSpacing: "-0.024em",
+                color: "var(--color-brand-blue-navy)",
+              }}
+            >
+              Dari{" "}
+              <span style={{ color: "rgba(255,107,53,0.9)" }}>masalah</span> ke{" "}
+              <span style={{ color: theme.primary }}>solusi</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p
+              style={{
+                fontSize: "0.9375rem",
+                color: "var(--color-brand-text-muted)",
+                maxWidth: "440px",
+                margin: "0 auto",
+                lineHeight: "1.72",
+              }}
+            >
+              Banyak yang mengalami hambatan yang sama. Program kami dirancang
+              spesifik untuk mengatasinya.
+            </p>
+          </Reveal>
+        </div>
+
+        {/* Two-column flow */}
+        <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-6 items-start">
+          {/* PAIN column */}
+          <div>
+            <div
+              className="flex items-center gap-2.5 mb-5 pb-3"
+              style={{ borderBottom: "1.5px solid rgba(255,107,53,0.15)" }}
+            >
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: "rgba(255,107,53,0.1)" }}
+              >
+                <svg viewBox="0 0 16 16" className="w-3.5 h-3.5" fill="none">
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="6"
+                    stroke="#ff6b35"
+                    strokeWidth="1.5"
                   />
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="text-center rounded-xl px-4 py-2 flex-1"
-                      style={{ background: meta.accentLight }}
-                    >
-                      <p
-                        className="text-xl font-bold"
-                        style={{ color: meta.accent }}
-                      >
-                        {meta.programs.length > 0
-                          ? meta.programs.length
-                          : "Custom"}
-                      </p>
-                      <p className="text-xs text-brand-charcoal/50">Program</p>
-                    </div>
-                    <div className="text-center rounded-xl px-4 py-2 flex-1 bg-brand-cream">
-                      <p className="text-xl font-bold text-brand-navy">
-                        {isLead
-                          ? "49K"
-                          : isOnline
-                            ? "299K"
-                            : isCamp
-                              ? "Hubungi"
-                              : "Custom"}
-                      </p>
-                      <p className="text-xs text-brand-charcoal/50">
-                        Mulai dari
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute -bottom-4 -left-4 bg-brand-navy text-white text-xs font-semibold px-4 py-2.5 rounded-2xl shadow-float animate-float">
-                  ✓{" "}
-                  {isLead
-                    ? "Tanpa komitmen"
-                    : isOnline
-                      ? "Zoom interaktif"
-                      : isCamp
-                        ? "Offline di Pare"
-                        : "Program custom"}
-                </div>
+                  <path
+                    d="M8 5v3M8 10v.5"
+                    stroke="#ff6b35"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </div>
+              <span
+                className="font-display font-bold uppercase"
+                style={{
+                  fontSize: "0.625rem",
+                  letterSpacing: "0.14em",
+                  color: "#ff6b35",
+                }}
+              >
+                Hambatan umum
+              </span>
+            </div>
+            <div className="space-y-3">
+              {painPoints.map((point, i) => (
+                <Reveal key={point.title} delay={i * 0.08} y={20}>
+                  <motion.div
+                    whileHover={{ x: 5, scale: 1.01 }}
+                    transition={{ duration: 0.22, ease: EASE }}
+                    className="flex items-start gap-3.5 p-4 rounded-2xl"
+                    style={{
+                      background: "rgba(255,107,53,0.05)",
+                      border: "1.5px solid rgba(255,107,53,0.15)",
+                    }}
+                  >
+                    {point.icon && (
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: "rgba(255,107,53,0.1)",
+                          border: "1px solid rgba(255,107,53,0.2)",
+                        }}
+                      >
+                        <Icon
+                          name={point.icon as any}
+                          className="w-4 h-4"
+                          style={{ color: "#ff6b35" }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <p
+                        className="font-display font-bold mb-0.5"
+                        style={{
+                          fontSize: "0.9375rem",
+                          color: "var(--color-brand-blue-navy)",
+                        }}
+                      >
+                        {point.title}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "0.8125rem",
+                          color: "var(--color-brand-text-muted)",
+                          lineHeight: "1.55",
+                        }}
+                      >
+                        {point.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+
+          {/* Middle arrow connector */}
+          <div className="hidden lg:flex flex-col items-center justify-center pt-16 px-2">
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="w-px flex-1 min-h-8"
+                style={{
+                  background: `linear-gradient(to bottom, transparent, ${theme.border})`,
+                }}
+              />
+              <motion.div
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: theme.primary }}
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
+                  <path
+                    d="M3 8h10M9 4l4 4-4 4"
+                    stroke="white"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.div>
+              <div
+                className="w-px flex-1 min-h-8"
+                style={{
+                  background: `linear-gradient(to bottom, ${theme.border}, transparent)`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* SOLUTION column */}
+          <div>
+            <div
+              className="flex items-center gap-2.5 mb-5 pb-3"
+              style={{ borderBottom: `1.5px solid ${theme.border}` }}
+            >
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: theme.soft }}
+              >
+                <svg viewBox="0 0 16 16" className="w-3.5 h-3.5" fill="none">
+                  <path
+                    d="M3 8l4 4 6-7"
+                    stroke={theme.primary}
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <span
+                className="font-display font-bold uppercase"
+                style={{
+                  fontSize: "0.625rem",
+                  letterSpacing: "0.14em",
+                  color: theme.primary,
+                }}
+              >
+                Solusi kami
+              </span>
+            </div>
+            <div className="space-y-3">
+              {benefits.map((b, i) => (
+                <Reveal key={b.title} delay={i * 0.08} y={20}>
+                  <motion.div
+                    whileHover={{ x: 5, scale: 1.01 }}
+                    transition={{ duration: 0.22, ease: EASE }}
+                    className="flex items-start gap-3.5 p-4 rounded-2xl"
+                    style={{
+                      background: theme.soft,
+                      border: `1.5px solid ${theme.border}`,
+                    }}
+                  >
+                    {b.icon && (
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{
+                          background: theme.softStrong,
+                          border: `1px solid ${theme.border}`,
+                        }}
+                      >
+                        <Icon
+                          name={b.icon as any}
+                          className="w-4 h-4"
+                          style={{ color: theme.primary }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <p
+                        className="font-display font-bold mb-0.5"
+                        style={{
+                          fontSize: "0.9375rem",
+                          color: "var(--color-brand-blue-navy)",
+                        }}
+                      >
+                        {b.title}
+                      </p>
+                      <p
+                        style={{
+                          fontSize: "0.8125rem",
+                          color: "var(--color-brand-text-muted)",
+                          lineHeight: "1.55",
+                        }}
+                      >
+                        {b.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                </Reveal>
+              ))}
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      {/* ── SCHOOL ─────────────────────────────────────────────────────── */}
-      {isSchool && <SchoolPage meta={meta} />}
+/* ══════════════════════════════════════════════════════════════
+ * 4. HOW IT WORKS — Enhanced Steps with connected flow
+ * ══════════════════════════════════════════════════════════════ */
+function StepsSection({
+  steps,
+  theme,
+}: {
+  steps: NonNullable<CategoryMeta["steps"]>;
+  theme: Theme;
+}) {
+  return (
+    <section
+      className="relative py-20 lg:py-28 overflow-hidden"
+      style={{ background: "var(--color-brand-bg)" }}
+    >
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="flex flex-col items-center text-center mb-16">
+          <Reveal>
+            <SectionPill theme={theme}>✦ Cara Mulai</SectionPill>
+          </Reveal>
+          <Reveal delay={0.07}>
+            <h2
+              className="font-display font-extrabold mt-5 mb-4 leading-[1.07]"
+              style={{
+                fontSize: "clamp(1.9rem, 3.5vw, 2.75rem)",
+                letterSpacing: "-0.024em",
+                color: "var(--color-brand-blue-navy)",
+              }}
+            >
+              Mulai dalam{" "}
+              <span style={{ color: theme.primary }}>
+                {steps.length} langkah mudah
+              </span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p
+              style={{
+                fontSize: "0.9375rem",
+                color: "var(--color-brand-text-muted)",
+                maxWidth: "400px",
+                lineHeight: "1.72",
+              }}
+            >
+              Prosesnya sederhana dan jelas. Tidak ada yang perlu dikhawatirkan.
+            </p>
+          </Reveal>
+        </div>
 
-      {/* ── STANDARD CATEGORIES ────────────────────────────────────────── */}
-      {!isSchool && (
-        <>
-          {/* For-who */}
-          <Section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-14">
-            <Eyebrow color={meta.accent}>Cocok untuk kamu?</Eyebrow>
-            <div className="grid lg:grid-cols-2 gap-8 items-start">
-              <h2 className="font-display font-bold text-display-md text-brand-navy leading-tight">
-                Program ini untuk kamu yang…
-              </h2>
-              <ForWhoCards
-                accent={meta.accent}
-                accentLight={meta.accentLight}
-                categoryKey={meta.key}
-              />
-            </div>
-          </Section>
-
-          {/* Camp experience */}
-          {isCamp && (
-            <Section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 pb-14">
-              <Eyebrow color={meta.accent}>Pengalaman Belajar</Eyebrow>
-              <h2 className="font-display font-bold text-display-md text-brand-navy mb-8 max-w-xl">
-                Bukan sekadar kursus —<br />
-                <span style={{ color: meta.accent }}>
-                  ini petualangan belajar
-                </span>
-              </h2>
-              <CampExperience accent={meta.accent} />
-            </Section>
-          )}
-
-          {/* Online comparison */}
-          {isOnline && (
-            <Section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 pb-14">
-              <Eyebrow color={meta.accent}>Bandingkan Program</Eyebrow>
-              <h2 className="font-display font-bold text-display-md text-brand-navy mb-8">
-                Mana yang paling cocok
-                <br />
-                <span style={{ color: meta.accent }}>untuk kamu?</span>
-              </h2>
-              <OnlineComparison />
-            </Section>
-          )}
-
-          {/* Program list */}
-          <section
-            id="programs"
-            className="py-16 lg:py-24"
-            style={{
-              background:
-                "linear-gradient(180deg, #FFF8F3 0%, #FFFFFF 30%, #FFF8F3 100%)",
-            }}
+        <div className="relative ">
+          {/* Horizontal connector line (desktop) */}
+          <div
+            className={`grid gap-8 ${
+              steps.length <= 2
+                ? "sm:grid-cols-2 max-w-2xl mx-auto"
+                : "sm:grid-cols-3"
+            }`}
           >
-            <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
-              <Section className="mb-10">
-                <Eyebrow color={meta.accent}>Daftar Program</Eyebrow>
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                  <h2 className="font-display font-bold text-display-md text-brand-navy leading-tight">
-                    Pilih program
-                    <br />
-                    <span style={{ color: meta.accent }}>
-                      yang pas buat kamu
-                    </span>
-                  </h2>
-                  <p className="text-brand-charcoal/50 text-sm max-w-xs">
-                    {meta.programs.length} program tersedia. Semua bisa
-                    dikonsultasikan terlebih dahulu.
+            {steps.length > 1 && (
+              <div
+                className="hidden lg:block pointer-events-none absolute z-0"
+                style={{
+                  top: "32px",
+                  left: `calc(100% / ${steps.length * 2})`,
+                  right: `calc(100% / ${steps.length * 2})`,
+                  height: "2px",
+                  background: `linear-gradient(90deg, transparent, ${theme.border}, ${theme.primary}, ${theme.border}, transparent)`,
+                }}
+              />
+            )}
+
+            {steps.map((step, i) => (
+              <Reveal key={step.title} delay={i * 0.1} y={24}>
+                <div className="flex flex-col items-center text-center z-100">
+                  {/* Step number bubble */}
+                  <motion.div
+                    className="relative mb-5"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.22 }}
+                  >
+                    <div
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center font-display font-black relative "
+                      style={{
+                        background: i === 0 ? theme.primary : theme.primary,
+                        border: `2px solid ${i === 0 ? theme.primary : theme.border}`,
+                        fontSize: "1.25rem",
+                        color: "white",
+                        letterSpacing: "-0.02em",
+                        boxShadow:
+                          i === 0 ? `0 8px 28px ${theme.border}` : "none",
+                      }}
+                    >
+                      {step.n ?? String(i + 1).padStart(2, "0")}
+                    </div>
+                    {/* Glow ring */}
+                    {i === 0 && (
+                      <motion.div
+                        className="absolute inset-0 rounded-2xl"
+                        style={{
+                          border: `2px solid ${theme.primary}`,
+                          opacity: 0.3,
+                        }}
+                        animate={{
+                          scale: [1, 1.25, 1],
+                          opacity: [0.3, 0, 0.3],
+                        }}
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                    )}
+                  </motion.div>
+
+                  {/* Step content */}
+                  <p
+                    className="font-display font-extrabold mb-2"
+                    style={{
+                      fontSize: "1.0625rem",
+                      color: "var(--color-brand-blue-navy)",
+                    }}
+                  >
+                    {step.title}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.8125rem",
+                      color: "var(--color-brand-text-muted)",
+                      lineHeight: "1.65",
+                      maxWidth: "210px",
+                      margin: "0 auto",
+                    }}
+                  >
+                    {step.description}
+                  </p>
+
+                  {/* Progress indicator */}
+                  <div
+                    className="mt-4 px-3 py-1 rounded-full font-display font-semibold"
+                    style={{
+                      fontSize: "0.5875rem",
+                      background: theme.soft,
+                      color: theme.primary,
+                      border: `1px solid ${theme.border}`,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Langkah {i + 1}/{steps.length}
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 5. EXPERIENCE SECTION — Immersive card highlights
+ * ══════════════════════════════════════════════════════════════ */
+function ExperienceSection({
+  experience,
+  theme,
+}: {
+  experience: NonNullable<CategoryMeta["experience"]>;
+  theme: Theme;
+}) {
+  return (
+    <section
+      className="relative py-20 lg:py-28 overflow-hidden"
+      style={{ background: "var(--color-brand-surface)" }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `radial-gradient(ellipse 70% 50% at 50% 0%, ${theme.soft} 0%, transparent 60%)`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="flex flex-col items-center text-center mb-14">
+          <Reveal>
+            <SectionPill theme={theme}>✦ Pengalaman Belajar</SectionPill>
+          </Reveal>
+          <Reveal delay={0.07}>
+            <h2
+              className="font-display font-extrabold mt-5 mb-3 leading-[1.07]"
+              style={{
+                fontSize: "clamp(1.9rem, 3.5vw, 2.75rem)",
+                letterSpacing: "-0.024em",
+                color: "var(--color-brand-blue-navy)",
+              }}
+            >
+              Apa yang kamu rasakan{" "}
+              <span style={{ color: theme.primary }}>di sini</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p
+              style={{
+                fontSize: "0.9375rem",
+                color: "var(--color-brand-text-muted)",
+                maxWidth: "420px",
+                lineHeight: "1.72",
+              }}
+            >
+              Bukan sekadar kelas biasa — ini adalah pengalaman yang akan
+              mengubah caramu belajar.
+            </p>
+          </Reveal>
+        </div>
+
+        <div
+          className={`grid gap-6 ${
+            experience.length <= 2
+              ? "sm:grid-cols-2 max-w-2xl mx-auto"
+              : "sm:grid-cols-2 lg:grid-cols-3"
+          }`}
+        >
+          {experience.map((item, i) => (
+            <Reveal key={item.title} delay={i * 0.09}>
+              <motion.div
+                whileHover={{ y: -6, scale: 1.02 }}
+                transition={{ duration: 0.28, ease: EASE }}
+                className="relative overflow-hidden rounded-2xl p-6"
+                style={{
+                  background: theme.softStrong,
+                  border: `1.5px solid ${theme.border}`,
+                  boxShadow: `0 4px 20px ${theme.border}`,
+                }}
+              >
+                {/* Corner accent */}
+                <div
+                  className="absolute top-0 right-0 w-20 h-20 rounded-bl-full"
+                  style={{ background: theme.soft, opacity: 0.8 }}
+                />
+                {/* Corner dot */}
+                <div
+                  className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full"
+                  style={{ background: theme.primary, opacity: 0.6 }}
+                />
+
+                <div className="relative z-10">
+                  {item.icon && (
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                      style={{
+                        background: theme.primary,
+                        boxShadow: `0 6px 20px ${theme.border}`,
+                      }}
+                    >
+                      <Icon
+                        name={item.icon as any}
+                        className="w-6 h-6"
+                        style={{ color: "white" }}
+                      />
+                    </div>
+                  )}
+                  <p
+                    className="font-display font-extrabold mb-2"
+                    style={{
+                      fontSize: "1rem",
+                      color: "var(--color-brand-blue-navy)",
+                    }}
+                  >
+                    {item.title}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "0.8125rem",
+                      color: "var(--color-brand-text-muted)",
+                      lineHeight: "1.65",
+                    }}
+                  >
+                    {item.description}
                   </p>
                 </div>
-              </Section>
+              </motion.div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-              <div
-                ref={programsRef}
-                className={`grid gap-5 ${
-                  meta.programs.length === 1
-                    ? "max-w-sm"
-                    : meta.programs.length === 2
-                      ? "sm:grid-cols-2 max-w-2xl"
-                      : "sm:grid-cols-2 lg:grid-cols-3"
-                }`}
+/* ══════════════════════════════════════════════════════════════
+ * 6. COMPARISON — Visual table-card layout
+ * ══════════════════════════════════════════════════════════════ */
+function ComparisonSection({
+  comparison,
+  theme,
+  categoryLabel,
+}: {
+  comparison: NonNullable<CategoryMeta["comparison"]>;
+  theme: Theme;
+  categoryLabel: string;
+}) {
+  return (
+    <section
+      className="relative py-20 lg:py-24"
+      style={{ background: "var(--color-brand-bg)" }}
+    >
+      <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="text-center mb-12">
+          <Reveal>
+            <SectionPill theme={theme}>✦ Apa yang Termasuk</SectionPill>
+          </Reveal>
+          <Reveal delay={0.07}>
+            <h2
+              className="font-display font-extrabold mt-5 mb-4 leading-[1.07]"
+              style={{
+                fontSize: "clamp(1.9rem, 3.5vw, 2.5rem)",
+                letterSpacing: "-0.024em",
+                color: "var(--color-brand-blue-navy)",
+              }}
+            >
+              Ringkasan{" "}
+              <span style={{ color: theme.primary }}>{categoryLabel}</span>
+            </h2>
+          </Reveal>
+        </div>
+
+        <Reveal delay={0.1}>
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{
+              border: `1.5px solid ${theme.border}`,
+              boxShadow: `0 8px 36px ${theme.border}`,
+            }}
+          >
+            {/* Header row */}
+            <div
+              className="px-6 py-4 flex items-center gap-3"
+              style={{ background: theme.primary }}
+            >
+              <Icon
+                name={(comparison as any).icon ?? "list"}
+                className="w-5 h-5"
+                style={{ color: "white" }}
+              />
+              <span
+                className="font-display font-bold text-white"
+                style={{ fontSize: "0.9375rem" }}
               >
-                {meta.programs.map((program, i) => (
-                  <ProgramCard
-                    key={program.slug}
-                    program={program}
-                    accent={meta.accent}
-                    accentLight={meta.accentLight}
-                    index={i}
-                    inView={programsInView}
+                Detail Program
+              </span>
+            </div>
+
+            {comparison.map((item, i) => (
+              <motion.div
+                key={item.label}
+                whileHover={{ x: 4 }}
+                transition={{ duration: 0.18 }}
+                className="flex items-center justify-between px-6 py-4"
+                style={{
+                  background:
+                    i % 2 === 0 ? theme.soft : "var(--color-brand-surface)",
+                  borderBottom:
+                    i < comparison.length - 1
+                      ? `1px solid ${theme.border}`
+                      : undefined,
+                }}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ background: theme.primary }}
+                  />
+                  <span
+                    className="font-display font-semibold"
+                    style={{
+                      fontSize: "0.875rem",
+                      color: "var(--color-brand-text-muted)",
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+                <span
+                  className="font-display font-bold px-3 py-1 rounded-xl"
+                  style={{
+                    fontSize: "0.875rem",
+                    color: theme.primary,
+                    background: theme.soft,
+                    border: `1px solid ${theme.border}`,
+                  }}
+                >
+                  {item.value}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 7. TESTIMONIALS — Featured card + carousel
+ * ══════════════════════════════════════════════════════════════ */
+function TestimonialsSection({
+  socialProof,
+  theme,
+}: {
+  socialProof: NonNullable<CategoryMeta["socialProof"]>;
+  theme: Theme;
+}) {
+  const [active, setActive] = useState(0);
+
+  return (
+    <section
+      className="relative py-20 lg:py-28 overflow-hidden"
+      style={{ background: "var(--color-brand-surface)" }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `radial-gradient(ellipse 65% 50% at 50% 0%, ${theme.soft} 0%, transparent 60%)`,
+        }}
+      />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+        <div className="flex flex-col items-center text-center mb-12">
+          <Reveal>
+            <SectionPill theme={theme}>✦ Cerita Nyata</SectionPill>
+          </Reveal>
+          <Reveal delay={0.07}>
+            <h2
+              className="font-display font-extrabold mt-5 mb-3 leading-[1.07]"
+              style={{
+                fontSize: "clamp(1.9rem, 3.5vw, 2.75rem)",
+                letterSpacing: "-0.024em",
+                color: "var(--color-brand-blue-navy)",
+              }}
+            >
+              Mereka sudah{" "}
+              <span style={{ color: theme.primary }}>membuktikannya</span>
+            </h2>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <p
+              style={{
+                fontSize: "0.9375rem",
+                color: "var(--color-brand-text-muted)",
+                maxWidth: "360px",
+                lineHeight: "1.72",
+              }}
+            >
+              Bukan janji — ini hasil nyata dari alumni yang pernah ada di
+              posisimu sekarang.
+            </p>
+          </Reveal>
+        </div>
+
+        <div className="max-w-2xl mx-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active}
+              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.98 }}
+              transition={{ duration: 0.42, ease: EASE }}
+              className="relative rounded-3xl p-8 sm:p-10"
+              style={{
+                background: "var(--color-brand-surface)",
+                border: `2px solid ${theme.border}`,
+                boxShadow: `0 32px 80px ${theme.border}, 0 4px 24px rgba(10,45,135,0.07)`,
+              }}
+            >
+              {/* Decorative quote mark */}
+              <div
+                className="absolute top-6 left-7 font-display font-black leading-none select-none pointer-events-none"
+                style={{
+                  fontSize: "6rem",
+                  color: theme.primary,
+                  opacity: 0.06,
+                  lineHeight: 1,
+                }}
+              >
+                "
+              </div>
+
+              {/* Category accent line */}
+              <div
+                className="absolute top-0 left-8 right-8 h-0.5 rounded-full"
+                style={{
+                  background: `linear-gradient(90deg, transparent, ${theme.primary}, transparent)`,
+                }}
+              />
+
+              {/* Stars */}
+              <div className="flex gap-1.5 mb-6">
+                {[...Array(5)].map((_, i) => (
+                  <motion.svg
+                    key={i}
+                    viewBox="0 0 14 14"
+                    className="w-5 h-5"
+                    fill="#FBBF24"
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: i * 0.06, duration: 0.3, ease: EASE }}
+                  >
+                    <path d="M7 1l1.8 3.6 3.8.5-2.7 2.6.6 3.8L7 9.6l-3.5 1.9.6-3.8L1.4 5.1l3.8-.5z" />
+                  </motion.svg>
+                ))}
+              </div>
+
+              <p
+                className="italic mb-7 relative z-10"
+                style={{
+                  fontSize: "clamp(1rem, 1.5vw, 1.1875rem)",
+                  color: "var(--color-brand-text-muted)",
+                  lineHeight: "1.8",
+                }}
+              >
+                "{socialProof[active].quote}"
+              </p>
+
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center font-display font-black"
+                  style={{
+                    background: theme.soft,
+                    border: `2px solid ${theme.border}`,
+                    fontSize: "1.125rem",
+                    color: theme.primary,
+                  }}
+                >
+                  {socialProof[active].name?.[0] ?? "?"}
+                </div>
+                <div>
+                  {socialProof[active].name && (
+                    <p
+                      className="font-display font-bold"
+                      style={{
+                        fontSize: "0.9375rem",
+                        color: "var(--color-brand-blue-navy)",
+                      }}
+                    >
+                      {socialProof[active].name}
+                    </p>
+                  )}
+                  {socialProof[active].role && (
+                    <p
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--color-brand-text-faint)",
+                      }}
+                    >
+                      {socialProof[active].role}
+                    </p>
+                  )}
+                </div>
+                <div className="ml-auto">
+                  <span
+                    className="px-2.5 py-1 rounded-full font-display font-bold uppercase"
+                    style={{
+                      fontSize: "0.5875rem",
+                      background: theme.soft,
+                      color: theme.primary,
+                      border: `1px solid ${theme.border}`,
+                      letterSpacing: "0.08em",
+                    }}
+                  >
+                    Alumni
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation */}
+          {socialProof.length > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <motion.button
+                onClick={() => setActive((a) => Math.max(0, a - 1))}
+                disabled={active === 0}
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{
+                  background:
+                    active > 0 ? theme.soft : "var(--color-brand-surface-soft)",
+                  border: `1.5px solid ${active > 0 ? theme.border : "var(--color-brand-border-soft)"}`,
+                  cursor: active > 0 ? "pointer" : "not-allowed",
+                  opacity: active > 0 ? 1 : 0.38,
+                }}
+                whileHover={active > 0 ? { scale: 1.08 } : {}}
+                whileTap={active > 0 ? { scale: 0.95 } : {}}
+              >
+                <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
+                  <path
+                    d="M10 4L6 8l4 4"
+                    stroke={
+                      active > 0
+                        ? theme.primary
+                        : "var(--color-brand-text-faint)"
+                    }
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.button>
+
+              <div className="flex items-center gap-2">
+                {socialProof.map((_, i) => (
+                  <motion.button
+                    key={i}
+                    onClick={() => setActive(i)}
+                    style={{
+                      width: active === i ? "24px" : "8px",
+                      height: "8px",
+                      borderRadius: "9999px",
+                      background:
+                        active === i
+                          ? theme.primary
+                          : "var(--color-brand-border)",
+                      cursor: "pointer",
+                      border: "none",
+                      transition: "all 0.25s ease",
+                    }}
+                    whileTap={{ scale: 0.9 }}
                   />
                 ))}
               </div>
-            </div>
-          </section>
 
-          {/* Lead reassurance strip */}
-          {isLead && (
-            <Section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 pb-16">
-              <div className="grid sm:grid-cols-3 gap-4">
-                {[
-                  {
-                    icon: "⚡",
-                    title: "Mulai kapan saja",
-                    desc: "Tidak terikat jadwal. Kamu yang atur waktu belajar.",
-                  },
-                  {
-                    icon: "💰",
-                    title: "Hanya 49 ribu",
-                    desc: "Setara segelas kopi — hasilnya jauh lebih berharga.",
-                  },
-                  {
-                    icon: "🛡️",
-                    title: "Tanpa risiko",
-                    desc: "Kalau tidak cocok, ya tidak apa-apa. Coba dulu.",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.title}
-                    className="flex items-start gap-3 rounded-2xl p-5 bg-white shadow-card"
-                  >
-                    <span className="text-2xl">{item.icon}</span>
-                    <div>
-                      <p className="font-semibold text-brand-navy mb-1">
-                        {item.title}
-                      </p>
-                      <p className="text-brand-charcoal/55 text-sm leading-relaxed">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Section>
+              <motion.button
+                onClick={() =>
+                  setActive((a) => Math.min(socialProof.length - 1, a + 1))
+                }
+                disabled={active === socialProof.length - 1}
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{
+                  background:
+                    active < socialProof.length - 1
+                      ? theme.soft
+                      : "var(--color-brand-surface-soft)",
+                  border: `1.5px solid ${active < socialProof.length - 1 ? theme.border : "var(--color-brand-border-soft)"}`,
+                  cursor:
+                    active < socialProof.length - 1 ? "pointer" : "not-allowed",
+                  opacity: active < socialProof.length - 1 ? 1 : 0.38,
+                }}
+                whileHover={
+                  active < socialProof.length - 1 ? { scale: 1.08 } : {}
+                }
+                whileTap={
+                  active < socialProof.length - 1 ? { scale: 0.95 } : {}
+                }
+              >
+                <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
+                  <path
+                    d="M6 4l4 4-4 4"
+                    stroke={
+                      active < socialProof.length - 1
+                        ? theme.primary
+                        : "var(--color-brand-text-faint)"
+                    }
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.button>
+            </div>
           )}
 
-          {/* CTA */}
-          <Section className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-8 pb-20">
-            <div
-              className="rounded-3xl overflow-hidden relative"
+          {/* Counter */}
+          <p
+            className="text-center mt-3"
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--color-brand-text-faint)",
+            }}
+          >
+            {active + 1} dari {socialProof.length} testimoni
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * 8. FINAL CTA — Strong conversion section
+ * ══════════════════════════════════════════════════════════════ */
+function CTASection({
+  cta,
+  theme,
+}: {
+  cta: CategoryMeta["cta"];
+  theme: Theme;
+}) {
+  return (
+    <section className="relative py-24 lg:py-32 overflow-hidden">
+      {/* Dark navy base */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(155deg, #060f2e 0%, #0a2d87 55%, #1346b0 100%)",
+        }}
+      />
+
+      {/* Theme-colored ambient blobs */}
+      <motion.div
+        className="pointer-events-none absolute"
+        style={{
+          width: 600,
+          height: 600,
+          top: "-28%",
+          right: "-8%",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${theme.soft} 0%, transparent 70%)`,
+          filter: "blur(80px)",
+          opacity: 0.7,
+        }}
+        animate={{ scale: [1, 1.1, 1] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="pointer-events-none absolute"
+        style={{
+          width: 440,
+          height: 440,
+          bottom: "-22%",
+          left: "-5%",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, ${theme.soft} 0%, transparent 70%)`,
+          filter: "blur(90px)",
+          opacity: 0.55,
+        }}
+        animate={{ scale: [1, 1.14, 1] }}
+        transition={{
+          duration: 13,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 2,
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: `radial-gradient(rgba(255,255,255,0.65) 1px, transparent 1px)`,
+          backgroundSize: "36px 36px",
+          opacity: 0.03,
+        }}
+      />
+
+      <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 text-center">
+        <Reveal>
+          <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
+            style={{
+              background: "rgba(255,255,255,0.07)",
+              border: "1px solid rgba(255,255,255,0.14)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <span
+              className="w-2 h-2 rounded-full"
               style={{
-                background: "linear-gradient(135deg, #0F2340 0%, #1a365d 100%)",
+                background: "#4ade80",
+                animation: "pulseSoft 2s ease-in-out infinite",
               }}
+            />
+            <span
+              style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.65)" }}
             >
-              <div
-                aria-hidden
-                className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20 pointer-events-none"
+              Admin siap membantu kamu sekarang
+            </span>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.07}>
+          <h2
+            className="font-display font-extrabold mb-5 leading-[1.07]"
+            style={{
+              fontSize: "clamp(2rem, 5vw, 3.5rem)",
+              letterSpacing: "-0.027em",
+              color: "white",
+            }}
+          >
+            {cta.title}{" "}
+            {cta.titleAccent && (
+              <span style={{ color: theme.primary }}>{cta.titleAccent}</span>
+            )}
+          </h2>
+        </Reveal>
+
+        <Reveal delay={0.13}>
+          <p
+            style={{
+              fontSize: "clamp(0.9375rem, 1.5vw, 1.125rem)",
+              color: "rgba(255,255,255,0.6)",
+              maxWidth: "480px",
+              margin: "0 auto 2.5rem",
+              lineHeight: "1.75",
+            }}
+          >
+            {cta.description}
+          </p>
+        </Reveal>
+
+        <Reveal delay={0.19}>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
+            <motion.a
+              href={cta.primaryHref}
+              className="font-display font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-2 text-white"
+              style={{
+                fontSize: "1rem",
+                background: theme.primary,
+                boxShadow: `0 6px 32px ${theme.border}`,
+                textDecoration: "none",
+              }}
+              whileHover={{
+                scale: 1.04,
+                boxShadow: `0 14px 44px ${theme.border}`,
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.2, ease: EASE }}
+            >
+              {cta.primaryLabel}
+              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
+                <path
+                  d="M3 8h10M9 4l4 4-4 4"
+                  stroke="white"
+                  strokeWidth={1.8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.a>
+
+            {cta.secondaryLabel && (
+              <motion.a
+                href={cta.secondaryHref ?? "/contact"}
+                className="font-display font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2"
                 style={{
-                  background: `radial-gradient(circle, ${meta.accent} 0%, transparent 70%)`,
-                  transform: "translate(30%, -30%)",
+                  fontSize: "1rem",
+                  color: "white",
+                  textDecoration: "none",
+                  background: "rgba(255,255,255,0.09)",
+                  border: "1.5px solid rgba(255,255,255,0.18)",
+                  backdropFilter: "blur(8px)",
                 }}
-              />
-              <div className="relative px-8 py-12 lg:px-14 lg:py-14 flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-                <div className="flex-1 text-center lg:text-left">
-                  <p
-                    className="text-sm font-semibold uppercase tracking-wider mb-3"
-                    style={{ color: meta.accent }}
-                  >
-                    Masih bingung?
-                  </p>
-                  <h2 className="font-display font-bold text-2xl lg:text-3xl text-white mb-3">
-                    Kami siap bantu kamu pilih program yang tepat
-                  </h2>
-                  <p className="text-white/50 text-sm leading-relaxed">
-                    Konsultasi gratis via WhatsApp — tidak ada paksaan, tidak
-                    ada tekanan.
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row lg:flex-col gap-3 flex-shrink-0">
-                  <a
-                    href={buildWhatsAppUrl(`Konsultasi ${meta.label}`)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl text-white font-semibold text-sm transition-all hover:scale-105 hover:shadow-xl active:scale-95"
+                whileHover={{
+                  scale: 1.03,
+                  background: "rgba(255,255,255,0.14)",
+                  borderColor: "rgba(255,255,255,0.32)",
+                }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.2 }}
+              >
+                {cta.secondaryLabel}
+              </motion.a>
+            )}
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.26}>
+          <div className="flex flex-wrap justify-center gap-x-7 gap-y-2">
+            {[
+              "Gratis konsultasi",
+              "Tanpa komitmen",
+              "Respon cepat",
+              "Tim berpengalaman",
+            ].map((f) => (
+              <div key={f} className="flex items-center gap-1.5">
+                <svg
+                  viewBox="0 0 16 16"
+                  className="w-3.5 h-3.5 flex-shrink-0"
+                  fill="none"
+                >
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="6"
+                    stroke={theme.primary}
+                    strokeWidth="1.5"
+                    opacity="0.6"
+                  />
+                  <path
+                    d="M5 8l2 2 4-4"
+                    stroke={theme.primary}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <span
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  {f}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+ * ROOT EXPORT
+ * ══════════════════════════════════════════════════════════════ */
+export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
+  const theme = useMemo(
+    () => generateTheme(meta.theme.primary),
+    [meta.theme.primary],
+  );
+
+  const hasBoth = !!(meta.painPoints?.length && meta.benefits?.length);
+
+  return (
+    <main className="relative w-full overflow-x-hidden">
+      {/* 1. Hero */}
+      <CategoryHero category={meta} theme={theme} />
+
+      {/* 2. Programs */}
+      <ProgramList category={meta} theme={theme} />
+
+      {/* 3. Pain → Solution (combined if both exist) */}
+      {hasBoth && (
+        <PainSolutionSection
+          painPoints={meta.painPoints!}
+          benefits={meta.benefits!}
+          theme={theme}
+        />
+      )}
+
+      {/* Fallback: only pain points */}
+      {!hasBoth && meta.painPoints && meta.painPoints.length > 0 && (
+        <section
+          className="relative py-20 lg:py-24 overflow-hidden"
+          style={{ background: "var(--color-brand-surface)" }}
+        >
+          <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+            <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 lg:gap-20 items-start">
+              <div>
+                <Reveal>
+                  <SectionPill theme={theme}>
+                    ✦ Kamu Tidak Sendirian
+                  </SectionPill>
+                </Reveal>
+                <Reveal delay={0.07}>
+                  <h2
+                    className="font-display font-extrabold mt-5 mb-4"
                     style={{
-                      background: `linear-gradient(135deg, ${meta.accent}, ${meta.accent}cc)`,
+                      fontSize: "clamp(1.9rem, 3vw, 2.5rem)",
+                      letterSpacing: "-0.022em",
+                      color: "var(--color-brand-blue-navy)",
                     }}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
+                    Masalah yang sering bikin{" "}
+                    <span style={{ color: theme.primary }}>stuck belajar</span>
+                  </h2>
+                </Reveal>
+              </div>
+              <div className="space-y-4">
+                {meta.painPoints.map((point, i) => (
+                  <Reveal key={point.title} delay={i * 0.09} y={20}>
+                    <motion.div
+                      whileHover={{ x: 6, scale: 1.01 }}
+                      className="flex items-start gap-4 p-4 rounded-2xl"
+                      style={{
+                        background: theme.soft,
+                        border: `1.5px solid ${theme.border}`,
+                      }}
                     >
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                    </svg>
-                    Chat WhatsApp
-                  </a>
-                  <Link
-                    href="/contact"
-                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl font-semibold text-sm text-white/70 border border-white/15 transition-all hover:scale-105 hover:bg-white/8 active:scale-95"
-                  >
-                    Lihat Form Kontak
-                  </Link>
-                </div>
+                      {point.icon && (
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{
+                            background: theme.softStrong,
+                            border: `1.5px solid ${theme.border}`,
+                          }}
+                        >
+                          <Icon
+                            name={point.icon as any}
+                            className="w-5 h-5"
+                            style={{ color: theme.primary }}
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <p
+                          className="font-display font-bold mb-1"
+                          style={{
+                            fontSize: "0.9375rem",
+                            color: "var(--color-brand-blue-navy)",
+                          }}
+                        >
+                          {point.title}
+                        </p>
+                        <p
+                          style={{
+                            fontSize: "0.8125rem",
+                            color: "var(--color-brand-text-muted)",
+                            lineHeight: "1.55",
+                          }}
+                        >
+                          {point.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </Reveal>
+                ))}
               </div>
             </div>
-          </Section>
-        </>
+          </div>
+        </section>
       )}
+
+      {/* 4. Steps */}
+      {meta.steps && meta.steps.length > 0 && (
+        <StepsSection steps={meta.steps} theme={theme} />
+      )}
+
+      {/* 5. Experience */}
+      {meta.experience && meta.experience.length > 0 && (
+        <ExperienceSection experience={meta.experience} theme={theme} />
+      )}
+
+      {/* 6. Comparison */}
+      {meta.comparison && meta.comparison.length > 0 && (
+        <ComparisonSection
+          comparison={meta.comparison}
+          theme={theme}
+          categoryLabel={meta.shortLabel ?? meta.label}
+        />
+      )}
+
+      {/* 7. Testimonials */}
+      {meta.socialProof && meta.socialProof.length > 0 && (
+        <TestimonialsSection socialProof={meta.socialProof} theme={theme} />
+      )}
+
+      {/* 8. Final CTA */}
+      <CTASection cta={meta.cta} theme={theme} />
     </main>
   );
 }

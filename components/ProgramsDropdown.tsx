@@ -16,6 +16,7 @@ import { useState } from "react";
 import * as Icons from "lucide-react";
 import { CATEGORIES } from "@/app/programs/[category]/data";
 import { BRAND } from "@/constants/brand";
+import { generateTheme } from "@/lib/utils";
 
 function getIcon(name?: string) {
   if (!name) return Icons.Circle;
@@ -47,8 +48,8 @@ export const rightColumns = categories.map((cat) => ({
   href: cat.href,
   description: cat.tagline,
   icon: getIcon(cat.icon),
-  color: cat.color,
-  iconBg: cat.iconBg,
+  color: generateTheme(cat.theme.primary).primary,
+  iconBg: generateTheme(cat.theme.primary).softStrong,
   defaultOpen: false,
 
   items: cat.programs.map((p) => ({
@@ -379,26 +380,27 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
 
         {/* Footer */}
         <div
-          className="px-5 py-[9px] flex items-center justify-between"
+          className="px-5 py-[10px] flex items-center justify-between"
           style={{
             borderTop: "0.5px solid rgba(15,35,64,0.06)",
             background: "#FAFAFA",
           }}
         >
           <p style={{ fontSize: "0.6875rem", color: "#94A3B8" }}>
-            Bingung pilih yang mana?
+            Masih bingung memilih?
           </p>
+
           <Link
-            href="/contact"
+            href="/programs"
             onClick={onClose}
             className="inline-flex items-center gap-1 font-semibold transition-all duration-150 hover:gap-[7px]"
             style={{
               fontSize: "0.6875rem",
               color: BRAND.blue,
-              textDecoration: "none",
             }}
           >
-            Konsultasi gratis <ChevronRight className="w-3 h-3" />
+            Lihat semua program
+            <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
       </div>

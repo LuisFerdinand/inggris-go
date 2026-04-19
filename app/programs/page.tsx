@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useRef, useState, useEffect, useCallback, useMemo, act } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { CATEGORIES, CategoryMeta, ProgramMeta } from "./[category]/data";
 import { Icon } from "@/components/Icon";
+import { generateTheme } from "@/lib/utils";
 
 /* ─── Utils ───────────────────────────────────────────────────── */
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -442,13 +443,14 @@ function HeroSection({
 
 function HeroFloatCard({ category }: { category: CategoryMeta }) {
   const price = getStartingPrice(category.programs);
+  const theme = generateTheme(category.theme.primary);
   return (
     <div
       className="rounded-2xl"
       style={{
         width: "252px",
         background: "var(--color-brand-surface)",
-        border: `1.5px solid ${category.accentBorder}`,
+        border: `1.5px solid ${theme.border}`,
         boxShadow: `0 24px 64px rgba(10,45,135,0.12), 0 4px 18px rgba(10,45,135,0.07)`,
         padding: "1.125rem",
       }}
@@ -457,7 +459,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
       <div
         style={{
           height: "2px",
-          background: `linear-gradient(90deg, ${category.accent} 0%, transparent 100%)`,
+          background: theme.gradient,
           marginBottom: "0.875rem",
           borderRadius: "2px",
         }}
@@ -467,14 +469,14 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{
-            background: category.accentLight,
-            border: `1.5px solid ${category.accentBorder}`,
+            background: theme.soft,
+            border: theme.border,
           }}
         >
           <Icon
             name={category.icon as any}
             className="w-5 h-5"
-            style={{ color: category.accent } as any}
+            style={{ color: theme.primary } as any}
           />
         </div>
         <div>
@@ -482,7 +484,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
             className="font-display font-bold"
             style={{
               fontSize: "0.875rem",
-              color: "var(--color-brand-blue-navy)",
+              color: theme.primary,
             }}
           >
             {category.shortLabel}
@@ -507,7 +509,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
         }}
       >
         {category.tagline}{" "}
-        <span style={{ color: category.accent, fontWeight: 600 }}>
+        <span style={{ color: theme.primary, fontWeight: 600 }}>
           {category.taglineAccent}
         </span>
       </p>
@@ -523,7 +525,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
               className="w-1.5 h-1.5 rounded-full"
               style={{
                 background:
-                  i < 4 ? category.accent : "var(--color-brand-border-soft)",
+                  i < 4 ? theme.soft : "var(--color-brand-border-soft)",
                 opacity: i < 4 ? 1 : 0.4,
               }}
             />
@@ -531,7 +533,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
         </div>
         <span
           className="font-display font-black"
-          style={{ fontSize: "0.9375rem", color: category.accent }}
+          style={{ fontSize: "0.9375rem", color: theme.primary }}
         >
           {price}
         </span>
@@ -619,140 +621,144 @@ function QuickDecisionSection({
         </Reveal>
 
         <div className="grid sm:grid-cols-3 gap-5">
-          {categories.map((cat, i) => (
-            <Reveal key={cat.key} delay={i * 0.08}>
-              <motion.button
-                onClick={() => onSelect(cat.key)}
-                onHoverStart={() => setHovered(cat.key)}
-                onHoverEnd={() => setHovered(null)}
-                whileHover={{ scale: 1.035, y: -6 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.26, ease: EASE }}
-                className="w-full text-left rounded-2xl relative overflow-hidden"
-                style={{
-                  background:
-                    hovered === cat.key
-                      ? "rgba(255,255,255,0.13)"
-                      : "rgba(255,255,255,0.065)",
-                  border: `1.5px solid ${hovered === cat.key ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)"}`,
-                  backdropFilter: "blur(10px)",
-                  cursor: "pointer",
-                  transition: "background 0.22s ease, border-color 0.22s ease",
-                  padding: 0,
-                }}
-              >
-                {/* Glow on hover */}
-                <AnimatePresence>
-                  {hovered === cat.key && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 pointer-events-none"
-                      style={{
-                        background: `radial-gradient(ellipse 90% 80% at 50% 115%, ${cat.accentLight} 0%, transparent 70%)`,
-                      }}
-                    />
-                  )}
-                </AnimatePresence>
+          {categories.map((cat, i) => {
+            const theme = generateTheme(cat.theme.primary);
+            return (
+              <Reveal key={cat.key} delay={i * 0.08}>
+                <motion.button
+                  onClick={() => onSelect(cat.key)}
+                  onHoverStart={() => setHovered(cat.key)}
+                  onHoverEnd={() => setHovered(null)}
+                  whileHover={{ scale: 1.035, y: -6 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.26, ease: EASE }}
+                  className="w-full text-left rounded-2xl relative overflow-hidden"
+                  style={{
+                    background:
+                      hovered === cat.key
+                        ? "rgba(255,255,255,0.13)"
+                        : "rgba(255,255,255,0.065)",
+                    border: `1.5px solid ${hovered === cat.key ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)"}`,
+                    backdropFilter: "blur(10px)",
+                    cursor: "pointer",
+                    transition:
+                      "background 0.22s ease, border-color 0.22s ease",
+                    padding: 0,
+                  }}
+                >
+                  {/* Glow on hover */}
+                  <AnimatePresence>
+                    {hovered === cat.key && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background: `radial-gradient(ellipse 90% 80% at 50% 115%, ${theme.soft} 0%, transparent 70%)`,
+                        }}
+                      />
+                    )}
+                  </AnimatePresence>
 
-                <div className="relative z-10 p-5">
-                  {/* Large icon */}
-                  <div className="mb-4">
-                    <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                  <div className="relative z-10 p-5">
+                    {/* Large icon */}
+                    <div className="mb-4">
+                      <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                        style={{
+                          background: theme.soft,
+                          border: `1.5px solid ${theme.border}`,
+                        }}
+                      >
+                        <Icon
+                          name={cat.icon as any}
+                          className="w-7 h-7"
+                          style={{ color: theme.primary } as any}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-between mb-3">
+                      <p
+                        className="font-display font-bold leading-snug"
+                        style={{
+                          fontSize: "1rem",
+                          color: "white",
+                          flex: 1,
+                          paddingRight: "0.5rem",
+                        }}
+                      >
+                        "{cat.quickDecisionLabel}"
+                      </p>
+                      <span
+                        className="font-display font-bold px-2.5 py-1 rounded-full flex-shrink-0"
+                        style={{
+                          background: theme.soft,
+                          color: theme.primary,
+                          border: `1px solid ${theme.border}`,
+                          fontSize: "0.5875rem",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {cat.shortLabel}
+                      </span>
+                    </div>
+
+                    <p
                       style={{
-                        background: cat.accentLight,
-                        border: `1.5px solid ${cat.accentBorder}`,
+                        fontSize: "0.8125rem",
+                        color: "rgba(255,255,255,0.5)",
+                        lineHeight: "1.55",
+                        marginBottom: "1.25rem",
                       }}
                     >
-                      <Icon
-                        name={cat.icon as any}
-                        className="w-7 h-7"
-                        style={{ color: cat.accent } as any}
-                      />
+                      {cat.quickDecisionDesc}
+                    </p>
+
+                    <div
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200"
+                      style={{
+                        background:
+                          hovered === cat.key
+                            ? "rgba(255,255,255,0.14)"
+                            : "rgba(255,255,255,0.08)",
+                        border: "1px solid rgba(255,255,255,0.14)",
+                        backdropFilter: "blur(6px)",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          color: theme.primary,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Lihat Program
+                      </span>
+
+                      <motion.svg
+                        viewBox="0 0 16 16"
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        animate={hovered === cat.key ? { x: 4 } : { x: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <path
+                          d="M3 8h10M9 4l4 4-4 4"
+                          stroke={theme.primary}
+                          strokeWidth={1.8}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </motion.svg>
                     </div>
                   </div>
-
-                  <div className="flex items-start justify-between mb-3">
-                    <p
-                      className="font-display font-bold leading-snug"
-                      style={{
-                        fontSize: "1rem",
-                        color: "white",
-                        flex: 1,
-                        paddingRight: "0.5rem",
-                      }}
-                    >
-                      "{cat.quickDecisionLabel}"
-                    </p>
-                    <span
-                      className="font-display font-bold px-2.5 py-1 rounded-full flex-shrink-0"
-                      style={{
-                        background: cat.accentLight,
-                        color: cat.accent,
-                        border: `1px solid ${cat.accentBorder}`,
-                        fontSize: "0.5875rem",
-                        letterSpacing: "0.06em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {cat.shortLabel}
-                    </span>
-                  </div>
-
-                  <p
-                    style={{
-                      fontSize: "0.8125rem",
-                      color: "rgba(255,255,255,0.5)",
-                      lineHeight: "1.55",
-                      marginBottom: "1.25rem",
-                    }}
-                  >
-                    {cat.quickDecisionDesc}
-                  </p>
-
-                  <div
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200"
-                    style={{
-                      background:
-                        hovered === cat.key
-                          ? "rgba(255,255,255,0.14)"
-                          : "rgba(255,255,255,0.08)",
-                      border: "1px solid rgba(255,255,255,0.14)",
-                      backdropFilter: "blur(6px)",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "0.75rem",
-                        color: cat.accent,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Lihat Program
-                    </span>
-
-                    <motion.svg
-                      viewBox="0 0 16 16"
-                      className="w-3.5 h-3.5"
-                      fill="none"
-                      animate={hovered === cat.key ? { x: 4 } : { x: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <path
-                        d="M3 8h10M9 4l4 4-4 4"
-                        stroke={cat.accent}
-                        strokeWidth={1.8}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </motion.svg>
-                  </div>
-                </div>
-              </motion.button>
-            </Reveal>
-          ))}
+                </motion.button>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -777,6 +783,7 @@ function CategoryCard({
   const price = getStartingPrice(category.programs);
   const highlights = (category.benefits || []).slice(0, 3);
   const forWhoItems = (category as any).forWhoItems || [category.forWho];
+  const theme = generateTheme(category.theme.primary);
 
   return (
     <Reveal delay={index * 0.1} y={40}>
@@ -792,9 +799,9 @@ function CategoryCard({
           background: isSelected
             ? "linear-gradient(150deg, var(--color-brand-surface) 0%, var(--color-brand-surface-soft) 100%)"
             : "var(--color-brand-surface)",
-          border: `2px solid ${isSelected || hovered ? category.accentBorder : "var(--color-brand-border-soft)"}`,
+          border: `2px solid ${isSelected || hovered ? theme.border : "var(--color-brand-border-soft)"}`,
           boxShadow: isSelected
-            ? `var(--shadow-card-hover), 0 0 0 1px ${category.accentBorder}`
+            ? `var(--shadow-card-hover), 0 0 0 1px ${theme.border}`
             : hovered
               ? "var(--shadow-card-hover)"
               : "var(--shadow-badge)",
@@ -807,15 +814,15 @@ function CategoryCard({
           className="relative overflow-hidden"
           style={{
             height: "175px",
-            background: category.heroGradient,
-            borderBottom: `1.5px solid ${category.accentBorder}`,
+            background: theme.gradient,
+            borderBottom: `1.5px solid ${theme.border}`,
           }}
         >
           {/* Dot pattern */}
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage: `radial-gradient(${category.accent} 0.8px, transparent 0.8px)`,
+              backgroundImage: `radial-gradient(${theme.primary} 0.8px, transparent 0.8px)`,
               backgroundSize: "22px 22px",
               opacity: 0.055,
             }}
@@ -824,7 +831,7 @@ function CategoryCard({
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage: `repeating-linear-gradient(45deg, ${category.accent} 0px, ${category.accent} 0.5px, transparent 0.5px, transparent 18px)`,
+              backgroundImage: `repeating-linear-gradient(45deg, ${theme.primary} 0px, ${theme.primary} 0.5px, transparent 0.5px, transparent 18px)`,
               opacity: 0.025,
             }}
           />
@@ -843,15 +850,15 @@ function CategoryCard({
             <div
               className="w-20 h-20 rounded-2xl flex items-center justify-center"
               style={{
-                background: category.accentLight,
-                border: `2px solid ${category.accentBorder}`,
-                boxShadow: `0 8px 32px ${category.accentBorder}`,
+                background: theme.soft,
+                border: `2px solid ${theme.border}`,
+                boxShadow: `0 8px 32px ${theme.border}`,
               }}
             >
               <Icon
                 name={category.icon as any}
                 className="w-10 h-10"
-                style={{ color: category.accent } as any}
+                style={{ color: theme.primary } as any}
               />
             </div>
           </motion.div>
@@ -864,9 +871,9 @@ function CategoryCard({
             <span
               className="inline-flex px-2.5 py-1 rounded-full font-display font-bold uppercase mb-2"
               style={{
-                background: category.accentLight,
-                color: category.accent,
-                border: `1px solid ${category.accentBorder}`,
+                background: theme.soft,
+                color: theme.primary,
+                border: `1px solid ${theme.border}`,
                 letterSpacing: "0.07em",
                 fontSize: "0.5875rem",
                 display: "inline-block",
@@ -884,7 +891,7 @@ function CategoryCard({
             >
               {category.tagline}{" "}
               {category.taglineAccent && (
-                <span style={{ color: category.accent }}>
+                <span style={{ color: theme.primary }}>
                   {category.taglineAccent}
                 </span>
               )}
@@ -899,7 +906,7 @@ function CategoryCard({
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0, opacity: 0 }}
                 className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center"
-                style={{ background: category.accent }}
+                style={{ background: theme.primary }}
               >
                 <svg viewBox="0 0 14 14" className="w-4 h-4" fill="none">
                   <path
@@ -933,7 +940,7 @@ function CategoryCard({
                 <li key={i} className="flex items-start gap-2">
                   <span
                     className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
-                    style={{ background: category.accentLight }}
+                    style={{ background: theme.soft }}
                   >
                     <svg
                       viewBox="0 0 10 10"
@@ -942,7 +949,7 @@ function CategoryCard({
                     >
                       <path
                         d="M2 5l2 2 4-4"
-                        stroke={category.accent}
+                        stroke={theme.primary}
                         strokeWidth={1.6}
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -975,8 +982,8 @@ function CategoryCard({
                     key={i}
                     className="rounded-xl p-2.5 text-center"
                     style={{
-                      background: category.accentLight,
-                      border: `1px solid ${category.accentBorder}`,
+                      background: theme.soft,
+                      border: `1px solid ${theme.border}`,
                     }}
                   >
                     <p
@@ -1023,7 +1030,7 @@ function CategoryCard({
                 className="font-display font-black"
                 style={{
                   fontSize: "1.125rem",
-                  color: category.accent,
+                  color: theme.primary,
                   letterSpacing: "-0.03em",
                 }}
               >
@@ -1035,13 +1042,13 @@ function CategoryCard({
               className="font-display font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 text-white"
               style={{
                 fontSize: "0.875rem",
-                background: category.accent,
-                boxShadow: `0 4px 16px ${category.accentBorder}`,
+                background: theme.primary,
+                boxShadow: `0 4px 16px ${theme.border}`,
                 textDecoration: "none",
               }}
               whileHover={{
                 scale: 1.05,
-                boxShadow: `0 8px 28px ${category.accentBorder}`,
+                boxShadow: `0 8px 28px ${theme.border}`,
               }}
               whileTap={{ scale: 0.97 }}
               transition={{ duration: 0.2 }}
@@ -1316,9 +1323,9 @@ function ProgramPreviewSection() {
       categories.flatMap((cat) =>
         cat.programs.map((p) => ({
           program: p,
-          accent: cat.accent,
-          accentLight: cat.accentLight,
-          accentBorder: cat.accentBorder,
+          accent: generateTheme(cat.theme.primary).primary,
+          accentLight: generateTheme(cat.theme.primary).soft,
+          accentBorder: generateTheme(cat.theme.primary).border,
           catKey: cat.key,
         })),
       ),
@@ -1331,9 +1338,9 @@ function ProgramPreviewSection() {
     if (!cat) return [];
     return cat.programs.map((p) => ({
       program: p,
-      accent: cat.accent,
-      accentLight: cat.accentLight,
-      accentBorder: cat.accentBorder,
+      accent: generateTheme(cat.theme.primary).primary,
+      accentLight: generateTheme(cat.theme.primary).soft,
+      accentBorder: generateTheme(cat.theme.primary).border,
       catKey: cat.key,
     }));
   }, [activeTab, allPrograms]);
@@ -1474,7 +1481,7 @@ function ProgramPreviewSection() {
                         : "transparent",
                     color:
                       activeTab === cat.key
-                        ? cat.accent
+                        ? generateTheme(cat.theme.primary).primary
                         : "var(--color-brand-text-muted)",
                     boxShadow:
                       activeTab === cat.key ? "var(--shadow-badge)" : "none",
@@ -1516,9 +1523,9 @@ function ProgramPreviewSection() {
               className="flex flex-col items-center justify-center rounded-2xl p-6 text-center"
               style={{
                 background: activeCat
-                  ? activeCat.accentLight
+                  ? generateTheme(activeCat.theme.primary).primary
                   : "var(--color-brand-surface-soft)",
-                border: `1.5px dashed ${activeCat ? activeCat.accentBorder : "var(--color-brand-border)"}`,
+                border: `1.5px dashed ${activeCat ? generateTheme(activeCat.theme.primary).border : "var(--color-brand-border)"}`,
                 minHeight: "200px",
                 textDecoration: "none",
               }}
@@ -1530,7 +1537,7 @@ function ProgramPreviewSection() {
                 className="w-10 h-10 rounded-full flex items-center justify-center mb-3"
                 style={{
                   background: activeCat
-                    ? activeCat.accent
+                    ? generateTheme(activeCat.theme.primary).strong
                     : "var(--color-brand-blue-navy)",
                 }}
               >
@@ -1588,9 +1595,9 @@ const ALL_TESTIMONIALS: TestimonialEntry[] = Object.values(CATEGORIES).flatMap(
       ...t,
       categoryKey: cat.key,
       categoryLabel: cat.shortLabel || cat.label,
-      accent: cat.accent,
-      accentLight: cat.accentLight,
-      accentBorder: cat.accentBorder,
+      accent: generateTheme(cat.theme.primary).primary,
+      accentLight: generateTheme(cat.theme.primary).soft,
+      accentBorder: generateTheme(cat.theme.primary).border,
     })),
 );
 
@@ -1789,12 +1796,12 @@ function TestimonialsSection() {
                       border: "none",
                       background: isActive
                         ? cat
-                          ? cat.accentLight
+                          ? generateTheme(cat.theme.primary).soft
                           : "var(--color-brand-surface-soft)"
                         : "transparent",
                       color: isActive
                         ? cat
-                          ? cat.accent
+                          ? generateTheme(cat.theme.primary).primary
                           : "var(--color-brand-blue-navy)"
                         : "var(--color-brand-text-muted)",
                       boxShadow: isActive ? "var(--shadow-badge)" : "none",
