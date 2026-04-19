@@ -712,11 +712,11 @@ function CategoryHero({
       />
 
       {/* Marquee ticker */}
-      <MarqueeTicker theme={theme} />
+      {/* <MarqueeTicker theme={theme} /> */}
 
       <motion.div
-        style={{ y: heroY, opacity: heroOpacity }}
-        className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 lg:py-24 flex items-center"
+        style={{ y: heroY }}
+        className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-8 lg:py-12 flex items-center "
       >
         <div className="w-full grid lg:grid-cols-[1fr_440px] xl:grid-cols-[1fr_480px] gap-12 lg:gap-20 items-start">
           {/* LEFT */}
@@ -785,7 +785,7 @@ function CategoryHero({
               style={{
                 fontSize: "clamp(2.4rem, 5.5vw, 4.25rem)",
                 letterSpacing: "-0.035em",
-                color: "var(--color-brand-blue-navy)",
+                color: "black",
               }}
             >
               {category.tagline}{" "}
@@ -1312,7 +1312,7 @@ function ProgramCard({
                 className="font-display font-bold leading-snug"
                 style={{
                   fontSize: "1.0625rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "black",
                 }}
               >
                 {program.title}

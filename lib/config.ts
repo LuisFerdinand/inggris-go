@@ -16,9 +16,30 @@ export const navLinks = [
   { label: "Blog", href: "/blog" },
 ] as const;
 
-export function buildWhatsAppUrl(program: string) {
-  const msg = encodeURIComponent(
-    `Halo Inggris Go! Saya tertarik dengan program *${program}*. Boleh info lebih lanjut?`,
-  );
-  return `https://wa.me/${siteConfig.whatsapp}?text=${msg}`;
+type WhatsAppContactData = {
+  title: string;
+  price?: string;
+  duration?: string;
+  format?: string;
+  highlight?: string;
+  message?: string; // optional override
+};
+
+export function buildWhatsAppUrl(data: WhatsAppContactData) {
+  const message =
+    data.message ??
+    `Halo Inggris Go! 👋
+
+Saya tertarik dengan program *${data.title}*.
+
+${data.duration ? `- Durasi: ${data.duration}\n` : ""}${
+      data.price ? `- Harga: ${data.price}\n` : ""
+    }${data.format ? `- Format: ${data.format}\n` : ""}${
+      data.highlight ? `- Highlight: ${data.highlight}\n` : ""
+    }
+Boleh minta info cara join dan pembayarannya?`;
+
+  const encoded = encodeURIComponent(message);
+
+  return `https://wa.me/${siteConfig.whatsapp}?text=${encoded}`;
 }
