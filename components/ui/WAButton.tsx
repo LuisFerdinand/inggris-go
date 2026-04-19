@@ -47,7 +47,10 @@ export default function WAButton({
       )}
     >
       <a
-        href={buildWhatsAppUrl(program)}
+        href={buildWhatsAppUrl({
+          intent: "program",
+          title: program,
+        })}
         target="_blank"
         rel="noopener noreferrer"
       >
