@@ -3357,12 +3357,12 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
         )}
 
         {/* Sticky secondary nav */}
-        <StickyNav
+        {/* <StickyNav
           sections={navSections}
           theme={theme}
           ctaLabel={ctaLabel}
           ctaHref={ctaHref}
-        />
+        /> */}
 
         {/* Batch section (if program has batches) */}
         {details.hasBatch && details.batches && details.batches.length > 0 && (
