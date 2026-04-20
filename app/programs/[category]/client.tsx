@@ -14,6 +14,10 @@ import {
 import { CategoryMeta } from "./data";
 import { Icon } from "@/components/Icon";
 import { generateTheme } from "@/lib/utils";
+import {
+  ScrollToTopButton,
+  SideProgressNav,
+} from "@/components/PageFloatingUI";
 
 /* ══════════════════════════════════════════════════════════════
  * TYPES & CONSTANTS
@@ -718,7 +722,7 @@ function CategoryHero({
         style={{ y: heroY }}
         className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-8 lg:py-12 flex items-center "
       >
-        <div className="w-full grid lg:grid-cols-[1fr_440px] xl:grid-cols-[1fr_480px] gap-12 lg:gap-20 items-start">
+        <div className="w-full grid lg:grid-cols-[1fr_440px] xl:grid-cols-[1fr_480px] gap-12 lg:gap-20 items-center">
           {/* LEFT */}
           <div>
             {/* Breadcrumb */}
@@ -3265,14 +3269,17 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
 
   const hasBoth = !!(meta.painPoints?.length && meta.benefits?.length);
 
-  // Build nav sections dynamically
   const navSections = useMemo(() => {
-    const base = [{ id: "program-list", label: "Program" }];
-    if (hasBoth) base.push({ id: "masalah", label: "Masalah & Solusi" });
+    const base: { id: string; label: string }[] = [
+      { id: "hero", label: "Overview" },
+      { id: "program-list", label: "Program" },
+    ];
+    if (hasBoth) base.push({ id: "masalah", label: "Solusi" });
     if (meta.steps?.length)
       base.push({ id: "cara-mulai", label: "Cara Mulai" });
     if (meta.experience?.length)
       base.push({ id: "pengalaman", label: "Pengalaman" });
+    if (meta.comparison?.length) base.push({ id: "detail", label: "Detail" });
     if (meta.socialProof?.length)
       base.push({ id: "testimoni", label: "Testimoni" });
     base.push({ id: "faq", label: "FAQ" });
@@ -3282,9 +3289,8 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
 
   return (
     <main className="relative w-full overflow-x-hidden">
-      {/* Sticky progress nav */}
-      {/* <StickyProgressNav sections={navSections} theme={theme} /> */}
-      {/* 1. Hero */}
+      <SideProgressNav sections={navSections} theme={theme} />
+      <ScrollToTopButton theme={theme} />
       <CategoryHero category={meta} theme={theme} />
 
       {/* 2. Programs */}

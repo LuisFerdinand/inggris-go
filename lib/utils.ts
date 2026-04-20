@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import chroma from "chroma-js";
+import { PROGRAM_DETAILS } from "@/app/programs/[category]/data";
 
 export type Theme = {
   /** Full-opacity primary hex — use for buttons, icons, accents */
@@ -41,7 +42,7 @@ export function generateTheme(color: string): Theme {
 
     // Backgrounds
     soft: base.alpha(0.09).css(),
-    softStrong: base.alpha(0.17).css(),
+    softStrong: base.alpha(0.19).css(),
 
     // Border
     border: base.alpha(0.24).css(),
@@ -62,4 +63,8 @@ export function generateTheme(color: string): Theme {
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function getProgramDetail(slug: string) {
+  return PROGRAM_DETAILS[slug];
 }

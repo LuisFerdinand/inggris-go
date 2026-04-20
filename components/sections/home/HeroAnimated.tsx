@@ -27,8 +27,11 @@ export default function HeroAnimated() {
   return (
     <section
       aria-label="Hero section"
-      className="relative w-full overflow-hidden"
-      style={{ background: BRAND.gradientPage }}
+      className="relative w-full overflow-hidden "
+      style={{
+        background: BRAND.gradientPage,
+        padding: "var(--navbar-height)",
+      }}
     >
       {/* FIX: blob @keyframes moved to global.css; replaced inline <style> block
                with Tailwind animate-blob / animate-blob-reverse utility classes */}
@@ -90,7 +93,7 @@ export default function HeroAnimated() {
               variants={item}
               className="font-display font-extrabold leading-[1.08] mb-6"
               style={{
-              color: BRAND.blueNavy,
+                color: BRAND.blueNavy,
                 fontSize: "clamp(2.2rem, 4.5vw, 3.75rem)",
                 letterSpacing: "-0.02em",
               }}
