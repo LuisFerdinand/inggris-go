@@ -423,7 +423,7 @@ function BatchBanner({
           )}
         </div>
         <motion.a
-          href="#pricing"
+          href={next.ctaHref ? next.ctaHref : "#pricing"}
           className="font-display font-bold px-4 py-1.5 rounded-lg bg-white flex-shrink-0"
           style={{
             fontSize: "0.75rem",
