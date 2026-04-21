@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
+import { SOCIAL_PROOF } from "@/constants";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -511,7 +512,7 @@ export default function MethodSection() {
             >
               Sudah terbukti membantu{" "}
               <span style={{ color: BRAND.goldVivid, fontWeight: 700 }}>
-                500+
+                {SOCIAL_PROOF.totalStudents}+
               </span>{" "}
               siswa dari nol jadi berani speaking
             </p>

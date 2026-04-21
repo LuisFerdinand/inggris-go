@@ -138,3 +138,9 @@ export const NAV_ICONS: Record<string, React.ElementType> = {
   "/hubungi-kami": Phone,
   "/blog": Images,
 };
+
+export const SOCIAL_PROOF = {
+  totalStudents: 2000,
+  activeStudents: 247,
+  parentsTrusted: 500,
+};

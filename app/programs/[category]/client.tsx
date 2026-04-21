@@ -18,6 +18,8 @@ import {
   ScrollToTopButton,
   SideProgressNav,
 } from "@/components/PageFloatingUI";
+import Image from "next/image";
+import { SOCIAL_PROOF } from "@/constants";
 
 /* ══════════════════════════════════════════════════════════════
  * TYPES & CONSTANTS
@@ -303,12 +305,9 @@ function StickyProgressNav({
   );
 }
 
-/* ══════════════════════════════════════════════════════════════
- * MARQUEE TICKER
- * ══════════════════════════════════════════════════════════════ */
-function MarqueeTicker({ theme }: { theme: Theme }) {
+export function MarqueeTicker({ theme }: { theme: Theme }) {
   const items = [
-    "500+ Siswa Aktif",
+    `${SOCIAL_PROOF.activeStudents}+ Siswa Aktif`,
     "Rating 4.9/5",
     "Mentor Berpengalaman",
     "Sertifikat Resmi",
@@ -318,52 +317,85 @@ function MarqueeTicker({ theme }: { theme: Theme }) {
     "Garansi Kepuasan",
   ];
 
-  return (
-    <div
-      className="relative w-full overflow-hidden py-3"
+  const tickerItem = (item: string, key: string | number) => (
+    <span
+      key={key}
+      className="inline-flex items-center gap-3 font-display font-semibold uppercase flex-shrink-0"
       style={{
-        background: theme.soft,
-        borderBottom: `1px solid ${theme.border}`,
+        fontSize: "0.625rem",
+        letterSpacing: "0.13em",
+        color: theme.primary,
+        padding: "0 1.5rem",
       }}
     >
-      {/* Fade edges */}
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 w-20 z-10"
-        style={{
-          background: `linear-gradient(90deg, ${theme.soft}, transparent)`,
-        }}
+      <span
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        style={{ background: theme.primary, opacity: 0.5 }}
       />
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-20 z-10"
-        style={{
-          background: `linear-gradient(270deg, ${theme.soft}, transparent)`,
-        }}
-      />
+      {item}
+    </span>
+  );
 
-      <motion.div
-        className="flex gap-0 whitespace-nowrap"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+  return (
+    <>
+      {/* CSS keyframe injected once */}
+      <style>{`
+        @keyframes ticker-scroll {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .ticker-track {
+          animation: ticker-scroll 28s linear infinite;
+          will-change: transform;
+        }
+        .ticker-track:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
+      <div
+        className="fixed left-0 right-0 z-30 overflow-hidden"
+        style={{
+          top: "var(--navbar-height)",
+          height: "36px",
+          background: theme.soft,
+          borderBottom: `1px solid ${theme.border}`,
+        }}
       >
-        {[...items, ...items].map((item, i) => (
-          <span
-            key={i}
-            className="inline-flex items-center gap-3 font-display font-semibold uppercase px-6"
-            style={{
-              fontSize: "0.625rem",
-              letterSpacing: "0.12em",
-              color: theme.primary,
-            }}
-          >
-            <span
-              className="w-1 h-1 rounded-full flex-shrink-0"
-              style={{ background: theme.primary }}
-            />
-            {item}
-          </span>
-        ))}
-      </motion.div>
-    </div>
+        {/* Fade edges */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 w-24 z-10"
+          style={{
+            background: `linear-gradient(90deg, ${theme.soft} 30%, transparent)`,
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 w-24 z-10"
+          style={{
+            background: `linear-gradient(270deg, ${theme.soft} 30%, transparent)`,
+          }}
+        />
+
+        {/*
+         * One outer flex container holds TWO identical tracks.
+         * The CSS animation shifts the whole thing left by 50%,
+         * which is exactly one track width — perfect seamless loop.
+         */}
+        <div
+          className="ticker-track flex items-center h-full"
+          style={{ width: "max-content" }}
+        >
+          {/* Track A */}
+          <div className="flex items-center h-full">
+            {items.map((item, i) => tickerItem(item, `a-${i}`))}
+          </div>
+          {/* Track B — identical copy */}
+          <div className="flex items-center h-full" aria-hidden="true">
+            {items.map((item, i) => tickerItem(item, `b-${i}`))}
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -409,10 +441,7 @@ function AnimatedNumber({
   );
 }
 
-/* ══════════════════════════════════════════════════════════════
- * HERO — Redesigned with parallax, ticker, and richer layout
- * ══════════════════════════════════════════════════════════════ */
-function HeroRightPanel({
+export function HeroRightPanel({
   category,
   theme,
 }: {
@@ -593,7 +622,7 @@ function HeroRightPanel({
                 lineHeight: 1.3,
               }}
             >
-              {b.title}
+              {b.title}bbb
             </p>
             <p
               style={{
@@ -670,12 +699,13 @@ function CategoryHero({
 }) {
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, -60]);
-  const heroOpacity = useTransform(scrollY, [0, 350], [1, 0.5]);
+
+  const heroImage = category.heroImage;
 
   return (
     <section
       id="hero"
-      className="relative overflow-hidden"
+      className="relative overflow-hidden pt-20"
       style={{
         background: "var(--color-brand-surface)",
         minHeight: "min(92vh, 820px)",
@@ -715,14 +745,11 @@ function CategoryHero({
         delay={6}
       />
 
-      {/* Marquee ticker */}
-      {/* <MarqueeTicker theme={theme} /> */}
-
       <motion.div
         style={{ y: heroY }}
         className="relative z-10 flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-8 lg:py-12 flex items-center "
       >
-        <div className="w-full grid lg:grid-cols-[1fr_440px] xl:grid-cols-[1fr_480px] gap-12 lg:gap-20 items-center">
+        <div className="w-full grid lg:grid-cols-[1fr_440px] xl:grid-cols-[1fr_480px] gap-12 lg:gap-20 items-start">
           {/* LEFT */}
           <div>
             {/* Breadcrumb */}
@@ -730,7 +757,7 @@ function CategoryHero({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: EASE }}
-              className="flex items-center gap-2 mb-7"
+              className="flex items-start gap-2 mb-7"
             >
               <a
                 href="/programs"
@@ -965,7 +992,11 @@ function CategoryHero({
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { n: category.programs.length, suffix: "", label: "Program" },
-                  { n: 500, suffix: "+", label: "Siswa" },
+                  {
+                    n: SOCIAL_PROOF.activeStudents,
+                    suffix: "+",
+                    label: "Siswa",
+                  },
                   { n: 49, suffix: "★", label: "Rating (dari 50)" },
                 ].map((s, i) => (
                   <motion.div
@@ -1013,7 +1044,9 @@ function CategoryHero({
               style={{
                 background: "var(--color-brand-surface)",
                 border: `1.5px solid ${theme.border}`,
-                boxShadow: `0 40px 96px ${theme.border}, 0 8px 24px rgba(10,45,135,0.08)`,
+                boxShadow: heroImage
+                  ? `0 20px 48px ${theme.border}, 0 4px 16px rgba(10,45,135,0.06)`
+                  : `0 40px 96px ${theme.border}, 0 8px 24px rgba(10,45,135,0.08)`,
               }}
             >
               {/* Accent bar */}
@@ -1116,72 +1149,189 @@ function CategoryHero({
                 </motion.a>
               </div>
             </div>
-
-            {/* Social proof micro-card below panel */}
-            {category.socialProof && category.socialProof[0] && (
+            {heroImage && (
               <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.5 }}
-                className="mt-4 p-4 rounded-2xl"
-                style={{
-                  background: "var(--color-brand-surface)",
-                  border: `1px solid ${theme.border}`,
-                  boxShadow: `0 4px 20px ${theme.border}`,
-                }}
+                className="relative mb-5"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
               >
-                <div className="flex gap-1 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <svg
-                      key={i}
-                      viewBox="0 0 12 12"
-                      className="w-3.5 h-3.5"
-                      fill="#FBBF24"
-                    >
-                      <path d="M6 1l1.5 3 3.2.4-2.3 2.2.5 3.2L6 8.2l-2.9 1.6.5-3.2L1.3 4.4l3.2-.4z" />
-                    </svg>
-                  ))}
-                </div>
-                <p
-                  className="italic mb-3"
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--color-brand-text-muted)",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  "{category.socialProof[0].quote.slice(0, 100)}..."
-                </p>
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center font-display font-black"
-                    style={{
-                      background: theme.soft,
-                      color: theme.primary,
-                      fontSize: "0.75rem",
-                      border: `1.5px solid ${theme.border}`,
-                    }}
-                  >
-                    {category.socialProof[0].name?.[0]}
-                  </div>
-                  <div>
-                    <p
-                      className="font-display font-bold"
+                <div>
+                  {/* Image container */}
+
+                  <div className="relative flex items-end justify-center pt-6 px-6">
+                    {/* Decorative circles behind image */}
+
+                    <div
+                      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[85%] h-[85%] rounded-full"
                       style={{
-                        fontSize: "0.75rem",
-                        color: "var(--color-brand-blue-navy)",
+                        background: `radial-gradient(circle, ${theme.softStrong} 0%, transparent 70%)`,
+
+                        opacity: 0.8,
                       }}
-                    >
-                      {category.socialProof[0].name}
-                    </p>
-                    <p
+                    />
+
+                    <Image
+                      src={heroImage}
+                      alt={`${category.shortLabel ?? category.label} - InggrisGo`}
+                      width={400}
+                      height={440}
+                      className="relative z-10 object-contain"
                       style={{
-                        fontSize: "0.5875rem",
-                        color: "var(--color-brand-text-faint)",
+                        maxHeight: "380px",
+
+                        width: "auto",
+
+                        filter: "drop-shadow(0 16px 40px rgba(0,0,0,0.12))",
                       }}
+                      priority
+                    />
+
+                    {/* ── Speech bubble with social proof ── */}
+
+                    <motion.div
+                      className="absolute top-6 left-2 z-20"
+                      style={{
+                        maxWidth: "190px",
+
+                        background: "rgba(255,255,255,0.95)",
+
+                        backdropFilter: "blur(12px)",
+
+                        border: `1.5px solid ${theme.border}`,
+
+                        borderRadius: "16px 16px 16px 4px",
+
+                        padding: "11px 14px",
+
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.09)",
+                      }}
+                      initial={{ opacity: 0, scale: 0.85, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ delay: 0.95, duration: 0.5, ease: EASE }}
                     >
-                      {category.socialProof[0].role}
-                    </p>
+                      {/* Bubble tail */}
+
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: -8,
+                          right: 10,
+
+                          width: 0,
+                          height: 0,
+
+                          borderLeft: "8px solid transparent",
+
+                          borderRight: "4px solid transparent",
+
+                          borderTop: "10px solid rgba(255,255,255,0.95)",
+                        }}
+                      />
+
+                      <p
+                        style={{
+                          fontSize: "0.6875rem",
+
+                          fontStyle: "italic",
+
+                          color: "var(--color-brand-blue-navy)",
+
+                          margin: "0 0 8px",
+
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        "{category.socialProof?.[0]?.quote?.slice(0, 90)}..."
+                      </p>
+
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-full flex items-center justify-center font-display font-black flex-shrink-0"
+                          style={{
+                            background: theme.soft,
+
+                            color: theme.primary,
+
+                            fontSize: "0.625rem",
+
+                            border: `1.5px solid ${theme.border}`,
+                          }}
+                        >
+                          {category.socialProof?.[0]?.name?.[0]}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className="font-display font-bold truncate"
+                            style={{
+                              fontSize: "0.625rem",
+                              color: "var(--color-brand-blue-navy)",
+                            }}
+                          >
+                            {category.socialProof?.[0]?.name}
+                          </p>
+
+                          <p
+                            className="truncate"
+                            style={{
+                              fontSize: "0.5625rem",
+                              color: "var(--color-brand-text-faint)",
+                            }}
+                          >
+                            {category.socialProof?.[0]?.role}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-px flex-shrink-0">
+                          {[...Array(5)].map((_, i) => (
+                            <svg
+                              key={i}
+                              viewBox="0 0 12 12"
+                              className="w-2.5 h-2.5"
+                              fill="#FBBF24"
+                            >
+                              <path d="M6 1l1.5 3 3.2.4-2.3 2.2.5 3.2L6 8.2l-2.9 1.6.5-3.2L1.3 4.4l3.2-.4z" />
+                            </svg>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Active programs badge — keep as-is */}
+
+                    <motion.div
+                      className="absolute bottom-6 right-2 z-20 flex items-center gap-2 px-3 py-2 rounded-xl"
+                      style={{
+                        background: "rgba(255,255,255,0.92)",
+
+                        backdropFilter: "blur(12px)",
+
+                        border: `1px solid ${theme.border}`,
+
+                        boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                      }}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.8, duration: 0.5, ease: EASE }}
+                    >
+                      <motion.span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: "#4ade80" }}
+                        animate={{ opacity: [1, 0.3, 1] }}
+                        transition={{ duration: 1.8, repeat: Infinity }}
+                      />
+
+                      <span
+                        className="font-display font-bold"
+                        style={{
+                          fontSize: "0.6875rem",
+                          color: "var(--color-brand-blue-navy)",
+                        }}
+                      >
+                        {category.programs.length} Program Aktif
+                      </span>
+                    </motion.div>
                   </div>
                 </div>
               </motion.div>
@@ -1219,13 +1369,13 @@ function CategoryHero({
           Scroll
         </span>
       </motion.div>
+
+      {/* Marquee ticker */}
+      <MarqueeTicker theme={theme} />
     </section>
   );
 }
 
-/* ══════════════════════════════════════════════════════════════
- * PROGRAM CARDS — Rich card with hover depth
- * ══════════════════════════════════════════════════════════════ */
 function ProgramCard({
   program,
   theme,
@@ -2683,7 +2833,7 @@ function TrustBar({ theme }: { theme: Theme }) {
     { icon: "award", label: "Sertifikat Resmi" },
     { icon: "clock", label: "Support 24/7" },
     { icon: "refresh-cw", label: "Jaminan Kepuasan" },
-    { icon: "users", label: "500+ Alumni" },
+    { icon: "users", label: `${SOCIAL_PROOF.totalStudents}+ Alumni` },
     { icon: "trending-up", label: "Progress Terukur" },
   ];
 
@@ -3231,7 +3381,7 @@ function CTASection({
                     color: "rgba(255,255,255,0.45)",
                   }}
                 >
-                  500+ siswa puas
+                  {SOCIAL_PROOF.totalStudents}+ siswa puas
                 </p>
               </div>
             </div>

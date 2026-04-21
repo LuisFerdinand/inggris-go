@@ -1,6 +1,7 @@
 "use client";
 
 import Reveal from "@/components/ui/Reveal";
+import { SOCIAL_PROOF } from "@/constants";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, Users, Star, BookOpen } from "lucide-react";
@@ -36,7 +37,11 @@ const teamAvatars = [
 ];
 
 const stats = [
-  { value: "500+", label: "Siswa aktif", icon: Users },
+  {
+    value: `${SOCIAL_PROOF.activeStudents}+`,
+    label: "Siswa aktif",
+    icon: Users,
+  },
   { value: "2+", label: "Tahun berdiri", icon: Star },
   { value: "4", label: "Jenis program", icon: BookOpen },
 ];

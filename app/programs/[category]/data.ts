@@ -1,3 +1,4 @@
+import { SOCIAL_PROOF } from "@/constants";
 import { buildWhatsAppUrl } from "@/lib/config";
 
 export type PriceTier = { label: string; price: string };
@@ -82,6 +83,7 @@ export type CategoryMeta = {
   href: string;
 
   icon?: string;
+  heroImage?: string;
 
   /** Single source-of-truth primary color — feed into generateTheme() */
   theme: {
@@ -120,6 +122,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     href: "/programs/lead",
 
     icon: "zap",
+    heroImage: "/images/categories/lead-hero.png",
     theme: { primary: "#ff6b35" },
 
     tagline: "Mulai ngomong Bahasa Inggris",
@@ -265,6 +268,8 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     href: "/programs/online",
 
     icon: "book-open",
+
+    heroImage: "/images/categories/online-hero.png",
     theme: { primary: "#0a2d87" },
 
     quickDecisionLabel: "Saya ingin progress yang jelas",
@@ -434,6 +439,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     key: "offline",
     label: "Program Offline",
     shortLabel: "Offline",
+    heroImage: "/images/categories/offline-hero.png",
     href: "/programs/offline",
 
     icon: "tent",
@@ -1850,7 +1856,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
 
           socialProof: {
             text: "Alumni sudah merasakan peningkatan skor",
-            count: "500+",
+            count: `${SOCIAL_PROOF.totalStudents}+`,
           },
         },
       },
@@ -2925,7 +2931,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           ],
 
           socialProof: {
-            text: "500+ orang tua mempercayai program ini",
+            text: `${SOCIAL_PROOF.parentsTrusted}+ orang tua mempercayai program ini`,
           },
         },
       },

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
+import { SOCIAL_PROOF } from "@/constants";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -445,7 +446,8 @@ export default function WhyUsSection() {
                   color: "rgba(255,255,255,0.45)",
                 }}
               >
-                Bergabung dengan 500+ siswa yang sudah merasakan manfaatnya.
+                Bergabung dengan {SOCIAL_PROOF.activeStudents}+ siswa yang sudah
+                merasakan manfaatnya.
               </p>
             </div>
 

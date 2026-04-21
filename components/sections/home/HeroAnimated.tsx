@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
+import { SOCIAL_PROOF } from "@/constants";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -182,7 +183,11 @@ export default function HeroAnimated() {
               className="flex items-center gap-6 sm:gap-8 flex-wrap"
             >
               {[
-                { value: "500+", label: "Siswa Bergabung", color: BRAND.blue },
+                {
+                  value: `${SOCIAL_PROOF.activeStudents}+`,
+                  label: "Siswa Bergabung",
+                  color: BRAND.blue,
+                },
                 {
                   value: "4.9★",
                   label: "Rating Kepuasan",

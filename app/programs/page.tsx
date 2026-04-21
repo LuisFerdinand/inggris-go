@@ -5,6 +5,7 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import { CATEGORIES, CategoryMeta, ProgramMeta } from "./[category]/data";
 import { Icon } from "@/components/Icon";
 import { generateTheme } from "@/lib/utils";
+import { SOCIAL_PROOF } from "@/constants";
 
 /* ─── Utils ───────────────────────────────────────────────────── */
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -286,7 +287,7 @@ function HeroSection({
                 }}
               >
                 {[
-                  { n: "500+", label: "Siswa Aktif" },
+                  { n: SOCIAL_PROOF.activeStudents, label: "Siswa Aktif" },
                   { n: "3", label: "Jalur Belajar" },
                   { n: "98%", label: "Puas Belajar" },
                 ].map((item) => (
@@ -1766,7 +1767,8 @@ function TestimonialsSection() {
                 margin: "0 auto",
               }}
             >
-              Lebih dari 500 siswa dari berbagai jalur — ini cerita mereka.
+              Lebih dari {SOCIAL_PROOF.totalStudents} siswa dari berbagai jalur
+              — ini cerita mereka.
             </p>
           </Reveal>
         </div>

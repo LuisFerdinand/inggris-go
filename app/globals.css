@@ -559,3 +559,10 @@
 .leaflet-tooltip-pane {
   z-index: 0 !important;
 }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

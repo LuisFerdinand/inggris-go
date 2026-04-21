@@ -1,4 +1,5 @@
 import Reveal from "@/components/ui/Reveal";
+import { SOCIAL_PROOF } from "@/constants";
 import { BRAND } from "@/constants/brand";
 import { Award, MapPin, Users } from "lucide-react";
 import Image from "next/image";
@@ -6,7 +7,7 @@ import React from "react";
 
 const chips = [
   { icon: MapPin, text: "Kampung Inggris Pare, Kediri" },
-  { icon: Users, text: "500+ alumni" },
+  { icon: Users, text: `${SOCIAL_PROOF.totalStudents}+ alumni` },
   { icon: Award, text: "Tutor berpengalaman" },
 ];
 
