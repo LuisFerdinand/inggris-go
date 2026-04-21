@@ -14,7 +14,11 @@ import {
   Zap,
 } from "lucide-react";
 
-export const CEO = { name: "Yuma Rafi", role: "CEO & Founder", initials: "YR" };
+export const CEO = {
+  name: "Nina Rokhmawati, S.Pd",
+  role: "CEO & Founder",
+  initials: "YR",
+};
 
 export const tier2 = [
   {

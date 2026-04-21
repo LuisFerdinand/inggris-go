@@ -235,6 +235,7 @@ export const CompanySection = () => {
                   >
                     "Speak First, Perfect Later."
                   </p>
+
                   <p
                     style={{
                       fontSize: "0.8125rem",
@@ -245,14 +246,19 @@ export const CompanySection = () => {
                     Filosofi kami — mulailah berbicara dari hari pertama.
                     Kesempurnaan datang seiring latihan.
                   </p>
+
                   <p
-                    className="mt-2"
+                    className="mt-3 leading-snug"
                     style={{
                       fontSize: "0.75rem",
-                      color: "rgba(255,255,255,0.25)",
                     }}
                   >
-                    — Yuma Rafi, CEO & Founder
+                    <span className="block text-white/70">
+                      — Nina Rokhmawati, S.Pd
+                    </span>
+                    <span className="block text-white/30">
+                      CEO & Founder · Inggris Go
+                    </span>
                   </p>
                 </div>
 

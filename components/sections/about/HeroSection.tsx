@@ -12,7 +12,7 @@ const teamAvatars = [
   {
     initials: "YR",
     color: BRAND.problem.orange.accent,
-    name: "Yuma Rafi",
+    name: "Nina Rokhmawati, S.Pd",
     role: "CEO & Founder",
   },
   {
@@ -705,13 +705,16 @@ export const HeroSection = () => {
               >
                 "Speak First, Perfect Later."
               </p>
+
               <p
                 style={{
                   fontSize: "0.8125rem",
                   color: "rgba(255,255,255,0.4)",
+                  lineHeight: "1.4",
                 }}
               >
-                — Yuma Rafi, CEO & Founder · Inggris Go
+                <span className="block">— Nina Rokhmawati, S.Pd</span>
+                <span className="block">CEO & Founder · Inggris Go</span>
               </p>
             </div>
           </div>
