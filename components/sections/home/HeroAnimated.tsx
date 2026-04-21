@@ -5,6 +5,7 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { SOCIAL_PROOF } from "@/constants";
+import { Target } from "lucide-react";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -350,17 +351,26 @@ export default function HeroAnimated() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.95, duration: 0.4, ease }}
-                className="absolute -bottom-4 -left-4 rounded-xl px-4 py-2"
+                className="absolute -bottom-4 -left-4 rounded-xl px-4 py-2 flex items-center gap-2"
                 style={{
                   background: BRAND.surface,
                   boxShadow: BRAND.shadowTag,
                 }}
               >
+                <div
+                  className="w-5 h-5 rounded-md flex items-center justify-center"
+                  style={{
+                    background: "rgba(239,68,68,0.12)", // soft red, not aggressive
+                  }}
+                >
+                  <Target className="w-3 h-3" style={{ color: "#ef4444" }} />
+                </div>
+
                 <p
                   className="text-sm font-semibold"
                   style={{ color: BRAND.blue }}
                 >
-                  🎯 Start Speaking Today!
+                  Start Speaking Today
                 </p>
               </motion.div>
             </div>

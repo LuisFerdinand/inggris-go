@@ -4,9 +4,11 @@ export const siteConfig = {
   description:
     "Program speaking, English camp, dan kelas privat dari Kampung Inggris Pare.",
   location: "Kampung Inggris Pare, Kediri, Jawa Timur",
-  whatsapp: "6281234567890",
+  whatsapp: "628113531160",
   email: "hello@inggrisgo.id",
-  instagram: "inggrisgo",
+  instagram: "https://www.instagram.com/inggrisgo.id?igsh=NWdwOWcxMm5sa3Fp",
+  youtube: "https://youtube.com/@inggrisgoid?si=CUnvE3z4zUhLT0OG",
+  tiktok: "https://www.tiktok.com/@inggrisgo.id?_r=1&_t=ZS-95d0La22nZ6",
 } as const;
 
 export const navLinks = [
@@ -41,7 +43,7 @@ export function buildWhatsAppUrl(data: WhatsAppContactData) {
 
 Saya ingin ${data.title}.
 Boleh minta info lebih lanjut?`,
-form: `Halo Inggris Go! 👋
+    form: `Halo Inggris Go! 👋
 
 Saya ingin bertanya tentang program Anda.
 

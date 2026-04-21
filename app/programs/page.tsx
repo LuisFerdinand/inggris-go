@@ -721,10 +721,6 @@ function QuickDecisionSection({
                     <div
                       className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200"
                       style={{
-                        background:
-                          hovered === cat.key
-                            ? "rgba(255,255,255,0.14)"
-                            : "rgba(255,255,255,0.08)",
                         border: "1px solid rgba(255,255,255,0.14)",
                         backdropFilter: "blur(6px)",
                       }}

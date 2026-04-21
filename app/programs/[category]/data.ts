@@ -270,7 +270,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     icon: "book-open",
 
     heroImage: "/images/categories/online-hero.png",
-    theme: { primary: "#0a2d87" },
+    theme: { primary: "#4da3ff" },
 
     quickDecisionLabel: "Saya ingin progress yang jelas",
     quickDecisionDesc: "Belajar terstruktur dengan mentor berpengalaman",
@@ -467,7 +467,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
           "Lingkungan English-speaking 24 jam selama program berlangsung",
         tags: ["Offline", "Anak-anak", "Kampung Inggris", "Intensif"],
         icon: "tent",
-        href: "/vip-kids",
+        href: "/programs/offline/vip-kids",
         benefits: [
           {
             title: "Immersive 24 Jam",
@@ -496,7 +496,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         highlight: "Kuota terbatas — cocok untuk sekolah, kampus & komunitas",
         tags: ["Offline", "Grup", "Custom", "Kampung Inggris"],
         icon: "handshake",
-        href: "/rombongan",
+        href: "/programs/offline/rombongan",
       },
     ],
 
@@ -1153,7 +1153,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
   },
   "grammar-for-speaking": {
     slug: "grammar-for-speaking",
-    theme: { primary: "#0a2d87" },
+    theme: { primary: "#4da3ff" },
     hasBatch: true,
 
     batches: [
@@ -1531,7 +1531,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
   },
   "private-class": {
     slug: "private-class",
-    theme: { primary: "#0a2d87" },
+    theme: { primary: "#4da3ff" },
     hasBatch: false,
 
     sections: [
@@ -1780,7 +1780,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
 
   "basic-toefl": {
     slug: "basic-toefl",
-    theme: { primary: "#0a2d87" },
+    theme: { primary: "#4da3ff" },
     hasBatch: true,
 
     batches: [
@@ -2138,7 +2138,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
 
   "english-for-kids": {
     slug: "english-for-kids",
-    theme: { primary: "#0a2d87" },
+    theme: { primary: "#4da3ff" },
     hasBatch: true,
 
     batches: [
@@ -2521,7 +2521,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
 
   "daily-conversation": {
     slug: "daily-conversation",
-    theme: { primary: "#0a2d87" }, // fresh, conversational, confident
+    theme: { primary: "#4da3ff" }, // fresh, conversational, confident
     hasBatch: true,
 
     batches: [
@@ -3367,9 +3367,9 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         content: {
           title: "Kegiatan Program",
           images: [
-            "/images/programs/school-1.jpg",
-            "/images/programs/school-2.jpg",
-            "/images/programs/school-3.jpg",
+            "/images/categories/offline/rombongan/rombongan-1.jpg",
+            "/images/categories/offline/rombongan/rombongan-2.jpg",
+            "/images/categories/offline/rombongan/rombongan-3.jpg",
           ],
         },
       },

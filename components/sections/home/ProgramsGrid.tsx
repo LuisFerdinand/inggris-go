@@ -423,7 +423,7 @@ function LeadMagnetCard({ prog }: { prog: (typeof leadMagnetPrograms)[0] }) {
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, ease }}
-      className="w-full max-w-xl mx-auto"
+      className="w-full"
     >
       <motion.div
         onHoverStart={() => setHovered(true)}
@@ -680,10 +680,6 @@ export default function ProgramsGrid() {
           </Reveal>
         </div>
 
-        {/* ══════════════════════════════════════════════════
-         *  SECTION 1 — Program Lanjutan (MAIN FOCUS)
-         *  2-column grid, large editorial cards
-         * ══════════════════════════════════════════════════ */}
         <Reveal delay={0.04} className="mb-5">
           <div className="flex items-center gap-2.5">
             <div
@@ -738,10 +734,13 @@ export default function ProgramsGrid() {
             </span>
           </div>
         </Reveal>
-
-        {leadMagnetPrograms.map((prog) => (
-          <LeadMagnetCard key={prog.title} prog={prog} />
-        ))}
+        {leadMagnetPrograms.length > 0 && (
+          <div className="mt-2">
+            {leadMagnetPrograms.map((prog) => (
+              <LeadMagnetCard key={prog.title} prog={prog} />
+            ))}
+          </div>
+        )}
 
         {/* ── Bottom CTA ────────────────────────────────────── */}
         <Reveal delay={0.08} className="mt-12 lg:mt-14">

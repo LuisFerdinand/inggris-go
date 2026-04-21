@@ -705,7 +705,7 @@ function CategoryHero({
   return (
     <section
       id="hero"
-      className="relative overflow-hidden pt-20"
+      className="relative overflow-hidden lg:pt-20"
       style={{
         background: "var(--color-brand-surface)",
         minHeight: "min(92vh, 820px)",

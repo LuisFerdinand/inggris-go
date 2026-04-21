@@ -33,30 +33,34 @@ export type Theme = {
  * Usage:
  *   const theme = generateTheme(category.theme.primary);
  */
-export function generateTheme(color: string): Theme {
+export function generateTheme(color: string, bg: string = "#0a2d87"): Theme {
   const base = chroma(color);
-  const isLight = base.luminance() > 0.6;
+  const background = chroma(bg);
+
+  const contrast = chroma.contrast(base, background);
+  const isLowContrast = contrast < 2.8; // threshold (tweakable)
+
+  const adjustedBase = isLowContrast
+    ? base.brighten(1.2).saturate(0.8) // push away from bg
+    : base;
+
+  const isLight = adjustedBase.luminance() > 0.6;
 
   return {
-    primary: base.hex(),
+    primary: adjustedBase.hex(),
 
-    // Backgrounds
-    soft: base.alpha(0.09).css(),
-    softStrong: base.alpha(0.19).css(),
+    soft: adjustedBase.alpha(isLowContrast ? 0.18 : 0.09).css(),
+    softStrong: adjustedBase.alpha(isLowContrast ? 0.28 : 0.19).css(),
 
-    // Border
-    border: base.alpha(0.24).css(),
+    border: adjustedBase.alpha(isLowContrast ? 0.4 : 0.24).css(),
 
-    // Pressed / deep accent
-    strong: base.saturate(0.5).darken(0.6).hex(),
+    strong: adjustedBase.saturate(0.6).darken(0.5).hex(),
 
-    // Auto foreground contrast
     text: isLight ? "#111827" : "#ffffff",
 
-    // Hero / section background gradient
     gradient: `
-      radial-gradient(ellipse 80% 60% at 60% 0%, ${base.alpha(0.14).css()} 0%, transparent 65%),
-      radial-gradient(ellipse 50% 80% at 5% 100%, ${base.alpha(0.09).css()} 0%, transparent 55%)
+      radial-gradient(ellipse 80% 60% at 60% 0%, ${adjustedBase.alpha(0.18).css()} 0%, transparent 65%),
+      radial-gradient(ellipse 50% 80% at 5% 100%, ${adjustedBase.alpha(0.12).css()} 0%, transparent 55%)
     `,
   };
 }
