@@ -36,14 +36,8 @@ const leadMagnetPrograms = [
       "Feedback harian dari tutor",
       "Via WhatsApp Group",
     ],
-    cta: "Join Speaking Challenge",
-    ctaHref: buildWhatsAppUrl({
-      title: "Speaking Challenge",
-      price: "Rp 49.000",
-      duration: "7 hari",
-      format: "WhatsApp Self-paced",
-      highlight: "Mulai dari nol tanpa takut salah",
-    }),
+    cta: "Lihat Detail",
+    ctaHref: "/programs/lead/speaking-challenge",
     cardAccent: "#ff6b35",
     cardBorder: generateTheme("#ff6b35").border,
     iconShadowColor: generateTheme("#ff6b35").soft,
@@ -749,7 +743,10 @@ export default function ProgramsGrid() {
               Belum tahu program yang cocok?
             </p>
             <Link
-              href="/contact"
+              href={buildWhatsAppUrl({
+                intent: "consultation",
+                title: "Konsultasi",
+              })}
               className="inline-flex items-center gap-1.5 font-display font-semibold transition-all duration-200 hover:gap-2.5"
               style={{
                 fontSize: "0.875rem",

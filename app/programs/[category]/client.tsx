@@ -20,6 +20,7 @@ import {
 } from "@/components/PageFloatingUI";
 import Image from "next/image";
 import { SOCIAL_PROOF } from "@/constants";
+import { buildWhatsAppUrl } from "@/lib/config";
 
 /* ══════════════════════════════════════════════════════════════
  * TYPES & CONSTANTS
@@ -1818,7 +1819,10 @@ function ProgramList({
               </p>
             </div>
             <motion.a
-              href="/contact"
+              href={buildWhatsAppUrl({
+                title: "Konsultasi",
+                intent: "consultation",
+              })}
               className="font-display font-bold px-5 py-2.5 rounded-xl whitespace-nowrap flex-shrink-0"
               style={{
                 fontSize: "0.875rem",

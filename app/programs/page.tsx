@@ -6,6 +6,7 @@ import { CATEGORIES, CategoryMeta, ProgramMeta } from "./[category]/data";
 import { Icon } from "@/components/Icon";
 import { generateTheme } from "@/lib/utils";
 import { SOCIAL_PROOF } from "@/constants";
+import { buildWhatsAppUrl } from "@/lib/config";
 
 /* ─── Utils ───────────────────────────────────────────────────── */
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -257,7 +258,10 @@ function HeroSection({
                   </svg>
                 </motion.button>
                 <motion.a
-                  href="/contact"
+                  href={buildWhatsAppUrl({
+                    title: "Konsultasi",
+                    intent: "consultation",
+                  })}
                   className="font-display font-semibold px-6 py-3.5 rounded-xl flex items-center gap-2"
                   style={{
                     fontSize: "0.9375rem",
@@ -274,7 +278,7 @@ function HeroSection({
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.18 }}
                 >
-                  💬 Tanya Admin
+                  Tanya Admin
                 </motion.a>
               </div>
             </Reveal>
@@ -1985,7 +1989,11 @@ function TestimonialsSection() {
 /* ══════════════════════════════════════════════════════════════
  * SECTION 6: FINAL CTA
  * ══════════════════════════════════════════════════════════════ */
-function FinalCTASection() {
+function FinalCTASection({
+  onScrollToPrograms,
+}: {
+  onScrollToPrograms: () => void;
+}) {
   return (
     <section className="relative py-20 lg:py-28 overflow-hidden">
       <div
@@ -2105,7 +2113,10 @@ function FinalCTASection() {
         <Reveal delay={0.19}>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
             <motion.a
-              href="/contact"
+              href={buildWhatsAppUrl({
+                title: "Konsultasi",
+                intent: "consultation",
+              })}
               className="bg-gold-btn font-display font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-2"
               style={{
                 fontSize: "1rem",
@@ -2120,7 +2131,7 @@ function FinalCTASection() {
               whileTap={{ scale: 0.97 }}
               transition={{ duration: 0.2, ease: EASE }}
             >
-              💬 Konsultasi Gratis
+              Konsultasi Gratis
               <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
                 <path
                   d="M3 8h10M9 4l4 4-4 4"
@@ -2132,7 +2143,7 @@ function FinalCTASection() {
               </svg>
             </motion.a>
             <motion.a
-              href="/programs"
+              onClick={onScrollToPrograms}
               className="font-display font-semibold px-8 py-4 rounded-xl flex items-center justify-center gap-2"
               style={{
                 fontSize: "1rem",
@@ -2232,7 +2243,7 @@ export default function ProgramsPage() {
       />
       <ProgramPreviewSection />
       <TestimonialsSection />
-      <FinalCTASection />
+      <FinalCTASection onScrollToPrograms={scrollToPrograms} />
     </main>
   );
 }

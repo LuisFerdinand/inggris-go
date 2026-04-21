@@ -107,7 +107,7 @@ export default function CTASection() {
           <div className="flex flex-wrap items-center justify-center gap-4">
             {/* Primary — white fill */}
             <Link
-              href="/speaking-challenge"
+              href="/programs"
               className="inline-flex items-center font-display font-bold rounded-full
                 transition-all duration-200"
               style={{
@@ -129,13 +129,13 @@ export default function CTASection() {
                   "0 4px 20px rgba(0,0,0,0.12)";
               }}
             >
-              Join Speaking Challenge
+              Lihat Program
             </Link>
 
             {/* Secondary — ghost/outline */}
             <a
               href={buildWhatsAppUrl({
-                intent: "simple",
+                intent: "consultation",
                 title: "konsultasi dari CTA section",
               })}
               target="_blank"

@@ -431,7 +431,10 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
       primaryLabel: "Lihat Semua Program Online",
       primaryHref: "#program-list",
       secondaryLabel: "Konsultasi Gratis",
-      secondaryHref: "/contact",
+      secondaryHref: buildWhatsAppUrl({
+        title: "Konsultasi",
+        intent: "consultation",
+      }),
     },
   },
 

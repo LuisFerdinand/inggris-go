@@ -136,7 +136,7 @@ export default function HeroAnimated() {
               {/* Primary CTA — gold gradient (intentional brand choice) */}
               {/* FIX: hover shadow now uses useState instead of direct DOM mutation */}
               <Link
-                href="/speaking-challenge"
+                href="/programs/lead/speaking-challenge"
                 className="inline-flex items-center gap-2 font-bold text-base rounded-full px-8 py-4 transition-transform duration-200 hover:-translate-y-0.5"
                 style={{
                   background: BRAND.gradientGold,
