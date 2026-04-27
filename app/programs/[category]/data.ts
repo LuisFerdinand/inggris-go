@@ -1670,13 +1670,13 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
                 "Sesi khusus untuk meningkatkan skill TOEFL dengan pendekatan personal",
             },
             {
-              src: "/images/categories/online/private-class/private-toefl-2.jpeg",
+              src: "/images/categories/online/private-class/private-toefl-2.png",
               tag: "Focused Training",
               caption:
                 "Latihan intensif untuk target tertentu seperti speaking test atau interview",
             },
             {
-              src: "/images/categories/online/private-class/private-toefl-3.jpeg",
+              src: "/images/categories/online/private-class/private-toefl-3.png",
               tag: "Progress Monitoring",
               caption:
                 "Setiap sesi dipantau untuk memastikan progress benar-benar terasa",

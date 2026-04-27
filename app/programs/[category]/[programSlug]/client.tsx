@@ -4353,7 +4353,7 @@ function MosaicLayout({
   return (
     <div className="space-y-3">
       {/* Meta row */}
-      <Reveal>
+      <GalleryReveal>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <span
             className="inline-flex items-center gap-1.5 font-display font-semibold rounded-full px-3.5 py-1.5"
@@ -4411,7 +4411,7 @@ function MosaicLayout({
             </svg>
           </motion.button>
         </div>
-      </Reveal>
+      </GalleryReveal>
 
       {/* Mosaic grid */}
       <div
@@ -4424,7 +4424,7 @@ function MosaicLayout({
           const originalIdx = ordered.indexOf(photo);
 
           return (
-            <Reveal key={i} delay={0.06 + i * 0.075}>
+            <GalleryReveal key={i} delay={0.06 + i * 0.075}>
               <motion.div
                 whileHover={{ scale: 1.022 }}
                 transition={{ duration: 0.3, ease: EASE }}
@@ -4470,7 +4470,7 @@ function MosaicLayout({
                   <ImgOverlay photo={photo} />
                 )}
               </motion.div>
-            </Reveal>
+            </GalleryReveal>
           );
         })}
       </div>
@@ -4491,7 +4491,7 @@ function ConversionNudge({ theme }: { theme: Theme }) {
   ];
 
   return (
-    <Reveal delay={0.3}>
+    <GalleryReveal delay={0.3}>
       <div className="flex items-center justify-center flex-wrap gap-x-6 gap-y-2 mt-7">
         {items.map((item, i) => (
           <React.Fragment key={item.text}>
@@ -4520,7 +4520,7 @@ function ConversionNudge({ theme }: { theme: Theme }) {
           </React.Fragment>
         ))}
       </div>
-    </Reveal>
+    </GalleryReveal>
   );
 }
 
@@ -4569,7 +4569,7 @@ function Lightbox({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center px-4"
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center px-4 "
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -4774,8 +4774,8 @@ export function GallerySection({
         <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
           {/* Header */}
           <div className="flex flex-col items-center text-center mb-10">
-            <Reveal>
-              <SectionPill theme={theme}>
+            <GalleryReveal>
+              <GallerySectionPill theme={theme}>
                 {content.icon ? (
                   <Icon
                     name={content.icon as any}
@@ -4813,11 +4813,11 @@ export function GallerySection({
                     {content.taglineAccent}
                   </span>
                 )}
-              </SectionPill>
-            </Reveal>
+              </GallerySectionPill>
+            </GalleryReveal>
 
             {content.title && (
-              <Reveal delay={0.07} className="mt-5 mb-3">
+              <GalleryReveal delay={0.07} className="mt-5 mb-3">
                 <h2
                   className="font-display font-extrabold leading-[1.07]"
                   style={{
@@ -4828,11 +4828,11 @@ export function GallerySection({
                 >
                   {content.title}
                 </h2>
-              </Reveal>
+              </GalleryReveal>
             )}
 
             {content.subtitle && (
-              <Reveal delay={0.12}>
+              <GalleryReveal delay={0.12}>
                 <p
                   style={{
                     fontSize: "0.9375rem",
@@ -4844,12 +4844,12 @@ export function GallerySection({
                 >
                   {content.subtitle}
                 </p>
-              </Reveal>
+              </GalleryReveal>
             )}
 
-            <Reveal delay={0.16}>
+            <GalleryReveal delay={0.16}>
               <TrustBar signals={trustSignals} theme={theme} />
-            </Reveal>
+            </GalleryReveal>
           </div>
 
           {/* Adaptive body */}
