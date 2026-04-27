@@ -61,6 +61,7 @@ export type ProgramMeta = {
   shortDesc?: string;
 
   price: string;
+  originalPrice?: string;
   priceTiers?: PriceTier[];
 
   badge?: string;
@@ -140,32 +141,35 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         title: "Speaking Challenge",
         slug: "speaking-challenge",
         description:
-          "Program 7 hari via WhatsApp yang dirancang untuk membantu kamu mulai berbicara Bahasa Inggris tanpa rasa takut. Tidak ada jadwal kelas — belajar sepenuhnya sesuai ritme kamu.",
+          "Program 14 hari via WhatsApp untuk kamu yang ngerti bahasa Inggris tapi masih belum bisa ngomong. Fokus latihan speaking setiap hari dengan feedback langsung.",
         price: "Rp 49.000",
         badge: "Paling Populer",
-        highlight: "Mulai dari nol, tanpa tekanan, tanpa jadwal kaku",
-        tags: ["Self-paced", "2 Minggu", "Online", "Pemula"],
+        highlight:
+          "14 Hari Challenge • Latihan tiap hari • Feedback langsung • Via WhatsApp",
+        tags: ["WhatsApp", "14 Hari", "Pemula", "Speaking"],
         icon: "target",
         href: "/programs/lead/speaking-challenge",
+
         benefits: [
           {
-            title: "Latihan langsung",
-            description: "Fokus ke speaking, bukan teori",
+            title: "Latihan tiap hari",
+            description: "Dipaksa konsisten ngomong setiap hari",
             icon: "mic",
           },
           {
-            title: "Fleksibel penuh",
-            description: "Belajar kapan saja sesuai waktu kamu",
+            title: "100% fleksibel",
+            description: "Belajar kapan saja tanpa jadwal live",
             icon: "clock",
           },
           {
             title: "Mulai dari nol",
-            description: "Tidak perlu pengalaman sebelumnya",
+            description: "Cocok untuk pemula banget",
             icon: "sprout",
           },
         ],
-        duration: "7 hari",
-        format: "Self-paced",
+
+        duration: "14 hari",
+        format: "WhatsApp",
         level: "Pemula",
       },
     ],
@@ -287,68 +291,109 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
         title: "Daily Conversation",
         slug: "daily-conversation",
         description:
-          "Latihan percakapan sehari-hari via Zoom selama 2 minggu. Fokus pada kelancaran bicara, kepercayaan diri, dan kosakata praktis.",
+          "Program intensif 2 minggu untuk kamu yang masih suka ngeblank saat diajak ngomong bahasa Inggris. Fokus full praktik speaking, bukan teori.",
         href: "/programs/online/daily-conversation",
-        price: "Rp 299.000",
+        price: "Rp 249.000",
+        originalPrice: "Rp 449.000",
         badge: "Terlaris",
-        highlight: "10 sesi intensif, Senin–Jumat jam 19.00 WIB",
-        tags: ["Zoom", "10x Pertemuan", "Senin–Jumat", "Speaking"],
+        highlight:
+          "10x Live Zoom • 60 menit • Max 8 siswa • Full speaking practice",
+        tags: ["Zoom", "10x Pertemuan", "2 Minggu", "Speaking"],
         icon: "message-circle",
         format: "Zoom",
       },
       {
         title: "English for Kids",
         slug: "english-for-kids",
+
         description:
-          "Kelas Bahasa Inggris yang menyenangkan dan interaktif khusus untuk anak-anak usia 6–12 tahun. Metode bermain sambil belajar.",
+          "Kelas bahasa Inggris online yang menyenangkan untuk anak usia 6–12 tahun. Fokus membangun kepercayaan diri, kosakata, dan kemampuan komunikasi sehari-hari.",
+
         price: "Rp 349.000",
-        badge: "Disukai Anak",
-        highlight: "Belajar lewat game, lagu, dan cerita interaktif",
-        tags: ["Anak-anak", "Interaktif", "Menyenangkan", "Zoom"],
+        badge: "Favorit Anak & Orang Tua",
+
+        highlight:
+          "10x Zoom • Max 6 siswa • Fun & interactive • Fokus percaya diri",
+
+        tags: ["Anak 6–12", "Zoom", "Fun Learning", "Speaking"],
+
         icon: "star",
         href: "/programs/online/english-for-kids",
       },
-      {
-        title: "Basic TOEFL",
-        slug: "basic-toefl",
-        description:
-          "Persiapan TOEFL dari dasar via Zoom. Setiap sesi fokus pada strategi dan latihan soal nyata.",
-        price: "Rp 399.000",
-        badge: "Bonus 2x TOEFL Test",
-        highlight: "Free 2x simulasi TOEFL penuh (awal & akhir program)",
-        tags: ["Zoom", "10x Pertemuan", "Jam 20.00", "TOEFL"],
-        icon: "bar-chart",
-        href: "/programs/online/basic-toefl",
-      },
-      {
-        title: "Grammar for Speaking",
-        slug: "grammar-for-speaking",
-        description:
-          "Grammar yang dipelajari bukan untuk ujian — melainkan langsung diterapkan dalam percakapan nyata.",
-        price: "Rp 299.000",
-        highlight: "Grammar yang langsung kamu pakai saat ngobrol",
-        tags: ["Zoom", "10x Pertemuan", "Praktis", "Grammar"],
-        icon: "pen-line",
-        href: "/programs/online/grammar-for-speaking",
-      },
+      // {
+      //   title: "Basic TOEFL",
+      //   slug: "basic-toefl",
+      //   description:
+      //     "Persiapan TOEFL dari dasar via Zoom. Setiap sesi fokus pada strategi dan latihan soal nyata.",
+      //   price: "Rp 399.000",
+      //   badge: "Bonus 2x TOEFL Test",
+      //   highlight: "Free 2x simulasi TOEFL penuh (awal & akhir program)",
+      //   tags: ["Zoom", "10x Pertemuan", "Jam 20.00", "TOEFL"],
+      //   icon: "bar-chart",
+      //   href: "/programs/online/basic-toefl",
+      // },
+      // {
+      //   title: "Grammar for Speaking",
+      //   slug: "grammar-for-speaking",
+      //   description:
+      //     "Grammar yang dipelajari bukan untuk ujian — melainkan langsung diterapkan dalam percakapan nyata.",
+      //   price: "Rp 299.000",
+      //   highlight: "Grammar yang langsung kamu pakai saat ngobrol",
+      //   tags: ["Zoom", "10x Pertemuan", "Praktis", "Grammar"],
+      //   icon: "pen-line",
+      //   href: "/programs/online/grammar-for-speaking",
+      // },
       {
         title: "Private Class",
         slug: "private-class",
         price: "Rp 499.000",
         href: "/programs/online/private-class",
         description:
-          "Kelas 1-on-1 eksklusif dengan mentor berdedikasi. Jadwal sepenuhnya fleksibel, materi disesuaikan 100% dengan kebutuhan kamu.",
+          "Kelas private 1-on-1 dengan jadwal fleksibel dan materi 100% disesuaikan. Cocok untuk kamu yang ingin belajar lebih fokus dan progress lebih cepat.",
+
+        badge: "Paling Fleksibel",
         priceTiers: [
-          { label: "Exclusive 5x", price: "Rp 699.000" },
-          { label: "Exclusive 8x", price: "Rp 999.000" },
-          { label: "Exclusive 10x", price: "Rp 1.199.000" },
+          { label: "Exclusive 10x", price: "Rp 1.399.000" },
+          { label: "Exclusive 20x", price: "Rp 2.499.000" },
+          { label: "Exclusive 30x", price: "Rp 3.799.000" },
           { label: "Intensive 5x", price: "Rp 499.000" },
           { label: "Intensive 10x", price: "Rp 799.000" },
+          { label: "Intensive 15x", price: "Rp 1.099.000" },
         ],
-        badge: "Paling Fleksibel",
-        highlight: "Jadwal & materi 100% disesuaikan khusus untukmu",
-        tags: ["1-on-1", "Jadwal Bebas", "Custom Materi", "Zoom"],
+        highlight: "1-on-1 • Jadwal bebas • Materi custom • Fokus hasil",
+
+        tags: ["1-on-1", "Flexible Schedule", "Custom Material", "Zoom"],
         icon: "user",
+      },
+      {
+        title: "Private Class for Kids",
+        slug: "private-class-kids",
+        price: "Rp 1.199.000",
+        href: "/programs/online/private-class-kids",
+
+        description:
+          "Kelas private 1-on-1 untuk anak usia 4+ dengan tutor berpengalaman. Jadwal fleksibel, materi fun & interaktif, dan fokus membangun kepercayaan diri sejak dini.",
+
+        badge: "Favorit Orang Tua",
+
+        priceTiers: [
+          { label: "10x Meeting", price: "Rp 1.199.000" },
+          { label: "20x Meeting", price: "Rp 2.199.000" },
+          { label: "30x Meeting", price: "Rp 3.199.000" },
+        ],
+
+        highlight:
+          "1-on-1 • Jadwal bebas • Fun learning • Fokus perkembangan anak",
+
+        tags: [
+          "Usia 4+",
+          "1-on-1",
+          "Flexible Schedule",
+          "Zoom",
+          "Fun Learning",
+        ],
+
+        icon: "sparkles",
       },
     ],
 
@@ -801,12 +846,28 @@ type TimelineSection = BaseSection & {
   };
 };
 
+export type GalleryPhoto = {
+  src: string;
+  caption?: string;
+  tag?: string;
+  highlight?: boolean;
+};
+export type GalleryContent = {
+  icon?: string;
+
+  tagline: string;
+  taglineAccent?: string;
+
+  title?: string;
+  subtitle?: string;
+
+  photos: GalleryPhoto[];
+  trustSignals?: string[];
+};
+
 type GallerySection = BaseSection & {
   type: "gallery";
-  content: {
-    title?: string;
-    images: string[];
-  };
+  content: GalleryContent;
 };
 
 type BonusSection = BaseSection & {
@@ -846,6 +907,7 @@ type ProgramBatch = {
   startDate?: string;
   endDate?: string;
   schedule?: string;
+  note?: string;
   status: "open" | "full" | "coming_soon" | "closed";
   isOpen: boolean;
   capacity?: number;
@@ -875,35 +937,41 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
     hasBatch: false,
 
     sections: [
+      // ───────────── HERO ─────────────
       {
         id: "hero",
         type: "hero",
         content: {
-          label: "Kuota terbatas – kelas cepat penuh",
-          tagline: "Masih Takut Ngomong",
-          taglineAccent: "Bahasa Inggris?",
+          image: "/images/home-hero.png",
+          label: "Speaking Challenge 14 Hari",
+
+          tagline: "Kamu Ngerti Inggris...",
+          taglineAccent: "Tapi Nggak Bisa Ngomong?",
+
           description:
-            "Mulai dari nol, latihan speaking setiap hari hanya lewat WhatsApp. Tanpa Zoom. Tanpa ribet.",
-          subtitle: "Belajar speaking tanpa tekanan, dari rumah",
+            "Bukan karena kamu bodoh. Tapi karena kamu belum pernah dilatih.",
+
+          subtitle:
+            "Mulai latihan speaking setiap hari lewat WhatsApp. Tanpa Zoom. Tanpa ribet.",
 
           tags: [
-            { title: "2 Minggu Program", icon: "calendar" },
-            { title: "Cocok untuk Pemula", icon: "target" },
+            { title: "14 Hari Challenge", icon: "calendar" },
             { title: "Via WhatsApp", icon: "smartphone" },
+            { title: "Cocok untuk Pemula", icon: "target" },
           ],
 
           socialProof: {
-            text: "Peserta aktif bulan ini",
-            count: "247+",
+            text: "500+ peserta sudah mulai berani ngomong",
+            count: "500+",
           },
 
           cta: [
             {
-              label: "Daftar Sekarang – Cuma 49K",
+              label: "Ikut Challenge – Cuma 49K",
               href: buildWhatsAppUrl({
                 title: "Speaking Challenge",
                 price: "Rp 49.000",
-                duration: "2 minggu",
+                duration: "14 hari",
                 format: "WhatsApp",
               }),
               icon: "message-circle",
@@ -912,626 +980,598 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         },
       },
 
+      // ───────────── WHY ─────────────
       {
         id: "why",
         type: "why",
         content: {
-          title: "Cocok Buat Kamu",
-          icon: "square-check-big",
-          tagline: "Kenapa Program Ini",
-          taglineAccent: "Cocok untuk Pemula?",
-          items: [
-            {
-              title: "Dari Nol",
-              description:
-                "Dirancang khusus untuk yang mulai dari nol, belajar speaking bahasa Inggris dari nol",
-              icon: "target",
-            },
-            {
-              title: "Tanpa Tekanan",
-              description:
-                "Nggak ada kelas live yang bikin nervous. Belajar di comfort zone kamu",
-              icon: "smile",
-            },
-            {
-              title: "Fleksibel",
-              description:
-                "Belajar dari rumah, dari kantor, dari mana aja yang kamu mau",
-              icon: "home",
-            },
-            {
-              title: "Via WhatsApp",
-              description:
-                "Cukup pakai HP & WhatsApp. Nggak perlu laptop atau app tambahan",
-              icon: "smartphone",
-            },
-          ],
-        },
-      },
+          title: "Kenapa Kamu Belum Bisa Ngomong?",
+          tagline: "Bukan Karena Kamu Nggak Bisa",
+          taglineAccent: "Tapi Karena...",
+          subtitle: "Masalahnya bukan di grammar. Tapi di kebiasaan.",
 
-      {
-        id: "steps",
-        type: "steps",
-        content: {
-          title: "Alur",
-          icon: "recycle",
-          tagline: "Cara Belajarnya",
-          taglineAccent: "Simple Banget",
           items: [
             {
-              n: "01",
-              title: "Tutor Kirim Video",
+              title: "Jarang latihan speaking",
               description:
-                "Setiap hari, tutor kirim video contoh speaking yang mudah diikuti",
-              icon: "video",
+                "Lebih sering baca & nonton daripada benar-benar ngomong",
+              icon: "book-open",
             },
             {
-              n: "02",
-              title: "Kamu Latihan",
-              description: "Tiru dan latihan speaking sesuai contoh dari tutor",
-              icon: "mic",
+              title: "Nggak pernah dipaksa praktik",
+              description: "Tanpa tekanan, kamu akan terus menunda latihan",
+              icon: "zap",
             },
             {
-              n: "03",
-              title: "Kirim Voice Note",
-              description:
-                "Rekam dan kirim voice note / video ke grup WhatsApp",
-              icon: "send",
+              title: "Takut salah",
+              description: "Akhirnya diam dan tidak pernah mulai",
+              icon: "user-x",
             },
             {
-              n: "04",
-              title: "Dapat Feedback",
-              description:
-                "Tutor memberikan feedback langsung untuk perbaikan kamu",
+              title: "Tidak ada feedback",
+              description: "Tidak tahu mana yang benar & harus diperbaiki",
               icon: "message-circle",
             },
           ],
         },
       },
 
+      // ───────────── STEPS ─────────────
       {
-        id: "benefits",
-        type: "benefits",
+        id: "steps",
+        type: "steps",
         content: {
-          title: "Benefit",
-          icon: "gift",
-          tagline: "Yang Akan Kamu",
-          taglineAccent: "Dapatkan",
+          title: "Cara Challenge Ini Bekerja",
+          tagline: "Simple, Tapi",
+          taglineAccent: "Efektif",
+          subtitle: "Fokus: praktik setiap hari",
+
           items: [
             {
-              title: "Latihan speaking setiap hari (real practice)",
-              icon: "volume-2",
+              n: "01",
+              title: "Tutor Kirim Video",
+              description: "Setiap hari ada contoh speaking dari tutor",
+              icon: "video",
             },
             {
-              title: "Video contoh dari tutor berpengalaman",
-              icon: "play-circle",
+              n: "02",
+              title: "Kamu Tiru & Latihan",
+              description: "Ikuti contoh dan mulai ngomong",
+              icon: "mic",
             },
             {
-              title: "Feedback langsung dari tutor",
+              n: "03",
+              title: "Kirim Voice Note",
+              description: "Rekam & kirim ke grup WhatsApp",
+              icon: "send",
+            },
+            {
+              n: "04",
+              title: "Dapat Feedback",
+              description: "Tutor koreksi & bantu improve speaking kamu",
               icon: "message-square",
-            },
-            {
-              title: "Materi super basic & mudah dipahami",
-              icon: "book-open",
-            },
-            {
-              title: "Belajar fleksibel tanpa Zoom",
-              icon: "smartphone",
-            },
-            {
-              title: "Lingkungan belajar yang supportive",
-              icon: "heart",
             },
           ],
         },
       },
 
+      // ───────────── BENEFITS ─────────────
+      {
+        id: "benefits",
+        type: "benefits",
+        content: {
+          title: "Yang Akan Kamu Dapatkan",
+          tagline: "Bukan Cuma Belajar",
+          taglineAccent: "Tapi Berubah",
+          items: [
+            { title: "Latihan speaking setiap hari", icon: "volume-2" },
+            { title: "Dipaksa berani ngomong", icon: "zap" },
+            { title: "Video contoh dari tutor", icon: "play-circle" },
+            { title: "Feedback langsung setiap hari", icon: "message-square" },
+            { title: "Materi super basic & mudah dipahami", icon: "book-open" },
+            { title: "Belajar fleksibel via WhatsApp", icon: "smartphone" },
+          ],
+        },
+      },
+
+      // ───────────── TIMELINE ─────────────
       {
         id: "timeline",
         type: "timeline",
         content: {
           icon: "calendar",
-          tagline: "Program 2 Minggu yang",
-          taglineAccent: "Terarah",
-          title: "Timeline",
-          subtitle: "Senin – Jumat selama 2 minggu • Total 10 hari challenge",
+          tagline: "14 Hari Challenge",
+          taglineAccent: "Konsisten",
+          title: "Perjalanan Kamu",
+          subtitle: "Latihan setiap hari selama 14 hari",
+
           weeks: [
             {
               icon: "sprout",
               week: "Minggu 1",
-              title: "Bangun Kepercayaan Diri",
-              days: [
-                {
-                  range: "Day 1-2",
-                  title: "Perkenalan & greeting dasar",
-                },
-                {
-                  range: "Day 3-4",
-                  title: "Cerita tentang diri sendiri",
-                },
-                {
-                  range: "Day 5",
-                  title: "Review & mini challenge",
-                },
+              title: "Mulai Berani Ngomong",
+              points: [
+                "Basic speaking",
+                "Perkenalan & daily phrases",
+                "Mulai percaya diri",
               ],
             },
             {
               icon: "target",
               week: "Minggu 2",
-              title: "Makin Percaya Diri",
-              days: [
-                {
-                  range: "Day 6-7",
-                  title: "Opini & pendapat sederhana",
-                },
-                {
-                  range: "Day 8-9",
-                  title: "Percakapan sehari-hari",
-                },
-                {
-                  range: "Day 10",
-                  title: "🎉 Final challenge & celebration!",
-                  highlight: true,
-                },
+              title: "Lebih Lancar & Spontan",
+              points: [
+                "Kalimat lebih panjang",
+                "Daily conversation",
+                "Final challenge",
               ],
             },
           ],
         },
       },
 
+      // ───────────── PRICING ─────────────
       {
         id: "pricing",
         type: "pricing",
         content: {
-          title: "Investasi Kecil, Dampak Besar",
-          description: "Mulai sekarang tanpa mikir panjang",
+          title: "Mulai dari Langkah Kecil",
+          description: "Nggak perlu nunggu siap. Mulai aja dulu.",
 
           groups: [
             {
               title: "Speaking Challenge",
-              subtitle: "Program 2 Minggu",
+              subtitle: "Program 14 Hari",
               icon: "zap",
 
               features: [
-                "10 hari challenge speaking",
+                "14 hari speaking challenge",
+                "Latihan setiap hari",
                 "Video contoh dari tutor",
-                "Feedback langsung setiap latihan",
+                "Feedback langsung",
                 "Grup WhatsApp supportif",
-                "Materi step-by-step untuk pemula",
+                "Cocok untuk pemula banget",
               ],
 
               packages: [
                 {
                   label: "Full Challenge Access",
                   price: "Rp 49.000",
-                  originalPrice: "Rp 250.000",
-                  note: "Program Speaking Challenge 2 Minggu",
-                  highlight: "Kurang dari harga 1x ngopi ☕",
+                  highlight: "Cuma 49K",
                 },
               ],
             },
           ],
 
-          urgency: "Kuota terbatas – kelas cepat penuh",
+          urgency: "Kuota terbatas • batch cepat penuh",
         },
       },
 
+      // ───────────── FAQ ─────────────
       {
         id: "faq",
         type: "faq",
         content: [
           {
-            q: "Apakah cocok untuk pemula?",
-            a: "Ya, dirancang dari nol.",
+            q: "Apakah cocok untuk pemula banget?",
+            a: "Ya, ini dirancang khusus untuk pemula dari nol.",
+          },
+          {
+            q: "Apakah harus ikut live?",
+            a: "Tidak. Semua dilakukan via WhatsApp, fleksibel.",
+          },
+          {
+            q: "Apakah benar ada feedback?",
+            a: "Ya, setiap latihan kamu akan dapat feedback dari tutor.",
           },
         ],
       },
 
+      // ───────────── CTA ─────────────
       {
         id: "cta",
         type: "cta",
         content: {
-          title: "Kalau Bukan Sekarang,",
-          titleAccent: "Kapan Lagi?",
-          subtitle:
-            "Semakin lama kamu menunda, semakin lama kamu nggak akan mulai bisa ngomong.",
+          title: "Kalau Kamu Terus Nunda,",
+          titleAccent: "Kamu Nggak Akan Pernah Mulai",
+          subtitle: "Kemampuan speaking itu bukan dipelajari. Tapi dilatih.",
 
           highlight:
-            "Mulai dari langkah kecil hari ini. Nggak perlu sempurna, yang penting mulai.",
+            "Mulai dari challenge kecil ini dulu. 14 hari yang bisa mengubah kebiasaan kamu.",
 
           cta: {
-            label: "Daftar Sekarang – Cuma 49K",
+            label: "Ikut Challenge Sekarang – 49K",
             href: buildWhatsAppUrl({
               title: "Speaking Challenge",
               price: "Rp 49.000",
               format: "WhatsApp",
             }),
-            note: "Kuota terbatas setiap batch",
+            note: "Mulai kapan saja",
           },
 
-          urgency: "Tempat terbatas • Batch cepat penuh",
+          urgency: "Slot terbatas • cepat penuh",
         },
       },
     ],
   },
-  "grammar-for-speaking": {
-    slug: "grammar-for-speaking",
-    theme: { primary: "#4da3ff" },
-    hasBatch: true,
+  // "grammar-for-speaking": {
+  //   slug: "grammar-for-speaking",
+  //   theme: { primary: "#4da3ff" },
+  //   hasBatch: true,
 
-    batches: [
-      {
-        id: "batch-1",
-        label: "Batch April 2026",
-        startDate: "2026-04-22",
-        endDate: "2026-05-03",
-        schedule: "Senin – Jumat, 19.00 WIB",
-        isOpen: true,
-        status: "open",
+  //   batches: [
+  //     {
+  //       id: "batch-1",
+  //       label: "Batch April 2026",
+  //       startDate: "2026-04-22",
+  //       endDate: "2026-05-03",
+  //       schedule: "Senin – Jumat, 19.00 WIB",
+  //       isOpen: true,
+  //       status: "open",
 
-        capacity: 50,
-        enrolled: 32,
+  //       capacity: 50,
+  //       enrolled: 32,
 
-        ctaLabel: "Daftar Batch Ini",
-        ctaHref: buildWhatsAppUrl({
-          title: "Grammar for Speaking Batch 1",
-          price: "Rp 299.000",
-          format: "Zoom",
-        }),
-      },
-    ],
+  //       ctaLabel: "Daftar Batch Ini",
+  //       ctaHref: buildWhatsAppUrl({
+  //         title: "Grammar for Speaking Batch 1",
+  //         price: "Rp 299.000",
+  //         format: "Zoom",
+  //       }),
+  //     },
+  //   ],
 
-    sections: [
-      {
-        id: "hero",
-        type: "hero",
-        content: {
-          label: "Batch Baru Segera Dibuka",
-          tagline: "Takut Salah Grammar Saat",
-          taglineAccent: "Ngomong?",
-          description:
-            "Belajar grammar bahasa Inggris yang langsung dipakai untuk speaking - tanpa hafalan rumus yang bikin pusing.",
-          subtitle: "Kuota terbatas - kelas cepat penuh",
-          // highlight: "Tanpa Grammar Ribet",
-          tags: [
-            { title: "10x Live Meeting", icon: "video" },
-            { title: "Fokus Speaking", icon: "mic" },
-            { title: "Cocok untuk Pemula", icon: "heart" },
-          ],
-          cta: [
-            {
-              label: "Perbaiki Speaking Kamu Sekarang",
-              href: buildWhatsAppUrl({
-                title: "Daily Conversation",
-                price: "Rp 299.000",
-                format: "Zoom",
-              }),
-              icon: "message-circle",
-            },
-          ],
-          socialProof: {
-            text: "Alumni sudah lebih pede ngomong Inggris",
-            count: "200+",
-          },
-        },
-      },
-      {
-        id: "why",
-        type: "why",
-        content: {
-          title: "Kenapa Kamu Masih Ragu Ngomong?",
-          tagline: "Masalah yang Sering",
-          taglineAccent: "Terjadi",
-          subtitle: "Masalahnya bukan kamu tidak bisa, tapi kamu tidak yakin",
-          items: [
-            {
-              title: "Takut grammar salah",
-              description:
-                'Setiap mau ngomong, langsung mikir "ini bener nggak ya?"',
-              icon: "alert-circle",
-            },
-            {
-              title: "Mikir terlalu lama",
-              description:
-                "Mau bilang sesuatu tapi keburu lupa karena terlalu lama menyusun kalimat",
-              icon: "brain",
-            },
-            {
-              title: "Tidak yakin kalimat benar",
-              description: "Selalu ragu apakah susunan kata sudah tepat",
-              icon: "help-circle",
-            },
-            {
-              title: "Akhirnya memilih diam",
-              description:
-                "Daripada salah, lebih baik tidak ngomong sama sekali",
-              icon: "volume-x",
-            },
-          ],
-        },
-      },
-      {
-        id: "steps",
-        type: "steps",
-        content: {
-          title: "Cara Kerja",
-          icon: "recycle",
-          tagline: "Cara Belajarnya",
-          taglineAccent: "Simple & Praktis",
-          subtitle: "Bukan hafalan, tapi penggunaan",
-          items: [
-            {
-              n: "01",
-              title: "Penjelasan Sederhana",
-              description:
-                "Materi disampaikan dengan bahasa yang mudah dipahami",
-              icon: "lightbulb",
-            },
-            {
-              n: "02",
-              title: "Contoh dalam Speaking",
-              description:
-                "Setiap grammar langsung dikasih contoh percakapan nyata",
-              icon: "message-square",
-            },
-            {
-              n: "03",
-              title: "Latihan Langsung",
-              description: "Bukan nulis di kertas, tapi langsung dipraktikkan",
-              icon: "repeat",
-            },
-            {
-              n: "04",
-              title: "Speaking Practice",
-              description: "Ngomong pakai grammar yang baru dipelajari",
-              icon: "mic",
-            },
-          ],
-        },
-      },
+  //   sections: [
+  //     {
+  //       id: "hero",
+  //       type: "hero",
+  //       content: {
+  //         label: "Batch Baru Segera Dibuka",
+  //         tagline: "Takut Salah Grammar Saat",
+  //         taglineAccent: "Ngomong?",
+  //         description:
+  //           "Belajar grammar bahasa Inggris yang langsung dipakai untuk speaking - tanpa hafalan rumus yang bikin pusing.",
+  //         subtitle: "Kuota terbatas - kelas cepat penuh",
+  //         // highlight: "Tanpa Grammar Ribet",
+  //         tags: [
+  //           { title: "10x Live Meeting", icon: "video" },
+  //           { title: "Fokus Speaking", icon: "mic" },
+  //           { title: "Cocok untuk Pemula", icon: "heart" },
+  //         ],
+  //         cta: [
+  //           {
+  //             label: "Perbaiki Speaking Kamu Sekarang",
+  //             href: buildWhatsAppUrl({
+  //               title: "Daily Conversation",
+  //               price: "Rp 299.000",
+  //               format: "Zoom",
+  //             }),
+  //             icon: "message-circle",
+  //           },
+  //         ],
+  //         socialProof: {
+  //           text: "Alumni sudah lebih pede ngomong Inggris",
+  //           count: "200+",
+  //         },
+  //       },
+  //     },
+  //     {
+  //       id: "why",
+  //       type: "why",
+  //       content: {
+  //         title: "Kenapa Kamu Masih Ragu Ngomong?",
+  //         tagline: "Masalah yang Sering",
+  //         taglineAccent: "Terjadi",
+  //         subtitle: "Masalahnya bukan kamu tidak bisa, tapi kamu tidak yakin",
+  //         items: [
+  //           {
+  //             title: "Takut grammar salah",
+  //             description:
+  //               'Setiap mau ngomong, langsung mikir "ini bener nggak ya?"',
+  //             icon: "alert-circle",
+  //           },
+  //           {
+  //             title: "Mikir terlalu lama",
+  //             description:
+  //               "Mau bilang sesuatu tapi keburu lupa karena terlalu lama menyusun kalimat",
+  //             icon: "brain",
+  //           },
+  //           {
+  //             title: "Tidak yakin kalimat benar",
+  //             description: "Selalu ragu apakah susunan kata sudah tepat",
+  //             icon: "help-circle",
+  //           },
+  //           {
+  //             title: "Akhirnya memilih diam",
+  //             description:
+  //               "Daripada salah, lebih baik tidak ngomong sama sekali",
+  //             icon: "volume-x",
+  //           },
+  //         ],
+  //       },
+  //     },
+  //     {
+  //       id: "steps",
+  //       type: "steps",
+  //       content: {
+  //         title: "Cara Kerja",
+  //         icon: "recycle",
+  //         tagline: "Cara Belajarnya",
+  //         taglineAccent: "Simple & Praktis",
+  //         subtitle: "Bukan hafalan, tapi penggunaan",
+  //         items: [
+  //           {
+  //             n: "01",
+  //             title: "Penjelasan Sederhana",
+  //             description:
+  //               "Materi disampaikan dengan bahasa yang mudah dipahami",
+  //             icon: "lightbulb",
+  //           },
+  //           {
+  //             n: "02",
+  //             title: "Contoh dalam Speaking",
+  //             description:
+  //               "Setiap grammar langsung dikasih contoh percakapan nyata",
+  //             icon: "message-square",
+  //           },
+  //           {
+  //             n: "03",
+  //             title: "Latihan Langsung",
+  //             description: "Bukan nulis di kertas, tapi langsung dipraktikkan",
+  //             icon: "repeat",
+  //           },
+  //           {
+  //             n: "04",
+  //             title: "Speaking Practice",
+  //             description: "Ngomong pakai grammar yang baru dipelajari",
+  //             icon: "mic",
+  //           },
+  //         ],
+  //       },
+  //     },
 
-      {
-        id: "benefits",
-        type: "benefits",
-        content: {
-          title: "Benefit",
-          icon: "gift",
-          tagline: "Perubahan yang Akan",
-          taglineAccent: "Kamu Rasakan",
-          items: [
-            {
-              title: "Lebih percaya diri saat berbicara",
-              icon: "shield-check",
-            },
-            {
-              title: "Tidak lagi takut salah",
-              icon: "smile",
-            },
-            {
-              title: "Bisa menyusun kalimat dengan benar",
-              icon: "check-circle",
-            },
-            {
-              title: "Ngomong lebih lancar",
-              icon: "zap",
-            },
-            {
-              title: "Tidak overthinking lagi",
-              icon: "brain",
-            },
-            {
-              title: "Ngomong lebih rapi & percaya diri",
-              icon: "star",
-            },
-          ],
-        },
-      },
-      {
-        id: "fit",
-        type: "benefits",
-        content: {
-          title: "Cocok Untuk Kamu",
-          tagline: "Program Ini Cocok Untuk",
-          taglineAccent: "Kamu yang...",
-          icon: "target",
-          items: [
-            {
-              title: "Sudah ikut Speaking Challenge",
-              description: "Dan ingin speaking lebih terstruktur",
-              icon: "trending-up",
-            },
-            {
-              title: "Sedang belajar conversation",
-              description: "Dan butuh grammar untuk lebih lancar",
-              icon: "message-circle",
-            },
-            {
-              title: "Ingin lebih percaya diri",
-              description: "Berbicara dengan grammar yang benar",
-              icon: "shield-check",
-            },
-          ],
-        },
-      },
+  //     {
+  //       id: "benefits",
+  //       type: "benefits",
+  //       content: {
+  //         title: "Benefit",
+  //         icon: "gift",
+  //         tagline: "Perubahan yang Akan",
+  //         taglineAccent: "Kamu Rasakan",
+  //         items: [
+  //           {
+  //             title: "Lebih percaya diri saat berbicara",
+  //             icon: "shield-check",
+  //           },
+  //           {
+  //             title: "Tidak lagi takut salah",
+  //             icon: "smile",
+  //           },
+  //           {
+  //             title: "Bisa menyusun kalimat dengan benar",
+  //             icon: "check-circle",
+  //           },
+  //           {
+  //             title: "Ngomong lebih lancar",
+  //             icon: "zap",
+  //           },
+  //           {
+  //             title: "Tidak overthinking lagi",
+  //             icon: "brain",
+  //           },
+  //           {
+  //             title: "Ngomong lebih rapi & percaya diri",
+  //             icon: "star",
+  //           },
+  //         ],
+  //       },
+  //     },
+  //     {
+  //       id: "fit",
+  //       type: "benefits",
+  //       content: {
+  //         title: "Cocok Untuk Kamu",
+  //         tagline: "Program Ini Cocok Untuk",
+  //         taglineAccent: "Kamu yang...",
+  //         icon: "target",
+  //         items: [
+  //           {
+  //             title: "Sudah ikut Speaking Challenge",
+  //             description: "Dan ingin speaking lebih terstruktur",
+  //             icon: "trending-up",
+  //           },
+  //           {
+  //             title: "Sedang belajar conversation",
+  //             description: "Dan butuh grammar untuk lebih lancar",
+  //             icon: "message-circle",
+  //           },
+  //           {
+  //             title: "Ingin lebih percaya diri",
+  //             description: "Berbicara dengan grammar yang benar",
+  //             icon: "shield-check",
+  //           },
+  //         ],
+  //       },
+  //     },
 
-      {
-        id: "timeline",
-        type: "timeline",
-        content: {
-          icon: "calendar",
-          tagline: "Program 2 Minggu",
-          taglineAccent: "yang Terarah",
-          title: "Timeline",
-          meta: [
-            {
-              icon: "calendar",
-              title: "10 Meeting",
-              description: "Senin – Jumat, 2 minggu",
-            },
-            {
-              icon: "clock",
-              title: "60 Menit / Sesi",
-              description: "Jam 19.00 WIB",
-            },
-            {
-              icon: "video",
-              title: "Live via Zoom",
-              description: "Interaktif, bukan rekaman",
-            },
-            {
-              icon: "mic",
-              title: "Fokus Speaking",
-              description: "Belajar grammar praktis bahasa Inggris",
-            },
-          ],
-          weeks: [
-            {
-              icon: "sprout",
-              week: "Minggu 1: Foundation",
-              title: "Meeting 1-5 • Dasar grammar untuk speaking sehari-hari",
-              points: ["Tenses Dasar", "Questions", "Practice"],
-            },
-            {
-              icon: "target",
-              week: "Minggu 2: Application",
-              title: "Meeting 6-10 • Grammar langsung dipakai dalam speaking",
-              points: ["Conversation", "Role Play", "Speaking"],
-            },
-          ],
-        },
-      },
+  //     {
+  //       id: "timeline",
+  //       type: "timeline",
+  //       content: {
+  //         icon: "calendar",
+  //         tagline: "Program 2 Minggu",
+  //         taglineAccent: "yang Terarah",
+  //         title: "Timeline",
+  //         meta: [
+  //           {
+  //             icon: "calendar",
+  //             title: "10 Meeting",
+  //             description: "Senin – Jumat, 2 minggu",
+  //           },
+  //           {
+  //             icon: "clock",
+  //             title: "60 Menit / Sesi",
+  //             description: "Jam 19.00 WIB",
+  //           },
+  //           {
+  //             icon: "video",
+  //             title: "Live via Zoom",
+  //             description: "Interaktif, bukan rekaman",
+  //           },
+  //           {
+  //             icon: "mic",
+  //             title: "Fokus Speaking",
+  //             description: "Belajar grammar praktis bahasa Inggris",
+  //           },
+  //         ],
+  //         weeks: [
+  //           {
+  //             icon: "sprout",
+  //             week: "Minggu 1: Foundation",
+  //             title: "Meeting 1-5 • Dasar grammar untuk speaking sehari-hari",
+  //             points: ["Tenses Dasar", "Questions", "Practice"],
+  //           },
+  //           {
+  //             icon: "target",
+  //             week: "Minggu 2: Application",
+  //             title: "Meeting 6-10 • Grammar langsung dipakai dalam speaking",
+  //             points: ["Conversation", "Role Play", "Speaking"],
+  //           },
+  //         ],
+  //       },
+  //     },
 
-      {
-        id: "pricing",
-        type: "pricing",
-        content: {
-          title: "Grammar Tidak Harus Rumit",
-          description:
-            "Selama ini kamu belajar grammar dengan cara yang salah...",
+  //     {
+  //       id: "pricing",
+  //       type: "pricing",
+  //       content: {
+  //         title: "Grammar Tidak Harus Rumit",
+  //         description:
+  //           "Selama ini kamu belajar grammar dengan cara yang salah...",
 
-          groups: [
-            {
-              title: "Daily Conversation Program",
-              subtitle: "2 Minggu Intensive",
-              icon: "book",
+  //         groups: [
+  //           {
+  //             title: "Daily Conversation Program",
+  //             subtitle: "2 Minggu Intensive",
+  //             icon: "book",
 
-              features: [
-                "10x Live Meeting via Zoom",
-                "Speaking practice setiap sesi",
-                "Materi grammar praktis",
-                "Komunitas belajar supportif",
-              ],
+  //             features: [
+  //               "10x Live Meeting via Zoom",
+  //               "Speaking practice setiap sesi",
+  //               "Materi grammar praktis",
+  //               "Komunitas belajar supportif",
+  //             ],
 
-              packages: [
-                {
-                  label: "Full Program (10 Sesi)",
-                  price: "Rp 299.000",
-                  originalPrice: "Rp 500.000",
-                  note: "Untuk 10 sesi live meeting",
-                  highlight: "Best Value",
-                },
-              ],
-            },
-          ],
+  //             packages: [
+  //               {
+  //                 label: "Full Program (10 Sesi)",
+  //                 price: "Rp 299.000",
+  //                 originalPrice: "Rp 500.000",
+  //                 note: "Untuk 10 sesi live meeting",
+  //                 highlight: "Best Value",
+  //               },
+  //             ],
+  //           },
+  //         ],
 
-          bonus: [
-            {
-              title: "Speaking Challenge (3 Hari Intensif)",
-              description:
-                "Program tambahan untuk melatih keberanian berbicara sejak awal",
-              highlight: "Gratis senilai Rp49.000",
-              icon: "gift",
-            },
-          ],
+  //         bonus: [
+  //           {
+  //             title: "Speaking Challenge (3 Hari Intensif)",
+  //             description:
+  //               "Program tambahan untuk melatih keberanian berbicara sejak awal",
+  //             highlight: "Gratis senilai Rp49.000",
+  //             icon: "gift",
+  //           },
+  //         ],
 
-          urgency: "Bonus terbatas hanya untuk 50 pendaftar hari ini",
-        },
-      },
+  //         urgency: "Bonus terbatas hanya untuk 50 pendaftar hari ini",
+  //       },
+  //     },
 
-      {
-        id: "testimonials",
-        type: "testimonials",
-        content: {
-          title: "Apa Kata Alumni Kami",
-          items: [
-            {
-              quote:
-                "Sekarang saya lebih percaya diri ngomong tanpa mikir grammar terlalu lama.",
-              name: "Adit",
-              role: "Software Engineer",
-              meta: "24 tahun, Jakarta",
-            },
-            {
-              quote: "Materinya praktis dan langsung bisa dipakai sehari-hari.",
-              name: "Sarah",
-              role: "Marketing Manager",
-              meta: "28 tahun, Surabaya",
-            },
-            {
-              quote:
-                "Pas interview kerja jadi lebih lancar tanpa overthinking.",
-              name: "Rizki",
-              role: "Fresh Graduate",
-              meta: "22 tahun, Bandung",
-            },
-          ],
-        },
-      },
-      {
-        id: "faq",
-        type: "faq",
-        content: [
-          {
-            q: "Apakah program ini cocok untuk pemula total?",
-            a: "Ya, program ini memang dirancang khusus untuk pemula, bahkan dari nol. Materi disusun step-by-step dengan penjelasan sederhana dan langsung dipraktikkan dalam speaking, jadi kamu nggak perlu punya dasar grammar sebelumnya.",
-          },
-          {
-            q: "Berapa jam per minggu yang harus saya dedikasikan?",
-            a: "Kelas berlangsung 5x seminggu dengan durasi sekitar 60 menit per sesi. Selain itu, kamu hanya perlu sedikit waktu tambahan untuk latihan ringan agar hasilnya lebih maksimal.",
-          },
-          {
-            q: "Apa beda Grammar for Speaking dengan kursus grammar lainnya?",
-            a: "Di program ini, kamu nggak fokus menghafal rumus. Semua materi langsung dipakai untuk speaking. Jadi bukan sekadar paham teori, tapi benar-benar bisa digunakan saat kamu ngomong.",
-          },
-          {
-            q: "Apa yang terjadi kalau saya ketinggalan sesi?",
-            a: "Kalau kamu tidak bisa hadir, kamu bisa koordinasi dengan admin untuk solusi terbaik. Selain itu, kamu tetap bisa mengikuti materi berikutnya karena pembelajaran disusun bertahap dan praktis.",
-          },
-          {
-            q: "Apakah ada sertifikat setelah selesai?",
-            a: "Ya, peserta yang mengikuti program sampai selesai akan mendapatkan sertifikat sebagai bukti partisipasi.",
-          },
-          {
-            q: "Bagaimana kalau saya masih ragu untuk memulai?",
-            a: "Wajar banget merasa ragu di awal. Tapi justru program ini dibuat untuk bantu kamu mulai tanpa tekanan. Kamu nggak perlu sempurna — yang penting mulai dulu, dan kami akan bantu kamu sampai bisa lebih percaya diri.",
-          },
-        ],
-      },
-      {
-        id: "cta",
-        type: "cta",
-        content: {
-          title: "Masalahnya Bukan",
-          titleAccent: "Kamu Tidak Bisa",
-          subtitle: "Tapi kamu terlalu takut salah saat ngomong",
+  //     {
+  //       id: "testimonials",
+  //       type: "testimonials",
+  //       content: {
+  //         title: "Apa Kata Alumni Kami",
+  //         items: [
+  //           {
+  //             quote:
+  //               "Sekarang saya lebih percaya diri ngomong tanpa mikir grammar terlalu lama.",
+  //             name: "Adit",
+  //             role: "Software Engineer",
+  //             meta: "24 tahun, Jakarta",
+  //           },
+  //           {
+  //             quote: "Materinya praktis dan langsung bisa dipakai sehari-hari.",
+  //             name: "Sarah",
+  //             role: "Marketing Manager",
+  //             meta: "28 tahun, Surabaya",
+  //           },
+  //           {
+  //             quote:
+  //               "Pas interview kerja jadi lebih lancar tanpa overthinking.",
+  //             name: "Rizki",
+  //             role: "Fresh Graduate",
+  //             meta: "22 tahun, Bandung",
+  //           },
+  //         ],
+  //       },
+  //     },
+  //     {
+  //       id: "faq",
+  //       type: "faq",
+  //       content: [
+  //         {
+  //           q: "Apakah program ini cocok untuk pemula total?",
+  //           a: "Ya, program ini memang dirancang khusus untuk pemula, bahkan dari nol. Materi disusun step-by-step dengan penjelasan sederhana dan langsung dipraktikkan dalam speaking, jadi kamu nggak perlu punya dasar grammar sebelumnya.",
+  //         },
+  //         {
+  //           q: "Berapa jam per minggu yang harus saya dedikasikan?",
+  //           a: "Kelas berlangsung 5x seminggu dengan durasi sekitar 60 menit per sesi. Selain itu, kamu hanya perlu sedikit waktu tambahan untuk latihan ringan agar hasilnya lebih maksimal.",
+  //         },
+  //         {
+  //           q: "Apa beda Grammar for Speaking dengan kursus grammar lainnya?",
+  //           a: "Di program ini, kamu nggak fokus menghafal rumus. Semua materi langsung dipakai untuk speaking. Jadi bukan sekadar paham teori, tapi benar-benar bisa digunakan saat kamu ngomong.",
+  //         },
+  //         {
+  //           q: "Apa yang terjadi kalau saya ketinggalan sesi?",
+  //           a: "Kalau kamu tidak bisa hadir, kamu bisa koordinasi dengan admin untuk solusi terbaik. Selain itu, kamu tetap bisa mengikuti materi berikutnya karena pembelajaran disusun bertahap dan praktis.",
+  //         },
+  //         {
+  //           q: "Apakah ada sertifikat setelah selesai?",
+  //           a: "Ya, peserta yang mengikuti program sampai selesai akan mendapatkan sertifikat sebagai bukti partisipasi.",
+  //         },
+  //         {
+  //           q: "Bagaimana kalau saya masih ragu untuk memulai?",
+  //           a: "Wajar banget merasa ragu di awal. Tapi justru program ini dibuat untuk bantu kamu mulai tanpa tekanan. Kamu nggak perlu sempurna — yang penting mulai dulu, dan kami akan bantu kamu sampai bisa lebih percaya diri.",
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       id: "cta",
+  //       type: "cta",
+  //       content: {
+  //         title: "Masalahnya Bukan",
+  //         titleAccent: "Kamu Tidak Bisa",
+  //         subtitle: "Tapi kamu terlalu takut salah saat ngomong",
 
-          highlight: "Dan itu bisa diperbaiki dengan cara belajar yang tepat",
+  //         highlight: "Dan itu bisa diperbaiki dengan cara belajar yang tepat",
 
-          cta: {
-            label: "Ambil Kelasnya Sekarang",
-            href: buildWhatsAppUrl({
-              title: "Daily Conversation",
-              price: "Rp 299.000",
-              format: "Zoom",
-            }),
-            note: "Mulai dari sekarang, tanpa harus nunggu siap",
-          },
+  //         cta: {
+  //           label: "Ambil Kelasnya Sekarang",
+  //           href: buildWhatsAppUrl({
+  //             title: "Daily Conversation",
+  //             price: "Rp 299.000",
+  //             format: "Zoom",
+  //           }),
+  //           note: "Mulai dari sekarang, tanpa harus nunggu siap",
+  //         },
 
-          urgency: "Kuota terbatas – kelas cepat penuh",
-        },
-      },
-    ],
-  },
+  //         urgency: "Kuota terbatas – kelas cepat penuh",
+  //       },
+  //     },
+  //   ],
+  // },
   "private-class": {
     slug: "private-class",
     theme: { primary: "#4da3ff" },
@@ -1542,23 +1582,27 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "hero",
         type: "hero",
         content: {
-          label: "Batch Baru Segera Dimulai",
-          tagline: "Belajar Lebih Cepat",
-          taglineAccent: "Dengan Cara yang Lebih Personal",
+          image: "/images/home-hero.png",
+          label: "Private Class 1-on-1",
+
+          tagline: "Kamu Sibuk...",
+          taglineAccent: "Tapi Tetap Mau Bisa Bahasa Inggris?",
+
           description:
-            "Private class yang disesuaikan dengan kamu, bukan kamu yang menyesuaikan kelas.",
+            "Bukan masalah waktu. Tapi cara belajarnya yang belum tepat.",
+
           subtitle:
-            "1-on-1 dengan tutor, materi sesuai kebutuhan, dan progress lebih cepat",
+            "Belajar 1-on-1 dengan tutor, jadwal fleksibel, dan materi yang benar-benar kamu butuhkan",
 
           tags: [
-            { title: "1-on-1 Learning", icon: "user" },
-            { title: "Custom Material", icon: "edit" },
-            { title: "Fast Progress", icon: "zap" },
+            { title: "1-on-1 Private", icon: "user" },
+            { title: "Jadwal Fleksibel", icon: "calendar" },
+            { title: "Materi Custom", icon: "edit" },
           ],
 
           cta: [
             {
-              label: "Mulai Private Class Sekarang",
+              label: "Diskusi Kebutuhanmu",
               href: buildWhatsAppUrl({
                 title: "Private Class",
               }),
@@ -1567,8 +1611,77 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           ],
 
           socialProof: {
-            text: "Ribuan peserta sudah berkembang",
+            text: "500+ peserta sudah berkembang lebih cepat",
           },
+        },
+      },
+      {
+        id: "gallery",
+        type: "gallery",
+        content: {
+          tagline: "Dokumentasi",
+          taglineAccent: "Kelas",
+          title: "Momen Belajar Asli di Kelas",
+          subtitle:
+            "Bukan stock photo — ini suasana real class saat peserta latihan langsung bersama tutor",
+
+          trustSignals: [
+            "Foto kelas asli (bukan stock)",
+            "Interaksi real antara tutor & peserta",
+            "Fokus praktik speaking setiap sesi",
+          ],
+
+          photos: [
+            {
+              src: "/images/categories/online/private-class/private-class-dewasa-1.jpeg",
+              tag: "Zoom Live Session",
+              caption:
+                "Sesi 1-on-1 via Zoom, peserta langsung praktik speaking dengan tutor",
+              highlight: true,
+            },
+            {
+              src: "/images/categories/online/private-class/private-class-dewasa-2.jpeg",
+              tag: "Guided Practice",
+              caption:
+                "Tutor memberikan contoh kalimat dan membimbing cara menjawab yang natural",
+            },
+            {
+              src: "/images/categories/online/private-class/private-class-dewasa-3.jpeg",
+              tag: "Speaking Practice",
+              caption:
+                "Peserta aktif latihan menjawab dan membangun confidence saat berbicara",
+            },
+            {
+              src: "/images/categories/online/private-class/private-class-dewasa-4.jpeg",
+              tag: "Feedback Session",
+              caption:
+                "Feedback langsung dari tutor untuk memperbaiki pronunciation dan struktur kalimat",
+            },
+            {
+              src: "/images/categories/online/private-class/private-class-dewasa-5.jpeg",
+              tag: "Interactive Learning",
+              caption:
+                "Belajar tidak hanya teori, tapi langsung praktik dengan interaksi real",
+            },
+            {
+              src: "/images/categories/online/private-class/private-toefl-1.jpeg",
+              tag: "TOEFL Coaching",
+              caption:
+                "Sesi khusus untuk meningkatkan skill TOEFL dengan pendekatan personal",
+            },
+            {
+              src: "/images/categories/online/private-class/private-toefl-2.jpeg",
+              tag: "Focused Training",
+              caption:
+                "Latihan intensif untuk target tertentu seperti speaking test atau interview",
+            },
+            {
+              src: "/images/categories/online/private-class/private-toefl-3.jpeg",
+              tag: "Progress Monitoring",
+              caption:
+                "Setiap sesi dipantau untuk memastikan progress benar-benar terasa",
+            },
+          ],
         },
       },
 
@@ -1576,29 +1689,30 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "why",
         type: "why",
         content: {
-          title: "Kenapa Kamu Tidak Berkembang?",
-          tagline: "Masalah dari",
-          taglineAccent: "Kelas Biasa",
+          title: "Private Class Cocok untuk Kamu yang...",
+          tagline: "Bukan Karena Tidak Bisa",
+          taglineAccent: "Tapi Karena Kondisi",
           items: [
             {
-              title: "Belajar di kelas ramai",
-              description: "Kurang fokus & minim perhatian personal",
-              icon: "users",
-            },
-            {
-              title: "Materi tidak sesuai",
-              description: "Belajar hal yang tidak relevan dengan kebutuhanmu",
-              icon: "book",
-            },
-            {
-              title: "Tidak ada bimbingan",
-              description: "Tidak ada yang memantau progress kamu",
-              icon: "user-x",
-            },
-            {
-              title: "Progress terasa lambat",
-              description: "Sudah lama belajar tapi hasil tidak terasa",
+              title: "Sibuk & waktu terbatas",
+              description: "Tidak bisa ikut kelas reguler dengan jadwal tetap",
               icon: "clock",
+            },
+            {
+              title: "Butuh jadwal fleksibel",
+              description: "Ingin bebas pilih hari & jam belajar",
+              icon: "calendar",
+            },
+            {
+              title: "Ingin fokus materi tertentu",
+              description:
+                "Untuk kebutuhan kerja, akademik, atau target spesifik",
+              icon: "target",
+            },
+            {
+              title: "Ingin progress lebih cepat",
+              description: "Belajar langsung ke poin tanpa buang waktu",
+              icon: "zap",
             },
           ],
         },
@@ -1611,30 +1725,14 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           tagline: "Keunggulan",
           taglineAccent: "Private Class",
           items: [
-            {
-              title: "Fokus 100% ke kamu",
-              icon: "target",
-            },
-            {
-              title: "Tidak terganggu peserta lain",
-              icon: "slash",
-            },
-            {
-              title: "Materi custom sesuai kebutuhan",
-              icon: "edit",
-            },
-            {
-              title: "Feedback langsung dari tutor",
-              icon: "message-circle",
-            },
-            {
-              title: "Progress lebih cepat terasa",
-              icon: "trending-up",
-            },
-            {
-              title: "Bisa langsung dipraktikkan",
-              icon: "zap",
-            },
+            { title: "1-on-1 langsung dengan tutor", icon: "user" },
+            { title: "Materi 100% sesuai kebutuhan", icon: "edit" },
+            { title: "Jadwal fleksibel sesuai waktu kamu", icon: "calendar" },
+            { title: "Durasi 60 menit per sesi", icon: "clock" },
+            { title: "E-Module standar internasional", icon: "book-open" },
+            { title: "Feedback & progress report", icon: "bar-chart" },
+            { title: "Dapat E-Certificate", icon: "award" },
+            { title: "Lingkungan belajar kondusif", icon: "sparkles" },
           ],
         },
       },
@@ -1651,33 +1749,44 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
               icon: "diamond",
 
               features: [
-                "Jadwal fleksibel (bebas pilih hari & jam)",
-                "Materi 100% custom sesuai kebutuhan",
-                "Bisa reschedule hingga 2x per bulan",
-                "Maksimal durasi 60 hari",
+                "1-on-1 dengan tutor",
+                "Jadwal fleksibel (bebas pilih)",
+                "Materi 100% custom",
+                "Durasi 60 menit per sesi",
+                "E-Module & progress report",
+                "E-Certificate",
               ],
 
               packages: [
-                { label: "5x Pertemuan", price: "Rp 699.000" },
-                { label: "8x Pertemuan", price: "Rp 999.000" },
                 {
-                  label: "10x Pertemuan",
-                  price: "Rp 1.199.000",
+                  label: "10x Meeting",
+                  price: "Rp 1.399.000",
+                  originalPrice: "Rp 2.490.000",
                   highlight: "Paling Populer",
+                },
+                {
+                  label: "20x Meeting",
+                  price: "Rp 2.499.000",
+                  originalPrice: "Rp 3.690.000",
+                },
+                {
+                  label: "30x Meeting",
+                  price: "Rp 3.799.000",
+                  originalPrice: "Rp 5.999.000",
                 },
               ],
             },
 
             {
               title: "Intensive",
-              subtitle: "Fokus & Cepat",
+              subtitle: "Fokus & Terstruktur",
               icon: "zap",
 
               features: [
-                "Jadwal tetap Senin – Jumat",
-                "Jam tetap setiap sesi",
-                "Modul disiapkan oleh tutor",
-                "Tanpa reschedule (fokus maksimal)",
+                "Jadwal tetap (Senin – Jumat)",
+                "Durasi 60 menit per sesi",
+                "Materi disiapkan tutor",
+                "Lebih disiplin & konsisten",
               ],
 
               packages: [
@@ -1780,364 +1889,663 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
       },
     ],
   },
-
-  "basic-toefl": {
-    slug: "basic-toefl",
+  "private-class-kids": {
+    slug: "private-class-kids",
     theme: { primary: "#4da3ff" },
-    hasBatch: true,
-
-    batches: [
-      {
-        id: "batch-1",
-        label: "Batch April 2026",
-        startDate: "2026-04-22",
-        endDate: "2026-05-03",
-        schedule: "Senin – Jumat, 20.00 WIB",
-        isOpen: true,
-        status: "open",
-
-        capacity: 50,
-        enrolled: 28,
-
-        ctaLabel: "Daftar Batch Ini",
-        ctaHref: buildWhatsAppUrl({
-          title: "Basic TOEFL Batch 1",
-          price: "Rp 399.000",
-          format: "Zoom",
-        }),
-      },
-      {
-        id: "batch-2",
-        label: "Batch April 2026",
-        startDate: "2026-04-22",
-        endDate: "2026-05-03",
-        schedule: "Senin – Jumat, 20.00 WIB",
-        isOpen: true,
-        status: "open",
-
-        capacity: 50,
-        enrolled: 28,
-
-        ctaLabel: "Daftar Batch Ini",
-        ctaHref: buildWhatsAppUrl({
-          title: "Basic TOEFL Batch 2",
-          price: "Rp 399.000",
-          format: "Zoom",
-        }),
-      },
-    ],
+    hasBatch: false,
 
     sections: [
       {
         id: "hero",
         type: "hero",
         content: {
-          label: "Batch Baru Segera Dimulai",
-          tagline: "Mau Ikut TOEFL Tapi",
-          taglineAccent: "Nggak Paham Soalnya?",
+          image: "/images/home-hero.png",
+          label: "Private Class Anak (Usia 4+)",
+
+          tagline: "Anak Susah Fokus Belajar?",
+          taglineAccent: "Atau Lebih Nyaman Belajar Sendiri?",
+
           description:
-            "Belajar TOEFL dari nol sampai paham cara menjawab soal — tanpa bingung, tanpa stres.",
-          subtitle: "Kursus TOEFL online pemula yang terarah & mudah dipahami",
+            "Setiap anak punya cara belajar berbeda. Dengan private class 1-on-1, anak bisa belajar lebih fokus, nyaman, dan percaya diri.",
+
+          subtitle:
+            "Belajar bahasa Inggris jadi lebih menyenangkan dengan tutor yang sabar & berpengalaman",
 
           tags: [
-            { title: "10x Live Meeting", icon: "video" },
-            { title: "Cocok untuk Pemula", icon: "target" },
-            { title: "Free Pre & Post Test", icon: "file-text" },
+            { title: "1-on-1 Private", icon: "user" },
+            { title: "Usia 4+", icon: "baby" },
+            { title: "Fun & Interactive", icon: "sparkles" },
           ],
 
           cta: [
             {
-              label: "Mulai Belajar TOEFL Sekarang",
+              label: "Konsultasi untuk Anak",
               href: buildWhatsAppUrl({
-                title: "Basic TOEFL",
-                price: "Rp 399.000",
-                format: "Zoom",
+                title: "Private Class for Kids",
               }),
               icon: "message-circle",
             },
           ],
 
           socialProof: {
-            text: "Alumni sudah merasakan peningkatan skor",
-            count: `${SOCIAL_PROOF.totalStudents}+`,
+            text: "Orang tua sudah mempercayakan belajar anaknya",
+            count: "300+",
           },
         },
       },
 
+      // ───────────────── GALLERY ─────────────────
+      {
+        id: "gallery",
+        type: "gallery",
+        content: {
+          tagline: "Dokumentasi",
+          taglineAccent: "Kelas Anak",
+          title: "Belajar Lebih Fokus, Lebih Personal",
+          subtitle:
+            "Setiap sesi dirancang khusus agar anak bisa belajar dengan nyaman dan maksimal",
+
+          trustSignals: [
+            "1-on-1 real session",
+            "Materi sesuai kebutuhan anak",
+            "Fokus & tanpa distraksi",
+          ],
+
+          photos: [
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-1.jpeg",
+              caption:
+                "Sesi private 1-on-1 membuat anak lebih fokus dan nyaman belajar.",
+              tag: "1-on-1 Session",
+              highlight: true,
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-2.jpeg",
+              caption: "Tutor menyesuaikan materi sesuai kemampuan anak.",
+              tag: "Custom Learning",
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-3.jpeg",
+              caption: "Anak bisa belajar tanpa tekanan dari peserta lain.",
+              tag: "Comfort Learning",
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-4.jpeg",
+              caption:
+                "Interaksi langsung membuat anak lebih cepat memahami materi.",
+              tag: "Direct Feedback",
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-5.jpeg",
+              caption:
+                "Tutor membantu anak membangun kepercayaan diri secara bertahap.",
+              tag: "Confidence Building",
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-6.jpeg",
+              caption:
+                "Belajar speaking dengan pendekatan yang santai dan fun.",
+              tag: "Speaking Practice",
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-7.jpeg",
+              caption: "Setiap sesi disesuaikan dengan kebutuhan anak.",
+              tag: "Personalized Session",
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-8.jpeg",
+              caption: "Anak lebih aktif karena mendapatkan perhatian penuh.",
+              tag: "Active Engagement",
+            },
+            {
+              src: "/images/categories/online/private-class-for-kids/private-class-for-kids-9.jpeg",
+              caption:
+                "Belajar jadi lebih efektif karena fokus ke satu tujuan.",
+              tag: "Focused Learning",
+            },
+          ],
+        },
+      },
+
+      // ───────────────── WHY (PARENT PAIN) ─────────────────
       {
         id: "why",
         type: "why",
         content: {
-          title: "Masalah yang Sering Terjadi",
-          tagline: "Kenapa TOEFL Terasa",
-          taglineAccent: "Sulit Dipahami?",
-          subtitle: "Masalahnya bukan di kamu, tapi kamu belum tahu caranya",
+          title: "Kenapa Banyak Anak Sulit Belajar di Kelas Biasa?",
+          tagline: "Bukan Karena Anak Tidak Bisa",
+          taglineAccent: "Tapi Karena Metodenya",
           items: [
             {
-              title: "Soal terasa membingungkan",
-              description:
-                "Sudah baca berkali-kali tapi tetap tidak paham maksud pertanyaannya",
-              icon: "help-circle",
-            },
-            {
-              title: "Grammar terasa rumit",
-              description:
-                "Banyak aturan yang membingungkan dan sulit dipahami",
-              icon: "book-open",
-            },
-            {
-              title: "Sering asal menebak",
-              description: "Memilih jawaban tanpa strategi yang jelas",
-              icon: "shuffle",
-            },
-            {
-              title: "Nilai tidak meningkat",
-              description: "Sudah belajar tapi hasil tetap stagnan",
-              icon: "trending-down",
-            },
-          ],
-        },
-      },
-
-      {
-        id: "steps",
-        type: "steps",
-        content: {
-          title: "Metode Belajar",
-          tagline: "Belajarnya",
-          taglineAccent: "Simple & Terarah",
-          subtitle: "Fokus ke praktik, bukan teori panjang",
-          items: [
-            {
-              n: "01",
-              title: "Penjelasan Konsep",
-              description: "Materi disampaikan sederhana & mudah dipahami",
-              icon: "lightbulb",
-            },
-            {
-              n: "02",
-              title: "Contoh Soal Nyata",
-              description: "Langsung belajar dari soal TOEFL asli",
-              icon: "file-text",
-            },
-            {
-              n: "03",
-              title: "Latihan Bersama",
-              description: "Praktik langsung dengan bimbingan tutor",
+              title: "Kurang fokus di kelas ramai",
+              description: "Anak mudah terdistraksi dan tidak maksimal belajar",
               icon: "users",
             },
             {
-              n: "04",
-              title: "Strategi Menjawab",
-              description: "Pelajari cara menjawab cepat & tepat",
-              icon: "zap",
+              title: "Tidak percaya diri",
+              description: "Takut salah dan malu untuk mencoba",
+              icon: "user-x",
+            },
+            {
+              title: "Metode tidak cocok",
+              description: "Cara belajar tidak sesuai dengan karakter anak",
+              icon: "book",
+            },
+            {
+              title: "Kurang perhatian personal",
+              description:
+                "Tidak ada pendampingan khusus untuk perkembangan anak",
+              icon: "heart",
             },
           ],
         },
       },
 
+      // ───────────────── BENEFITS ─────────────────
       {
         id: "benefits",
         type: "benefits",
         content: {
-          title: "Perubahan yang Akan Kamu Rasakan",
-          tagline: "Dari Bingung Jadi",
-          taglineAccent: "Paham",
+          title: "Kenapa Private Class Lebih Cocok untuk Anak?",
+          tagline: "Belajar Lebih Fokus &",
+          taglineAccent: "Menyenangkan",
           items: [
             {
-              title: "Lebih paham soal TOEFL",
-              icon: "check-circle",
+              title: "1-on-1 dengan tutor sabar & berpengalaman",
+              icon: "user",
             },
-            {
-              title: "Tidak lagi asal menebak",
-              icon: "shield-check",
-            },
-            {
-              title: "Lebih percaya diri saat tes",
-              icon: "smile",
-            },
-            {
-              title: "Punya strategi menjawab",
-              icon: "target",
-            },
-            {
-              title: "Lebih siap menghadapi TOEFL",
-              icon: "award",
-            },
+            { title: "Anak lebih fokus & tidak terdistraksi", icon: "target" },
+            { title: "Materi bisa disesuaikan minat anak", icon: "sparkles" },
+            { title: "Belajar dengan cara fun & interaktif", icon: "smile" },
+            { title: "Jadwal fleksibel sesuai waktu anak", icon: "calendar" },
+            { title: "Durasi 60 menit per sesi", icon: "clock" },
+            { title: "Akses rekaman kelas", icon: "video" },
+            { title: "Progress report untuk orang tua", icon: "bar-chart" },
+            { title: "E-Certificate", icon: "award" },
           ],
         },
       },
 
-      {
-        id: "timeline",
-        type: "timeline",
-        content: {
-          icon: "calendar",
-          tagline: "Program 2 Minggu",
-          taglineAccent: "yang Terarah",
-          title: "Timeline Belajar",
-          subtitle: "10 meeting live • 60 menit per sesi • via Zoom",
-
-          meta: [
-            {
-              icon: "video",
-              title: "10 Live Meeting",
-            },
-            {
-              icon: "clock",
-              title: "60 Menit / Sesi",
-            },
-            {
-              icon: "monitor",
-              title: "Live via Zoom",
-            },
-          ],
-
-          weeks: [
-            {
-              icon: "sprout",
-              week: "Minggu 1",
-              title: "Fondasi TOEFL",
-              points: ["Dasar Structure", "Pola Soal Umum", "Listening Dasar"],
-            },
-            {
-              icon: "target",
-              week: "Minggu 2",
-              title: "Strategi & Latihan",
-              points: [
-                "Strategi menjawab",
-                "Latihan intensif",
-                "Review & post-test",
-              ],
-            },
-          ],
-        },
-      },
-
+      // ───────────────── PRICING ─────────────────
       {
         id: "pricing",
         type: "pricing",
         content: {
-          title: "Investasi untuk Masa Depanmu",
-          description:
-            "Belajar TOEFL dengan cara yang benar jauh lebih hemat dibanding trial & error sendiri",
+          title: "Pilih Paket Belajar untuk Anak",
 
           groups: [
             {
-              title: "Basic TOEFL Program",
-              icon: "graduation-cap",
+              title: "Private Kids Program",
+              subtitle: "Flexible & Personalized",
+              icon: "sparkles",
 
               features: [
-                "10x Live Meeting",
-                "Tutor expert",
-                "Materi lengkap",
-                "Strategi TOEFL",
-                "E-Certificate",
+                "1-on-1 dengan tutor",
+                "Usia mulai 4 tahun",
+                "Jadwal fleksibel (bebas pilih)",
+                "Materi sesuai kebutuhan anak",
+                "Durasi 60 menit per sesi",
+                "E-Module standar internasional",
+                "Progress report & E-Certificate",
+                "Akses rekaman kelas",
               ],
 
               packages: [
                 {
-                  label: "Full Program (2 Minggu)",
-                  price: "Rp 399.000",
-                  originalPrice: "Rp 750.000",
-                  highlight: "Best Value",
+                  label: "10x Meeting",
+                  price: "Rp 1.199.000",
+                  originalPrice: "Rp 1.799.000",
+                  highlight: "Paling Populer",
+                },
+                {
+                  label: "20x Meeting",
+                  price: "Rp 2.199.000",
+                  originalPrice: "Rp 2.999.000",
+                },
+                {
+                  label: "30x Meeting",
+                  price: "Rp 3.199.000",
+                  originalPrice: "Rp 4.999.000",
                 },
               ],
             },
           ],
 
-          bonus: [
-            {
-              title: "Pre-Test",
-              description: "Mengetahui level awal sebelum program dimulai",
-              highlight: "Gratis",
-              icon: "file-search",
-            },
-            {
-              title: "Post-Test",
-              description: "Melihat progress setelah program selesai",
-              highlight: "Gratis",
-              icon: "bar-chart",
-            },
-          ],
-
-          urgency: "Kuota terbatas – kelas cepat penuh",
+          urgency: "Slot terbatas — untuk menjaga kualitas belajar anak",
         },
       },
 
+      // ───────────────── TESTIMONIALS ─────────────────
       {
         id: "testimonials",
         type: "testimonials",
         content: {
-          title: "Hasil Nyata Alumni",
+          title: "Apa Kata Orang Tua",
           items: [
             {
               quote:
-                "Awalnya benar-benar nol. Setelah ikut, skor saya naik signifikan dan lebih paham soal TOEFL.",
-              name: "Rina",
-              role: "Mahasiswa",
-            },
-            {
-              quote: "Materinya mudah dipahami dan langsung bisa dipraktikkan.",
-              name: "Budi",
-              role: "Fresh Graduate",
+                "Anak saya sekarang lebih berani ngomong Inggris. Tutor sangat sabar dan fun!",
+              name: "Ibu Rina",
+              role: "Orang Tua Murid",
             },
             {
               quote:
-                "Step-by-step dan tidak membingungkan. Cocok untuk pemula.",
-              name: "Dewi",
-              role: "Guru",
+                "Belajarnya fleksibel dan anak saya jadi lebih semangat tiap sesi.",
+              name: "Ibu Sari",
+              role: "Orang Tua Murid",
             },
           ],
         },
       },
 
+      // ───────────────── FAQ ─────────────────
       {
         id: "faq",
         type: "faq",
         content: [
           {
-            q: "Apakah program ini cocok untuk pemula?",
-            a: "Ya, program ini dirancang khusus untuk pemula yang belum pernah belajar TOEFL sama sekali. Semua materi dimulai dari dasar.",
+            q: "Mulai usia berapa?",
+            a: "Program ini bisa diikuti mulai usia 4 tahun.",
           },
           {
-            q: "Bagaimana cara mendaftar?",
-            a: "Klik tombol daftar, lalu kamu akan diarahkan ke WhatsApp admin untuk proses pendaftaran yang cepat dan mudah.",
+            q: "Apakah cocok untuk pemula?",
+            a: "Ya, sangat cocok. Materi akan disesuaikan dari level dasar.",
           },
           {
-            q: "Bagaimana jika saya tidak bisa hadir?",
-            a: "Setiap sesi akan direkam, jadi kamu tetap bisa menonton ulang kapan saja jika berhalangan hadir.",
+            q: "Apakah orang tua bisa memantau?",
+            a: "Ya, tersedia progress report dan rekaman kelas.",
+          },
+          {
+            q: "Apakah jadwal bisa fleksibel?",
+            a: "Bisa. Jadwal sepenuhnya bisa disesuaikan dengan waktu anak.",
           },
         ],
       },
 
+      // ───────────────── CTA ─────────────────
       {
         id: "cta",
         type: "cta",
         content: {
-          title: "Kalau Bukan Sekarang",
-          titleAccent: "Kapan Lagi?",
-          subtitle:
-            "Semakin lama kamu menunda, semakin lama kamu tidak siap menghadapi TOEFL",
+          title: "Mulai dari Sekarang",
+          titleAccent: "Untuk Masa Depan Anak",
 
-          highlight:
-            "Mulai dari nol hari ini, dan lihat perubahan dalam 2 minggu",
+          subtitle:
+            "Kemampuan bahasa Inggris akan jadi bekal penting untuk masa depan anak",
+
+          highlight: "Mulai dari kecil, hasilnya akan terasa jauh lebih besar",
 
           cta: {
-            label: "Ambil Kelas TOEFL Sekarang",
+            label: "Konsultasi Sekarang",
             href: buildWhatsAppUrl({
-              title: "Basic TOEFL",
-              price: "Rp 399.000",
-              format: "Zoom",
+              title: "Private Class for Kids",
             }),
-            note: "Batch terbatas — jangan sampai kehabisan",
+            note: "Diskusi kebutuhan anak tanpa komitmen",
           },
 
-          urgency: "Kuota terbatas – kelas cepat penuh",
+          urgency: "Slot terbatas • Prioritas untuk pendaftaran awal",
         },
       },
     ],
   },
+
+  // "basic-toefl": {
+  //   slug: "basic-toefl",
+  //   theme: { primary: "#4da3ff" },
+  //   hasBatch: true,
+
+  //   batches: [
+  //     {
+  //       id: "batch-1",
+  //       label: "Batch April 2026",
+  //       startDate: "2026-04-22",
+  //       endDate: "2026-05-03",
+  //       schedule: "Senin – Jumat, 20.00 WIB",
+  //       isOpen: true,
+  //       status: "open",
+
+  //       capacity: 50,
+  //       enrolled: 28,
+
+  //       ctaLabel: "Daftar Batch Ini",
+  //       ctaHref: buildWhatsAppUrl({
+  //         title: "Basic TOEFL Batch 1",
+  //         price: "Rp 399.000",
+  //         format: "Zoom",
+  //       }),
+  //     },
+  //     {
+  //       id: "batch-2",
+  //       label: "Batch April 2026",
+  //       startDate: "2026-04-22",
+  //       endDate: "2026-05-03",
+  //       schedule: "Senin – Jumat, 20.00 WIB",
+  //       isOpen: true,
+  //       status: "open",
+
+  //       capacity: 50,
+  //       enrolled: 28,
+
+  //       ctaLabel: "Daftar Batch Ini",
+  //       ctaHref: buildWhatsAppUrl({
+  //         title: "Basic TOEFL Batch 2",
+  //         price: "Rp 399.000",
+  //         format: "Zoom",
+  //       }),
+  //     },
+  //   ],
+
+  //   sections: [
+  //     {
+  //       id: "hero",
+  //       type: "hero",
+  //       content: {
+  //         label: "Batch Baru Segera Dimulai",
+  //         tagline: "Mau Ikut TOEFL Tapi",
+  //         taglineAccent: "Nggak Paham Soalnya?",
+  //         description:
+  //           "Belajar TOEFL dari nol sampai paham cara menjawab soal — tanpa bingung, tanpa stres.",
+  //         subtitle: "Kursus TOEFL online pemula yang terarah & mudah dipahami",
+
+  //         tags: [
+  //           { title: "10x Live Meeting", icon: "video" },
+  //           { title: "Cocok untuk Pemula", icon: "target" },
+  //           { title: "Free Pre & Post Test", icon: "file-text" },
+  //         ],
+
+  //         cta: [
+  //           {
+  //             label: "Mulai Belajar TOEFL Sekarang",
+  //             href: buildWhatsAppUrl({
+  //               title: "Basic TOEFL",
+  //               price: "Rp 399.000",
+  //               format: "Zoom",
+  //             }),
+  //             icon: "message-circle",
+  //           },
+  //         ],
+
+  //         socialProof: {
+  //           text: "Alumni sudah merasakan peningkatan skor",
+  //           count: `${SOCIAL_PROOF.totalStudents}+`,
+  //         },
+  //       },
+  //     },
+
+  //     {
+  //       id: "why",
+  //       type: "why",
+  //       content: {
+  //         title: "Masalah yang Sering Terjadi",
+  //         tagline: "Kenapa TOEFL Terasa",
+  //         taglineAccent: "Sulit Dipahami?",
+  //         subtitle: "Masalahnya bukan di kamu, tapi kamu belum tahu caranya",
+  //         items: [
+  //           {
+  //             title: "Soal terasa membingungkan",
+  //             description:
+  //               "Sudah baca berkali-kali tapi tetap tidak paham maksud pertanyaannya",
+  //             icon: "help-circle",
+  //           },
+  //           {
+  //             title: "Grammar terasa rumit",
+  //             description:
+  //               "Banyak aturan yang membingungkan dan sulit dipahami",
+  //             icon: "book-open",
+  //           },
+  //           {
+  //             title: "Sering asal menebak",
+  //             description: "Memilih jawaban tanpa strategi yang jelas",
+  //             icon: "shuffle",
+  //           },
+  //           {
+  //             title: "Nilai tidak meningkat",
+  //             description: "Sudah belajar tapi hasil tetap stagnan",
+  //             icon: "trending-down",
+  //           },
+  //         ],
+  //       },
+  //     },
+
+  //     {
+  //       id: "steps",
+  //       type: "steps",
+  //       content: {
+  //         title: "Metode Belajar",
+  //         tagline: "Belajarnya",
+  //         taglineAccent: "Simple & Terarah",
+  //         subtitle: "Fokus ke praktik, bukan teori panjang",
+  //         items: [
+  //           {
+  //             n: "01",
+  //             title: "Penjelasan Konsep",
+  //             description: "Materi disampaikan sederhana & mudah dipahami",
+  //             icon: "lightbulb",
+  //           },
+  //           {
+  //             n: "02",
+  //             title: "Contoh Soal Nyata",
+  //             description: "Langsung belajar dari soal TOEFL asli",
+  //             icon: "file-text",
+  //           },
+  //           {
+  //             n: "03",
+  //             title: "Latihan Bersama",
+  //             description: "Praktik langsung dengan bimbingan tutor",
+  //             icon: "users",
+  //           },
+  //           {
+  //             n: "04",
+  //             title: "Strategi Menjawab",
+  //             description: "Pelajari cara menjawab cepat & tepat",
+  //             icon: "zap",
+  //           },
+  //         ],
+  //       },
+  //     },
+
+  //     {
+  //       id: "benefits",
+  //       type: "benefits",
+  //       content: {
+  //         title: "Perubahan yang Akan Kamu Rasakan",
+  //         tagline: "Dari Bingung Jadi",
+  //         taglineAccent: "Paham",
+  //         items: [
+  //           {
+  //             title: "Lebih paham soal TOEFL",
+  //             icon: "check-circle",
+  //           },
+  //           {
+  //             title: "Tidak lagi asal menebak",
+  //             icon: "shield-check",
+  //           },
+  //           {
+  //             title: "Lebih percaya diri saat tes",
+  //             icon: "smile",
+  //           },
+  //           {
+  //             title: "Punya strategi menjawab",
+  //             icon: "target",
+  //           },
+  //           {
+  //             title: "Lebih siap menghadapi TOEFL",
+  //             icon: "award",
+  //           },
+  //         ],
+  //       },
+  //     },
+
+  //     {
+  //       id: "timeline",
+  //       type: "timeline",
+  //       content: {
+  //         icon: "calendar",
+  //         tagline: "Program 2 Minggu",
+  //         taglineAccent: "yang Terarah",
+  //         title: "Timeline Belajar",
+  //         subtitle: "10 meeting live • 60 menit per sesi • via Zoom",
+
+  //         meta: [
+  //           {
+  //             icon: "video",
+  //             title: "10 Live Meeting",
+  //           },
+  //           {
+  //             icon: "clock",
+  //             title: "60 Menit / Sesi",
+  //           },
+  //           {
+  //             icon: "monitor",
+  //             title: "Live via Zoom",
+  //           },
+  //         ],
+
+  //         weeks: [
+  //           {
+  //             icon: "sprout",
+  //             week: "Minggu 1",
+  //             title: "Fondasi TOEFL",
+  //             points: ["Dasar Structure", "Pola Soal Umum", "Listening Dasar"],
+  //           },
+  //           {
+  //             icon: "target",
+  //             week: "Minggu 2",
+  //             title: "Strategi & Latihan",
+  //             points: [
+  //               "Strategi menjawab",
+  //               "Latihan intensif",
+  //               "Review & post-test",
+  //             ],
+  //           },
+  //         ],
+  //       },
+  //     },
+
+  //     {
+  //       id: "pricing",
+  //       type: "pricing",
+  //       content: {
+  //         title: "Investasi untuk Masa Depanmu",
+  //         description:
+  //           "Belajar TOEFL dengan cara yang benar jauh lebih hemat dibanding trial & error sendiri",
+
+  //         groups: [
+  //           {
+  //             title: "Basic TOEFL Program",
+  //             icon: "graduation-cap",
+
+  //             features: [
+  //               "10x Live Meeting",
+  //               "Tutor expert",
+  //               "Materi lengkap",
+  //               "Strategi TOEFL",
+  //               "E-Certificate",
+  //             ],
+
+  //             packages: [
+  //               {
+  //                 label: "Full Program (2 Minggu)",
+  //                 price: "Rp 399.000",
+  //                 originalPrice: "Rp 750.000",
+  //                 highlight: "Best Value",
+  //               },
+  //             ],
+  //           },
+  //         ],
+
+  //         bonus: [
+  //           {
+  //             title: "Pre-Test",
+  //             description: "Mengetahui level awal sebelum program dimulai",
+  //             highlight: "Gratis",
+  //             icon: "file-search",
+  //           },
+  //           {
+  //             title: "Post-Test",
+  //             description: "Melihat progress setelah program selesai",
+  //             highlight: "Gratis",
+  //             icon: "bar-chart",
+  //           },
+  //         ],
+
+  //         urgency: "Kuota terbatas – kelas cepat penuh",
+  //       },
+  //     },
+
+  //     {
+  //       id: "testimonials",
+  //       type: "testimonials",
+  //       content: {
+  //         title: "Hasil Nyata Alumni",
+  //         items: [
+  //           {
+  //             quote:
+  //               "Awalnya benar-benar nol. Setelah ikut, skor saya naik signifikan dan lebih paham soal TOEFL.",
+  //             name: "Rina",
+  //             role: "Mahasiswa",
+  //           },
+  //           {
+  //             quote: "Materinya mudah dipahami dan langsung bisa dipraktikkan.",
+  //             name: "Budi",
+  //             role: "Fresh Graduate",
+  //           },
+  //           {
+  //             quote:
+  //               "Step-by-step dan tidak membingungkan. Cocok untuk pemula.",
+  //             name: "Dewi",
+  //             role: "Guru",
+  //           },
+  //         ],
+  //       },
+  //     },
+
+  //     {
+  //       id: "faq",
+  //       type: "faq",
+  //       content: [
+  //         {
+  //           q: "Apakah program ini cocok untuk pemula?",
+  //           a: "Ya, program ini dirancang khusus untuk pemula yang belum pernah belajar TOEFL sama sekali. Semua materi dimulai dari dasar.",
+  //         },
+  //         {
+  //           q: "Bagaimana cara mendaftar?",
+  //           a: "Klik tombol daftar, lalu kamu akan diarahkan ke WhatsApp admin untuk proses pendaftaran yang cepat dan mudah.",
+  //         },
+  //         {
+  //           q: "Bagaimana jika saya tidak bisa hadir?",
+  //           a: "Setiap sesi akan direkam, jadi kamu tetap bisa menonton ulang kapan saja jika berhalangan hadir.",
+  //         },
+  //       ],
+  //     },
+
+  //     {
+  //       id: "cta",
+  //       type: "cta",
+  //       content: {
+  //         title: "Kalau Bukan Sekarang",
+  //         titleAccent: "Kapan Lagi?",
+  //         subtitle:
+  //           "Semakin lama kamu menunda, semakin lama kamu tidak siap menghadapi TOEFL",
+
+  //         highlight:
+  //           "Mulai dari nol hari ini, dan lihat perubahan dalam 2 minggu",
+
+  //         cta: {
+  //           label: "Ambil Kelas TOEFL Sekarang",
+  //           href: buildWhatsAppUrl({
+  //             title: "Basic TOEFL",
+  //             price: "Rp 399.000",
+  //             format: "Zoom",
+  //           }),
+  //           note: "Batch terbatas — jangan sampai kehabisan",
+  //         },
+
+  //         urgency: "Kuota terbatas – kelas cepat penuh",
+  //       },
+  //     },
+  //   ],
+  // },
 
   "english-for-kids": {
     slug: "english-for-kids",
@@ -2170,22 +2578,27 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "hero",
         type: "hero",
         content: {
-          label: "Kursus Bahasa Inggris Anak Online",
-          tagline: "Si Kecil Masih Malu",
-          taglineAccent: "Bicara Bahasa Inggris?",
+          image: "/images/home-hero.png",
+          label: "English Class for Kids (6–12 Tahun)",
+
+          tagline: "Anak Sudah Belajar Inggris...",
+          taglineAccent: "Tapi Masih Malu Bicara?",
+
           description:
-            "Di sini, anak belajar dengan cara yang menyenangkan sampai berani bicara dengan percaya diri.",
-          subtitle: "Belajar fun, interaktif, dan tanpa tekanan",
+            "Bukan karena tidak bisa, tapi karena belum terbiasa dan belum percaya diri.",
+
+          subtitle:
+            "Di sini, anak belajar dengan cara fun, interaktif, dan didukung lingkungan yang positif",
 
           tags: [
-            { title: "Max 8 Anak", icon: "users" },
+            { title: "Max 6 Anak", icon: "users" },
             { title: "Fun & Interactive", icon: "sparkles" },
-            { title: "Tutor Sabar", icon: "heart" },
+            { title: "Tutor Menyenangkan", icon: "heart" },
           ],
 
           cta: [
             {
-              label: "Daftarkan Sekarang",
+              label: "Daftarkan Anak Sekarang",
               href: buildWhatsAppUrl({
                 title: "English for Kids",
                 price: "Rp 349.000",
@@ -2196,8 +2609,86 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           ],
 
           socialProof: {
-            text: "Ribuan orang tua sudah mempercayai Inggris Go",
+            text: "Orang tua sudah melihat perubahan kepercayaan diri anaknya",
+            count: "500+",
           },
+        },
+      },
+      {
+        id: "gallery",
+        type: "gallery",
+        content: {
+          tagline: "Dokumentasi",
+          taglineAccent: "Kelas",
+          title: "Momen Belajar yang Seru & Aktif",
+          subtitle:
+            "Anak-anak belajar sambil bermain, berbicara, dan berinteraksi dengan percaya diri",
+
+          trustSignals: [
+            "Kelas real via Zoom",
+            "Interaksi aktif antar anak",
+            "Tutor sabar & fun",
+          ],
+
+          photos: [
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-1.jpeg",
+              caption:
+                "Anak-anak mulai kelas dengan ice breaking seru biar lebih percaya diri.",
+              tag: "Ice Breaking",
+              highlight: true,
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-2.jpeg",
+              caption:
+                "Belajar kosakata baru lewat gambar dan interaksi langsung.",
+              tag: "Vocabulary Practice",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-3.jpeg",
+              caption:
+                "Anak dilatih berani speaking dalam suasana yang santai.",
+              tag: "Speaking Practice",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-4.jpeg",
+              caption: "Tutor membimbing dengan pendekatan yang fun dan sabar.",
+              tag: "Tutor Interaction",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-5.png",
+              caption:
+                "Belajar sambil bermain game interaktif yang bikin anak engaged.",
+              tag: "Interactive Games",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-6.jpeg",
+              caption: "Anak-anak aktif menjawab dan mencoba berbicara.",
+              tag: "Active Participation",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-7.jpeg",
+              caption:
+                "Latihan komunikasi sederhana dalam kehidupan sehari-hari.",
+              tag: "Daily Conversation",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-8.jpeg",
+              caption: "Belajar bersama teman membuat anak lebih semangat.",
+              tag: "Group Interaction",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-9.jpeg",
+              caption: "Anak mulai berani tampil dan berbicara di depan teman.",
+              tag: "Confidence Building",
+            },
+            {
+              src: "/images/categories/online/english-for-kids/efk-reguler-10.jpeg",
+              caption:
+                "Suasana kelas yang positif membuat anak nyaman belajar.",
+              tag: "Positive Environment",
+            },
+          ],
         },
       },
 
@@ -2241,29 +2732,39 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "benefits",
         type: "benefits",
         content: {
-          title: "Belajar dengan Cara yang Berbeda",
-          tagline: "Fokus Kami Bukan Hanya Pintar",
-          taglineAccent: "Tapi Berani",
+          title: "Belajar dengan Cara yang Tepat untuk Anak",
+          tagline: "Bukan Sekadar Pintar",
+          taglineAccent: "Tapi Percaya Diri",
           items: [
             {
-              title: "Lingkungan aman & supportif",
+              title: "Lingkungan belajar positif & supportif",
               description: "Anak bebas mencoba tanpa takut salah",
               icon: "shield-check",
             },
             {
-              title: "Fokus berbicara",
-              description: "Bukan hafalan, tapi praktik nyata setiap pertemuan",
+              title: "Fokus berbicara setiap sesi",
+              description: "Bukan hafalan, tapi praktik nyata",
               icon: "mic",
             },
             {
               title: "Meningkatkan kepercayaan diri",
-              description: "Anak jadi lebih aktif dan berani",
+              description: "Anak jadi lebih berani dan aktif",
               icon: "trending-up",
             },
             {
-              title: "Belajar dengan cara menyenangkan",
-              description: "Games, interaksi, dan aktivitas seru",
-              icon: "gamepad",
+              title: "E-Module full color",
+              description: "Materi menarik dan mudah dipahami anak",
+              icon: "book-open",
+            },
+            {
+              title: "Tutor kompeten & menyenangkan",
+              description: "Belajar jadi lebih seru dan tidak membosankan",
+              icon: "smile",
+            },
+            {
+              title: "Kelas kecil maksimal 6 anak",
+              description: "Lebih fokus & interaktif",
+              icon: "users",
             },
           ],
         },
@@ -2313,29 +2814,26 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         type: "timeline",
         content: {
           icon: "calendar",
-          tagline: "Program Belajar",
+          tagline: "Program 2 Minggu",
           taglineAccent: "Terstruktur",
           title: "Detail Kelas",
-          subtitle: "Program rutin dengan sistem kecil & fokus",
+          subtitle: "10x pertemuan • 60 menit per sesi • via Zoom",
 
           meta: [
             {
               icon: "video",
-              title: "10 Meeting",
-              description: "via Zoom",
-            },
-            {
-              icon: "calendar",
-              title: "2x per minggu",
-              description: "Selasa & Jumat",
+              title: "Live Zoom",
+              description: "Interaktif & real-time",
             },
             {
               icon: "clock",
-              title: "16.00 WIB",
+              title: "60 Menit",
+              description: "Per sesi",
             },
             {
               icon: "users",
-              title: "Max 8 Anak",
+              title: "Max 6 Anak",
+              description: "Lebih fokus & kondusif",
             },
           ],
 
@@ -2409,9 +2907,9 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "pricing",
         type: "pricing",
         content: {
-          title: "Investasi untuk Masa Depan Anak",
+          title: "Investasi untuk Perkembangan Anak",
           description:
-            "Bukan hanya belajar bahasa Inggris, tapi membangun kepercayaan diri anak sejak dini",
+            "Bukan hanya belajar bahasa Inggris, tapi membangun kepercayaan diri sejak dini",
 
           groups: [
             {
@@ -2419,17 +2917,21 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
               icon: "smile",
 
               features: [
-                "10x pertemuan interaktif",
-                "Kelas kecil max 8 anak",
-                "Tutor profesional & sabar",
-                "Materi sesuai level anak",
-                "Fun & engaging learning",
+                "10x Live Zoom Meeting",
+                "Durasi 60 menit / sesi",
+                "E-Module full color",
+                "Tutor kompeten & menyenangkan",
+                "Lingkungan belajar positif",
+                "Max 6 siswa per kelas",
+                "Progress report",
+                "E-Certificate",
               ],
 
               packages: [
                 {
-                  label: "Full Program",
+                  label: "Full Program (10 Meeting)",
                   price: "Rp 349.000",
+                  originalPrice: "Rp 549.000",
                   highlight: "Best Value",
                 },
               ],
@@ -2539,11 +3041,12 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
 
         capacity: 40,
         enrolled: 26,
+        note: "Max 8 siswa per kelas",
 
         ctaLabel: "Gabung Batch Ini",
         ctaHref: buildWhatsAppUrl({
           title: "Daily Conversation Batch 1",
-          price: "Rp 299.000",
+          price: "Rp 249.000",
           format: "Zoom",
         }),
       },
@@ -2555,26 +3058,26 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "hero",
         type: "hero",
         content: {
+          image: "/images/home-hero.png",
           label: "Kelas Conversation Paling Praktis",
-          tagline: "Masih Kaku Saat",
-          taglineAccent: "Ngobrol Bahasa Inggris?",
+          tagline: "Masih Suka Ngeblank Saat",
+          taglineAccent: "Diajak Ngomong Bahasa Inggris?",
           description:
-            "Latihan percakapan sehari-hari secara langsung bareng tutor. Bukan teori, tapi langsung praktik ngomong.",
+            "Latihan speaking langsung bareng tutor lewat Zoom. Fokus praktik, bukan teori.",
           subtitle:
-            "Fokus kelancaran, kepercayaan diri, dan kosakata yang benar-benar dipakai",
-
+            "Cocok untuk kamu yang ingin lebih lancar, percaya diri, dan tidak lagi stuck saat conversation",
           tags: [
             { title: "10x Live Zoom", icon: "video" },
-            { title: "Full Speaking Practice", icon: "mic" },
-            { title: "Small Group", icon: "users" },
+            { title: "60 Menit / Sesi", icon: "clock" },
+            { title: "Max 8 Siswa", icon: "users" },
           ],
 
           cta: [
             {
-              label: "Mulai Ngomong Sekarang",
+              label: "Gabung Sekarang",
               href: buildWhatsAppUrl({
                 title: "Daily Conversation",
-                price: "Rp 299.000",
+                price: "Rp 249.000",
                 format: "Zoom",
               }),
               icon: "message-circle",
@@ -2588,16 +3091,49 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         },
       },
 
+      {
+        id: "gallery",
+        type: "gallery",
+        content: {
+          tagline: "Dokumentasi",
+          taglineAccent: "Kelas",
+          title: "Latihan Speaking yang Real & Praktis",
+          subtitle:
+            "Peserta langsung praktik berbicara dalam situasi sehari-hari",
+
+          trustSignals: [
+            "Simulasi percakapan nyata",
+            "Latihan speaking aktif",
+            "Lingkungan suportif",
+          ],
+
+          photos: [
+            {
+              src: "/images/categories/online/daily-conversation/daily-conversation-1.png",
+              caption: "Peserta latihan percakapan langsung dengan tutor.",
+              tag: "Live Speaking",
+              highlight: true,
+            },
+            {
+              src: "/images/categories/online/daily-conversation/daily-conversation-2.png",
+              caption:
+                "Simulasi situasi sehari-hari seperti kerja dan pertemanan.",
+              tag: "Real-life Practice",
+            },
+          ],
+        },
+      },
+
       // ───────────────── WHY ─────────────────
       {
         id: "why",
         type: "why",
         content: {
-          title: "Kenapa Kamu Masih Kaku Saat Ngomong?",
-          tagline: "Masalah Utama Saat",
-          taglineAccent: "Conversation",
+          title: "Kenapa Kamu Sering Ngeblank?",
+          tagline: "Masalah Umum Saat",
+          taglineAccent: "Ngomong Inggris",
           subtitle:
-            "Bukan karena kamu tidak bisa, tapi karena jarang praktik real conversation",
+            "Bukan karena kamu tidak bisa, tapi karena kurang praktik real conversation",
           items: [
             {
               title: "Jarang praktik langsung",
@@ -2672,7 +3208,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         type: "benefits",
         content: {
           title: "Perubahan yang Akan Kamu Rasakan",
-          tagline: "Dari Kaku Jadi",
+          tagline: "Dari Ngeblank Jadi",
           taglineAccent: "Lancar",
           items: [
             {
@@ -2699,6 +3235,9 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
               title: "Ngomong lebih natural & santai",
               icon: "sparkles",
             },
+            { title: "Dapat E-Certificate", icon: "award" },
+            { title: "Progress Report personal", icon: "bar-chart" },
+            { title: "E-Module standar internasional", icon: "book-open" },
           ],
         },
       },
@@ -2738,9 +3277,9 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
               week: "Minggu 1",
               title: "Basic Conversation",
               points: [
-                "Daily introduction",
+                "Perkenalan & daily interaction",
                 "Simple response",
-                "Basic interaction",
+                "Basic conversation",
               ],
             },
             {
@@ -2762,29 +3301,33 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "pricing",
         type: "pricing",
         content: {
-          title: "Latihan Ngomong yang Benar",
+          title: "Investasi untuk Skill Speaking Kamu",
           description:
-            "Kalau mau lancar, kamu butuh praktik — bukan cuma belajar",
+            "Kalau mau lancar, kamu butuh praktik — bukan cuma belajar teori",
 
           groups: [
             {
               title: "Daily Conversation Program",
-              subtitle: "2 Minggu Intensive",
+              subtitle: "Program 2 Minggu Intensive",
               icon: "message-circle",
 
               features: [
-                "10x Live Conversation Session",
-                "Practice langsung setiap sesi",
-                "Feedback dari tutor",
-                "Topik real-life conversation",
-                "Small group discussion",
+                "10x Live Zoom Meeting",
+                "Durasi 60 menit / sesi",
+                "Full speaking practice",
+                "Topik daily conversation",
+                "Feedback langsung dari tutor",
+                "E-Module standar internasional",
+                "Progress Report personal",
+                "E-Certificate",
+                "Max 8 siswa per kelas",
               ],
 
               packages: [
                 {
                   label: "Full Program (10 Sesi)",
-                  price: "Rp 299.000",
-                  originalPrice: "Rp 500.000",
+                  price: "Rp 249.000",
+                  originalPrice: "Rp 449.000",
                   highlight: "Best Seller",
                 },
               ],
@@ -2841,6 +3384,10 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
             q: "Apakah banyak praktik?",
             a: "Ya, fokus utama program ini adalah praktik speaking, bukan teori.",
           },
+          {
+            q: "Berapa jumlah siswa per kelas?",
+            a: "Maksimal 8 siswa per kelas agar lebih efektif.",
+          },
         ],
       },
 
@@ -2851,7 +3398,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         content: {
           title: "Kalau Kamu Tidak Mulai",
           titleAccent: "Ngomong Sekarang",
-          subtitle: "Kamu akan terus stuck di level yang sama",
+          subtitle: "Kamu akan terus ngeblank saat diajak conversation",
 
           highlight:
             "Lancar itu bukan karena belajar lama, tapi karena sering latihan",
@@ -2860,7 +3407,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
             label: "Gabung Sekarang",
             href: buildWhatsAppUrl({
               title: "Daily Conversation",
-              price: "Rp 299.000",
+              price: "Rp 249.000",
               format: "Zoom",
             }),
             note: "Mulai dari batch terdekat",
@@ -2911,6 +3458,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "hero",
         type: "hero",
         content: {
+          image: "/images/home-hero.png",
           label: "Program Terbukti Efektif",
           tagline: "Bukan Sekadar Liburan",
           taglineAccent: "Tapi Pengalaman yang Mengubah Anak Anda",
@@ -3173,6 +3721,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "hero",
         type: "hero",
         content: {
+          image: "/images/home-hero.png",
           label: "Program untuk Sekolah & Institusi",
           tagline: "Program English Camp & Training",
           taglineAccent: "untuk Sekolah Anda",
@@ -3364,18 +3913,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           ],
         },
       },
-      {
-        id: "gallery",
-        type: "gallery",
-        content: {
-          title: "Kegiatan Program",
-          images: [
-            "/images/categories/offline/rombongan/rombongan-1.jpg",
-            "/images/categories/offline/rombongan/rombongan-2.jpg",
-            "/images/categories/offline/rombongan/rombongan-3.jpg",
-          ],
-        },
-      },
+
       {
         id: "faq",
         type: "faq",

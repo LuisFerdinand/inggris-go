@@ -36,10 +36,12 @@ import {
   ShieldCheck,
   CheckCircle,
   Brain,
+  Award,
 } from "lucide-react";
 
 export const ICONS = {
   "alert-circle": AlertCircle,
+  award: Award,
   "bar-chart": BarChart,
   book: Book,
   "book-open": BookOpen,

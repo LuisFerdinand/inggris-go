@@ -3449,7 +3449,6 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
 
       {/* 2. Programs */}
       <ProgramList category={meta} theme={theme} />
-
       {/* 4. Pain → Solution */}
       {hasBoth && (
         <PainSolutionSection
@@ -3458,7 +3457,6 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
           theme={theme}
         />
       )}
-
       {/* Fallback: only pain points */}
       {!hasBoth && meta.painPoints && meta.painPoints.length > 0 && (
         <section
@@ -3542,17 +3540,14 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
           </div>
         </section>
       )}
-
       {/* 5. Steps */}
       {meta.steps && meta.steps.length > 0 && (
         <StepsSection steps={meta.steps} theme={theme} />
       )}
-
       {/* 6. Experience */}
       {meta.experience && meta.experience.length > 0 && (
         <ExperienceSection experience={meta.experience} theme={theme} />
       )}
-
       {/* 7. Comparison */}
       {meta.comparison && meta.comparison.length > 0 && (
         <ComparisonSection
@@ -3561,15 +3556,12 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
           categoryLabel={meta.shortLabel ?? meta.label}
         />
       )}
-
       {/* 8. Testimonials */}
       {meta.socialProof && meta.socialProof.length > 0 && (
         <TestimonialsSection socialProof={meta.socialProof} theme={theme} />
       )}
-
       {/* 9. FAQ — NEW */}
       <FAQSection theme={theme} category={meta} />
-
       {/* 10. Final CTA */}
       <CTASection cta={meta.cta} theme={theme} />
     </main>

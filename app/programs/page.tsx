@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icon";
 import { generateTheme } from "@/lib/utils";
 import { SOCIAL_PROOF } from "@/constants";
 import { buildWhatsAppUrl } from "@/lib/config";
+import Image from "next/image";
 
 /* ─── Utils ───────────────────────────────────────────────────── */
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -113,6 +114,21 @@ function IconBox({
 /* ══════════════════════════════════════════════════════════════
  * SECTION 1: HERO
  * ══════════════════════════════════════════════════════════════ */
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HeroSection — /programs page
+//
+// Desktop RIGHT panel — 3 deliberate non-overlapping zones:
+//   [ZONE A]  Social proof bubble, centred, with downward tail → image
+//   [ZONE B]  Student image — fills middle, z:10 king of the column
+//             Cards peek from left/right edges BEHIND image (z:1, clipped)
+//   [ZONE C]  Journey pill (left) + Active badge (right), row at bottom
+//
+// Mobile:
+//   Image + one badge only, rendered inline between CTAs and stats
+//   NO cards, NO floating overlays — clean emotional anchor
+// ─────────────────────────────────────────────────────────────────────────────
+
 function HeroSection({
   onScrollToPrograms,
 }: {
@@ -131,26 +147,20 @@ function HeroSection({
     });
   }, []);
 
-  const CARD_CONFIGS = [
-    { top: "4%", right: "2%", rotate: 6, delay: 0.15, px: 14, py: -9 },
-    { top: "35%", right: "-3%", rotate: -5, delay: 0.22, px: -9, py: 13 },
-    { top: "66%", right: "5%", rotate: 8, delay: 0.3, px: 15, py: -7 },
-  ];
-
   return (
     <section
       ref={containerRef}
       onMouseMove={handleMouseMove}
       className="relative w-full overflow-hidden bg-background flex items-center"
-      style={{
-        minHeight: "min(calc(100svh - var(--navbar-height)), 820px)",
-      }}
+      style={{ minHeight: "min(calc(100svh - var(--navbar-height)), 840px)" }}
     >
+      {/* ── Background ── */}
       <div className="absolute inset-0 bg-hero-mesh" />
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.018]"
+        className="pointer-events-none absolute inset-0 opacity-[0.016]"
         style={{
-          backgroundImage: `linear-gradient(var(--color-brand-blue) 1px, transparent 1px), linear-gradient(90deg, var(--color-brand-blue) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(var(--color-brand-blue) 1px, transparent 1px),
+            linear-gradient(90deg, var(--color-brand-blue) 1px, transparent 1px)`,
           backgroundSize: "72px 72px",
         }}
       />
@@ -159,52 +169,53 @@ function HeroSection({
       <motion.div
         className="pointer-events-none absolute"
         style={{
-          width: 560,
-          height: 560,
-          top: "-22%",
-          right: "15%",
+          width: 700,
+          height: 700,
+          top: "-30%",
+          right: "-5%",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(26,82,200,0.09) 0%, transparent 70%)",
-          filter: "blur(55px)",
+            "radial-gradient(circle, rgba(26,82,200,0.08) 0%, transparent 65%)",
+          filter: "blur(60px)",
         }}
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ scale: [1, 1.08, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
         className="pointer-events-none absolute"
         style={{
-          width: 380,
-          height: 380,
-          bottom: "5%",
-          left: "2%",
+          width: 400,
+          height: 400,
+          bottom: "0%",
+          left: "-4%",
           borderRadius: "50%",
           background:
-            "radial-gradient(circle, rgba(255,107,53,0.055) 0%, transparent 70%)",
-          filter: "blur(65px)",
+            "radial-gradient(circle, rgba(255,107,53,0.05) 0%, transparent 70%)",
+          filter: "blur(70px)",
         }}
-        animate={{ scale: [1, 1.14, 1] }}
+        animate={{ scale: [1, 1.12, 1] }}
         transition={{
-          duration: 11,
+          duration: 12,
           repeat: Infinity,
           ease: "easeInOut",
-          delay: 2.5,
+          delay: 3,
         }}
       />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-16 lg:py-20">
-        <div className="grid lg:grid-cols-[1fr_460px] xl:grid-cols-[1fr_500px] gap-12 lg:gap-16 items-center">
-          {/* Left */}
-          <div>
+      {/* ── Content ── */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-14 lg:py-0">
+        <div className="grid lg:grid-cols-[1fr_500px] xl:grid-cols-[1fr_540px] gap-8 lg:gap-12 items-center">
+          {/* ══ LEFT — Text ══ */}
+          <div className="flex flex-col">
             <Reveal delay={0}>
               <Pill>✦ Temukan Jalur Belajarmu</Pill>
             </Reveal>
 
             <Reveal delay={0.07}>
               <h1
-                className="font-display font-extrabold mt-5 mb-5 leading-[1.05]"
+                className="font-display font-extrabold mt-5 mb-5 leading-[1.04]"
                 style={{
-                  fontSize: "clamp(2.1rem, 4.8vw, 3.75rem)",
+                  fontSize: "clamp(2.05rem, 4.6vw, 3.6rem)",
                   letterSpacing: "-0.027em",
                   color: "var(--color-brand-blue-navy)",
                 }}
@@ -217,10 +228,10 @@ function HeroSection({
             <Reveal delay={0.13}>
               <p
                 style={{
-                  fontSize: "clamp(0.975rem, 1.4vw, 1.125rem)",
+                  fontSize: "clamp(0.9375rem, 1.35vw, 1.0625rem)",
                   color: "var(--color-brand-text-muted)",
-                  maxWidth: "500px",
-                  lineHeight: "1.72",
+                  maxWidth: "480px",
+                  lineHeight: "1.74",
                   marginBottom: "2rem",
                 }}
               >
@@ -233,7 +244,7 @@ function HeroSection({
               <div className="flex flex-wrap gap-3">
                 <motion.button
                   onClick={onScrollToPrograms}
-                  className="bg-navy-gradient text-white font-display font-bold px-6 py-3.5 rounded-xl flex items-center gap-2 cursor-pointer"
+                  className="bg-navy-gradient text-white font-display font-bold px-7 py-3.5 rounded-xl flex items-center gap-2 cursor-pointer"
                   style={{
                     fontSize: "0.9375rem",
                     boxShadow: "var(--shadow-glow-navy-btn)",
@@ -257,6 +268,7 @@ function HeroSection({
                     />
                   </svg>
                 </motion.button>
+
                 <motion.a
                   href={buildWhatsAppUrl({
                     title: "Konsultasi",
@@ -283,9 +295,17 @@ function HeroSection({
               </div>
             </Reveal>
 
+            {/* Mobile visual — between CTA and stats, desktop hidden */}
+            {/* <Reveal delay={0.22}>
+              <div className="lg:hidden mt-8">
+                <HeroMobileVisual />
+              </div>
+            </Reveal> */}
+
+            {/* Stats */}
             <Reveal delay={0.26}>
               <div
-                className="flex flex-wrap items-center gap-6 mt-9 pt-9"
+                className="flex flex-wrap items-center gap-6 mt-8 pt-8"
                 style={{
                   borderTop: "1px solid var(--color-brand-border-soft)",
                 }}
@@ -295,7 +315,10 @@ function HeroSection({
                   { n: "3", label: "Jalur Belajar" },
                   { n: "98%", label: "Puas Belajar" },
                 ].map((item) => (
-                  <div key={item.n} className="flex items-baseline gap-2">
+                  <div
+                    key={String(item.n)}
+                    className="flex items-baseline gap-2"
+                  >
                     <span
                       className="font-display font-black"
                       style={{
@@ -320,102 +343,23 @@ function HeroSection({
             </Reveal>
           </div>
 
-          {/* Right: Floating cards with journey path */}
-          <div className="relative hidden lg:block" style={{ height: "600px" }}>
-            {/* Journey path SVG */}
-            <svg
-              className="absolute inset-0 pointer-events-none"
-              style={{ width: "100%", height: "100%", opacity: 0.12 }}
-              viewBox="0 0 460 600"
-              fill="none"
-            >
-              <path
-                d="M340 60 Q390 150 330 220 Q275 290 340 390 Q370 450 310 530"
-                stroke="var(--color-brand-blue)"
-                strokeWidth="2"
-                strokeDasharray="6 8"
-              />
-              {/* Step dots */}
-              {[60, 220, 390].map((cy, i) => (
-                <circle
-                  key={i}
-                  cx={i === 0 ? 340 : i === 1 ? 330 : 340}
-                  cy={cy}
-                  r="5"
-                  fill="var(--color-brand-blue)"
-                  opacity="0.5"
-                />
-              ))}
-            </svg>
-
-            {/* Step labels */}
-            {/* {["Mulai", "Berkembang", "Mahir"].map((label, i) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + i * 0.1, duration: 0.5 }}
-                className="absolute font-display font-bold"
-                style={{
-                  left: "6%",
-                  top: i === 0 ? "8%" : i === 1 ? "36%" : "63%",
-                  fontSize: "0.625rem",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "var(--color-brand-text-faint)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <span
-                  className="inline-block w-4 h-px"
-                  style={{ background: "var(--color-brand-border)" }}
-                />
-                {label}
-              </motion.div>
-            ))} */}
-
-            {categories.map((cat, i) => {
-              const cfg = CARD_CONFIGS[i];
-              return (
-                <motion.div
-                  key={cat.key}
-                  initial={{ opacity: 0, x: 50, y: 20 }}
-                  animate={{
-                    opacity: 1,
-                    x: mouse.x * cfg.px,
-                    y: mouse.y * cfg.py,
-                    rotate: cfg.rotate,
-                  }}
-                  transition={{
-                    opacity: { duration: 0.7, delay: cfg.delay, ease: EASE },
-                    x: { duration: 0.55, ease: EASE },
-                    y: { duration: 0.55, ease: EASE },
-                  }}
-                  className="absolute"
-                  style={{ top: cfg.top, right: cfg.right, zIndex: 3 - i }}
-                >
-                  <HeroFloatCard category={cat} />
-                </motion.div>
-              );
-            })}
-          </div>
+          {/* ══ RIGHT — Desktop 3-zone panel (hidden on mobile) ══ */}
+          <HeroDesktopPanel categories={categories} mouse={mouse} />
         </div>
       </div>
 
       {/* Scroll nudge */}
       <motion.div
-        className="absolute bottom-7 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 cursor-pointer"
-        animate={{ y: [0, 7, 0] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 cursor-pointer"
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         onClick={onScrollToPrograms}
-        style={{ opacity: 0.38 }}
+        style={{ opacity: 0.35 }}
       >
         <span
           style={{
-            fontSize: "0.625rem",
-            letterSpacing: "0.12em",
+            fontSize: "0.5625rem",
+            letterSpacing: "0.14em",
             color: "var(--color-brand-text-faint)",
             textTransform: "uppercase",
           }}
@@ -438,7 +382,7 @@ function HeroSection({
             r="2.2"
             fill="var(--color-brand-blue)"
             animate={{ cy: [6, 13, 6] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           />
         </svg>
       </motion.div>
@@ -446,57 +390,508 @@ function HeroSection({
   );
 }
 
+function HeroDesktopPanel({
+  categories,
+  mouse,
+}: {
+  categories: CategoryMeta[];
+  mouse: { x: number; y: number };
+}) {
+  // Cards anchored to left/right edges — never in centre where image sits
+  // offset is how far they peek out from the panel edge (negative = outside)
+  const CARD_CFG = [
+    {
+      side: "left" as const,
+      top: "40%",
+      edgeOffset: "-15%",
+      rotate: -7,
+      delay: 0.2,
+      px: -10,
+      py: 7,
+    },
+    {
+      side: "right" as const,
+      top: "36%",
+      edgeOffset: "-10%",
+      rotate: 8,
+      delay: 0.28,
+      px: 10,
+      py: -6,
+    },
+    {
+      side: "left" as const,
+      top: "65%",
+      edgeOffset: "-20%",
+      rotate: -5,
+      delay: 0.36,
+      px: -8,
+      py: 8,
+    },
+  ];
+
+  return (
+    <div
+      className="hidden lg:flex flex-col"
+      style={{ height: "680px", position: "relative" }}
+    >
+      {/* Panel-wide background radial */}
+      <div
+        className="pointer-events-none absolute inset-0 "
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 65% at 50% 56%, rgba(26,82,200,0.065) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* ══ ZONE A — Social proof bubble (top 15%) ══ */}
+      <div
+        className=" z-20 flex justify-center items-end absolute top-30 left-30"
+        style={{ height: "15%", paddingBottom: "12px" }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -14, scale: 0.94 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.55, duration: 0.55, ease: EASE }}
+        >
+          <SocialProofBubble />
+        </motion.div>
+      </div>
+
+      {/* ══ ZONE B — Image + side cards (middle 70%) ══ */}
+      <div
+        className="relative flex-1 flex items-end justify-center overflow-visible"
+        style={{ minHeight: 0 }}
+      >
+        {/* Side-peeking category cards — behind image */}
+        {categories.slice(0, 3).map((cat, i) => {
+          const cfg = CARD_CFG[i];
+          const isLeft = cfg.side === "left";
+          return (
+            <motion.div
+              key={cat.key}
+              className="absolute"
+              style={{
+                top: cfg.top,
+                ...(isLeft
+                  ? { left: cfg.edgeOffset }
+                  : { right: cfg.edgeOffset }),
+                zIndex: 1,
+              }}
+              initial={{ opacity: 0, x: isLeft ? -24 : 24 }}
+              animate={{
+                opacity: 0.78,
+                x: mouse.x * cfg.px,
+                y: mouse.y * cfg.py,
+                rotate: cfg.rotate,
+              }}
+              transition={{
+                opacity: { duration: 0.6, delay: cfg.delay, ease: EASE },
+                x: { duration: 0.55, ease: EASE },
+                y: { duration: 0.55, ease: EASE },
+              }}
+            >
+              <HeroFloatCard category={cat} />
+            </motion.div>
+          );
+        })}
+
+        {/* Radial glow centred behind student */}
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
+          style={{
+            width: "72%",
+            height: "82%",
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(26,82,200,0.13) 0%, transparent 68%)",
+          }}
+        />
+
+        {/* Floor shadow ellipse */}
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
+          style={{
+            width: "54%",
+            height: "28px",
+            borderRadius: "50%",
+            background: "rgba(10,45,135,0.08)",
+            filter: "blur(20px)",
+          }}
+        />
+
+        {/* Student image — z-king, idle float */}
+        <motion.div
+          className="relative"
+          style={{ zIndex: 10 }}
+          // animate={{ y: [-5, 5, -5] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <Image
+            src="/images/home-hero.png"
+            alt="Siswa belajar Bahasa Inggris dengan percaya diri — InggrisGo"
+            width={340}
+            height={400}
+            className="object-contain"
+            style={{
+              maxHeight: "400px",
+              width: "auto",
+              filter: "drop-shadow(0 24px 48px rgba(0,0,0,0.13))",
+            }}
+            priority
+          />
+        </motion.div>
+      </div>
+
+      {/* ══ ZONE C — Journey pill + badge row (bottom 12%) ══ */}
+      <div
+        className="relative z-20 flex items-center justify-between px-3"
+        style={{ height: "12%", gap: "12px" }}
+      >
+        {/* Journey progression */}
+        <motion.div
+          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+          style={{
+            background: "rgba(255,255,255,0.9)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(26,82,200,0.11)",
+            boxShadow: "0 4px 20px rgba(10,45,135,0.08)",
+          }}
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.9, duration: 0.5, ease: EASE }}
+        >
+          {["Pemula", "Menengah", "Mahir"].map((step, i) => (
+            <div key={step} className="flex items-center gap-1.5">
+              {i > 0 && (
+                <svg
+                  viewBox="0 0 10 10"
+                  className="w-2.5 h-2.5 flex-shrink-0"
+                  fill="none"
+                >
+                  <path
+                    d="M2 5h6M5.5 2.5l2.5 2.5-2.5 2.5"
+                    stroke="var(--color-brand-text-faint)"
+                    strokeWidth={1.4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+              <span
+                className="font-display font-semibold"
+                style={{
+                  fontSize: "0.625rem",
+                  letterSpacing: "0.05em",
+                  color:
+                    i === 0
+                      ? "var(--color-brand-blue)"
+                      : "var(--color-brand-text-faint)",
+                  fontWeight: i === 0 ? 700 : 500,
+                }}
+              >
+                {step}
+              </span>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Active students badge */}
+        <motion.div
+          className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl"
+          style={{
+            background: "rgba(255,255,255,0.9)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(26,82,200,0.11)",
+            boxShadow: "0 4px 20px rgba(10,45,135,0.08)",
+          }}
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.95, duration: 0.5, ease: EASE }}
+        >
+          <motion.span
+            className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ background: "#4ade80" }}
+            animate={{ opacity: [1, 0.25, 1] }}
+            transition={{ duration: 1.8, repeat: Infinity }}
+          />
+          <span
+            className="font-display font-bold"
+            style={{
+              fontSize: "0.6875rem",
+              color: "var(--color-brand-blue-navy)",
+            }}
+          >
+            {SOCIAL_PROOF.activeStudents}+ siswa aktif
+          </span>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HeroMobileVisual — mobile only, shown inline between CTAs and stats
+// ─────────────────────────────────────────────────────────────────────────────
+function HeroMobileVisual() {
+  return (
+    <div
+      className="relative flex justify-center items-end"
+      style={{ height: "260px" }}
+    >
+      {/* Glow */}
+      <div
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
+        style={{
+          width: "76%",
+          height: "76%",
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle, rgba(26,82,200,0.10) 0%, transparent 70%)",
+        }}
+      />
+
+      {/* Image */}
+      <motion.div
+        className="relative z-10"
+        animate={{ y: [-4, 4, -4] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Image
+          src="/images/home-hero.png"
+          alt="Siswa belajar Bahasa Inggris — InggrisGo"
+          width={200}
+          height={260}
+          className="object-contain"
+          style={{
+            maxHeight: "230px",
+            width: "auto",
+            filter: "drop-shadow(0 16px 36px rgba(0,0,0,0.12))",
+          }}
+          priority
+        />
+      </motion.div>
+
+      {/* Single badge bottom-right */}
+      <motion.div
+        className="absolute bottom-3 right-3 z-20 flex items-center gap-2 px-3 py-2 rounded-xl"
+        style={{
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          border: "1px solid rgba(26,82,200,0.11)",
+          boxShadow: "0 4px 16px rgba(10,45,135,0.08)",
+        }}
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.4, duration: 0.4, ease: EASE }}
+      >
+        <motion.span
+          className="w-1.5 h-1.5 rounded-full"
+          style={{ background: "#4ade80" }}
+          animate={{ opacity: [1, 0.25, 1] }}
+          transition={{ duration: 1.8, repeat: Infinity }}
+        />
+        <span
+          className="font-display font-bold"
+          style={{
+            fontSize: "0.625rem",
+            color: "var(--color-brand-blue-navy)",
+          }}
+        >
+          {SOCIAL_PROOF.activeStudents}+ siswa aktif
+        </span>
+      </motion.div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SocialProofBubble — lives in Zone A, tail points down toward image
+// ─────────────────────────────────────────────────────────────────────────────
+function SocialProofBubble() {
+  return (
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "12px",
+        padding: "14px 16px",
+        borderRadius: "20px",
+        maxWidth: "320px",
+        background: "rgba(255,255,255,0.94)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: "1.5px solid rgba(26,82,200,0.11)",
+        boxShadow:
+          "0 8px 32px rgba(10,45,135,0.09), 0 2px 8px rgba(0,0,0,0.04)",
+      }}
+    >
+      {/* Downward tail */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: -10,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 0,
+          height: 0,
+          borderLeft: "10px solid transparent",
+          borderRight: "10px solid transparent",
+          borderTop: "11px solid rgba(255,255,255,0.94)",
+        }}
+      />
+
+      {/* Avatar initial */}
+      <div
+        style={{
+          width: "34px",
+          height: "34px",
+          borderRadius: "50%",
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "rgba(26,82,200,0.09)",
+          color: "var(--color-brand-blue)",
+          fontSize: "0.75rem",
+          fontWeight: 800,
+          border: "1.5px solid rgba(26,82,200,0.18)",
+          fontFamily: "var(--font-display)",
+        }}
+      >
+        A
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p
+          style={{
+            fontSize: "0.75rem",
+            fontStyle: "italic",
+            color: "var(--color-brand-blue-navy)",
+            lineHeight: 1.55,
+            margin: "0 0 8px",
+          }}
+        >
+          "Akhirnya berani ngomong Inggris dengan percaya diri!"
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontSize: "0.625rem",
+                fontWeight: 700,
+                color: "var(--color-brand-blue-navy)",
+                fontFamily: "var(--font-display)",
+              }}
+            >
+              Andi R.
+            </p>
+            <p
+              style={{
+                fontSize: "0.5625rem",
+                color: "var(--color-brand-text-faint)",
+              }}
+            >
+              Mahasiswa, Surabaya
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "2px", flexShrink: 0 }}>
+            {[...Array(5)].map((_, i) => (
+              <svg
+                key={i}
+                viewBox="0 0 12 12"
+                style={{ width: "10px", height: "10px" }}
+                fill="#FBBF24"
+              >
+                <path d="M6 1l1.5 3 3.2.4-2.3 2.2.5 3.2L6 8.2l-2.9 1.6.5-3.2L1.3 4.4l3.2-.4z" />
+              </svg>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HeroFloatCard — compact card for side-peek positions
+// ─────────────────────────────────────────────────────────────────────────────
 function HeroFloatCard({ category }: { category: CategoryMeta }) {
   const price = getStartingPrice(category.programs);
   const theme = generateTheme(category.theme.primary);
+
   return (
     <div
-      className="rounded-2xl"
       style={{
-        width: "252px",
+        width: "196px",
         background: "var(--color-brand-surface)",
         border: `1.5px solid ${theme.border}`,
-        boxShadow: `0 24px 64px rgba(10,45,135,0.12), 0 4px 18px rgba(10,45,135,0.07)`,
-        padding: "1.125rem",
+        boxShadow: `0 14px 40px rgba(10,45,135,0.09), 0 4px 12px rgba(10,45,135,0.05)`,
+        padding: "0.875rem",
+        borderRadius: "16px",
       }}
     >
-      {/* Accent top strip */}
+      {/* Accent strip */}
       <div
         style={{
           height: "2px",
           background: theme.gradient,
-          marginBottom: "0.875rem",
+          marginBottom: "0.625rem",
           borderRadius: "2px",
         }}
       />
 
-      <div className="flex items-center gap-3 mb-3.5">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          marginBottom: "10px",
+        }}
+      >
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
           style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
             background: theme.soft,
-            border: theme.border,
+            border: `1px solid ${theme.border}`,
           }}
         >
           <Icon
             name={category.icon as any}
-            className="w-5 h-5"
+            className="w-4 h-4"
             style={{ color: theme.primary } as any}
           />
         </div>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <p
-            className="font-display font-bold"
             style={{
-              fontSize: "0.875rem",
+              fontSize: "0.8125rem",
+              fontWeight: 700,
               color: theme.primary,
+              fontFamily: "var(--font-display)",
             }}
           >
             {category.shortLabel}
           </p>
           <p
             style={{
-              fontSize: "0.625rem",
+              fontSize: "0.5625rem",
               color: "var(--color-brand-text-faint)",
             }}
           >
@@ -505,30 +900,23 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
         </div>
       </div>
 
-      <p
+      <div
         style={{
-          fontSize: "0.6875rem",
-          color: "var(--color-brand-text-muted)",
-          lineHeight: "1.6",
-          marginBottom: "0.875rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingTop: "8px",
+          borderTop: "1px solid var(--color-brand-border-soft)",
         }}
       >
-        {category.tagline}{" "}
-        <span style={{ color: theme.primary, fontWeight: 600 }}>
-          {category.taglineAccent}
-        </span>
-      </p>
-
-      <div
-        className="flex items-center justify-between pt-2.5"
-        style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
-      >
-        <div className="flex items-center gap-1.5">
+        <div style={{ display: "flex", gap: "3px" }}>
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="w-1.5 h-1.5 rounded-full"
               style={{
+                width: "5px",
+                height: "5px",
+                borderRadius: "50%",
                 background:
                   i < 4 ? theme.soft : "var(--color-brand-border-soft)",
                 opacity: i < 4 ? 1 : 0.4,
@@ -537,8 +925,12 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
           ))}
         </div>
         <span
-          className="font-display font-black"
-          style={{ fontSize: "0.9375rem", color: theme.primary }}
+          style={{
+            fontSize: "0.875rem",
+            fontWeight: 900,
+            color: theme.primary,
+            fontFamily: "var(--font-display)",
+          }}
         >
           {price}
         </span>
