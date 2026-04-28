@@ -1,5 +1,5 @@
-import { db } from "@/server/db";
-import { user } from "@/server/db/schema";
+import { db } from "@/app/db/db";
+import { user } from "@/app/db/schema";
 
 export const userService = {
   async getAllUsers() {

@@ -3,38 +3,38 @@ import { buildWhatsAppUrl } from "@/lib/config";
 
 export type PriceTier = { label: string; price: string };
 
-type ComparisonItem = {
+export type ComparisonItem = {
   label: string;
   value: string;
 };
 
-type PainPoint = {
+export type PainPoint = {
   title: string;
   description: string;
   icon?: string;
 };
 
-type Step = {
+export type Step = {
   n?: string;
   title: string;
   description: string;
   icon?: string;
 };
 
-type ExperienceItem = {
+export type ExperienceItem = {
   title: string;
   description: string;
   icon?: string;
 };
 
-type SocialProof = {
+export type SocialProof = {
   quote: string;
   name?: string;
   role?: string;
   meta?: string;
 };
 
-type CategoryCTA = {
+export type CategoryCTA = {
   title: string;
   titleAccent?: string;
   description: string;
@@ -43,13 +43,13 @@ type CategoryCTA = {
   secondaryLabel?: string;
   secondaryHref?: string;
 };
-type HeroCTA = {
+export type HeroCTA = {
   label: string;
   href?: string;
   icon?: string;
 };
 
-type Tag = {
+export type Tag = {
   title: string;
   icon?: string;
 };
@@ -86,7 +86,6 @@ export type CategoryMeta = {
   icon?: string;
   heroImage?: string;
 
-  /** Single source-of-truth primary color — feed into generateTheme() */
   theme: {
     primary: string;
   };
@@ -667,7 +666,7 @@ type MetaData = {
   description?: string;
   icon?: string;
 };
-type Benefit = {
+export type Benefit = {
   title: string;
   description?: string;
   icon: string;
@@ -901,7 +900,7 @@ export type ProgramSection =
   | TestimonialSection
   | CTASection;
 
-type ProgramBatch = {
+export type ProgramBatch = {
   id: string;
   label: string;
   startDate?: string;

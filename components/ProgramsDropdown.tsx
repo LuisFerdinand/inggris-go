@@ -625,7 +625,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
           }}
         >
           <p style={{ fontSize: "0.6875rem", color: "#94A3B8" }}>
-            Masih bingung memilih?
+            Bingung pilih yang mana?
           </p>
           <Link
             href="/programs"

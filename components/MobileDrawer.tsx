@@ -411,7 +411,7 @@ function MobileProgramPanel({
     <div className="pb-3 pl-4">
       {/* ══ Lead programs ══════════════════════════════════════ */}
       <div
-        className="mx-4 mb-4 rounded-xl overflow-hidden"
+        className="mx-4 my-2 rounded-xl overflow-hidden"
         style={{
           background: leadTheme.soft,
           border: `1px solid ${leadTheme.border}`,
@@ -602,14 +602,14 @@ function MobileProgramPanel({
 
       {/* ══ Consult nudge ══════════════════════════════════════ */}
       <div
-        className="flex items-center justify-between mx-4 mt-5 pt-3"
+        className="flex items-center justify-between mx-4 mt-2 pt-2"
         style={{ borderTop: "1px solid rgba(15,35,64,0.06)" }}
       >
         <p style={{ fontSize: "0.75rem", color: "#94A3B8" }}>
           Bingung pilih yang mana?
         </p>
         <Link
-          href="/contact"
+          href="/programs"
           onClick={onClose}
           className="inline-flex items-center gap-1 font-semibold"
           style={{
@@ -618,7 +618,7 @@ function MobileProgramPanel({
             textDecoration: "none",
           }}
         >
-          Konsultasi gratis <ChevronRight className="w-3 h-3" />
+          Lihat selengkapnya <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
     </div>

@@ -6,8 +6,8 @@ import {
   integer,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import { user } from "./users";
 import { relations } from "drizzle-orm";
+import { user } from "./auth-schema";
 
 export const post = pgTable("post", {
   id: text("id").primaryKey(),

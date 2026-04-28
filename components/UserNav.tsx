@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth/client";
 import { BRAND } from "@/constants/brand";
+import { AuthForm } from "./AuthForm";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const SPRING = { type: "spring", damping: 28, stiffness: 240 } as const;
@@ -140,16 +141,15 @@ function GoogleIcon() {
   );
 }
 
-function AuthModal({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState<AuthTab>("login");
-  const [step, setStep] = useState<AuthStep>("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [magicEmail, setMagicEmail] = useState("");
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [authMethod, setAuthMethod] = useState<"email" | "magic">("email");
+interface AuthModalProps {
+  onClose: () => void;
+  defaultTab?: AuthTab;
+}
+
+function AuthModal({ onClose, defaultTab = "login" }: AuthModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
+  // Keyboard close + body scroll lock
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", handler);
@@ -160,66 +160,6 @@ function AuthModal({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
 
-  const setField =
-    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((f) => ({ ...f, [k]: e.target.value }));
-
-  const resetError = () => {
-    setErrorMsg("");
-    setStep("idle");
-  };
-
-  const handleGoogleLogin = useCallback(async () => {
-    setStep("loading");
-    setErrorMsg("");
-    try {
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/dashboard",
-      });
-    } catch {
-      setStep("error");
-      setErrorMsg("Login Google gagal. Coba lagi.");
-    }
-  }, []);
-
-  const handleMagicLink = useCallback(async () => {
-    if (!magicEmail.trim()) return;
-    setStep("loading");
-    setErrorMsg("");
-  }, [magicEmail]);
-
-  const handleEmailSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      setStep("loading");
-      setErrorMsg("");
-      try {
-        if (tab === "login") {
-          await authClient.signIn.email({
-            email: form.email,
-            password: form.password,
-          });
-        } else {
-          await authClient.signUp.email({
-            name: form.name,
-            email: form.email,
-            password: form.password,
-          });
-        }
-        onClose();
-      } catch (err: unknown) {
-        setStep("error");
-        const msg =
-          err instanceof Error ? err.message : "Terjadi kesalahan. Coba lagi.";
-        setErrorMsg(msg);
-      }
-    },
-    [tab, form, onClose],
-  );
-
-  const isLoading = step === "loading";
-
   return (
     <motion.div
       ref={overlayRef}
@@ -227,596 +167,166 @@ function AuthModal({ onClose }: { onClose: () => void }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
-      style={{ background: "rgba(15,35,64,0.55)", backdropFilter: "blur(8px)" }}
+      className="fixed inset-0 z-[2000] flex items-start justify-center p-4 overflow-y-auto"
+      style={{ background: "rgba(6,15,46,0.65)", backdropFilter: "blur(12px)" }}
       onClick={(e) => e.target === overlayRef.current && onClose()}
       role="dialog"
       aria-modal="true"
-      aria-label="Login atau Daftar"
+      aria-label={defaultTab === "login" ? "Masuk ke akun" : "Buat akun baru"}
     >
       <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.96 }}
+        initial={{ opacity: 0, y: 32, scale: 0.94 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={SPRING}
-        className="relative w-full max-w-[420px] rounded-3xl overflow-hidden"
+        className="relative w-full max-w-[440px] rounded-3xl overflow-hidden max-h-[90vh] flex flex-col"
         style={{
-          background: "white",
+          background: "var(--color-brand-surface)",
           boxShadow:
-            "0 32px 80px rgba(15,35,64,0.22), 0 8px 24px rgba(15,35,64,0.1)",
+            "0 40px 100px rgba(6,15,46,0.4), 0 8px 24px rgba(6,15,46,0.15)",
+          border: "1px solid var(--color-brand-border-soft)",
         }}
       >
-        {/* ── Decorative header band ── */}
-        <div
-          className="relative px-7 pt-8 pb-6 overflow-hidden"
-          style={{
-            background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
-          }}
-        >
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle, white 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-            }}
-          />
-          <div
-            className="absolute -top-8 -right-8 w-40 h-40 rounded-full opacity-20"
-            style={{
-              background: `radial-gradient(circle, ${BRAND.blue}, transparent 70%)`,
-            }}
-          />
-          <div
-            className="absolute -bottom-6 -left-6 w-28 h-28 rounded-full opacity-15"
-            style={{
-              background: `radial-gradient(circle, ${BRAND.blue}, transparent 70%)`,
-            }}
-          />
-
-          <div className="relative">
-            <div className="flex items-center justify-between mb-5">
-              <div
-                className="px-2.5 py-1 rounded-full flex items-center gap-1.5"
-                style={{
-                  background: "rgba(255,107,53,0.18)",
-                  border: "1px solid rgba(255,107,53,0.3)",
-                }}
-              >
-                <Sparkles className="w-3 h-3" style={{ color: BRAND.blue }} />
-                <span
-                  className="font-display font-bold"
-                  style={{
-                    fontSize: "0.5625rem",
-                    color: BRAND.blue,
-                    letterSpacing: "0.08em",
-                  }}
-                >
-                  INGGRIS GO
-                </span>
-              </div>
-              {/* Close button — no orange glow, just subtle white/10 */}
-              <button
-                onClick={onClose}
-                className="w-7 h-7 rounded-full flex items-center justify-center transition-colors"
-                style={{ background: "rgba(255,255,255,0.1)" }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(255,255,255,0.18)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "rgba(255,255,255,0.1)";
-                }}
-                aria-label="Tutup"
-              >
-                <X className="w-3.5 h-3.5 text-white" />
-              </button>
-            </div>
-
-            <h2
-              className="font-display font-bold text-white mb-1.5 whitespace-pre-line"
-              style={{ fontSize: "1.375rem", lineHeight: "1.25" }}
-            >
-              {tab === "login"
-                ? "Selamat datang\nkembali! 👋"
-                : "Mulai perjalanan\nbahasa Inggrismu 🚀"}
-            </h2>
-            <p
-              style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.55)" }}
-            >
-              {tab === "login"
-                ? "Masuk untuk lanjutkan belajar."
-                : "Daftar gratis, akses program terbaik."}
-            </p>
-          </div>
-
-          {/* Tab switcher */}
-          <div
-            className="relative mt-5 flex rounded-xl p-1"
-            style={{ background: "rgba(255,255,255,0.08)" }}
-          >
-            {(["login", "signup"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => {
-                  setTab(t);
-                  resetError();
-                }}
-                className="relative flex-1 py-2 rounded-lg font-display font-semibold transition-colors duration-150 cursor-pointer"
-                style={{
-                  fontSize: "0.8125rem",
-                  color: tab === t ? BRAND.blueNavy : "rgba(255,255,255,0.6)",
-                  zIndex: 1,
-                }}
-              >
-                {tab === t && (
-                  <motion.div
-                    layoutId="auth-tab-pill"
-                    className="absolute inset-0 rounded-lg"
-                    style={{ background: "white" }}
-                    transition={{ duration: 0.22, ease: EASE }}
-                  />
-                )}
-                <span className="relative">
-                  {t === "login" ? "Masuk" : "Daftar"}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* ── Branded Header ── */}
+        <ModalHeader onClose={onClose} defaultTab={defaultTab} />
 
         {/* ── Body ── */}
-        <div className="px-7 py-6">
-          <AnimatePresence mode="wait">
-            {step === "magic-sent" ? (
-              <motion.div
-                key="magic-sent"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2, ease: EASE }}
-                className="text-center py-4"
-              >
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
-                  style={{ background: "rgba(255,107,53,0.1)" }}
-                >
-                  <Mail className="w-6 h-6" style={{ color: BRAND.blue }} />
-                </div>
-                <p
-                  className="font-display font-bold mb-1.5"
-                  style={{ fontSize: "1rem", color: BRAND.blueNavy }}
-                >
-                  Cek emailmu!
-                </p>
-                <p
-                  style={{
-                    fontSize: "0.8125rem",
-                    color: "#64748B",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  Kami kirim magic link ke{" "}
-                  <span
-                    className="font-semibold"
-                    style={{ color: BRAND.blueNavy }}
-                  >
-                    {magicEmail}
-                  </span>
-                  . Klik link tersebut untuk masuk.
-                </p>
-                <button
-                  onClick={() => {
-                    setStep("idle");
-                    setMagicEmail("");
-                  }}
-                  className="mt-5 text-sm font-display font-semibold transition-colors"
-                  style={{ color: BRAND.blue }}
-                >
-                  Ganti email?
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key={tab}
-                initial={{ opacity: 0, x: tab === "login" ? -10 : 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18, ease: EASE }}
-                className="space-y-4"
-              >
-                <button
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-3 rounded-xl py-3 font-display font-semibold transition-all duration-150 disabled:opacity-60 hover:-translate-y-px active:translate-y-0"
-                  style={{
-                    fontSize: "0.875rem",
-                    color: BRAND.blueNavy,
-                    border: "1.5px solid rgba(15,35,64,0.12)",
-                    background: "white",
-                    boxShadow: "0 1px 4px rgba(15,35,64,0.06)",
-                  }}
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <GoogleIcon />
-                  )}
-                  Lanjutkan dengan Google
-                </button>
-
-                <div className="flex items-center gap-3">
-                  <div
-                    className="flex-1 h-px"
-                    style={{ background: "rgba(15,35,64,0.08)" }}
-                  />
-                  <span style={{ fontSize: "0.6875rem", color: "#94A3B8" }}>
-                    atau
-                  </span>
-                  <div
-                    className="flex-1 h-px"
-                    style={{ background: "rgba(15,35,64,0.08)" }}
-                  />
-                </div>
-
-                {/* <div
-                  className="flex rounded-xl p-0.5"
-                  style={{
-                    background: "#F1F5F9",
-                    border: "1px solid rgba(15,35,64,0.06)",
-                  }}
-                >
-                  {(["email", "magic"] as const).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => {
-                        setAuthMethod(m);
-                        resetError();
-                      }}
-                      className="relative flex-1 py-1.5 rounded-[10px] font-display font-semibold transition-all duration-150 cursor-pointer text-center"
-                      style={{
-                        fontSize: "0.75rem",
-                        color: authMethod === m ? BRAND.blueNavy : "#94A3B8",
-                        background: authMethod === m ? "white" : "transparent",
-                        boxShadow:
-                          authMethod === m
-                            ? "0 1px 4px rgba(15,35,64,0.08)"
-                            : "none",
-                      }}
-                    >
-                      {m === "email" ? "Email & Password" : "Magic Link"}
-                    </button>
-                  ))}
-                </div> */}
-
-                <AnimatePresence mode="wait">
-                  {authMethod === "email" ? (
-                    <motion.form
-                      key="email-form"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.15, ease: EASE }}
-                      onSubmit={handleEmailSubmit}
-                      className="space-y-3"
-                      noValidate
-                    >
-                      {tab === "signup" && (
-                        <div>
-                          <label
-                            htmlFor="auth-name"
-                            className="block font-display font-semibold mb-1.5"
-                            style={{ fontSize: "0.75rem", color: "#475569" }}
-                          >
-                            Nama Lengkap
-                          </label>
-                          <input
-                            id="auth-name"
-                            type="text"
-                            value={form.name}
-                            onChange={setField("name")}
-                            required
-                            autoComplete="name"
-                            placeholder="Budi Santoso"
-                            className="w-full px-3.5 py-2.5 rounded-xl outline-none transition-all duration-150"
-                            style={{
-                              fontSize: "0.875rem",
-                              color: BRAND.blueNavy,
-                              border: "1.5px solid rgba(15,35,64,0.12)",
-                              background: "#FAFAFA",
-                            }}
-                            onFocus={(e) => {
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.borderColor = BRAND.blue;
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.background = "white";
-                            }}
-                            onBlur={(e) => {
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.borderColor = "rgba(15,35,64,0.12)";
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.background = "#FAFAFA";
-                            }}
-                          />
-                        </div>
-                      )}
-                      <div>
-                        <label
-                          htmlFor="auth-email"
-                          className="block font-display font-semibold mb-1.5"
-                          style={{ fontSize: "0.75rem", color: "#475569" }}
-                        >
-                          Email
-                        </label>
-                        <input
-                          id="auth-email"
-                          type="email"
-                          value={form.email}
-                          onChange={setField("email")}
-                          required
-                          autoComplete="email"
-                          placeholder="kamu@email.com"
-                          className="w-full px-3.5 py-2.5 rounded-xl outline-none transition-all duration-150"
-                          style={{
-                            fontSize: "0.875rem",
-                            color: BRAND.blueNavy,
-                            border: "1.5px solid rgba(15,35,64,0.12)",
-                            background: "#FAFAFA",
-                          }}
-                          onFocus={(e) => {
-                            (e.currentTarget as HTMLElement).style.borderColor =
-                              BRAND.blue;
-                            (e.currentTarget as HTMLElement).style.background =
-                              "white";
-                          }}
-                          onBlur={(e) => {
-                            (e.currentTarget as HTMLElement).style.borderColor =
-                              "rgba(15,35,64,0.12)";
-                            (e.currentTarget as HTMLElement).style.background =
-                              "#FAFAFA";
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          htmlFor="auth-password"
-                          className="block font-display font-semibold mb-1.5"
-                          style={{ fontSize: "0.75rem", color: "#475569" }}
-                        >
-                          Password
-                        </label>
-                        <div className="relative">
-                          <input
-                            id="auth-password"
-                            type={showPass ? "text" : "password"}
-                            value={form.password}
-                            onChange={setField("password")}
-                            required
-                            autoComplete={
-                              tab === "login"
-                                ? "current-password"
-                                : "new-password"
-                            }
-                            placeholder="Min. 8 karakter"
-                            className="w-full px-3.5 py-2.5 pr-10 rounded-xl outline-none transition-all duration-150"
-                            style={{
-                              fontSize: "0.875rem",
-                              color: BRAND.blueNavy,
-                              border: "1.5px solid rgba(15,35,64,0.12)",
-                              background: "#FAFAFA",
-                            }}
-                            onFocus={(e) => {
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.borderColor = BRAND.blue;
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.background = "white";
-                            }}
-                            onBlur={(e) => {
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.borderColor = "rgba(15,35,64,0.12)";
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.background = "#FAFAFA";
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPass((s) => !s)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                            style={{ color: "#94A3B8" }}
-                            tabIndex={-1}
-                            aria-label={
-                              showPass
-                                ? "Sembunyikan password"
-                                : "Tampilkan password"
-                            }
-                          >
-                            {showPass ? (
-                              <EyeOff className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      <AnimatePresence>
-                        {step === "error" && (
-                          <motion.p
-                            initial={{ opacity: 0, y: -4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="text-xs font-display font-semibold px-3 py-2 rounded-lg"
-                            style={{
-                              background: "rgba(239,68,68,0.07)",
-                              color: "#DC2626",
-                              border: "1px solid rgba(239,68,68,0.12)",
-                            }}
-                          >
-                            {errorMsg}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-
-                      <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-display font-bold text-white transition-all duration-150 disabled:opacity-70 hover:-translate-y-px active:translate-y-0"
-                        style={{
-                          fontSize: "0.875rem",
-                          background: `linear-gradient(135deg, ${BRAND.blue} 0%, #E8521C 100%)`,
-                          boxShadow: "0 4px 16px rgba(255,107,53,0.4)",
-                        }}
-                      >
-                        {isLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : tab === "login" ? (
-                          "Masuk Sekarang"
-                        ) : (
-                          "Buat Akun Gratis"
-                        )}
-                      </button>
-                    </motion.form>
-                  ) : (
-                    <motion.div
-                      key="magic-form"
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.15, ease: EASE }}
-                      className="space-y-3"
-                    >
-                      <div>
-                        <label
-                          htmlFor="magic-email"
-                          className="block font-display font-semibold mb-1.5"
-                          style={{ fontSize: "0.75rem", color: "#475569" }}
-                        >
-                          Email kamu
-                        </label>
-                        <input
-                          id="magic-email"
-                          type="email"
-                          value={magicEmail}
-                          onChange={(e) => setMagicEmail(e.target.value)}
-                          autoComplete="email"
-                          placeholder="kamu@email.com"
-                          className="w-full px-3.5 py-2.5 rounded-xl outline-none transition-all duration-150"
-                          style={{
-                            fontSize: "0.875rem",
-                            color: BRAND.blueNavy,
-                            border: "1.5px solid rgba(15,35,64,0.12)",
-                            background: "#FAFAFA",
-                          }}
-                          onFocus={(e) => {
-                            (e.currentTarget as HTMLElement).style.borderColor =
-                              BRAND.blue;
-                            (e.currentTarget as HTMLElement).style.background =
-                              "white";
-                          }}
-                          onBlur={(e) => {
-                            (e.currentTarget as HTMLElement).style.borderColor =
-                              "rgba(15,35,64,0.12)";
-                            (e.currentTarget as HTMLElement).style.background =
-                              "#FAFAFA";
-                          }}
-                          onKeyDown={(e) =>
-                            e.key === "Enter" && handleMagicLink()
-                          }
-                        />
-                      </div>
-                      <p
-                        style={{
-                          fontSize: "0.6875rem",
-                          color: "#94A3B8",
-                          lineHeight: "1.5",
-                        }}
-                      >
-                        Kami akan kirim link ajaib ke emailmu — tanpa perlu
-                        ingat password.
-                      </p>
-                      <AnimatePresence>
-                        {step === "error" && (
-                          <motion.p
-                            initial={{ opacity: 0, y: -4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="text-xs font-display font-semibold px-3 py-2 rounded-lg"
-                            style={{
-                              background: "rgba(239,68,68,0.07)",
-                              color: "#DC2626",
-                              border: "1px solid rgba(239,68,68,0.12)",
-                            }}
-                          >
-                            {errorMsg}
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
-                      <button
-                        onClick={handleMagicLink}
-                        disabled={isLoading || !magicEmail.trim()}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-display font-bold text-white transition-all duration-150 disabled:opacity-50 hover:-translate-y-px active:translate-y-0"
-                        style={{
-                          fontSize: "0.875rem",
-                          background: `linear-gradient(135deg, ${BRAND.blue} 0%, #E8521C 100%)`,
-                          boxShadow: "0 4px 16px rgba(255,107,53,0.4)",
-                        }}
-                      >
-                        {isLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            <Mail className="w-4 h-4" />
-                            Kirim Magic Link
-                          </>
-                        )}
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {step !== "magic-sent" && (
-            <p
-              className="text-center mt-5"
-              style={{
-                fontSize: "0.6875rem",
-                color: "#94A3B8",
-                lineHeight: "1.5",
-              }}
-            >
-              Dengan melanjutkan, kamu setuju dengan{" "}
-              <Link
-                href="/terms"
-                className="underline"
-                style={{ color: "#64748B" }}
-              >
-                Syarat Layanan
-              </Link>{" "}
-              &{" "}
-              <Link
-                href="/privacy"
-                className="underline"
-                style={{ color: "#64748B" }}
-              >
-                Kebijakan Privasi
-              </Link>{" "}
-              kami.
-            </p>
-          )}
+        <div className="px-7 py-6 overflow-y-auto">
+          {" "}
+          <AuthForm
+            variant="modal"
+            defaultTab={defaultTab}
+            onSuccess={onClose}
+            onClose={onClose}
+          />
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+/* ─── Modal Header ───────────────────────────────────────── */
+function ModalHeader({
+  onClose,
+  defaultTab,
+}: {
+  onClose: () => void;
+  defaultTab: AuthTab;
+}) {
+  return (
+    <div
+      className="relative px-7 pt-8 pb-6 overflow-hidden min-h-[140px]"
+      style={{
+        background:
+          "linear-gradient(135deg, var(--color-brand-blue-abyss) 0%, var(--color-brand-blue-navy) 100%)",
+      }}
+    >
+      {/* Dot grid */}
+      <div
+        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, white 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+      {/* Glow orbs */}
+      <div
+        className="absolute -top-12 -right-12 w-52 h-52 rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(26,82,200,0.28), transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(247,181,0,0.12), transparent 70%)",
+        }}
+      />
+      {/* Gold line */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[1.5px]"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, var(--color-brand-gold-mid), transparent)",
+        }}
+      />
+
+      <div className="relative">
+        {/* Top row */}
+        <div className="flex items-center justify-between mb-2">
+          <div
+            className="px-2.5 py-1 rounded-full flex items-center gap-1.5"
+            style={{
+              background: "rgba(247,181,0,0.15)",
+              border: "1px solid rgba(247,181,0,0.25)",
+            }}
+          >
+            <Image
+              src={"/logo.png"}
+              alt="Logo"
+              width={50}
+              height={50}
+              className="w-3 h-3"
+              style={{ color: "var(--color-brand-gold-vivid)" }}
+            />
+            <span
+              className="font-display font-bold"
+              style={{
+                fontSize: "0.5625rem",
+                color: "var(--color-brand-gold-vivid)",
+                letterSpacing: "0.1em",
+              }}
+            >
+              INGGRIS GO
+            </span>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-150"
+            style={{ background: "rgba(255,255,255,0.08)" }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background =
+                "rgba(255,255,255,0.16)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background =
+                "rgba(255,255,255,0.08)";
+            }}
+            aria-label="Tutup"
+          >
+            <X className="w-3.5 h-3.5 text-white" />
+          </button>
+        </div>
+
+        <h2
+          className="font-display font-bold text-white mb-2 whitespace-pre-line"
+          style={{
+            fontSize: "1.5rem",
+            lineHeight: "1.2",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {defaultTab === "login"
+            ? "Selamat datang"
+            : "Mulai perjalanan\nbahasa Inggrismu 🚀"}
+        </h2>
+        <p
+          style={{
+            fontSize: "0.8125rem",
+            color: "rgba(255,255,255,0.45)",
+            lineHeight: "1.5",
+          }}
+        >
+          {defaultTab === "login"
+            ? "Masuk untuk melanjutkan belajar."
+            : "Daftar gratis, akses program terbaik."}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -1423,13 +933,15 @@ export function MobileUserSection({
 export function AuthModalPortal({
   isOpen,
   onClose,
+  defaultTab,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  defaultTab?: AuthTab;
 }) {
   return (
     <AnimatePresence>
-      {isOpen && <AuthModal onClose={onClose} />}
+      {isOpen && <AuthModal onClose={onClose} defaultTab={defaultTab} />}
     </AnimatePresence>
   );
 }

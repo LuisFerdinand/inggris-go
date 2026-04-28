@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
-import { roleEnum } from "./enums";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -74,6 +73,11 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+}));
+
 export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {
     fields: [session.userId],
@@ -86,52 +90,4 @@ export const accountRelations = relations(account, ({ one }) => ({
     fields: [account.userId],
     references: [user.id],
   }),
-}));
-
-export const role = pgTable("role", {
-  id: text("id").primaryKey(),
-  name: roleEnum("name").notNull().unique(),
-  description: text("description"),
-});
-
-export const userRole = pgTable(
-  "user_role",
-  {
-    id: text("id").primaryKey(),
-
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-
-    roleId: text("role_id")
-      .notNull()
-      .references(() => role.id, { onDelete: "cascade" }),
-
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-  },
-  (table) => [
-    index("user_role_user_idx").on(table.userId),
-    index("user_role_role_idx").on(table.roleId),
-  ],
-);
-
-export const roleRelations = relations(role, ({ many }) => ({
-  users: many(userRole),
-}));
-
-export const userRoleRelations = relations(userRole, ({ one }) => ({
-  user: one(user, {
-    fields: [userRole.userId],
-    references: [user.id],
-  }),
-  role: one(role, {
-    fields: [userRole.roleId],
-    references: [role.id],
-  }),
-}));
-
-export const userRelations = relations(user, ({ many }) => ({
-  sessions: many(session),
-  accounts: many(account),
-  roles: many(userRole),
 }));
