@@ -54,9 +54,9 @@ function Pill({ children }: { children: React.ReactNode }) {
     <span
       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-display font-bold uppercase"
       style={{
-        background: "var(--color-brand-surface)",
-        color: "var(--color-brand-blue-navy)",
-        border: "1.5px solid var(--color-brand-border-soft)",
+        background: "var(--surface)",
+        color: "var(--blue-navy)",
+        border: "1.5px solid var(--border-soft)",
         boxShadow: "var(--shadow-badge)",
         letterSpacing: "0.1em",
       }}
@@ -159,8 +159,8 @@ function HeroSection({
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.016]"
         style={{
-          backgroundImage: `linear-gradient(var(--color-brand-blue) 1px, transparent 1px),
-            linear-gradient(90deg, var(--color-brand-blue) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(var(--blue) 1px, transparent 1px),
+            linear-gradient(90deg, var(--blue) 1px, transparent 1px)`,
           backgroundSize: "72px 72px",
         }}
       />
@@ -217,7 +217,7 @@ function HeroSection({
                 style={{
                   fontSize: "clamp(2.05rem, 4.6vw, 3.6rem)",
                   letterSpacing: "-0.027em",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 Masih bingung mulai belajar <GoldText>Bahasa Inggris</GoldText>{" "}
@@ -229,7 +229,7 @@ function HeroSection({
               <p
                 style={{
                   fontSize: "clamp(0.9375rem, 1.35vw, 1.0625rem)",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   maxWidth: "480px",
                   lineHeight: "1.74",
                   marginBottom: "2rem",
@@ -277,15 +277,15 @@ function HeroSection({
                   className="font-display font-semibold px-6 py-3.5 rounded-xl flex items-center gap-2"
                   style={{
                     fontSize: "0.9375rem",
-                    color: "var(--color-brand-blue-navy)",
-                    background: "var(--color-brand-surface)",
-                    border: "1.5px solid var(--color-brand-border)",
+                    color: "var(--blue-navy)",
+                    background: "var(--surface)",
+                    border: "1.5px solid var(--border)",
                     boxShadow: "var(--shadow-badge)",
                     textDecoration: "none",
                   }}
                   whileHover={{
                     scale: 1.02,
-                    borderColor: "var(--color-brand-blue)",
+                    borderColor: "var(--blue)",
                   }}
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.18 }}
@@ -307,7 +307,7 @@ function HeroSection({
               <div
                 className="flex flex-wrap items-center gap-6 mt-8 pt-8"
                 style={{
-                  borderTop: "1px solid var(--color-brand-border-soft)",
+                  borderTop: "1px solid var(--border-soft)",
                 }}
               >
                 {[
@@ -323,7 +323,7 @@ function HeroSection({
                       className="font-display font-black"
                       style={{
                         fontSize: "1.5rem",
-                        color: "var(--color-brand-blue-navy)",
+                        color: "var(--blue-navy)",
                         letterSpacing: "-0.03em",
                       }}
                     >
@@ -332,7 +332,7 @@ function HeroSection({
                     <span
                       style={{
                         fontSize: "0.8125rem",
-                        color: "var(--color-brand-text-faint)",
+                        color: "var(--text-faint)",
                       }}
                     >
                       {item.label}
@@ -360,7 +360,7 @@ function HeroSection({
           style={{
             fontSize: "0.5625rem",
             letterSpacing: "0.14em",
-            color: "var(--color-brand-text-faint)",
+            color: "var(--text-faint)",
             textTransform: "uppercase",
           }}
         >
@@ -373,14 +373,14 @@ function HeroSection({
             width="12"
             height="20"
             rx="6"
-            stroke="var(--color-brand-blue-navy)"
+            stroke="var(--blue-navy)"
             strokeWidth="1.4"
           />
           <motion.circle
             cx="7"
             cy="6"
             r="2.2"
-            fill="var(--color-brand-blue)"
+            fill="var(--blue)"
             animate={{ cy: [6, 13, 6] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -571,7 +571,7 @@ function HeroDesktopPanel({
                 >
                   <path
                     d="M2 5h6M5.5 2.5l2.5 2.5-2.5 2.5"
-                    stroke="var(--color-brand-text-faint)"
+                    stroke="var(--text-faint)"
                     strokeWidth={1.4}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -583,10 +583,7 @@ function HeroDesktopPanel({
                 style={{
                   fontSize: "0.625rem",
                   letterSpacing: "0.05em",
-                  color:
-                    i === 0
-                      ? "var(--color-brand-blue)"
-                      : "var(--color-brand-text-faint)",
+                  color: i === 0 ? "var(--blue)" : "var(--text-faint)",
                   fontWeight: i === 0 ? 700 : 500,
                 }}
               >
@@ -620,7 +617,7 @@ function HeroDesktopPanel({
             className="font-display font-bold"
             style={{
               fontSize: "0.6875rem",
-              color: "var(--color-brand-blue-navy)",
+              color: "var(--blue-navy)",
             }}
           >
             {SOCIAL_PROOF.activeStudents}+ siswa aktif
@@ -697,7 +694,7 @@ function HeroMobileVisual() {
           className="font-display font-bold"
           style={{
             fontSize: "0.625rem",
-            color: "var(--color-brand-blue-navy)",
+            color: "var(--blue-navy)",
           }}
         >
           {SOCIAL_PROOF.activeStudents}+ siswa aktif
@@ -755,7 +752,7 @@ function SocialProofBubble() {
           alignItems: "center",
           justifyContent: "center",
           background: "rgba(26,82,200,0.09)",
-          color: "var(--color-brand-blue)",
+          color: "var(--blue)",
           fontSize: "0.75rem",
           fontWeight: 800,
           border: "1.5px solid rgba(26,82,200,0.18)",
@@ -770,7 +767,7 @@ function SocialProofBubble() {
           style={{
             fontSize: "0.75rem",
             fontStyle: "italic",
-            color: "var(--color-brand-blue-navy)",
+            color: "var(--blue-navy)",
             lineHeight: 1.55,
             margin: "0 0 8px",
           }}
@@ -790,7 +787,7 @@ function SocialProofBubble() {
               style={{
                 fontSize: "0.625rem",
                 fontWeight: 700,
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
                 fontFamily: "var(--font-display)",
               }}
             >
@@ -799,7 +796,7 @@ function SocialProofBubble() {
             <p
               style={{
                 fontSize: "0.5625rem",
-                color: "var(--color-brand-text-faint)",
+                color: "var(--text-faint)",
               }}
             >
               Mahasiswa, Surabaya
@@ -834,7 +831,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
     <div
       style={{
         width: "196px",
-        background: "var(--color-brand-surface)",
+        background: "var(--surface)",
         border: `1.5px solid ${theme.border}`,
         boxShadow: `0 14px 40px rgba(10,45,135,0.09), 0 4px 12px rgba(10,45,135,0.05)`,
         padding: "0.875rem",
@@ -892,7 +889,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
           <p
             style={{
               fontSize: "0.5625rem",
-              color: "var(--color-brand-text-faint)",
+              color: "var(--text-faint)",
             }}
           >
             {category.programs.length} program tersedia
@@ -906,7 +903,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
           alignItems: "center",
           justifyContent: "space-between",
           paddingTop: "8px",
-          borderTop: "1px solid var(--color-brand-border-soft)",
+          borderTop: "1px solid var(--border-soft)",
         }}
       >
         <div style={{ display: "flex", gap: "3px" }}>
@@ -917,8 +914,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
                 width: "5px",
                 height: "5px",
                 borderRadius: "50%",
-                background:
-                  i < 4 ? theme.soft : "var(--color-brand-border-soft)",
+                background: i < 4 ? theme.soft : "var(--border-soft)",
                 opacity: i < 4 ? 1 : 0.4,
               }}
             />
@@ -1190,9 +1186,9 @@ function CategoryCard({
         className="flex flex-col h-full rounded-3xl overflow-hidden cursor-pointer"
         style={{
           background: isSelected
-            ? "linear-gradient(150deg, var(--color-brand-surface) 0%, var(--color-brand-surface-soft) 100%)"
-            : "var(--color-brand-surface)",
-          border: `2px solid ${isSelected || hovered ? theme.border : "var(--color-brand-border-soft)"}`,
+            ? "linear-gradient(150deg, var(--surface) 0%, var(--surface-soft) 100%)"
+            : "var(--surface)",
+          border: `2px solid ${isSelected || hovered ? theme.border : "var(--border-soft)"}`,
           boxShadow: isSelected
             ? `var(--shadow-card-hover), 0 0 0 1px ${theme.border}`
             : hovered
@@ -1278,7 +1274,7 @@ function CategoryCard({
               className="font-display font-extrabold leading-snug"
               style={{
                 fontSize: "1rem",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
                 letterSpacing: "-0.01em",
               }}
             >
@@ -1322,7 +1318,7 @@ function CategoryCard({
             <p
               className="text-xs font-display font-bold uppercase mb-2.5"
               style={{
-                color: "var(--color-brand-text-faint)",
+                color: "var(--text-faint)",
                 letterSpacing: "0.1em",
               }}
             >
@@ -1352,7 +1348,7 @@ function CategoryCard({
                   <span
                     style={{
                       fontSize: "0.8125rem",
-                      color: "var(--color-brand-text-muted)",
+                      color: "var(--text-muted)",
                       lineHeight: "1.55",
                     }}
                   >
@@ -1367,7 +1363,7 @@ function CategoryCard({
           {highlights.length > 0 && (
             <div
               className="mb-4 pt-4"
-              style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
+              style={{ borderTop: "1px solid var(--border-soft)" }}
             >
               <div className="grid grid-cols-3 gap-2">
                 {highlights.map((h, i) => (
@@ -1383,7 +1379,7 @@ function CategoryCard({
                       className="font-display font-bold leading-tight mb-0.5"
                       style={{
                         fontSize: "0.6875rem",
-                        color: "var(--color-brand-blue-navy)",
+                        color: "var(--blue-navy)",
                       }}
                     >
                       {h.title}
@@ -1391,7 +1387,7 @@ function CategoryCard({
                     <p
                       style={{
                         fontSize: "0.5875rem",
-                        color: "var(--color-brand-text-faint)",
+                        color: "var(--text-faint)",
                         lineHeight: "1.4",
                       }}
                     >
@@ -1408,13 +1404,13 @@ function CategoryCard({
           {/* Price + CTA */}
           <div
             className="flex items-center justify-between pt-4"
-            style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
+            style={{ borderTop: "1px solid var(--border-soft)" }}
           >
             <div>
               <p
                 style={{
                   fontSize: "0.625rem",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                 }}
               >
                 Mulai dari
@@ -1482,7 +1478,7 @@ function CategorySection({
     <section
       ref={sectionRef as React.RefObject<HTMLElement>}
       className="relative py-20 lg:py-28"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -1502,7 +1498,7 @@ function CategorySection({
               style={{
                 fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)",
                 letterSpacing: "-0.024em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Tiga jalur, <GoldText>satu tujuan yang sama</GoldText>
@@ -1512,7 +1508,7 @@ function CategorySection({
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "460px",
                 lineHeight: "1.72",
               }}
@@ -1566,8 +1562,8 @@ function ProgramCard({
       transition={{ duration: 0.26, ease: EASE }}
       className="flex flex-col rounded-2xl overflow-hidden"
       style={{
-        background: "var(--color-brand-surface)",
-        border: `1.5px solid ${hovered ? accentBorder : "var(--color-brand-border-soft)"}`,
+        background: "var(--surface)",
+        border: `1.5px solid ${hovered ? accentBorder : "var(--border-soft)"}`,
         boxShadow: hovered ? "var(--shadow-card-hover)" : "var(--shadow-badge)",
         transition: "border-color 0.22s ease, box-shadow 0.22s ease",
         textDecoration: "none",
@@ -1599,7 +1595,7 @@ function ProgramCard({
               className="font-display font-bold leading-snug truncate"
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               {program.title}
@@ -1626,7 +1622,7 @@ function ProgramCard({
             className="mb-3"
             style={{
               fontSize: "0.8125rem",
-              color: "var(--color-brand-text-muted)",
+              color: "var(--text-muted)",
               lineHeight: "1.55",
             }}
           >
@@ -1641,9 +1637,9 @@ function ProgramCard({
               className="px-2 py-0.5 rounded-full"
               style={{
                 fontSize: "0.625rem",
-                background: "var(--color-brand-surface-soft)",
-                color: "var(--color-brand-text-muted)",
-                border: "1px solid var(--color-brand-border-soft)",
+                background: "var(--surface-soft)",
+                color: "var(--text-muted)",
+                border: "1px solid var(--border-soft)",
               }}
             >
               {tag}
@@ -1654,13 +1650,13 @@ function ProgramCard({
         <div className="flex-1" />
         <div
           className="flex items-center justify-between pt-3"
-          style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
+          style={{ borderTop: "1px solid var(--border-soft)" }}
         >
           <div>
             <p
               style={{
                 fontSize: "0.5875rem",
-                color: "var(--color-brand-text-faint)",
+                color: "var(--text-faint)",
               }}
             >
               Harga
@@ -1743,7 +1739,7 @@ function ProgramPreviewSection() {
   return (
     <section
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -1765,7 +1761,7 @@ function ProgramPreviewSection() {
                 style={{
                   fontSize: "clamp(1.8rem, 3vw, 2.5rem)",
                   letterSpacing: "-0.024em",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 Bukan sekadar janji —<br />
@@ -1777,7 +1773,7 @@ function ProgramPreviewSection() {
                 className="mt-3"
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   maxWidth: "400px",
                 }}
               >
@@ -1792,8 +1788,8 @@ function ProgramPreviewSection() {
             <div
               className="flex p-1 gap-1 rounded-2xl"
               style={{
-                background: "var(--color-brand-surface-soft)",
-                border: "1.5px solid var(--color-brand-border-soft)",
+                background: "var(--surface-soft)",
+                border: "1.5px solid var(--border-soft)",
               }}
             >
               {/* All tab */}
@@ -1805,13 +1801,11 @@ function ProgramPreviewSection() {
                   cursor: "pointer",
                   border: "none",
                   background:
-                    activeTab === "all"
-                      ? "var(--color-brand-surface)"
-                      : "transparent",
+                    activeTab === "all" ? "var(--surface)" : "transparent",
                   color:
                     activeTab === "all"
-                      ? "var(--color-brand-blue-navy)"
-                      : "var(--color-brand-text-muted)",
+                      ? "var(--blue-navy)"
+                      : "var(--text-muted)",
                   boxShadow:
                     activeTab === "all" ? "var(--shadow-badge)" : "none",
                   transition: "background 0.2s ease, color 0.2s ease",
@@ -1869,13 +1863,11 @@ function ProgramPreviewSection() {
                     cursor: "pointer",
                     border: "none",
                     background:
-                      activeTab === cat.key
-                        ? "var(--color-brand-surface)"
-                        : "transparent",
+                      activeTab === cat.key ? "var(--surface)" : "transparent",
                     color:
                       activeTab === cat.key
                         ? generateTheme(cat.theme.primary).primary
-                        : "var(--color-brand-text-muted)",
+                        : "var(--text-muted)",
                     boxShadow:
                       activeTab === cat.key ? "var(--shadow-badge)" : "none",
                     transition: "background 0.2s ease, color 0.2s ease",
@@ -1917,8 +1909,8 @@ function ProgramPreviewSection() {
               style={{
                 background: activeCat
                   ? generateTheme(activeCat.theme.primary).primary
-                  : "var(--color-brand-surface-soft)",
-                border: `1.5px dashed ${activeCat ? generateTheme(activeCat.theme.primary).border : "var(--color-brand-border)"}`,
+                  : "var(--surface-soft)",
+                border: `1.5px dashed ${activeCat ? generateTheme(activeCat.theme.primary).border : "var(--border)"}`,
                 minHeight: "200px",
                 textDecoration: "none",
               }}
@@ -1931,7 +1923,7 @@ function ProgramPreviewSection() {
                 style={{
                   background: activeCat
                     ? generateTheme(activeCat.theme.primary).strong
-                    : "var(--color-brand-blue-navy)",
+                    : "var(--blue-navy)",
                 }}
               >
                 <svg viewBox="0 0 16 16" className="w-5 h-5" fill="none">
@@ -1947,7 +1939,7 @@ function ProgramPreviewSection() {
                 className="font-display font-bold mb-1"
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 Lihat Semua
@@ -1955,7 +1947,7 @@ function ProgramPreviewSection() {
               <p
                 style={{
                   fontSize: "0.75rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                 }}
               >
                 Program {activeCat ? activeCat.shortLabel : "Kami"}
@@ -2003,7 +1995,7 @@ function TestimonialCard({ testimonial }: { testimonial: TestimonialEntry }) {
       transition={{ duration: 0.42, ease: EASE }}
       className="rounded-2xl p-6"
       style={{
-        background: "var(--color-brand-surface)",
+        background: "var(--surface)",
         border: `1.5px solid ${testimonial.accentBorder}`,
         boxShadow: "var(--shadow-card-hover)",
       }}
@@ -2022,7 +2014,7 @@ function TestimonialCard({ testimonial }: { testimonial: TestimonialEntry }) {
         className="italic mb-5"
         style={{
           fontSize: "1rem",
-          color: "var(--color-brand-text-muted)",
+          color: "var(--text-muted)",
           lineHeight: "1.72",
         }}
       >
@@ -2050,7 +2042,7 @@ function TestimonialCard({ testimonial }: { testimonial: TestimonialEntry }) {
                 className="font-display font-bold"
                 style={{
                   fontSize: "0.875rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 {testimonial.name}
@@ -2060,7 +2052,7 @@ function TestimonialCard({ testimonial }: { testimonial: TestimonialEntry }) {
               <p
                 style={{
                   fontSize: "0.75rem",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                 }}
               >
                 {testimonial.role}
@@ -2123,7 +2115,7 @@ function TestimonialsSection() {
   return (
     <section
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -2144,7 +2136,7 @@ function TestimonialsSection() {
               style={{
                 fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)",
                 letterSpacing: "-0.024em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Mereka sudah <GoldText>membuktikannya</GoldText>
@@ -2154,7 +2146,7 @@ function TestimonialsSection() {
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "360px",
                 margin: "0 auto",
               }}
@@ -2171,8 +2163,8 @@ function TestimonialsSection() {
             <div
               className="flex p-1 gap-1 rounded-2xl flex-wrap justify-center"
               style={{
-                background: "var(--color-brand-surface)",
-                border: "1.5px solid var(--color-brand-border-soft)",
+                background: "var(--surface)",
+                border: "1.5px solid var(--border-soft)",
                 boxShadow: "var(--shadow-badge)",
               }}
             >
@@ -2191,13 +2183,13 @@ function TestimonialsSection() {
                       background: isActive
                         ? cat
                           ? generateTheme(cat.theme.primary).soft
-                          : "var(--color-brand-surface-soft)"
+                          : "var(--surface-soft)"
                         : "transparent",
                       color: isActive
                         ? cat
                           ? generateTheme(cat.theme.primary).primary
-                          : "var(--color-brand-blue-navy)"
-                        : "var(--color-brand-text-muted)",
+                          : "var(--blue-navy)"
+                        : "var(--text-muted)",
                       boxShadow: isActive ? "var(--shadow-badge)" : "none",
                       transition: "all 0.2s ease",
                     }}
@@ -2260,7 +2252,7 @@ function TestimonialsSection() {
         {/* Testimonial cards */}
         {filtered.length === 0 ? (
           <div className="text-center py-16">
-            <p style={{ color: "var(--color-brand-text-faint)" }}>
+            <p style={{ color: "var(--text-faint)" }}>
               Belum ada testimoni untuk kategori ini.
             </p>
           </div>
@@ -2289,9 +2281,9 @@ function TestimonialsSection() {
                 className="w-10 h-10 rounded-full flex items-center justify-center"
                 style={{
                   background: hasPrev
-                    ? "var(--color-brand-surface)"
-                    : "var(--color-brand-surface-soft)",
-                  border: "1.5px solid var(--color-brand-border-soft)",
+                    ? "var(--surface)"
+                    : "var(--surface-soft)",
+                  border: "1.5px solid var(--border-soft)",
                   cursor: hasPrev ? "pointer" : "not-allowed",
                   opacity: hasPrev ? 1 : 0.4,
                 }}
@@ -2301,7 +2293,7 @@ function TestimonialsSection() {
                 <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
                   <path
                     d="M10 4L6 8l4 4"
-                    stroke="var(--color-brand-blue-navy)"
+                    stroke="var(--blue-navy)"
                     strokeWidth={1.8}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -2322,8 +2314,8 @@ function TestimonialsSection() {
                         height: "8px",
                         background:
                           activeIndex / 2 === i
-                            ? "var(--color-brand-blue-navy)"
-                            : "var(--color-brand-border)",
+                            ? "var(--blue-navy)"
+                            : "var(--border)",
                         cursor: "pointer",
                         border: "none",
                         transition: "all 0.25s ease",
@@ -2340,9 +2332,9 @@ function TestimonialsSection() {
                 className="w-10 h-10 rounded-full flex items-center justify-center"
                 style={{
                   background: hasNext
-                    ? "var(--color-brand-surface)"
-                    : "var(--color-brand-surface-soft)",
-                  border: "1.5px solid var(--color-brand-border-soft)",
+                    ? "var(--surface)"
+                    : "var(--surface-soft)",
+                  border: "1.5px solid var(--border-soft)",
                   cursor: hasNext ? "pointer" : "not-allowed",
                   opacity: hasNext ? 1 : 0.4,
                 }}
@@ -2352,7 +2344,7 @@ function TestimonialsSection() {
                 <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
                   <path
                     d="M6 4l4 4-4 4"
-                    stroke="var(--color-brand-blue-navy)"
+                    stroke="var(--blue-navy)"
                     strokeWidth={1.8}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -2365,7 +2357,7 @@ function TestimonialsSection() {
               className="text-center mt-3"
               style={{
                 fontSize: "0.75rem",
-                color: "var(--color-brand-text-faint)",
+                color: "var(--text-faint)",
               }}
             >
               {Math.min(activeIndex + 2, filtered.length)} dari{" "}
@@ -2512,7 +2504,7 @@ function FinalCTASection({
               className="bg-gold-btn font-display font-bold px-8 py-4 rounded-xl flex items-center justify-center gap-2"
               style={{
                 fontSize: "1rem",
-                color: "var(--color-brand-blue-abyss)",
+                color: "var(--blue-abyss)",
                 textDecoration: "none",
                 boxShadow: "var(--shadow-glow-gold-btn)",
               }}

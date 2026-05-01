@@ -233,8 +233,8 @@ export function SideProgressNav({
                         color: isActive
                           ? theme.primary
                           : isHovered
-                            ? "var(--color-brand-blue-navy)"
-                            : "var(--color-brand-text-faint)",
+                            ? "var(--blue-navy)"
+                            : "var(--text-faint)",
                         transition: "color 0.15s ease",
                         letterSpacing: isActive ? "0" : "-0.01em",
                       }}

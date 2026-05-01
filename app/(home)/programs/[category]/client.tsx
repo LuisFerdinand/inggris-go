@@ -191,7 +191,7 @@ function StickyProgressNav({
         background: "rgba(255,255,255,0.88)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        borderBottom: "1px solid var(--color-brand-border-soft)",
+        borderBottom: "1px solid var(--border-soft)",
         top: "var(--navbar-height)",
       }}
     >
@@ -223,7 +223,7 @@ function StickyProgressNav({
             className="font-display font-bold hidden sm:block"
             style={{
               fontSize: "0.8125rem",
-              color: "var(--color-brand-blue-navy)",
+              color: "var(--blue-navy)",
             }}
           >
             InggrisGo
@@ -254,10 +254,7 @@ function StickyProgressNav({
               className="relative px-3 py-1.5 rounded-lg font-display font-semibold transition-all whitespace-nowrap"
               style={{
                 fontSize: "0.75rem",
-                color:
-                  active === s.id
-                    ? theme.primary
-                    : "var(--color-brand-text-faint)",
+                color: active === s.id ? theme.primary : "var(--text-faint)",
                 background: active === s.id ? theme.soft : "transparent",
               }}
             >
@@ -461,7 +458,7 @@ export function HeroRightPanel({
           style={{
             fontSize: "0.5625rem",
             letterSpacing: "0.18em",
-            color: "var(--color-brand-text-faint)",
+            color: "var(--text-faint)",
           }}
         >
           Apa yang kamu rasakan
@@ -475,8 +472,7 @@ export function HeroRightPanel({
             whileHover={{ x: 5, scale: 1.015 }}
             className="flex items-start gap-3 p-3.5 rounded-2xl"
             style={{
-              background:
-                i % 2 === 0 ? theme.soft : "var(--color-brand-surface)",
+              background: i % 2 === 0 ? theme.soft : "var(--surface)",
               border: `1.5px solid ${theme.border}`,
             }}
           >
@@ -500,7 +496,7 @@ export function HeroRightPanel({
                 className="font-display font-bold"
                 style={{
                   fontSize: "0.875rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 {item.title}
@@ -508,7 +504,7 @@ export function HeroRightPanel({
               <p
                 style={{
                   fontSize: "0.75rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   lineHeight: "1.5",
                   marginTop: "2px",
                 }}
@@ -530,7 +526,7 @@ export function HeroRightPanel({
           style={{
             fontSize: "0.5625rem",
             letterSpacing: "0.18em",
-            color: "var(--color-brand-text-faint)",
+            color: "var(--text-faint)",
           }}
         >
           Cara mulai
@@ -564,7 +560,7 @@ export function HeroRightPanel({
                 className="font-display font-bold"
                 style={{
                   fontSize: "0.875rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 {step.title}
@@ -572,7 +568,7 @@ export function HeroRightPanel({
               <p
                 style={{
                   fontSize: "0.75rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   lineHeight: "1.5",
                   marginTop: "2px",
                 }}
@@ -598,8 +594,7 @@ export function HeroRightPanel({
             whileHover={{ y: -3, scale: 1.02 }}
             className="p-3.5 rounded-2xl"
             style={{
-              background:
-                i % 2 === 0 ? theme.soft : "var(--color-brand-surface)",
+              background: i % 2 === 0 ? theme.soft : "var(--surface)",
               border: `1.5px solid ${theme.border}`,
             }}
           >
@@ -619,7 +614,7 @@ export function HeroRightPanel({
               className="font-display font-bold"
               style={{
                 fontSize: "0.8125rem",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
                 lineHeight: 1.3,
               }}
             >
@@ -628,7 +623,7 @@ export function HeroRightPanel({
             <p
               style={{
                 fontSize: "0.6875rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 lineHeight: 1.5,
                 marginTop: "3px",
               }}
@@ -670,7 +665,7 @@ export function HeroRightPanel({
               className="font-display font-bold truncate"
               style={{
                 fontSize: "0.8125rem",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               {p.title}
@@ -708,7 +703,7 @@ function CategoryHero({
       id="hero"
       className="relative overflow-hidden lg:pt-20"
       style={{
-        background: "var(--color-brand-surface)",
+        background: "var(--surface)",
         minHeight: "min(92vh, 820px)",
         display: "flex",
         flexDirection: "column",
@@ -764,7 +759,7 @@ function CategoryHero({
                 href="/programs"
                 style={{
                   fontSize: "0.8125rem",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                   textDecoration: "none",
                   fontWeight: 500,
                 }}
@@ -775,7 +770,7 @@ function CategoryHero({
               <svg viewBox="0 0 16 16" className="w-3 h-3" fill="none">
                 <path
                   d="M6 4l4 4-4 4"
-                  stroke="var(--color-brand-text-faint)"
+                  stroke="var(--text-faint)"
                   strokeWidth={1.5}
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -861,7 +856,7 @@ function CategoryHero({
               transition={{ duration: 0.6, delay: 0.17, ease: EASE }}
               style={{
                 fontSize: "clamp(0.9375rem, 1.5vw, 1.0625rem)",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 lineHeight: "1.8",
                 maxWidth: "520px",
                 marginBottom: "2rem",
@@ -943,7 +938,7 @@ function CategoryHero({
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.42 }}
               className="pt-7"
-              style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
+              style={{ borderTop: "1px solid var(--border-soft)" }}
             >
               {/* For who */}
               <div className="flex items-start gap-2.5 mb-6">
@@ -973,14 +968,14 @@ function CategoryHero({
                 <p
                   style={{
                     fontSize: "0.8125rem",
-                    color: "var(--color-brand-text-muted)",
+                    color: "var(--text-muted)",
                     lineHeight: 1.6,
                   }}
                 >
                   <span
                     style={{
                       fontWeight: 700,
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     Untuk:{" "}
@@ -1021,7 +1016,7 @@ function CategoryHero({
                     <p
                       style={{
                         fontSize: "0.625rem",
-                        color: "var(--color-brand-text-faint)",
+                        color: "var(--text-faint)",
                         marginTop: "2px",
                       }}
                     >
@@ -1043,7 +1038,7 @@ function CategoryHero({
             <div
               className="rounded-3xl overflow-hidden"
               style={{
-                background: "var(--color-brand-surface)",
+                background: "var(--surface)",
                 border: `1.5px solid ${theme.border}`,
                 boxShadow: heroImage
                   ? `0 20px 48px ${theme.border}, 0 4px 16px rgba(10,45,135,0.06)`
@@ -1084,7 +1079,7 @@ function CategoryHero({
                       className="font-display font-bold"
                       style={{
                         fontSize: "0.875rem",
-                        color: "var(--color-brand-blue-navy)",
+                        color: "var(--blue-navy)",
                       }}
                     >
                       {category.shortLabel}
@@ -1092,7 +1087,7 @@ function CategoryHero({
                     <p
                       style={{
                         fontSize: "0.5625rem",
-                        color: "var(--color-brand-text-faint)",
+                        color: "var(--text-faint)",
                         letterSpacing: "0.05em",
                       }}
                     >
@@ -1236,7 +1231,7 @@ function CategoryHero({
 
                           fontStyle: "italic",
 
-                          color: "var(--color-brand-blue-navy)",
+                          color: "var(--blue-navy)",
 
                           margin: "0 0 8px",
 
@@ -1267,7 +1262,7 @@ function CategoryHero({
                             className="font-display font-bold truncate"
                             style={{
                               fontSize: "0.625rem",
-                              color: "var(--color-brand-blue-navy)",
+                              color: "var(--blue-navy)",
                             }}
                           >
                             {category.socialProof?.[0]?.name}
@@ -1277,7 +1272,7 @@ function CategoryHero({
                             className="truncate"
                             style={{
                               fontSize: "0.5625rem",
-                              color: "var(--color-brand-text-faint)",
+                              color: "var(--text-faint)",
                             }}
                           >
                             {category.socialProof?.[0]?.role}
@@ -1327,7 +1322,7 @@ function CategoryHero({
                         className="font-display font-bold"
                         style={{
                           fontSize: "0.6875rem",
-                          color: "var(--color-brand-blue-navy)",
+                          color: "var(--blue-navy)",
                         }}
                       >
                         {category.programs.length} Program Aktif
@@ -1363,7 +1358,7 @@ function CategoryHero({
           style={{
             fontSize: "0.5625rem",
             letterSpacing: "0.14em",
-            color: "var(--color-brand-text-faint)",
+            color: "var(--text-faint)",
             textTransform: "uppercase",
           }}
         >
@@ -1410,8 +1405,8 @@ function ProgramCard({
         transition={{ duration: 0.3, ease: EASE }}
         className="flex flex-col rounded-3xl overflow-hidden h-full relative"
         style={{
-          background: "var(--color-brand-surface)",
-          border: `1.5px solid ${hovered ? theme.border : "var(--color-brand-border-soft)"}`,
+          background: "var(--surface)",
+          border: `1.5px solid ${hovered ? theme.border : "var(--border-soft)"}`,
           boxShadow: hovered
             ? `0 32px 72px ${theme.border}, 0 4px 24px rgba(10,45,135,0.08)`
             : "0 2px 16px rgba(10,45,135,0.05)",
@@ -1509,7 +1504,7 @@ function ProgramCard({
             className="mb-4"
             style={{
               fontSize: "0.8125rem",
-              color: "var(--color-brand-text-muted)",
+              color: "var(--text-muted)",
               lineHeight: "1.7",
             }}
           >
@@ -1542,7 +1537,7 @@ function ProgramCard({
               <p
                 style={{
                   fontSize: "0.8125rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   lineHeight: "1.55",
                 }}
               >
@@ -1579,9 +1574,9 @@ function ProgramCard({
                 className="px-2 py-0.5 rounded-full"
                 style={{
                   fontSize: "0.5875rem",
-                  background: "var(--color-brand-surface-soft)",
-                  color: "var(--color-brand-text-muted)",
-                  border: "1px solid var(--color-brand-border-soft)",
+                  background: "var(--surface-soft)",
+                  color: "var(--text-muted)",
+                  border: "1px solid var(--border-soft)",
                 }}
               >
                 {tag}
@@ -1597,7 +1592,7 @@ function ProgramCard({
                 style={{
                   fontSize: "0.5625rem",
                   letterSpacing: "0.12em",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                 }}
               >
                 Pilih Paket
@@ -1616,7 +1611,7 @@ function ProgramCard({
                       className="font-display font-semibold"
                       style={{
                         fontSize: "0.5625rem",
-                        color: "var(--color-brand-text-faint)",
+                        color: "var(--text-faint)",
                         textTransform: "uppercase",
                         letterSpacing: "0.06em",
                       }}
@@ -1644,13 +1639,13 @@ function ProgramCard({
           {/* Footer */}
           <div
             className="flex items-center justify-between pt-4"
-            style={{ borderTop: "1px solid var(--color-brand-border-soft)" }}
+            style={{ borderTop: "1px solid var(--border-soft)" }}
           >
             <div>
               <p
                 style={{
                   fontSize: "0.5875rem",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                 }}
               >
                 {startingPrice ? "Mulai dari" : "Harga"}
@@ -1712,7 +1707,7 @@ function ProgramList({
     <section
       id="program-list"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -1733,7 +1728,7 @@ function ProgramList({
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.875rem)",
                 letterSpacing: "-0.026em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Pilih program yang{" "}
@@ -1744,7 +1739,7 @@ function ProgramList({
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "440px",
                 lineHeight: "1.75",
               }}
@@ -1803,7 +1798,7 @@ function ProgramList({
                 className="font-display font-bold"
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 Tidak yakin program mana yang tepat?
@@ -1811,7 +1806,7 @@ function ProgramList({
               <p
                 style={{
                   fontSize: "0.8125rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   marginTop: "2px",
                 }}
               >
@@ -1827,7 +1822,7 @@ function ProgramList({
               style={{
                 fontSize: "0.875rem",
                 color: theme.primary,
-                background: "var(--color-brand-surface)",
+                background: "var(--surface)",
                 border: `1.5px solid ${theme.border}`,
                 textDecoration: "none",
               }}
@@ -1860,7 +1855,7 @@ function PainSolutionSection({
     <section
       id="masalah"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -1880,7 +1875,7 @@ function PainSolutionSection({
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.875rem)",
                 letterSpacing: "-0.026em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Dari{" "}
@@ -1892,7 +1887,7 @@ function PainSolutionSection({
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "430px",
                 margin: "0 auto",
                 lineHeight: "1.75",
@@ -1974,7 +1969,7 @@ function PainSolutionSection({
                         className="font-display font-bold mb-0.5"
                         style={{
                           fontSize: "0.9375rem",
-                          color: "var(--color-brand-blue-navy)",
+                          color: "var(--blue-navy)",
                         }}
                       >
                         {point.title}
@@ -1982,7 +1977,7 @@ function PainSolutionSection({
                       <p
                         style={{
                           fontSize: "0.8125rem",
-                          color: "var(--color-brand-text-muted)",
+                          color: "var(--text-muted)",
                           lineHeight: "1.6",
                         }}
                       >
@@ -2096,7 +2091,7 @@ function PainSolutionSection({
                         className="font-display font-bold mb-0.5"
                         style={{
                           fontSize: "0.9375rem",
-                          color: "var(--color-brand-blue-navy)",
+                          color: "var(--blue-navy)",
                         }}
                       >
                         {b.title}
@@ -2104,7 +2099,7 @@ function PainSolutionSection({
                       <p
                         style={{
                           fontSize: "0.8125rem",
-                          color: "var(--color-brand-text-muted)",
+                          color: "var(--text-muted)",
                           lineHeight: "1.6",
                         }}
                       >
@@ -2136,7 +2131,7 @@ function StepsSection({
     <section
       id="cara-mulai"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
         <div className="flex flex-col items-center text-center mb-16">
@@ -2149,7 +2144,7 @@ function StepsSection({
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.875rem)",
                 letterSpacing: "-0.026em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Mulai dalam{" "}
@@ -2162,7 +2157,7 @@ function StepsSection({
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "390px",
                 lineHeight: "1.75",
               }}
@@ -2239,7 +2234,7 @@ function StepsSection({
                     className="font-display font-extrabold mb-2"
                     style={{
                       fontSize: "1.0625rem",
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     {step.title}
@@ -2247,7 +2242,7 @@ function StepsSection({
                   <p
                     style={{
                       fontSize: "0.8125rem",
-                      color: "var(--color-brand-text-muted)",
+                      color: "var(--text-muted)",
                       lineHeight: "1.68",
                       maxWidth: "200px",
                       margin: "0 auto",
@@ -2293,7 +2288,7 @@ function ExperienceSection({
     <section
       id="pengalaman"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -2313,7 +2308,7 @@ function ExperienceSection({
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.875rem)",
                 letterSpacing: "-0.026em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Apa yang kamu rasakan{" "}
@@ -2324,7 +2319,7 @@ function ExperienceSection({
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "420px",
                 lineHeight: "1.75",
               }}
@@ -2384,7 +2379,7 @@ function ExperienceSection({
                     className="font-display font-extrabold mb-2"
                     style={{
                       fontSize: "1rem",
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     {item.title}
@@ -2392,7 +2387,7 @@ function ExperienceSection({
                   <p
                     style={{
                       fontSize: "0.8125rem",
-                      color: "var(--color-brand-text-muted)",
+                      color: "var(--text-muted)",
                       lineHeight: "1.68",
                     }}
                   >
@@ -2424,7 +2419,7 @@ function ComparisonSection({
     <section
       id="detail"
       className="relative py-20 lg:py-24"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 lg:px-12">
         <div className="text-center mb-12">
@@ -2437,7 +2432,7 @@ function ComparisonSection({
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.5rem)",
                 letterSpacing: "-0.026em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Ringkasan{" "}
@@ -2493,8 +2488,7 @@ function ComparisonSection({
                 transition={{ duration: 0.18 }}
                 className="flex items-center justify-between px-6 py-4"
                 style={{
-                  background:
-                    i % 2 === 0 ? theme.soft : "var(--color-brand-surface)",
+                  background: i % 2 === 0 ? theme.soft : "var(--surface)",
                   borderBottom:
                     i < comparison.length - 1
                       ? `1px solid ${theme.border}`
@@ -2510,7 +2504,7 @@ function ComparisonSection({
                     className="font-display font-semibold"
                     style={{
                       fontSize: "0.875rem",
-                      color: "var(--color-brand-text-muted)",
+                      color: "var(--text-muted)",
                     }}
                   >
                     {item.label}
@@ -2559,7 +2553,7 @@ function TestimonialsSection({
     <section
       id="testimoni"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -2579,7 +2573,7 @@ function TestimonialsSection({
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.875rem)",
                 letterSpacing: "-0.026em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Mereka sudah{" "}
@@ -2590,7 +2584,7 @@ function TestimonialsSection({
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "360px",
                 lineHeight: "1.75",
               }}
@@ -2610,7 +2604,7 @@ function TestimonialsSection({
                 transition={{ duration: 0.28, ease: EASE }}
                 className="relative rounded-3xl p-6"
                 style={{
-                  background: "var(--color-brand-surface)",
+                  background: "var(--surface)",
                   border: `1.5px solid ${theme.border}`,
                   boxShadow: `0 4px 20px ${theme.border}`,
                   height: "100%",
@@ -2652,7 +2646,7 @@ function TestimonialsSection({
                   className="italic mb-5 relative z-10"
                   style={{
                     fontSize: "0.9375rem",
-                    color: "var(--color-brand-text-muted)",
+                    color: "var(--text-muted)",
                     lineHeight: "1.8",
                   }}
                 >
@@ -2677,7 +2671,7 @@ function TestimonialsSection({
                         className="font-display font-bold"
                         style={{
                           fontSize: "0.875rem",
-                          color: "var(--color-brand-blue-navy)",
+                          color: "var(--blue-navy)",
                         }}
                       >
                         {proof.name}
@@ -2687,7 +2681,7 @@ function TestimonialsSection({
                       <p
                         style={{
                           fontSize: "0.6875rem",
-                          color: "var(--color-brand-text-faint)",
+                          color: "var(--text-faint)",
                         }}
                       >
                         {proof.role}
@@ -2727,7 +2721,7 @@ function TestimonialsSection({
               transition={{ duration: 0.38, ease: EASE }}
               className="relative rounded-3xl p-6 cursor-grab active:cursor-grabbing"
               style={{
-                background: "var(--color-brand-surface)",
+                background: "var(--surface)",
                 border: `2px solid ${theme.border}`,
                 boxShadow: `0 20px 56px ${theme.border}`,
               }}
@@ -2748,7 +2742,7 @@ function TestimonialsSection({
                 className="italic mb-6"
                 style={{
                   fontSize: "1.0625rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   lineHeight: "1.82",
                 }}
               >
@@ -2772,7 +2766,7 @@ function TestimonialsSection({
                       className="font-display font-bold"
                       style={{
                         fontSize: "0.9375rem",
-                        color: "var(--color-brand-blue-navy)",
+                        color: "var(--blue-navy)",
                       }}
                     >
                       {socialProof[active].name}
@@ -2782,7 +2776,7 @@ function TestimonialsSection({
                     <p
                       style={{
                         fontSize: "0.75rem",
-                        color: "var(--color-brand-text-faint)",
+                        color: "var(--text-faint)",
                       }}
                     >
                       {socialProof[active].role}
@@ -2794,7 +2788,7 @@ function TestimonialsSection({
                 className="text-center mt-4"
                 style={{
                   fontSize: "0.6875rem",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                 }}
               >
                 Geser untuk selanjutnya →
@@ -2812,8 +2806,7 @@ function TestimonialsSection({
                   width: active === i ? 24 : 8,
                   height: 8,
                   borderRadius: 9999,
-                  background:
-                    active === i ? theme.primary : "var(--color-brand-border)",
+                  background: active === i ? theme.primary : "var(--border)",
                   border: "none",
                   cursor: "pointer",
                   transition: "all 0.25s ease",
@@ -2844,7 +2837,7 @@ function TrustBar({ theme }: { theme: Theme }) {
   return (
     <section
       className="relative py-8 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
         <Reveal>
@@ -2853,7 +2846,7 @@ function TrustBar({ theme }: { theme: Theme }) {
             style={{
               fontSize: "0.625rem",
               letterSpacing: "0.2em",
-              color: "var(--color-brand-text-faint)",
+              color: "var(--text-faint)",
             }}
           >
             Kenapa Pilih InggrisGo
@@ -2867,8 +2860,8 @@ function TrustBar({ theme }: { theme: Theme }) {
                 transition={{ duration: 0.22 }}
                 className="flex flex-col items-center gap-2.5 p-4 rounded-2xl text-center"
                 style={{
-                  background: "var(--color-brand-surface)",
-                  border: "1px solid var(--color-brand-border-soft)",
+                  background: "var(--surface)",
+                  border: "1px solid var(--border-soft)",
                 }}
               >
                 <div
@@ -2888,7 +2881,7 @@ function TrustBar({ theme }: { theme: Theme }) {
                   className="font-display font-bold"
                   style={{
                     fontSize: "0.75rem",
-                    color: "var(--color-brand-blue-navy)",
+                    color: "var(--blue-navy)",
                     lineHeight: 1.3,
                   }}
                 >
@@ -2942,7 +2935,7 @@ function FAQSection({
     <section
       id="faq"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div className="relative z-10 max-w-3xl mx-auto px-5 sm:px-8 lg:px-12">
         <div className="flex flex-col items-center text-center mb-12">
@@ -2955,7 +2948,7 @@ function FAQSection({
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.5rem)",
                 letterSpacing: "-0.026em",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Pertanyaan yang{" "}
@@ -2970,7 +2963,7 @@ function FAQSection({
               <div
                 className="rounded-2xl overflow-hidden"
                 style={{
-                  border: `1.5px solid ${open === i ? theme.border : "var(--color-brand-border-soft)"}`,
+                  border: `1.5px solid ${open === i ? theme.border : "var(--border-soft)"}`,
                   transition: "border-color 0.25s ease",
                 }}
               >
@@ -2978,15 +2971,14 @@ function FAQSection({
                   onClick={() => setOpen(open === i ? null : i)}
                   className="w-full flex items-center justify-between gap-4 p-5 text-left"
                   style={{
-                    background:
-                      open === i ? theme.soft : "var(--color-brand-surface)",
+                    background: open === i ? theme.soft : "var(--surface)",
                   }}
                 >
                   <p
                     className="font-display font-bold"
                     style={{
                       fontSize: "0.9375rem",
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     {faq.q}
@@ -3035,7 +3027,7 @@ function FAQSection({
                           className="pt-4"
                           style={{
                             fontSize: "0.875rem",
-                            color: "var(--color-brand-text-muted)",
+                            color: "var(--text-muted)",
                             lineHeight: "1.75",
                           }}
                         >
@@ -3077,7 +3069,7 @@ function FAQSection({
                 className="font-display font-bold"
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 Masih ada pertanyaan lain?
@@ -3085,7 +3077,7 @@ function FAQSection({
               <p
                 style={{
                   fontSize: "0.8125rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   marginTop: "2px",
                 }}
               >
@@ -3462,7 +3454,7 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
         <section
           id="masalah"
           className="relative py-20 lg:py-24 overflow-hidden"
-          style={{ background: "var(--color-brand-surface)" }}
+          style={{ background: "var(--surface)" }}
         >
           <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
             <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 lg:gap-20 items-start">
@@ -3478,7 +3470,7 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
                     style={{
                       fontSize: "clamp(1.9rem, 3vw, 2.5rem)",
                       letterSpacing: "-0.022em",
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     Masalah yang sering bikin{" "}
@@ -3517,7 +3509,7 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
                           className="font-display font-bold mb-1"
                           style={{
                             fontSize: "0.9375rem",
-                            color: "var(--color-brand-blue-navy)",
+                            color: "var(--blue-navy)",
                           }}
                         >
                           {point.title}
@@ -3525,7 +3517,7 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
                         <p
                           style={{
                             fontSize: "0.8125rem",
-                            color: "var(--color-brand-text-muted)",
+                            color: "var(--text-muted)",
                             lineHeight: "1.6",
                           }}
                         >

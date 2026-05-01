@@ -109,7 +109,7 @@ function StatItem({
       <span className="text-2xl font-bold text-white tabular-nums">
         {stat.decimal ? (count / 10).toFixed(1) : count.toLocaleString()}
         {/* Gold suffix — star/+ are stat highlights, same role as heading accent */}
-        <span style={{ color: "var(--color-brand-gold-vivid)" }}>
+        <span style={{ color: "var(--gold-vivid)" }}>
           {stat.suffix}
         </span>
       </span>
@@ -140,7 +140,7 @@ export default function Footer() {
   return (
     <footer
       className="relative text-white overflow-hidden"
-      style={{ background: "var(--color-brand-blue-abyss)" }}
+      style={{ background: "var(--blue-abyss)" }}
     >
       {/* Decorative glow blobs — blue top-left, gold bottom-right */}
       <div
@@ -248,7 +248,7 @@ export default function Footer() {
                   className="w-3.5 h-3.5 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 24 24"
-                  style={{ color: "var(--color-brand-blue-sky)" }}
+                  style={{ color: "var(--blue-sky)" }}
                 >
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                 </svg>
@@ -278,7 +278,7 @@ export default function Footer() {
                         }}
                         onMouseEnter={(e) =>
                           ((e.currentTarget as HTMLElement).style.background =
-                            "var(--color-brand-gold-vivid)")
+                            "var(--gold-vivid)")
                         }
                         onMouseLeave={(e) =>
                           ((e.currentTarget as HTMLElement).style.background =
@@ -337,7 +337,7 @@ export default function Footer() {
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
-                        style={{ color: "var(--color-brand-blue-sky)" }}
+                        style={{ color: "var(--blue-sky)" }}
                       >
                         <path
                           strokeLinecap="round"
@@ -364,7 +364,7 @@ export default function Footer() {
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
-                        style={{ color: "var(--color-brand-blue-sky)" }}
+                        style={{ color: "var(--blue-sky)" }}
                       >
                         <path
                           strokeLinecap="round"
@@ -394,7 +394,7 @@ export default function Footer() {
                   style={{ color: "rgba(245,168,0,0.6)" }}
                   onMouseEnter={(e) =>
                     ((e.currentTarget as HTMLElement).style.color =
-                      "var(--color-brand-gold-vivid)")
+                      "var(--gold-vivid)")
                   }
                   onMouseLeave={(e) =>
                     ((e.currentTarget as HTMLElement).style.color =
@@ -457,7 +457,7 @@ export default function Footer() {
                     className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
                     fill="currentColor"
                     viewBox="0 0 24 24"
-                    style={{ color: "var(--color-brand-blue-sky)" }}
+                    style={{ color: "var(--blue-sky)" }}
                   >
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                   </svg>
@@ -491,7 +491,7 @@ export default function Footer() {
             className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 flex-shrink-0"
             style={{
               background:
-                "linear-gradient(135deg, #E8940A 0%, var(--color-brand-gold-mid) 50%, var(--color-brand-gold-vivid) 100%)",
+                "linear-gradient(135deg, #E8940A 0%, var(--gold-mid) 50%, var(--gold-vivid) 100%)",
               color: "#3a1c00",
               boxShadow: "0 4px 18px rgba(180,100,0,0.35)",
             }}

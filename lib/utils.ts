@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import chroma from "chroma-js";
-import { PROGRAM_DETAILS } from "@/app/programs/[category]/data";
+import { PROGRAM_DETAILS } from "@/app/(home)/programs/[category]/data";
 
 export type Theme = {
   /** Full-opacity primary hex — use for buttons, icons, accents */

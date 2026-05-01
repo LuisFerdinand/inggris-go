@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Syne, DM_Sans, DM_Mono, Geist } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { cn } from "@/lib/utils";
 import "leaflet/dist/leaflet.css";
 
 import { Toaster } from "react-hot-toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const syne = Syne({
@@ -53,34 +53,39 @@ export default function RootLayout({
       <body
         className={`${syne.variable} ${dmSans.variable} ${dmMono.variable} font-body h-full antialiased`}
       >
-        <Navbar />
-        <main>
-          {children}
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: "#0f172a",
-                color: "#fff",
-                borderRadius: "12px",
-                padding: "12px 16px",
-              },
-              success: {
-                iconTheme: {
-                  primary: "#22c55e",
-                  secondary: "#0f172a",
+        <TooltipProvider delayDuration={0}>
+   
+
+          <main>
+            {children}
+
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: "#0f172a",
+                  color: "#fff",
+                  borderRadius: "12px",
+                  padding: "12px 16px",
                 },
-              },
-              error: {
-                iconTheme: {
-                  primary: "#ef4444",
-                  secondary: "#0f172a",
+                success: {
+                  iconTheme: {
+                    primary: "#22c55e",
+                    secondary: "#0f172a",
+                  },
                 },
-              },
-            }}
-          />
-        </main>
-        <Footer />
+                error: {
+                  iconTheme: {
+                    primary: "#ef4444",
+                    secondary: "#0f172a",
+                  },
+                },
+              }}
+            />
+          </main>
+
+          <Footer />
+        </TooltipProvider>
       </body>
     </html>
   );

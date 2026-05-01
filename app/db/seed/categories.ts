@@ -1,12 +1,12 @@
-import { CATEGORIES } from "@/app/programs/[category]/data";
+import { CATEGORIES } from "@/app/(home)/programs/[category]/data";
 import { db } from "../db";
 import { programCategories } from "../schema";
 
 export async function seedCategories() {
   for (const key in CATEGORIES) {
     const cat = CATEGORIES[key];
-
-    const data = {
+    type CategoryInsert = typeof programCategories.$inferInsert;
+    const data: CategoryInsert = {
       id: `cat-${cat.key}`,
       key: cat.key,
       slug: cat.href.split("/").pop()!,

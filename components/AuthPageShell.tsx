@@ -1,5 +1,5 @@
 "use client";
- 
+
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,15 +19,15 @@ import {
 import { BRAND } from "@/constants/brand";
 import { AuthForm, type AuthTab } from "./AuthForm";
 import { useEffect, useState } from "react";
- 
+
 const EASE = [0.22, 1, 0.36, 1] as const;
- 
+
 const SOCIAL_PROOF = [
   { value: "50K+", label: "Pelajar Aktif" },
   { value: "4.9★", label: "Rating Rata-rata" },
   { value: "95%", label: "Tingkat Kelulusan" },
 ];
- 
+
 const FEATURE_BULLETS = [
   {
     icon: Zap,
@@ -50,7 +50,7 @@ const FEATURE_BULLETS = [
     desc: "Dashboard personal yang memotivasi setiap hari",
   },
 ];
- 
+
 const TESTIMONIALS = [
   {
     name: "Rina S.",
@@ -65,7 +65,7 @@ const TESTIMONIALS = [
     text: "Akhirnya bisa interview dalam bahasa Inggris dengan percaya diri.",
   },
 ];
- 
+
 /* ─── Tab-aware dynamic content ──────────────────────────── */
 const TAB_CONTENT = {
   login: {
@@ -76,9 +76,7 @@ const TAB_CONTENT = {
         <br />
         perjalananmu
         <br />
-        <span style={{ color: "var(--color-brand-gold-vivid)" }}>
-          menuju fasih.
-        </span>
+        <span style={{ color: "var(--gold-vivid)" }}>menuju fasih.</span>
       </>
     ),
     sub: "Program, progres, dan komunitas kamu sudah menunggu.",
@@ -95,9 +93,7 @@ const TAB_CONTENT = {
         <br />
         Inggris tanpa
         <br />
-        <span style={{ color: "var(--color-brand-gold-vivid)" }}>
-          takut salah.
-        </span>
+        <span style={{ color: "var(--gold-vivid)" }}>takut salah.</span>
       </>
     ),
     sub: "Bergabung bersama 50.000+ pelajar Indonesia yang sudah merasakan bedanya.",
@@ -107,17 +103,17 @@ const TAB_CONTENT = {
     footerLink: "Masuk sekarang",
   },
 };
- 
+
 export function AuthPageShell() {
   const searchParams = useSearchParams();
   const router = useRouter();
- 
+
   const tabParam = searchParams?.get("tab");
   // ✅ FIX: tab state is the single source of truth for BOTH the form and the left panel content
   const [tab, setTab] = useState<AuthTab>(
     tabParam === "signup" ? "signup" : "login",
   );
- 
+
   // ✅ FIX: handleTabChange is passed as onTabChange to AuthForm, so when the
   // form's internal tab switcher fires, it bubbles up here and updates the
   // left-panel content too.
@@ -127,13 +123,13 @@ export function AuthPageShell() {
     params.set("tab", t);
     router.replace(`/auth?${params.toString()}`, { scroll: false });
   };
- 
+
   const content = TAB_CONTENT[tab];
- 
+
   return (
     <div
       className="min-h-screen flex pt-10"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       {/* ══════════════════════════════════════
           LEFT PANEL — Brand / Social Proof
@@ -142,7 +138,7 @@ export function AuthPageShell() {
         className="hidden lg:flex flex-col justify-between w-[52%] xl:w-[56%] relative overflow-hidden"
         style={{
           background:
-            "linear-gradient(160deg, var(--color-brand-blue-abyss) 0%, #071240 40%, var(--color-brand-blue-navy) 100%)",
+            "linear-gradient(160deg, var(--blue-abyss) 0%, #071240 40%, var(--blue-navy) 100%)",
         }}
       >
         {/* Background layers */}
@@ -172,7 +168,7 @@ export function AuthPageShell() {
             backgroundSize: "28px 28px",
           }}
         />
- 
+
         <div className="relative z-10 flex flex-col h-full px-12 xl:px-16 py-10">
           {/* Logo */}
           <motion.div
@@ -193,14 +189,11 @@ export function AuthPageShell() {
                 className="font-display font-bold text-white"
                 style={{ fontSize: "1.125rem", letterSpacing: "-0.01em" }}
               >
-                Inggris{" "}
-                <span style={{ color: "var(--color-brand-gold-vivid)" }}>
-                  Go!
-                </span>
+                Inggris <span style={{ color: "var(--gold-vivid)" }}>Go!</span>
               </span>
             </Link>
           </motion.div>
- 
+
           {/* ✅ FIX: Dynamic headline now reacts to `tab` state which is controlled by handleTabChange */}
           <AnimatePresence mode="wait">
             <motion.div
@@ -220,20 +213,20 @@ export function AuthPageShell() {
               >
                 <Sparkles
                   className="w-3.5 h-3.5"
-                  style={{ color: "var(--color-brand-gold-vivid)" }}
+                  style={{ color: "var(--gold-vivid)" }}
                 />
                 <span
                   className="font-display font-bold"
                   style={{
                     fontSize: "0.6875rem",
-                    color: "var(--color-brand-gold-vivid)",
+                    color: "var(--gold-vivid)",
                     letterSpacing: "0.1em",
                   }}
                 >
                   {content.badge}
                 </span>
               </div>
- 
+
               <h1
                 className="font-display font-bold text-white leading-tight mb-4"
                 style={{
@@ -255,7 +248,7 @@ export function AuthPageShell() {
               </p>
             </motion.div>
           </AnimatePresence>
- 
+
           {/* Features */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -270,7 +263,11 @@ export function AuthPageShell() {
                   key={f.title}
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.25 + i * 0.06, ease: EASE }}
+                  transition={{
+                    duration: 0.4,
+                    delay: 0.25 + i * 0.06,
+                    ease: EASE,
+                  }}
                   className="flex items-start gap-3"
                 >
                   <div
@@ -282,7 +279,7 @@ export function AuthPageShell() {
                   >
                     <Icon
                       className="w-3.5 h-3.5"
-                      style={{ color: "var(--color-brand-gold-vivid)" }}
+                      style={{ color: "var(--gold-vivid)" }}
                     />
                   </div>
                   <div>
@@ -292,7 +289,12 @@ export function AuthPageShell() {
                     >
                       {f.title}
                     </p>
-                    <p style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.4)" }}>
+                    <p
+                      style={{
+                        fontSize: "0.6875rem",
+                        color: "rgba(255,255,255,0.4)",
+                      }}
+                    >
                       {f.desc}
                     </p>
                   </div>
@@ -300,7 +302,7 @@ export function AuthPageShell() {
               );
             })}
           </motion.div>
- 
+
           {/* Testimonials + Social proof */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -313,7 +315,11 @@ export function AuthPageShell() {
                   key={t.name}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.5 + i * 0.08, ease: EASE }}
+                  transition={{
+                    duration: 0.4,
+                    delay: 0.5 + i * 0.08,
+                    ease: EASE,
+                  }}
                   className="flex items-start gap-3 p-3 rounded-xl"
                   style={{
                     background: "rgba(255,255,255,0.05)",
@@ -325,7 +331,7 @@ export function AuthPageShell() {
                     className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 font-display font-bold text-white"
                     style={{
                       fontSize: "0.625rem",
-                      background: `linear-gradient(135deg, var(--color-brand-blue) 0%, var(--color-brand-blue-navy) 100%)`,
+                      background: `linear-gradient(135deg, var(--blue) 0%, var(--blue-navy) 100%)`,
                     }}
                   >
                     {t.avatar}
@@ -338,11 +344,22 @@ export function AuthPageShell() {
                       >
                         {t.name}
                       </span>
-                      <span style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.4)" }}>
+                      <span
+                        style={{
+                          fontSize: "0.625rem",
+                          color: "rgba(255,255,255,0.4)",
+                        }}
+                      >
                         · {t.role}
                       </span>
                     </div>
-                    <p style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.55)", lineHeight: "1.5" }}>
+                    <p
+                      style={{
+                        fontSize: "0.6875rem",
+                        color: "rgba(255,255,255,0.55)",
+                        lineHeight: "1.5",
+                      }}
+                    >
                       "{t.text}"
                     </p>
                   </div>
@@ -351,14 +368,14 @@ export function AuthPageShell() {
                       <Star
                         key={i}
                         className="w-2.5 h-2.5 fill-current"
-                        style={{ color: "var(--color-brand-gold-vivid)" }}
+                        style={{ color: "var(--gold-vivid)" }}
                       />
                     ))}
                   </div>
                 </motion.div>
               ))}
             </div>
- 
+
             <div
               className="flex items-center gap-4 pt-4"
               style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
@@ -369,10 +386,18 @@ export function AuthPageShell() {
                   className={i < SOCIAL_PROOF.length - 1 ? "border-r pr-4" : ""}
                   style={{ borderColor: "rgba(255,255,255,0.1)" }}
                 >
-                  <p className="font-display font-bold text-white" style={{ fontSize: "1rem" }}>
+                  <p
+                    className="font-display font-bold text-white"
+                    style={{ fontSize: "1rem" }}
+                  >
                     {s.value}
                   </p>
-                  <p style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.4)" }}>
+                  <p
+                    style={{
+                      fontSize: "0.625rem",
+                      color: "rgba(255,255,255,0.4)",
+                    }}
+                  >
                     {s.label}
                   </p>
                 </div>
@@ -381,7 +406,7 @@ export function AuthPageShell() {
           </motion.div>
         </div>
       </div>
- 
+
       {/* ══════════════════════════════════════
           RIGHT PANEL — Auth Form
       ══════════════════════════════════════ */}
@@ -390,11 +415,11 @@ export function AuthPageShell() {
           className="absolute inset-0 pointer-events-none opacity-[0.015]"
           style={{
             backgroundImage:
-              "radial-gradient(circle, var(--color-brand-blue-navy) 1px, transparent 1px)",
+              "radial-gradient(circle, var(--blue-navy) 1px, transparent 1px)",
             backgroundSize: "24px 24px",
           }}
         />
- 
+
         <div className="w-full max-w-[420px] relative z-10">
           {/* Mobile logo */}
           <motion.div
@@ -414,14 +439,13 @@ export function AuthPageShell() {
               />
               <span
                 className="font-display font-bold"
-                style={{ fontSize: "1rem", color: "var(--color-brand-text)" }}
+                style={{ fontSize: "1rem", color: "var(--text-main)" }}
               >
-                Inggris{" "}
-                <span style={{ color: "var(--color-brand-blue)" }}>Go!</span>
+                Inggris <span style={{ color: "var(--blue)" }}>Go!</span>
               </span>
             </Link>
           </motion.div>
- 
+
           {/* Card */}
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -429,8 +453,8 @@ export function AuthPageShell() {
             transition={{ duration: 0.5, delay: 0.05, ease: EASE }}
             className="rounded-3xl overflow-hidden"
             style={{
-              background: "var(--color-brand-surface)",
-              border: "1px solid var(--color-brand-border-soft)",
+              background: "var(--surface)",
+              border: "1px solid var(--border-soft)",
               boxShadow:
                 "0 20px 60px rgba(10,45,135,0.1), 0 4px 16px rgba(10,45,135,0.05)",
             }}
@@ -446,7 +470,7 @@ export function AuthPageShell() {
                 className="relative px-8 pt-7 pb-6 overflow-hidden"
                 style={{
                   background:
-                    "linear-gradient(135deg, var(--color-brand-blue-abyss) 0%, var(--color-brand-blue-navy) 100%)",
+                    "linear-gradient(135deg, var(--blue-abyss) 0%, var(--blue-navy) 100%)",
                 }}
               >
                 <div
@@ -468,7 +492,7 @@ export function AuthPageShell() {
                   className="absolute bottom-0 left-0 right-0 h-[1.5px]"
                   style={{
                     background:
-                      "linear-gradient(90deg, transparent, var(--color-brand-gold-mid) 50%, transparent)",
+                      "linear-gradient(90deg, transparent, var(--gold-mid) 50%, transparent)",
                   }}
                 />
                 <div className="relative">
@@ -481,13 +505,13 @@ export function AuthPageShell() {
                   >
                     <Sparkles
                       className="w-3 h-3"
-                      style={{ color: "var(--color-brand-gold-vivid)" }}
+                      style={{ color: "var(--gold-vivid)" }}
                     />
                     <span
                       className="font-display font-bold"
                       style={{
                         fontSize: "0.5625rem",
-                        color: "var(--color-brand-gold-vivid)",
+                        color: "var(--gold-vivid)",
                         letterSpacing: "0.1em",
                       }}
                     >
@@ -516,7 +540,7 @@ export function AuthPageShell() {
                 </div>
               </motion.div>
             </AnimatePresence>
- 
+
             {/* Form Body */}
             <div className="px-8 py-7">
               {/* ✅ FIX: Pass both tab and onTabChange so the form is fully controlled */}
@@ -528,7 +552,7 @@ export function AuthPageShell() {
               />
             </div>
           </motion.div>
- 
+
           {/* Footer link */}
           <AnimatePresence mode="wait">
             <motion.p
@@ -542,15 +566,22 @@ export function AuthPageShell() {
             >
               {content.footerText}{" "}
               <button
-                onClick={() => handleTabChange(tab === "login" ? "signup" : "login")}
+                onClick={() =>
+                  handleTabChange(tab === "login" ? "signup" : "login")
+                }
                 className="font-display font-semibold hover:underline transition-colors cursor-pointer"
-                style={{ color: "var(--color-brand-blue)", background: "none", border: "none", padding: 0 }}
+                style={{
+                  color: "var(--blue)",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                }}
               >
                 {content.footerLink}
               </button>
             </motion.p>
           </AnimatePresence>
- 
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

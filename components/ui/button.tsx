@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: [
           "bg-gold-btn",
-          "text-[var(--color-brand-blue-abyss)]", // dark text
+          "text-[var(--blue-abyss)]", // dark text
           "shadow-[var(--shadow-glow-gold-btn)]",
           "hover:shadow-[var(--shadow-glow-gold-btn-hover)]",
           "hover:-translate-y-px",
@@ -77,7 +77,7 @@ const buttonVariants = cva(
         variant: "brand",
         className: [
           "bg-gold-btn",
-          "text-[var(--color-brand-blue-abyss)]",
+          "text-[var(--blue-abyss)]",
           "shadow-[var(--shadow-glow-gold-btn)]",
           "hover:shadow-[var(--shadow-glow-gold-btn-hover)]",
         ].join(" "),
@@ -85,17 +85,16 @@ const buttonVariants = cva(
       {
         variant: "brand-outline",
         className:
-          "border-[rgba(15,35,64,0.14)] text-[#0F2340] hover:border-[var(--color-brand-blue)] hover:text-[var(--color-brand-blue)]",
+          "border-[rgba(15,35,64,0.14)] text-[#0F2340] hover:border-[var(--blue)] hover:text-[var(--blue)]",
       },
       {
         variant: "brand-ghost",
-        className:
-          "text-[#0F2340] hover:bg-orange-50 hover:text-[var(--color-brand-blue)]",
+        className: "text-[#0F2340] hover:bg-orange-50 hover:text-[var(--blue)]",
       },
       {
         variant: "brand-secondary",
         className:
-          "shadow-[0_2px_10px_rgba(15,35,64,0.06)] hover:border-[var(--color-brand-blue)] hover:text-[var(--color-brand-blue)] hover:shadow-[0_6px_20px_rgba(255,107,53,0.15)]",
+          "shadow-[0_2px_10px_rgba(15,35,64,0.06)] hover:border-[var(--blue)] hover:text-[var(--blue)] hover:shadow-[0_6px_20px_rgba(255,107,53,0.15)]",
       },
     ],
 

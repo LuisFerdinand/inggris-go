@@ -5,73 +5,71 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* ── Blue / Primary — drives ALL UI ──────────────────── */
-  --color-brand-blue-abyss: #060f2e;
-  --color-brand-blue-navy: #0a2d87;
-  --color-brand-blue: #1a52c8;
-  --color-brand-blue-vivid: #1e6eee;
-  --color-brand-blue-sky: #3a8ff5;
+  /* ── Brand: Blue ───────────────────────── */
+  --blue-abyss: #060f2e;
+  --blue-navy: #0a2d87;
+  --blue: #1a52c8;
+  --blue-vivid: #1e6eee;
+  --blue-sky: #3a8ff5;
 
-  --color-brand-gold: #f7b500; /* base gold (balanced between mid & vivid) */
-
-  --color-brand-gold-soft: rgba(255, 193, 7, 0.08);
-  --color-brand-gold-border: rgba(255, 193, 7, 0.22);
-
-  /* ── Gold — primary CTA button + heading highlight ────── */
-  --color-brand-gold-vivid: #ffc107;
-  --color-brand-gold-mid: #f5a800;
+  /* ── Brand: Gold ───────────────────────── */
+  --gold: #f7b500;
+  --gold-mid: #f5a800;
+  --gold-vivid: #ffc107;
 
   /* ── Problem / Support Colors (exact from ProblemSection) ── */
-  --color-support-orange: #ff6b35;
-  --color-support-orange-soft: rgba(255, 107, 53, 0.06);
-  --color-support-orange-border: rgba(255, 107, 53, 0.18);
+  --orange: #ff6b35;
+  --orange-soft: rgba(255, 107, 53, 0.06);
+  --orange-border: rgba(255, 107, 53, 0.18);
 
-  --color-support-teal: #2db8b0;
-  --color-support-teal-soft: rgba(45, 184, 176, 0.06);
-  --color-support-teal-border: rgba(45, 184, 176, 0.18);
+  --teal: #2db8b0;
+  --teal-soft: rgba(45, 184, 176, 0.06);
+  --teal-border: rgba(45, 184, 176, 0.18);
 
-  --color-support-purple: #8b5cf6;
-  --color-support-purple-soft: rgba(139, 92, 246, 0.06);
-  --color-support-purple-border: rgba(139, 92, 246, 0.18);
+  --purple: #8b5cf6;
+  --purple-soft: rgba(139, 92, 246, 0.06);
+  --purple-border: rgba(139, 92, 246, 0.18);
 
   /* ── Neutral — Blue-tinted ───────────────────────────── */
-  --color-brand-bg: #f4f8ff;
-  --color-brand-surface: #ffffff;
-  --color-brand-surface-soft: #e8f0fe;
-  --color-brand-border: #c8d8f0;
-  --color-brand-border-soft: #dce8f8;
-  --color-brand-text: #0a2d87;
-  --color-brand-text-muted: #3a5080;
-  --color-brand-text-faint: #7a90b8;
+  --bg-soft: #f4f8ff;
+  --surface: #ffffff;
+  --surface-soft: #e8f0fe;
+
+  --border: #c8d8f0;
+  --border-soft: #dce8f8;
+
+  --text-main: #0a2d87;
+  --text-muted: #3a5080;
+  --text-faint: #7a90b8;
 
   /* ── Blue overlay helpers ────────────────────────────── */
-  --color-brand-overlay-blue-blob: rgba(26, 82, 200, 0.12);
-  --color-brand-overlay-blue-card: rgba(26, 82, 200, 0.1);
-  --color-brand-overlay-blue-icon: rgba(26, 82, 200, 0.12);
-  --color-brand-overlay-blue-icon-strong: rgba(26, 82, 200, 0.18);
-  --color-brand-overlay-blue-shadow: rgba(10, 45, 135, 0.28);
-  --color-brand-overlay-blue-shadow-hover: rgba(10, 45, 135, 0.42);
+  --overlay-blue-blob: rgba(26, 82, 200, 0.12);
+  --overlay-blue-card: rgba(26, 82, 200, 0.1);
+  --overlay-blue-icon: rgba(26, 82, 200, 0.12);
+  --overlay-blue-icon-strong: rgba(26, 82, 200, 0.18);
+  --overlay-blue-shadow: rgba(10, 45, 135, 0.28);
+  --overlay-blue-shadow-hover: rgba(10, 45, 135, 0.42);
 
-  --color-brand-overlay-gold-blob: rgba(245, 168, 0, 0.15);
-  --color-brand-overlay-gold-card: rgba(245, 168, 0, 0.18);
-  --color-brand-overlay-gold-icon: rgba(245, 168, 0, 0.18);
+  --overlay-gold-blob: rgba(245, 168, 0, 0.15);
+  --overlay-gold-card: rgba(245, 168, 0, 0.18);
+  --overlay-gold-icon: rgba(245, 168, 0, 0.18);
 
   /* ── Gold shadow tokens (used by brand.ts) ───────────── */
-  --color-brand-overlay-gold-shadow: rgba(180, 100, 0, 0.38);
-  --color-brand-overlay-gold-shadow-hover: rgba(180, 100, 0, 0.55);
+  --overlay-gold-shadow: rgba(180, 100, 0, 0.38);
+  --overlay-gold-shadow-hover: rgba(180, 100, 0, 0.55);
 
   /* ── Navy overlay helpers ────────────────────────────── */
-  --color-brand-overlay-navy-shadow: rgba(6, 15, 46, 0.3);
-  --color-brand-overlay-navy-shadow-hover: rgba(6, 15, 46, 0.48);
+  --overlay-navy-shadow: rgba(6, 15, 46, 0.3);
+  --overlay-navy-shadow-hover: rgba(6, 15, 46, 0.48);
 
   /* ── Neutral shadow helpers ──────────────────────────── */
-  --color-brand-shadow-soft: rgba(10, 45, 135, 0.07);
-  --color-brand-shadow-card: rgba(10, 45, 135, 0.13);
-  --color-brand-shadow-tag: rgba(10, 45, 135, 0.09);
+  --shadow-soft: rgba(10, 45, 135, 0.07);
+  --shadow-card: rgba(10, 45, 135, 0.13);
+  --shadow-tag: rgba(10, 45, 135, 0.09);
 
   /* ── Fonts ───────────────────────────────────────────── */
   --font-display: var(--font-syne), sans-serif;
-  --font-body: var(--font-dm-sans), sans-serif;
+  --font-sans: var(--font-dm-sans), sans-serif;
   --font-mono: var(--font-dm-mono), monospace;
   --font-jakarta: var(--font-plus-jakarta), sans-serif;
 
@@ -94,25 +92,23 @@
   /* ── Shadows — blue-family ───────────────────────────── */
   --shadow-glow-blue: 0 0 60px rgba(26, 82, 200, 0.28);
   --shadow-glow-blue-hover: 0 0 80px rgba(26, 82, 200, 0.42);
-  --shadow-glow-blue-btn: 0 4px 20px var(--color-brand-overlay-blue-shadow);
-  --shadow-glow-blue-btn-hover: 0 10px 36px
-    var(--color-brand-overlay-blue-shadow-hover);
-  --shadow-glow-navy-btn: 0 4px 20px var(--color-brand-overlay-navy-shadow);
-  --shadow-glow-navy-btn-hover: 0 10px 36px
-    var(--color-brand-overlay-navy-shadow-hover);
+  --shadow-glow-blue-btn: 0 4px 20px var(--overlay-blue-shadow);
+  --shadow-glow-blue-btn-hover: 0 10px 36px var(--overlay-blue-shadow-hover);
+  --shadow-glow-navy-btn: 0 4px 20px var(--overlay-navy-shadow);
+  --shadow-glow-navy-btn-hover: 0 10px 36px var(--overlay-navy-shadow-hover);
 
   /* ── Shadows — gold CTA button ───────────────────────── */
   --shadow-glow-gold-btn:
-    0 4px 22px var(--color-brand-overlay-gold-shadow),
+    0 4px 22px var(--overlay-gold-shadow),
     inset 0 1px 0 rgba(255, 220, 100, 0.4);
   --shadow-glow-gold-btn-hover:
-    0 10px 36px var(--color-brand-overlay-gold-shadow-hover),
+    0 10px 36px var(--overlay-gold-shadow-hover),
     inset 0 1px 0 rgba(255, 220, 100, 0.4);
 
-  --shadow-card: 0 4px 24px var(--color-brand-shadow-soft);
-  --shadow-card-hover: 0 20px 60px var(--color-brand-shadow-card);
-  --shadow-badge: 0 2px 12px var(--color-brand-shadow-soft);
-  --shadow-tag: 0 8px 24px var(--color-brand-shadow-tag);
+  --shadow-card: 0 4px 24px var(--shadow-soft);
+  --shadow-card-hover: 0 20px 60px var(--shadow-card);
+  --shadow-badge: 0 2px 12px var(--shadow-soft);
+  --shadow-tag: 0 8px 24px var(--shadow-tag);
 }
 
 /* ─── Gradient & utility classes ─────────────────────────── */
@@ -150,28 +146,20 @@
 
   /* ── PRIMARY button — vivid blue ────────────────────── */
   .bg-blue-gradient {
-    background: linear-gradient(
-      135deg,
-      var(--color-brand-blue) 0%,
-      var(--color-brand-blue-vivid) 100%
-    );
+    background: linear-gradient(135deg, var(--blue) 0%, var(--blue-vivid) 100%);
   }
 
   /* ── SECONDARY button — deep navy ───────────────────── */
   .bg-navy-gradient {
-    background: linear-gradient(
-      135deg,
-      var(--color-brand-blue-navy) 0%,
-      var(--color-brand-blue) 100%
-    );
+    background: linear-gradient(135deg, var(--blue-navy) 0%, var(--blue) 100%);
   }
 
   /* ── Sky gradient — supporting elements ─────────────── */
   .bg-sky-gradient {
     background: linear-gradient(
       135deg,
-      var(--color-brand-blue-sky) 0%,
-      var(--color-brand-blue-vivid) 100%
+      var(--blue-sky) 0%,
+      var(--blue-vivid) 100%
     );
   }
 
@@ -179,8 +167,8 @@
   .bg-hero-card-wrap {
     background: linear-gradient(
       135deg,
-      var(--color-brand-overlay-blue-icon-strong) 0%,
-      var(--color-brand-overlay-blue-card) 100%
+      var(--overlay-blue-icon-strong) 0%,
+      var(--overlay-blue-card) 100%
     );
   }
 
@@ -191,12 +179,12 @@
 
   /* variants */
   .card-default {
-    border: 1.5px solid var(--color-brand-border-soft);
+    border: 1.5px solid var(--border-soft);
     box-shadow: var(--shadow-badge);
   }
 
   .card-center {
-    border: 2px solid var(--color-brand-border);
+    border: 2px solid var(--border);
     box-shadow: var(--shadow-card-hover);
   }
 
@@ -204,8 +192,8 @@
   .bg-warm-gradient {
     background: linear-gradient(
       180deg,
-      var(--color-brand-bg) 0%,
-      var(--color-brand-surface-soft) 100%
+      var(--bg-soft) 0%,
+      var(--surface-soft) 100%
     );
   }
 
@@ -214,25 +202,25 @@
     background: linear-gradient(
       135deg,
       #e8940a 0%,
-      var(--color-brand-gold-mid) 50%,
-      var(--color-brand-gold-vivid) 100%
+      var(--gold-mid) 50%,
+      var(--gold-vivid) 100%
     );
   }
 
   /* ── Blob overlays ───────────────────────────────────── */
   .bg-blob-blue {
-    background: var(--color-brand-overlay-blue-blob);
+    background: var(--overlay-blue-blob);
   }
   .bg-blob-blue-soft {
-    background: var(--color-brand-overlay-blue-card);
+    background: var(--overlay-blue-card);
   }
 
   /* ── Icon circle tints ───────────────────────────────── */
   .bg-icon-blue {
-    background: var(--color-brand-overlay-blue-icon);
+    background: var(--overlay-blue-icon);
   }
   .bg-icon-blue-strong {
-    background: var(--color-brand-overlay-blue-icon-strong);
+    background: var(--overlay-blue-icon-strong);
   }
 
   /* ── Shadow utilities ────────────────────────────────── */
@@ -277,53 +265,53 @@
 
   /* ── Support backgrounds ── */
   .bg-support-orange {
-    background: var(--color-support-orange);
+    background: var(--orange);
   }
   .bg-support-teal {
-    background: var(--color-support-teal);
+    background: var(--teal);
   }
   .bg-support-amber {
   }
   .bg-support-purple {
-    background: var(--color-support-purple);
+    background: var(--purple);
   }
 
   /* ── Support borders ── */
   .border-support-orange {
-    border-color: var(--color-support-orange-border);
+    border-color: var(--orange-border);
   }
   .border-support-teal {
-    border-color: var(--color-support-teal-border);
+    border-color: var(--teal-border);
   }
   .border-support-amber {
   }
   .border-support-purple {
-    border-color: var(--color-support-purple-border);
+    border-color: var(--purple-border);
   }
 
   /* ── Support text ── */
   .text-support-orange {
-    color: var(--color-support-orange);
+    color: var(--orange);
   }
   .text-support-teal {
-    color: var(--color-support-teal);
+    color: var(--teal);
   }
   .text-support-amber {
   }
   .text-support-purple {
-    color: var(--color-support-purple);
+    color: var(--purple);
   }
 
   .bg-problem-radial {
     background-image:
       radial-gradient(
         ellipse 70% 50% at 15% 20%,
-        var(--color-support-orange-soft) 0%,
+        var(--orange-soft) 0%,
         transparent 60%
       ),
       radial-gradient(
         ellipse 60% 60% at 85% 80%,
-        var(--color-support-teal-soft) 0%,
+        var(--teal-soft) 0%,
         transparent 55%
       );
   }
@@ -331,19 +319,18 @@
   .bg-gold-btn {
     background: linear-gradient(
       135deg,
-      var(--color-brand-gold-mid) 0%,
-      var(--color-brand-gold-vivid) 100%
+      var(--gold-mid) 0%,
+      var(--gold-vivid) 100%
     );
   }
 }
 
-/* ─── Component classes ────────────────────────────────────── */
 @layer components {
-  /* ── Nav link — blue active, gold underline bar ──────── */
+  /* ── Nav link ───────────────────────────── */
   .nav-link {
     position: relative;
     font-weight: 500;
-    color: var(--color-brand-blue-navy);
+    color: var(--blue-navy);
     transition: color 0.2s ease-out;
   }
 
@@ -354,11 +341,10 @@
     bottom: -2px;
     height: 2px;
     width: 100%;
-    /* Gold underline — ONLY decorative use of gold in UI chrome */
     background: linear-gradient(
       90deg,
-      var(--color-brand-gold-vivid) 0%,
-      var(--color-brand-gold-mid) 100%
+      var(--gold-vivid) 0%,
+      var(--gold-mid) 100%
     );
     border-radius: 2px;
     transform: scaleX(0);
@@ -367,17 +353,207 @@
   }
 
   .nav-link:hover {
-    color: var(--color-brand-blue);
+    color: var(--blue);
   }
+
   .nav-link:hover::after {
     transform: scaleX(1);
   }
+
   .nav-link.active {
-    color: var(--color-brand-blue-navy);
+    color: var(--blue-navy);
   }
+
   .nav-link.active::after {
     transform: scaleX(1);
     transition: none;
+  }
+
+  /* ── App Brand Root ─────────────────────── */
+  .app-brand-root {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-4xl, 1rem);
+    transition:
+      background 0.2s ease,
+      box-shadow 0.2s ease;
+    cursor: default;
+    user-select: none;
+  }
+
+  .app-brand-expanded {
+    background: linear-gradient(
+      135deg,
+      rgba(26, 82, 200, 0.07) 0%,
+      rgba(58, 143, 245, 0.05) 100%
+    );
+    border: 1px solid var(--border-soft, #dce8f8);
+  }
+
+  .app-brand-collapsed {
+    justify-content: center;
+    padding: 0.375rem;
+    background: transparent;
+    border: none;
+  }
+
+  /* ── Icon ──────────────────────────────── */
+  .app-brand-icon {
+    position: relative;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: linear-gradient(
+      145deg,
+      var(--blue-navy, #0a2d87) 0%,
+      var(--blue-vivid, #1e6eee) 100%
+    );
+    border-radius: 0.625rem;
+    box-shadow:
+      0 2px 8px rgba(10, 45, 135, 0.32),
+      0 1px 2px rgba(10, 45, 135, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+    transition:
+      box-shadow 0.25s ease,
+      transform 0.2s ease;
+  }
+
+  /* FIXED: size control */
+  .app-brand-expanded .app-brand-icon {
+    width: 2.125rem;
+    height: 2.125rem;
+  }
+
+  .app-brand-collapsed .app-brand-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .app-brand-icon:hover {
+    box-shadow:
+      0 4px 16px rgba(10, 45, 135, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+  }
+
+  /* ── Monogram ─────────────────────────── */
+  .app-brand-monogram {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #ffffff;
+    line-height: 1;
+  }
+
+  .app-brand-collapsed .app-brand-monogram {
+    font-size: 0.875rem;
+  }
+
+  /* ── Icon Ring ────────────────────────── */
+  .app-brand-icon-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+  }
+
+  /* ── Text Block ───────────────────────── */
+  .app-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+    flex: 1;
+    animation: brandTextReveal 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes brandTextReveal {
+    from {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* ── Name Row ─────────────────────────── */
+  .app-brand-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  /* ── Name ─────────────────────────────── */
+  .app-brand-name {
+    font-family: var(--font-display, sans-serif);
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #1a1f2e;
+  }
+
+  .dark .app-brand-name {
+    color: #e8f0fe;
+  }
+
+  /* ── Badge ────────────────────────────── */
+  .app-brand-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+
+    color: #7a3e00;
+    background: linear-gradient(
+      135deg,
+      rgba(247, 181, 0, 0.22) 0%,
+      rgba(255, 193, 7, 0.18) 100%
+    );
+    border: 1px solid rgba(247, 181, 0, 0.35);
+  }
+
+  .dark .app-brand-badge {
+    color: var(--gold, #f7b500);
+    background: rgba(247, 181, 0, 0.12);
+    border-color: rgba(247, 181, 0, 0.25);
+  }
+
+  /* ── Tagline ──────────────────────────── */
+  .app-brand-tagline {
+    font-family: var(--font-sans, sans-serif);
+    font-size: 0.6875rem;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #4a5568;
+  }
+
+  .dark .app-brand-tagline {
+    color: var(--text-faint, #7a90b8);
   }
 }
 
@@ -433,32 +609,33 @@
 :root {
   --navbar-height: 56px; /* mobile */
 
-  --background: var(--color-brand-bg);
-  --foreground: var(--color-brand-text);
+  --background: var(--bg-soft);
+  --foreground: var(--text-main);
 
-  --card: var(--color-brand-surface);
-  --card-foreground: var(--color-brand-text);
+  --card: var(--surface);
+  --card-foreground: var(--text-main);
 
-  --popover: var(--color-brand-surface);
-  --popover-foreground: var(--color-brand-text);
+  --popover: var(--surface);
+  --popover-foreground: var(--text-main);
 
-  --primary: var(--color-brand-blue);
+  --primary: var(--blue);
   --primary-foreground: white;
 
-  --secondary: var(--color-brand-blue-sky);
+  --secondary: var(--blue-sky);
   --secondary-foreground: white;
 
-  --muted: var(--color-brand-surface-soft);
-  --muted-foreground: var(--color-brand-text-faint);
+  --muted: var(--surface-soft);
+  --muted-foreground: var(--text-faint);
 
-  /* accent = gold, but scoped ONLY to non-button uses (badges, highlights) */
-  --accent: var(--color-brand-gold-vivid);
-  --accent-foreground: var(--color-brand-blue-navy);
+  --accent: var(--gold-vivid);
+  --accent-foreground: var(--blue-navy);
 
   --destructive: oklch(0.577 0.245 27.325);
-  --border: var(--color-brand-border);
-  --input: var(--color-brand-border);
-  --ring: var(--color-brand-blue);
+  --destructive-foreground: white;
+
+  --border: var(--border);
+  --input: var(--border);
+  --ring: var(--blue);
 
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
@@ -466,67 +643,53 @@
   --chart-4: oklch(0.488 0.243 264.376);
   --chart-5: oklch(0.424 0.199 265.638);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
 
-@media (min-width: 1024px) {
-  :root {
-    --navbar-height: 72px; /* desktop */
+  --sidebar: var(--surface);
+  --sidebar-foreground: "black";
+  --sidebar-primary: var(--blue);
+  --sidebar-primary-foreground: white;
+  --sidebar-accent: var(--surface-soft);
+  --sidebar-accent-foreground: var(--text-main);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--blue);
+
+  @media (min-width: 1024px) {
+    :root {
+      --navbar-height: 72px; /* desktop */
+    }
+  }
+
+  /* ─── Base reset ───────────────────────────────────────────── */
+
+  /* ─── Leaflet z-index hard reset ───────────────────────────── */
+  .leaflet-container {
+    z-index: 0 !important;
+  }
+  .leaflet-pane {
+    z-index: 0 !important;
+  }
+  .leaflet-top,
+  .leaflet-bottom {
+    z-index: 0 !important;
+  }
+  .leaflet-control {
+    z-index: 0 !important;
+  }
+  .leaflet-popup-pane {
+    z-index: 0 !important;
+  }
+  .leaflet-tooltip-pane {
+    z-index: 0 !important;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 
-/* ─── Dark mode ────────────────────────────────────────────── */
-.dark {
-  --background: var(--color-brand-blue-abyss);
-  --foreground: #f0f6ff;
-
-  --card: #0d1f50;
-  --card-foreground: #f0f6ff;
-
-  --primary: var(--color-brand-blue-sky);
-  --primary-foreground: var(--color-brand-blue-abyss);
-
-  --secondary: var(--color-brand-blue-vivid);
-  --secondary-foreground: white;
-
-  --popover: #0d1f50;
-  --popover-foreground: #f0f6ff;
-
-  --muted: #142060;
-  --muted-foreground: #7a90b8;
-
-  --accent: var(--color-brand-gold-vivid);
-  --accent-foreground: var(--color-brand-blue-abyss);
-
-  --border: rgba(214, 232, 255, 0.12);
-  --input: rgba(214, 232, 255, 0.15);
-  --ring: var(--color-brand-blue-sky);
-
-  --destructive: oklch(0.704 0.191 22.216);
-
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: #0d1f50;
-  --sidebar-foreground: #f0f6ff;
-  --sidebar-primary: var(--color-brand-blue-sky);
-  --sidebar-primary-foreground: var(--color-brand-blue-abyss);
-  --sidebar-accent: #142060;
-  --sidebar-accent-foreground: #f0f6ff;
-  --sidebar-border: rgba(214, 232, 255, 0.1);
-  --sidebar-ring: var(--color-brand-blue-vivid);
-}
-
-/* ─── Base reset ───────────────────────────────────────────── */
 @layer base {
   * {
     border-color: var(--border);
@@ -539,30 +702,50 @@
   }
 }
 
-/* ─── Leaflet z-index hard reset ───────────────────────────── */
-.leaflet-container {
-  z-index: 0 !important;
-}
-.leaflet-pane {
-  z-index: 0 !important;
-}
-.leaflet-top,
-.leaflet-bottom {
-  z-index: 0 !important;
-}
-.leaflet-control {
-  z-index: 0 !important;
-}
-.leaflet-popup-pane {
-  z-index: 0 !important;
-}
-.leaflet-tooltip-pane {
-  z-index: 0 !important;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+/* ─── Dark mode ────────────────────────────────────────────── */
+.dark {
+  --background: var(--blue-abyss);
+  --foreground: #f0f6ff;
+
+  --card: #0d1f50;
+  --card-foreground: #f0f6ff;
+
+  --primary: var(--blue-sky);
+  --primary-foreground: var(--blue-abyss);
+
+  --secondary: var(--blue-vivid);
+  --secondary-foreground: white;
+
+  --popover: #0d1f50;
+  --popover-foreground: #f0f6ff;
+
+  --muted: #142060;
+  --muted-foreground: #7a90b8;
+
+  --accent: var(--gold-vivid);
+  --accent-foreground: var(--blue-abyss);
+
+  --border: rgba(214, 232, 255, 0.12);
+  --input: rgba(214, 232, 255, 0.15);
+  --ring: var(--blue-sky);
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: rgba(214, 232, 255, 0.12);
+  --input: rgba(214, 232, 255, 0.15);
+  --ring: var(--blue-sky);
+
+  --chart-1: oklch(0.809 0.105 251.813);
+  --chart-2: oklch(0.623 0.214 259.815);
+  --chart-3: oklch(0.546 0.245 262.881);
+  --chart-4: oklch(0.488 0.243 264.376);
+  --chart-5: oklch(0.424 0.199 265.638);
+  --sidebar: #0d1f50;
+  --sidebar-foreground: #f0f6ff;
+  --sidebar-primary: var(--blue-sky);
+  --sidebar-primary-foreground: var(--blue-abyss);
+  --sidebar-accent: #142060;
+  --sidebar-accent-foreground: #f0f6ff;
+  --sidebar-border: rgba(214, 232, 255, 0.1);
+  --sidebar-ring: var(--blue-vivid);
 }

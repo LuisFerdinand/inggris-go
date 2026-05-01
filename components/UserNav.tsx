@@ -181,10 +181,10 @@ function AuthModal({ onClose, defaultTab = "login" }: AuthModalProps) {
         transition={SPRING}
         className="relative w-full max-w-[440px] rounded-3xl overflow-hidden max-h-[90vh] flex flex-col"
         style={{
-          background: "var(--color-brand-surface)",
+          background: "var(--surface)",
           boxShadow:
             "0 40px 100px rgba(6,15,46,0.4), 0 8px 24px rgba(6,15,46,0.15)",
-          border: "1px solid var(--color-brand-border-soft)",
+          border: "1px solid var(--border-soft)",
         }}
       >
         {/* ── Branded Header ── */}
@@ -218,7 +218,7 @@ function ModalHeader({
       className="relative px-7 pt-8 pb-6 overflow-hidden min-h-[140px]"
       style={{
         background:
-          "linear-gradient(135deg, var(--color-brand-blue-abyss) 0%, var(--color-brand-blue-navy) 100%)",
+          "linear-gradient(135deg, var(--blue-abyss) 0%, var(--blue-navy) 100%)",
       }}
     >
       {/* Dot grid */}
@@ -250,7 +250,7 @@ function ModalHeader({
         className="absolute bottom-0 left-0 right-0 h-[1.5px]"
         style={{
           background:
-            "linear-gradient(90deg, transparent, var(--color-brand-gold-mid), transparent)",
+            "linear-gradient(90deg, transparent, var(--gold-mid), transparent)",
         }}
       />
 
@@ -270,13 +270,13 @@ function ModalHeader({
               width={50}
               height={50}
               className="w-3 h-3"
-              style={{ color: "var(--color-brand-gold-vivid)" }}
+              style={{ color: "var(--gold-vivid)" }}
             />
             <span
               className="font-display font-bold"
               style={{
                 fontSize: "0.5625rem",
-                color: "var(--color-brand-gold-vivid)",
+                color: "var(--gold-vivid)",
                 letterSpacing: "0.1em",
               }}
             >

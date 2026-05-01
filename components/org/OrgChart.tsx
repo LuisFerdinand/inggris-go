@@ -128,7 +128,7 @@ export function OrgChart() {
                 fontSize: "0.8125rem",
                 background: BRAND.background,
                 color: BRAND.blue,
-                border: "1.5px solid var(--color-brand-border)",
+                border: "1.5px solid var(--border)",
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.background =

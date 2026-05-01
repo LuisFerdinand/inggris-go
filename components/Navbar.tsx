@@ -79,13 +79,13 @@ export default function Navbar() {
           // Layout
           "fixed top-0 inset-x-0 z-[1000] isolate overflow-visible",
           // Background — white with blue-tinted surface
-          "bg-[var(--color-brand-surface)]",
+          "bg-[var(--surface)]",
           // Smooth transition for scroll state
           "transition-all duration-300",
           // Scroll shadow — uses brand border + card shadow
           scrolled
-            ? "shadow-[0_1px_0_var(--color-brand-border),0_4px_24px_var(--color-brand-shadow-soft)]"
-            : "shadow-[0_1px_0_var(--color-brand-border-soft)]",
+            ? "shadow-[0_1px_0_var(--border),0_4px_24px_var(--shadow-soft)]"
+            : "shadow-[0_1px_0_var(--border-soft)]",
         ].join(" ")}
       >
         {/* ── Inner container ── */}
@@ -181,7 +181,7 @@ export default function Navbar() {
               {/* ── Visual separator ──────────────────────────────────── */}
               <div
                 className="h-6 w-px flex-shrink-0"
-                style={{ background: "var(--color-brand-border)" }}
+                style={{ background: "var(--border)" }}
                 aria-hidden="true"
               />
 
@@ -203,16 +203,16 @@ export default function Navbar() {
                   ? [
                       // ✅ ACTIVE = solid blue button
                       "bg-background",
-                      "text-[var(--color-brand-blue-navy)]",
+                      "text-[var(--blue-navy)]",
                       "border-transparent",
                       "shadow-glow-blue-btn",
                     ].join(" ")
                   : [
                       // ✅ DEFAULT = subtle blue outline
-                      "border-[var(--color-brand-border)]",
-                      "bg-[var(--color-brand-surface)]",
-                      "text-[var(--color-brand-blue-navy)]",
-                      "hover:bg-[var(--color-brand-surface-soft)]",
+                      "border-[var(--border)]",
+                      "bg-[var(--surface)]",
+                      "text-[var(--blue-navy)]",
+                      "hover:bg-[var(--surface-soft)]",
                     ].join(" "),
               ].join(" ")}
               aria-label={mobileOpen ? "Tutup menu" : "Buka menu"}
@@ -231,7 +231,7 @@ export default function Navbar() {
                   >
                     <X
                       className="w-5 h-5"
-                      style={{ color: "var(--color-brand-gold-dark)" }}
+                      style={{ color: "var(--gold-dark)" }}
                     />
                   </motion.span>
                 ) : (
@@ -245,7 +245,7 @@ export default function Navbar() {
                   >
                     <Menu
                       className="w-5 h-5"
-                      style={{ color: "var(--color-brand-blue-navy)" }}
+                      style={{ color: "var(--blue-navy)" }}
                     />
                   </motion.span>
                 )}
@@ -271,7 +271,7 @@ export default function Navbar() {
                 right: 0,
                 height: "2px",
                 background:
-                  "linear-gradient(90deg, var(--color-brand-gold-vivid) 0%, var(--color-brand-gold-dark) 100%)",
+                  "linear-gradient(90deg, var(--gold-vivid) 0%, var(--gold-dark) 100%)",
                 transformOrigin: "left center",
               }}
             />

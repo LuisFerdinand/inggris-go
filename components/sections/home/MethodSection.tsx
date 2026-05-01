@@ -249,7 +249,7 @@ function DesktopStepCard({
               fontSize: "0.6875rem",
               background: BRAND.overlayGoldIcon,
               color: BRAND.goldMid,
-              border: `1px solid var(--color-brand-overlay-gold-blob)`,
+              border: `1px solid var(--overlay-gold-blob)`,
               transitionDelay: "40ms",
             }}
           >
@@ -380,7 +380,7 @@ function MobileStep({
                 fontSize: "0.6875rem",
                 background: BRAND.overlayGoldIcon,
                 color: BRAND.goldMid,
-                border: `1px solid var(--color-brand-overlay-gold-blob)`,
+                border: `1px solid var(--overlay-gold-blob)`,
               }}
             >
               {tag}

@@ -82,7 +82,7 @@ function InputField({
         className="block font-display font-semibold"
         style={{
           fontSize: "0.6875rem",
-          color: "var(--color-brand-text-muted)",
+          color: "var(--text-muted)",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
         }}
@@ -93,11 +93,7 @@ function InputField({
         <div
           className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors duration-200"
           style={{
-            color: focused
-              ? "var(--color-brand-blue)"
-              : hasError
-                ? "#EF4444"
-                : "#94A3B8",
+            color: focused ? "var(--blue)" : hasError ? "#EF4444" : "#94A3B8",
           }}
         >
           <Icon className="w-4 h-4" />
@@ -117,8 +113,8 @@ function InputField({
           style={{
             fontSize: "0.875rem",
             background: focused ? "#FFFFFF" : "#F8FAFC",
-            border: `1.5px solid ${hasError ? "rgba(239,68,68,0.5)" : focused ? "var(--color-brand-blue)" : "rgba(15,35,64,0.1)"}`,
-            color: "var(--color-brand-text)",
+            border: `1.5px solid ${hasError ? "rgba(239,68,68,0.5)" : focused ? "var(--blue)" : "rgba(15,35,64,0.1)"}`,
+            color: "var(--text-main)",
             boxShadow: focused
               ? `0 0 0 3px ${hasError ? "rgba(239,68,68,0.08)" : "rgba(26,82,200,0.08)"}`
               : "none",
@@ -225,9 +221,9 @@ function OtpInput({
             className="w-11 h-14 text-center font-display font-bold rounded-xl outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               fontSize: "1.375rem",
-              border: `2px solid ${hasError ? "rgba(239,68,68,0.5)" : digits[i] ? "var(--color-brand-blue)" : "rgba(15,35,64,0.12)"}`,
+              border: `2px solid ${hasError ? "rgba(239,68,68,0.5)" : digits[i] ? "var(--blue)" : "rgba(15,35,64,0.12)"}`,
               background: digits[i] ? "rgba(26,82,200,0.04)" : "#F8FAFC",
-              color: "var(--color-brand-text)",
+              color: "var(--text-main)",
               boxShadow: digits[i]
                 ? `0 0 0 3px rgba(26,82,200,0.08)`
                 : hasError
@@ -235,11 +231,11 @@ function OtpInput({
                   : "none",
             }}
             onFocus={(e) => {
-              e.currentTarget.style.border = `2px solid ${hasError ? "rgba(239,68,68,0.6)" : "var(--color-brand-blue)"}`;
+              e.currentTarget.style.border = `2px solid ${hasError ? "rgba(239,68,68,0.6)" : "var(--blue)"}`;
               e.currentTarget.style.boxShadow = `0 0 0 3px ${hasError ? "rgba(239,68,68,0.08)" : "rgba(26,82,200,0.1)"}`;
             }}
             onBlur={(e) => {
-              e.currentTarget.style.border = `2px solid ${hasError ? "rgba(239,68,68,0.5)" : digits[i] ? "var(--color-brand-blue)" : "rgba(15,35,64,0.12)"}`;
+              e.currentTarget.style.border = `2px solid ${hasError ? "rgba(239,68,68,0.5)" : digits[i] ? "var(--blue)" : "rgba(15,35,64,0.12)"}`;
               e.currentTarget.style.boxShadow = digits[i]
                 ? `0 0 0 3px rgba(26,82,200,0.08)`
                 : "none";
@@ -292,7 +288,7 @@ function MethodSelector({
             className="relative flex flex-col items-center gap-1.5 py-3.5 px-3 rounded-xl transition-all duration-200 cursor-pointer text-center overflow-hidden"
             style={{
               border: active
-                ? "1.5px solid var(--color-brand-blue)"
+                ? "1.5px solid var(--blue)"
                 : "1.5px solid rgba(15,35,64,0.1)",
               background: active ? "rgba(26,82,200,0.05)" : "#F8FAFC",
               boxShadow: active ? "0 0 0 3px rgba(26,82,200,0.08)" : "none",
@@ -318,7 +314,7 @@ function MethodSelector({
               <Icon
                 className="w-4 h-4 transition-colors duration-200"
                 style={{
-                  color: active ? "var(--color-brand-blue)" : "#94A3B8",
+                  color: active ? "var(--blue)" : "#94A3B8",
                 }}
               />
             </div>
@@ -327,9 +323,7 @@ function MethodSelector({
                 className="font-display font-bold leading-tight"
                 style={{
                   fontSize: "0.75rem",
-                  color: active
-                    ? "var(--color-brand-blue)"
-                    : "var(--color-brand-text)",
+                  color: active ? "var(--blue)" : "var(--text-main)",
                 }}
               >
                 {label}
@@ -349,7 +343,7 @@ function MethodSelector({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
-                style={{ background: "var(--color-brand-blue)" }}
+                style={{ background: "var(--blue)" }}
               >
                 <CheckCircle2 className="w-2.5 h-2.5 text-white" />
               </motion.div>
@@ -676,15 +670,12 @@ export function AuthForm({
           className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
           style={{ background: "rgba(26,82,200,0.1)" }}
         >
-          <Shield
-            className="w-4 h-4"
-            style={{ color: "var(--color-brand-blue)" }}
-          />
+          <Shield className="w-4 h-4" style={{ color: "var(--blue)" }} />
         </div>
         <div className="flex-1 min-w-0">
           <p
             className="font-display font-semibold"
-            style={{ fontSize: "0.75rem", color: "var(--color-brand-text)" }}
+            style={{ fontSize: "0.75rem", color: "var(--text-main)" }}
           >
             Kode dikirim ke
           </p>
@@ -692,7 +683,7 @@ export function AuthForm({
             className="truncate"
             style={{
               fontSize: "0.6875rem",
-              color: "var(--color-brand-blue)",
+              color: "var(--blue)",
               fontWeight: 600,
             }}
           >
@@ -708,7 +699,7 @@ export function AuthForm({
           className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg transition-colors duration-150 hover:bg-blue-50 cursor-pointer"
           style={{
             fontSize: "0.625rem",
-            color: "var(--color-brand-blue)",
+            color: "var(--blue)",
             fontWeight: 600,
           }}
         >
@@ -722,7 +713,7 @@ export function AuthForm({
           className="text-center font-display font-semibold"
           style={{
             fontSize: "0.75rem",
-            color: "var(--color-brand-text-muted)",
+            color: "var(--text-muted)",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
           }}
@@ -745,7 +736,7 @@ export function AuthForm({
             onClick={handleSendOtp}
             disabled={isLoading}
             className="inline-flex items-center gap-1.5 font-display font-semibold transition-colors duration-150 hover:underline cursor-pointer disabled:opacity-60"
-            style={{ fontSize: "0.75rem", color: "var(--color-brand-blue)" }}
+            style={{ fontSize: "0.75rem", color: "var(--blue)" }}
           >
             <RefreshCw className="w-3 h-3" />
             Kirim ulang kode
@@ -755,7 +746,7 @@ export function AuthForm({
             Kirim ulang dalam{" "}
             <span
               className="font-display font-bold tabular-nums"
-              style={{ color: "var(--color-brand-blue)" }}
+              style={{ color: "var(--blue)" }}
             >
               {remaining}s
             </span>
@@ -795,9 +786,9 @@ export function AuthForm({
         className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-display font-bold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         style={{
           fontSize: "0.9375rem",
-          color: "var(--color-brand-blue-abyss)",
+          color: "var(--blue-abyss)",
           background:
-            "linear-gradient(135deg, #E8940A 0%, var(--color-brand-gold-mid) 50%, var(--color-brand-gold-vivid) 100%)",
+            "linear-gradient(135deg, #E8940A 0%, var(--gold-mid) 50%, var(--gold-vivid) 100%)",
           boxShadow: "var(--shadow-glow-gold-btn)",
         }}
       >
@@ -862,7 +853,7 @@ export function AuthForm({
       >
         <KeyRound
           className="w-3.5 h-3.5 flex-shrink-0"
-          style={{ color: "var(--color-brand-blue)" }}
+          style={{ color: "var(--blue)" }}
         />
         <p
           style={{ fontSize: "0.6875rem", color: "#64748B", lineHeight: "1.4" }}
@@ -902,9 +893,9 @@ export function AuthForm({
         className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-display font-bold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
         style={{
           fontSize: "0.9375rem",
-          color: "var(--color-brand-blue-abyss)",
+          color: "var(--blue-abyss)",
           background:
-            "linear-gradient(135deg, #E8940A 0%, var(--color-brand-gold-mid) 50%, var(--color-brand-gold-vivid) 100%)",
+            "linear-gradient(135deg, #E8940A 0%, var(--gold-mid) 50%, var(--gold-vivid) 100%)",
           boxShadow: "var(--shadow-glow-gold-btn)",
         }}
       >
@@ -978,7 +969,7 @@ export function AuthForm({
         <div className="flex justify-end -mt-2">
           <button
             className="font-body transition-colors duration-150 cursor-pointer hover:underline"
-            style={{ fontSize: "0.75rem", color: "var(--color-brand-blue)" }}
+            style={{ fontSize: "0.75rem", color: "var(--blue)" }}
           >
             Lupa kata sandi?
           </button>
@@ -1015,9 +1006,9 @@ export function AuthForm({
         className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl font-display font-bold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer mt-2"
         style={{
           fontSize: "0.9375rem",
-          color: "var(--color-brand-blue-abyss)",
+          color: "var(--blue-abyss)",
           background:
-            "linear-gradient(135deg, #E8940A 0%, var(--color-brand-gold-mid) 50%, var(--color-brand-gold-vivid) 100%)",
+            "linear-gradient(135deg, #E8940A 0%, var(--gold-mid) 50%, var(--gold-vivid) 100%)",
           boxShadow: "var(--shadow-glow-gold-btn)",
         }}
       >
@@ -1042,7 +1033,7 @@ export function AuthForm({
           <a
             href="/terms"
             className="hover:underline"
-            style={{ color: "var(--color-brand-blue)" }}
+            style={{ color: "var(--blue)" }}
           >
             Syarat & Ketentuan
           </a>{" "}
@@ -1050,7 +1041,7 @@ export function AuthForm({
           <a
             href="/privacy"
             className="hover:underline"
-            style={{ color: "var(--color-brand-blue)" }}
+            style={{ color: "var(--blue)" }}
           >
             Kebijakan Privasi
           </a>
@@ -1085,7 +1076,7 @@ export function AuthForm({
                 layoutId={`auth-tab-bg-${variant}`}
                 className="absolute inset-0 rounded-lg"
                 style={{
-                  background: `linear-gradient(135deg, var(--color-brand-blue-navy) 0%, var(--color-brand-blue) 100%)`,
+                  background: `linear-gradient(135deg, var(--blue-navy) 0%, var(--blue) 100%)`,
                   boxShadow: "0 2px 8px rgba(10,45,135,0.25)",
                 }}
                 transition={SPRING}
@@ -1109,7 +1100,7 @@ export function AuthForm({
           fontSize: "0.875rem",
           background: "white",
           border: "1.5px solid rgba(15,35,64,0.1)",
-          color: "var(--color-brand-text)",
+          color: "var(--text-main)",
           boxShadow: "0 1px 6px rgba(15,35,64,0.06)",
         }}
       >

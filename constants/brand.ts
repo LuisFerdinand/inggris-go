@@ -17,44 +17,44 @@
 
 export const BRAND = {
   /* ── Blue / Primary — most interactive UI ───────────── */
-  blueAbyss: "var(--color-brand-blue-abyss)",
-  blueNavy: "var(--color-brand-blue-navy)",
-  blue: "var(--color-brand-blue)",
-  blueVivid: "var(--color-brand-blue-vivid)",
-  blueSky: "var(--color-brand-blue-sky)",
-  blueIce: "var(--color-brand-blue-ice)",
-  blueFrost: "var(--color-brand-blue-frost)",
+  blueAbyss: "var(--blue-abyss)",
+  blueNavy: "var(--blue-navy)",
+  blue: "var(--blue)",
+  blueVivid: "var(--blue-vivid)",
+  blueSky: "var(--blue-sky)",
+  blueIce: "var(--blue-ice)",
+  blueFrost: "var(--blue-frost)",
 
   /* ── Gold — primary CTA button + heading highlight ───── */
-  goldVivid: "var(--color-brand-gold-vivid)",
-  goldMid: "var(--color-brand-gold-mid)",
+  goldVivid: "var(--gold-vivid)",
+  goldMid: "var(--gold-mid)",
 
   /* ── Surfaces ────────────────────────────────────────── */
-  background: "var(--color-brand-bg)",
-  surface: "var(--color-brand-surface)",
-  surfaceSoft: "var(--color-brand-surface-soft)",
-  surfaceFrost: "var(--color-brand-blue-frost)",
+  background: "var(--bg-soft)",
+  surface: "var(--surface)",
+  surfaceSoft: "var(--surface-soft)",
+  surfaceFrost: "var(--blue-frost)",
 
   /* ── Borders ─────────────────────────────────────────── */
-  border: "var(--color-brand-border)",
-  borderSoft: "var(--color-brand-border-soft)",
+  border: "var(--border)",
+  borderSoft: "var(--border-soft)",
 
   /* ── Text ────────────────────────────────────────────── */
-  text: "var(--color-brand-text)",
-  textMuted: "var(--color-brand-text-muted)",
-  textFaint: "var(--color-brand-text-faint)",
+  text: "var(--text-main)",
+  textMuted: "var(--text-muted)",
+  textFaint: "var(--text-faint)",
 
   /* ── Overlays / Blobs ────────────────────────────────── */
-  overlayBlueBlob: "var(--color-brand-overlay-blue-blob)",
-  overlayGoldBlob: "var(--color-brand-overlay-gold-blob)",
-  overlayBlueCard: "var(--color-brand-overlay-blue-card)",
-  overlayGoldIcon: "var(--color-brand-overlay-gold-icon)",
-  overlayBlueIcon: "var(--color-brand-overlay-blue-icon)",
-  overlayBlueIconStrong: "var(--color-brand-overlay-blue-icon-strong)",
-  overlayBlueShadow: "var(--color-brand-overlay-blue-shadow)",
-  overlayBlueShadowHover: "var(--color-brand-overlay-blue-shadow-hover)",
-  overlayNavyShadow: "var(--color-brand-overlay-navy-shadow)",
-  overlayNavyShadowHover: "var(--color-brand-overlay-navy-shadow-hover)",
+  overlayBlueBlob: "var(--overlay-blue-blob)",
+  overlayGoldBlob: "var(--overlay-gold-blob)",
+  overlayBlueCard: "var(--overlay-blue-card)",
+  overlayGoldIcon: "var(--overlay-gold-icon)",
+  overlayBlueIcon: "var(--overlay-blue-icon)",
+  overlayBlueIconStrong: "var(--overlay-blue-icon-strong)",
+  overlayBlueShadow: "var(--overlay-blue-shadow)",
+  overlayBlueShadowHover: "var(--overlay-blue-shadow-hover)",
+  overlayNavyShadow: "var(--overlay-navy-shadow)",
+  overlayNavyShadowHover: "var(--overlay-navy-shadow-hover)",
 
   /* ── Shadows ─────────────────────────────────────────── */
   shadowSoft: "var(--shadow-badge)",
@@ -73,43 +73,43 @@ export const BRAND = {
 
   /* ── Gradients ───────────────────────────────────────── */
   gradientBlue:
-    "linear-gradient(135deg, var(--color-brand-blue) 0%, var(--color-brand-blue-vivid) 100%)",
+    "linear-gradient(135deg, var(--blue) 0%, var(--blue-vivid) 100%)",
 
   gradientGold:
-    "linear-gradient(135deg, #E8940A 0%, var(--color-brand-gold-mid) 50%, var(--color-brand-gold-vivid) 100%)",
+    "linear-gradient(135deg, #E8940A 0%, var(--gold-mid) 50%, var(--gold-vivid) 100%)",
 
   gradientNavy:
-    "linear-gradient(135deg, var(--color-brand-blue-navy) 0%, var(--color-brand-blue) 100%)",
+    "linear-gradient(135deg, var(--blue-navy) 0%, var(--blue) 100%)",
 
   gradientSky:
-    "linear-gradient(135deg, var(--color-brand-blue-sky) 0%, var(--color-brand-blue-vivid) 100%)",
+    "linear-gradient(135deg, var(--blue-sky) 0%, var(--blue-vivid) 100%)",
 
   gradientPage:
-    "linear-gradient(135deg, var(--color-brand-bg) 0%, var(--color-brand-blue-ice) 50%, var(--color-brand-bg) 100%)",
+    "linear-gradient(135deg, var(--bg-soft) 0%, var(--blue-ice) 50%, var(--bg-soft) 100%)",
 
   gradientHeroCardWrap:
-    "linear-gradient(135deg, var(--color-brand-overlay-blue-icon-strong) 0%, var(--color-brand-overlay-blue-card) 100%)",
+    "linear-gradient(135deg, var(--overlay-blue-icon-strong) 0%, var(--overlay-blue-card) 100%)",
 
   problem: {
     orange: {
-      accent: "var(--color-support-orange)",
-      bg: "var(--color-support-orange-soft)",
-      border: "var(--color-support-orange-border)",
+      accent: "var(--orange)",
+      bg: "var(--orange-soft)",
+      border: "var(--orange-border)",
     },
     teal: {
-      accent: "var(--color-support-teal)",
-      bg: "var(--color-support-teal-soft)",
-      border: "var(--color-support-teal-border)",
+      accent: "var(--teal)",
+      bg: "var(--teal-soft)",
+      border: "var(--teal-border)",
     },
     amber: {
-      accent: "var(--color-brand-gold)",
-      bg: "var(--color-brand-gold-soft)",
-      border: "var(--color-brand-gold-border)",
+      accent: "var(--gold)",
+      bg: "var(--gold-soft)",
+      border: "var(--gold-border)",
     },
     purple: {
-      accent: "var(--color-support-purple)",
-      bg: "var(--color-support-purple-soft)",
-      border: "var(--color-support-purple-border)",
+      accent: "var(--purple)",
+      bg: "var(--purple-soft)",
+      border: "var(--purple-border)",
     },
   },
 } as const;
@@ -128,7 +128,7 @@ export type BrandToken = keyof typeof BRAND;
  */
 export const GRADIENT_GOLD_TEXT: React.CSSProperties = {
   background:
-    "linear-gradient(135deg, var(--color-brand-gold-mid) 0%, var(--color-brand-gold-vivid) 100%)",
+    "linear-gradient(135deg, var(--gold-mid) 0%, var(--gold-vivid) 100%)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   backgroundClip: "text",

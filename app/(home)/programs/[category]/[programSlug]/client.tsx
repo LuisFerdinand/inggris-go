@@ -265,7 +265,7 @@ function SectionHeading({
       style={{
         fontSize,
         letterSpacing: "-0.026em",
-        color: "var(--color-brand-blue-navy)",
+        color: "var(--blue-navy)",
       }}
     >
       {tagline}{" "}
@@ -411,7 +411,7 @@ function StickyNav({
             background: "rgba(255,255,255,0.92)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderBottom: "1px solid var(--color-brand-border-soft)",
+            borderBottom: "1px solid var(--border-soft)",
             /* sits below navbar + batch banner */
             top: "calc(var(--navbar-height, 56px) + var(--batch-banner-height, 0px))",
           }}
@@ -436,9 +436,7 @@ function StickyNav({
                   style={{
                     fontSize: "0.75rem",
                     color:
-                      active === s.id
-                        ? theme.primary
-                        : "var(--color-brand-text-faint)",
+                      active === s.id ? theme.primary : "var(--text-faint)",
                     background: active === s.id ? theme.soft : "transparent",
                     border: "none",
                     cursor: "pointer",
@@ -631,7 +629,7 @@ function BatchesSection({
     <section
       id="batches"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -663,7 +661,7 @@ function BatchesSection({
             <p
               style={{
                 fontSize: "0.9375rem",
-                color: "var(--color-brand-text-muted)",
+                color: "var(--text-muted)",
                 maxWidth: "440px",
                 lineHeight: "1.75",
               }}
@@ -703,8 +701,8 @@ function BatchesSection({
                   transition={{ duration: 0.28, ease: EASE }}
                   className="relative flex flex-col rounded-3xl overflow-hidden h-full"
                   style={{
-                    background: "var(--color-brand-surface)",
-                    border: `2px solid ${batch.isOpen ? theme.border : "var(--color-brand-border-soft)"}`,
+                    background: "var(--surface)",
+                    border: `2px solid ${batch.isOpen ? theme.border : "var(--border-soft)"}`,
                     boxShadow: batch.isOpen
                       ? `0 8px 32px ${theme.border}`
                       : "var(--shadow-badge)",
@@ -717,7 +715,7 @@ function BatchesSection({
                       height: "4px",
                       background: batch.isOpen
                         ? `linear-gradient(90deg, ${theme.primary}, ${theme.strong})`
-                        : "var(--color-brand-border-soft)",
+                        : "var(--border-soft)",
                     }}
                   />
 
@@ -729,7 +727,7 @@ function BatchesSection({
                           className="font-display font-extrabold mb-1"
                           style={{
                             fontSize: "1.0625rem",
-                            color: "var(--color-brand-blue-navy)",
+                            color: "var(--blue-navy)",
                           }}
                         >
                           {batch.label}
@@ -738,7 +736,7 @@ function BatchesSection({
                           <p
                             style={{
                               fontSize: "0.8125rem",
-                              color: "var(--color-brand-text-faint)",
+                              color: "var(--text-faint)",
                             }}
                           >
                             {batch.schedule}
@@ -799,7 +797,7 @@ function BatchesSection({
                           className="font-display font-semibold"
                           style={{
                             fontSize: "0.8125rem",
-                            color: "var(--color-brand-blue-navy)",
+                            color: "var(--blue-navy)",
                           }}
                         >
                           {batch.startDate && batch.endDate
@@ -818,7 +816,7 @@ function BatchesSection({
                           <p
                             style={{
                               fontSize: "0.6875rem",
-                              color: "var(--color-brand-text-faint)",
+                              color: "var(--text-faint)",
                             }}
                           >
                             Kursi terisi
@@ -828,9 +826,7 @@ function BatchesSection({
                             style={{
                               fontSize: "0.6875rem",
                               color:
-                                pct >= 80
-                                  ? "#dc2626"
-                                  : "var(--color-brand-text-faint)",
+                                pct >= 80 ? "#dc2626" : "var(--text-faint)",
                             }}
                           >
                             {batch.enrolled}/{batch.capacity} ({pct}%)
@@ -839,7 +835,7 @@ function BatchesSection({
                         <div
                           className="w-full h-2 rounded-full overflow-hidden"
                           style={{
-                            background: "var(--color-brand-border-soft)",
+                            background: "var(--border-soft)",
                           }}
                         >
                           <motion.div
@@ -905,8 +901,8 @@ function BatchesSection({
                         className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-display font-semibold"
                         style={{
                           fontSize: "0.875rem",
-                          background: "var(--color-brand-border-soft)",
-                          color: "var(--color-brand-text-faint)",
+                          background: "var(--border-soft)",
+                          color: "var(--text-faint)",
                         }}
                       >
                         {batch.status === "coming_soon"
@@ -942,7 +938,7 @@ function BatchesSection({
             <p
               style={{
                 fontSize: "0.8125rem",
-                color: "var(--color-brand-text-faint)",
+                color: "var(--text-faint)",
               }}
             >
               Batch baru dibuka secara berkala. Hubungi admin untuk info batch
@@ -1006,7 +1002,7 @@ function HeroSection({
       id="hero"
       className="relative overflow-hidden pt-10"
       style={{
-        background: "var(--color-brand-surface)",
+        background: "var(--surface)",
         minHeight: "min(92vh, 840px)",
         display: "flex",
         flexDirection: "column",
@@ -1129,7 +1125,7 @@ function HeroSection({
                 transition={{ duration: 0.6, delay: 0.16, ease: EASE }}
                 style={{
                   fontSize: "clamp(0.9375rem, 1.4vw, 1.0625rem)",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   lineHeight: "1.78",
                   maxWidth: "560px",
                   marginBottom: "1.5rem",
@@ -1168,7 +1164,7 @@ function HeroSection({
                 <p
                   style={{
                     fontSize: "0.9375rem",
-                    color: "var(--color-brand-text-muted)",
+                    color: "var(--text-muted)",
                     lineHeight: "1.65",
                   }}
                 >
@@ -1192,7 +1188,7 @@ function HeroSection({
                     style={{
                       fontSize: "0.8125rem",
                       background: theme.soft,
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                       border: `1px solid ${theme.border}`,
                     }}
                   >
@@ -1300,7 +1296,7 @@ function HeroSection({
                 transition={{ duration: 0.5, delay: 0.44 }}
                 className="flex items-center gap-3 pt-6"
                 style={{
-                  borderTop: "1px solid var(--color-brand-border-soft)",
+                  borderTop: "1px solid var(--border-soft)",
                 }}
               >
                 <div className="flex -space-x-2">
@@ -1310,7 +1306,7 @@ function HeroSection({
                       className="w-8 h-8 rounded-full flex items-center justify-center font-display font-bold border-2"
                       style={{
                         background: theme.soft,
-                        borderColor: "var(--color-brand-surface)",
+                        borderColor: "var(--surface)",
                         color: theme.primary,
                         fontSize: "0.6875rem",
                         zIndex: 5 - i,
@@ -1336,7 +1332,7 @@ function HeroSection({
                   <p
                     style={{
                       fontSize: "0.75rem",
-                      color: "var(--color-brand-text-faint)",
+                      color: "var(--text-faint)",
                     }}
                   >
                     {content.socialProof.text}
@@ -1385,7 +1381,7 @@ function HeroSection({
           style={{
             fontSize: "0.5625rem",
             letterSpacing: "0.14em",
-            color: "var(--color-brand-text-faint)",
+            color: "var(--text-faint)",
             textTransform: "uppercase",
           }}
         >
@@ -1541,7 +1537,7 @@ function ProgramVisualPanel({
               className="font-display font-bold"
               style={{
                 fontSize: "0.6875rem",
-                color: "var(--color-brand-blue-navy)",
+                color: "var(--blue-navy)",
               }}
             >
               Program Aktif
@@ -1571,7 +1567,7 @@ function ProgramVisualPanel({
               <span
                 style={{
                   fontSize: "0.5875rem",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                   lineHeight: 1.3,
                 }}
               >
@@ -1603,7 +1599,7 @@ function ProgramGlanceCard({
   return (
     <div
       style={{
-        background: "var(--color-brand-surface)",
+        background: "var(--surface)",
         border: `1.5px solid ${theme.border}`,
         borderRadius: "20px",
         overflow: "hidden",
@@ -1653,7 +1649,7 @@ function ProgramGlanceCard({
             style={{
               fontSize: "0.8125rem",
               fontWeight: 700,
-              color: "var(--color-brand-blue-navy)",
+              color: "var(--blue-navy)",
               fontFamily: "var(--font-display)",
             }}
           >
@@ -1813,7 +1809,7 @@ function ProgramStepOrbs({
             style={{
               fontSize: "0.5rem",
               fontWeight: 600,
-              color: i === 0 ? theme.primary : "var(--color-brand-text-faint)",
+              color: i === 0 ? theme.primary : "var(--text-faint)",
               letterSpacing: "0.06em",
               textTransform: "uppercase",
               marginTop: "3px",
@@ -1891,7 +1887,7 @@ function TestimonialStrip({
         style={{
           width: "1px",
           height: "28px",
-          background: "var(--color-brand-border-soft)",
+          background: "var(--border-soft)",
           flexShrink: 0,
         }}
       />
@@ -1922,7 +1918,7 @@ function TestimonialStrip({
           <span
             style={{
               fontSize: "0.5625rem",
-              color: "var(--color-brand-text-faint)",
+              color: "var(--text-faint)",
               fontWeight: 600,
             }}
           >
@@ -1933,7 +1929,7 @@ function TestimonialStrip({
           style={{
             fontSize: "0.6875rem",
             fontStyle: "italic",
-            color: "var(--color-brand-blue-navy)",
+            color: "var(--blue-navy)",
             lineHeight: 1.45,
             overflow: "hidden",
             display: "-webkit-box",
@@ -2044,7 +2040,7 @@ function ProgramImageMobile({
           style={{
             fontSize: "0.625rem",
             fontWeight: 700,
-            color: "var(--color-brand-blue-navy)",
+            color: "var(--blue-navy)",
             fontFamily: "var(--font-display)",
           }}
         >
@@ -2085,9 +2081,7 @@ function WhyBenefitsSection({
       id={id}
       className="relative py-20 lg:py-28 overflow-hidden"
       style={{
-        background: isProblem
-          ? "var(--color-brand-surface)"
-          : "var(--color-brand-bg)",
+        background: isProblem ? "var(--surface)" : "var(--bg-soft)",
       }}
     >
       {isProblem && (
@@ -2125,7 +2119,7 @@ function WhyBenefitsSection({
               <p
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   maxWidth: "460px",
                   lineHeight: "1.75",
                 }}
@@ -2152,8 +2146,8 @@ function WhyBenefitsSection({
                 transition={{ duration: 0.28, ease: EASE }}
                 className="relative flex flex-col h-full rounded-2xl p-5 overflow-hidden"
                 style={{
-                  background: "var(--color-brand-surface)",
-                  border: `1.5px solid var(--color-brand-border-soft)`,
+                  background: "var(--surface)",
+                  border: `1.5px solid var(--border-soft)`,
                   boxShadow: "var(--shadow-badge)",
                 }}
               >
@@ -2187,7 +2181,7 @@ function WhyBenefitsSection({
                   className="font-display font-extrabold mb-2 relative z-10"
                   style={{
                     fontSize: "0.9375rem",
-                    color: "var(--color-brand-blue-navy)",
+                    color: "var(--blue-navy)",
                   }}
                 >
                   {item.title}
@@ -2197,7 +2191,7 @@ function WhyBenefitsSection({
                     className="relative z-10"
                     style={{
                       fontSize: "0.8125rem",
-                      color: "var(--color-brand-text-muted)",
+                      color: "var(--text-muted)",
                       lineHeight: "1.65",
                     }}
                   >
@@ -2234,7 +2228,7 @@ function StepsSection({
     <section
       id="cara-kerja"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -2270,7 +2264,7 @@ function StepsSection({
               <p
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   maxWidth: "400px",
                   lineHeight: "1.72",
                 }}
@@ -2352,7 +2346,7 @@ function StepsSection({
                     className="font-display font-extrabold mb-2"
                     style={{
                       fontSize: "1.0625rem",
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     {step.title}
@@ -2360,7 +2354,7 @@ function StepsSection({
                   <p
                     style={{
                       fontSize: "0.8125rem",
-                      color: "var(--color-brand-text-muted)",
+                      color: "var(--text-muted)",
                       lineHeight: "1.68",
                       maxWidth: "200px",
                       margin: "0 auto",
@@ -2419,7 +2413,7 @@ function TimelineSection({
     <section
       id="timeline"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -2454,7 +2448,7 @@ function TimelineSection({
               <p
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   maxWidth: "420px",
                   lineHeight: "1.72",
                 }}
@@ -2473,7 +2467,7 @@ function TimelineSection({
                   key={m.title}
                   className="inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl"
                   style={{
-                    background: "var(--color-brand-surface)",
+                    background: "var(--surface)",
                     border: `1.5px solid ${theme.border}`,
                     boxShadow: "var(--shadow-badge)",
                   }}
@@ -2493,7 +2487,7 @@ function TimelineSection({
                       className="font-display font-bold"
                       style={{
                         fontSize: "0.875rem",
-                        color: "var(--color-brand-blue-navy)",
+                        color: "var(--blue-navy)",
                       }}
                     >
                       {m.title}
@@ -2502,7 +2496,7 @@ function TimelineSection({
                       <p
                         style={{
                           fontSize: "0.625rem",
-                          color: "var(--color-brand-text-faint)",
+                          color: "var(--text-faint)",
                         }}
                       >
                         {m.description}
@@ -2524,7 +2518,7 @@ function TimelineSection({
                 <div
                   className="rounded-3xl overflow-hidden"
                   style={{
-                    background: "var(--color-brand-surface)",
+                    background: "var(--surface)",
                     border: `1.5px solid ${theme.border}`,
                     boxShadow: `0 8px 36px ${theme.border}`,
                   }}
@@ -2564,7 +2558,7 @@ function TimelineSection({
                         className="font-display font-extrabold"
                         style={{
                           fontSize: "1rem",
-                          color: "var(--color-brand-blue-navy)",
+                          color: "var(--blue-navy)",
                         }}
                       >
                         {week.title}
@@ -2600,7 +2594,7 @@ function TimelineSection({
                           <p
                             style={{
                               fontSize: "0.875rem",
-                              color: "var(--color-brand-text-muted)",
+                              color: "var(--text-muted)",
                             }}
                           >
                             {pt}
@@ -2639,7 +2633,7 @@ function TimelineSection({
                               fontSize: "0.875rem",
                               color: day.highlight
                                 ? theme.primary
-                                : "var(--color-brand-text-muted)",
+                                : "var(--text-muted)",
                               fontWeight: day.highlight ? 700 : 500,
                             }}
                           >
@@ -2699,7 +2693,7 @@ function ClassesSection({
     <section
       id="kelas"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
         <div className="flex flex-col items-center text-center mb-14">
@@ -2720,7 +2714,7 @@ function ClassesSection({
               <p
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   maxWidth: "440px",
                   lineHeight: "1.72",
                 }}
@@ -2745,8 +2739,8 @@ function ClassesSection({
                 transition={{ duration: 0.28, ease: EASE }}
                 className="relative rounded-3xl overflow-hidden h-full"
                 style={{
-                  background: "var(--color-brand-surface)",
-                  border: `2px solid ${item.tag ? theme.border : "var(--color-brand-border-soft)"}`,
+                  background: "var(--surface)",
+                  border: `2px solid ${item.tag ? theme.border : "var(--border-soft)"}`,
                   boxShadow: item.tag
                     ? `0 16px 48px ${theme.border}`
                     : "var(--shadow-badge)",
@@ -2793,7 +2787,7 @@ function ClassesSection({
                     className="font-display font-extrabold mb-2"
                     style={{
                       fontSize: "1.125rem",
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     {item.title}
@@ -2815,7 +2809,7 @@ function ClassesSection({
                     <p
                       style={{
                         fontSize: "0.875rem",
-                        color: "var(--color-brand-text-muted)",
+                        color: "var(--text-muted)",
                         lineHeight: "1.65",
                         marginBottom: "1rem",
                       }}
@@ -2837,7 +2831,7 @@ function ClassesSection({
                           <p
                             style={{
                               fontSize: "0.5875rem",
-                              color: "var(--color-brand-text-faint)",
+                              color: "var(--text-faint)",
                               textTransform: "uppercase",
                               letterSpacing: "0.08em",
                             }}
@@ -2848,7 +2842,7 @@ function ClassesSection({
                             className="font-display font-bold"
                             style={{
                               fontSize: "0.8125rem",
-                              color: "var(--color-brand-blue-navy)",
+                              color: "var(--blue-navy)",
                             }}
                           >
                             {m.value}
@@ -2905,7 +2899,7 @@ function PricingSection({
     <section
       id="pricing"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <FloatingOrb
         theme={theme}
@@ -2938,7 +2932,7 @@ function PricingSection({
               <p
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   maxWidth: "440px",
                   lineHeight: "1.72",
                 }}
@@ -2959,7 +2953,7 @@ function PricingSection({
               <div
                 className="rounded-3xl overflow-hidden h-full flex flex-col"
                 style={{
-                  background: "var(--color-brand-surface)",
+                  background: "var(--surface)",
                   border: `2px solid ${theme.border}`,
                   boxShadow: `0 20px 60px ${theme.border}`,
                 }}
@@ -2988,7 +2982,7 @@ function PricingSection({
                       className="font-display font-extrabold"
                       style={{
                         fontSize: "1.0625rem",
-                        color: "var(--color-brand-blue-navy)",
+                        color: "var(--blue-navy)",
                       }}
                     >
                       {group.title}
@@ -2997,7 +2991,7 @@ function PricingSection({
                       <p
                         style={{
                           fontSize: "0.75rem",
-                          color: "var(--color-brand-text-faint)",
+                          color: "var(--text-faint)",
                         }}
                       >
                         {group.subtitle}
@@ -3034,7 +3028,7 @@ function PricingSection({
                         <p
                           style={{
                             fontSize: "0.875rem",
-                            color: "var(--color-brand-text-muted)",
+                            color: "var(--text-muted)",
                             lineHeight: "1.6",
                           }}
                         >
@@ -3090,7 +3084,7 @@ function PricingSection({
                                 fontSize: "0.875rem",
                                 color: pkg.highlight
                                   ? "rgba(255,255,255,0.55)"
-                                  : "var(--color-brand-text-faint)",
+                                  : "var(--text-faint)",
                               }}
                             >
                               {pkg.originalPrice}
@@ -3103,7 +3097,7 @@ function PricingSection({
                             fontSize: "0.8125rem",
                             color: pkg.highlight
                               ? "rgba(255,255,255,0.85)"
-                              : "var(--color-brand-text-muted)",
+                              : "var(--text-muted)",
                           }}
                         >
                           {pkg.label}
@@ -3114,7 +3108,7 @@ function PricingSection({
                               fontSize: "0.6875rem",
                               color: pkg.highlight
                                 ? "rgba(255,255,255,0.65)"
-                                : "var(--color-brand-text-faint)",
+                                : "var(--text-faint)",
                               marginTop: "3px",
                             }}
                           >
@@ -3135,7 +3129,7 @@ function PricingSection({
             <div
               className="rounded-3xl p-6 mb-8"
               style={{
-                background: "var(--color-brand-surface)",
+                background: "var(--surface)",
                 border: `1.5px solid ${theme.border}`,
                 boxShadow: "var(--shadow-card)",
               }}
@@ -3156,7 +3150,7 @@ function PricingSection({
                   className="font-display font-extrabold"
                   style={{
                     fontSize: "1rem",
-                    color: "var(--color-brand-blue-navy)",
+                    color: "var(--blue-navy)",
                   }}
                 >
                   Bonus yang Kamu Dapat
@@ -3190,7 +3184,7 @@ function PricingSection({
                           className="font-display font-bold"
                           style={{
                             fontSize: "0.9375rem",
-                            color: "var(--color-brand-blue-navy)",
+                            color: "var(--blue-navy)",
                           }}
                         >
                           {b.title}
@@ -3212,7 +3206,7 @@ function PricingSection({
                         <p
                           style={{
                             fontSize: "0.8125rem",
-                            color: "var(--color-brand-text-muted)",
+                            color: "var(--text-muted)",
                             lineHeight: "1.55",
                             marginTop: "3px",
                           }}
@@ -3249,7 +3243,7 @@ function PricingSection({
                 <p
                   style={{
                     fontSize: "0.8125rem",
-                    color: "var(--color-brand-text-muted)",
+                    color: "var(--text-muted)",
                   }}
                 >
                   {content.globalNote}
@@ -3316,7 +3310,7 @@ function TestimonialsSection({
     <section
       id="testimoni"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-surface)" }}
+      style={{ background: "var(--surface)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -3348,7 +3342,7 @@ function TestimonialsSection({
                 transition={{ duration: 0.28, ease: EASE }}
                 className="relative rounded-3xl p-6 h-full"
                 style={{
-                  background: "var(--color-brand-surface)",
+                  background: "var(--surface)",
                   border: `1.5px solid ${theme.border}`,
                   boxShadow: `0 4px 20px ${theme.border}`,
                 }}
@@ -3388,7 +3382,7 @@ function TestimonialsSection({
                   className="italic mb-5 relative z-10"
                   style={{
                     fontSize: "0.9375rem",
-                    color: "var(--color-brand-text-muted)",
+                    color: "var(--text-muted)",
                     lineHeight: "1.8",
                   }}
                 >
@@ -3413,7 +3407,7 @@ function TestimonialsSection({
                         className="font-display font-bold"
                         style={{
                           fontSize: "0.875rem",
-                          color: "var(--color-brand-blue-navy)",
+                          color: "var(--blue-navy)",
                         }}
                       >
                         {item.name}
@@ -3424,7 +3418,7 @@ function TestimonialsSection({
                         <p
                           style={{
                             fontSize: "0.6875rem",
-                            color: "var(--color-brand-text-faint)",
+                            color: "var(--text-faint)",
                           }}
                         >
                           {item.role}
@@ -3434,7 +3428,7 @@ function TestimonialsSection({
                         <span
                           style={{
                             fontSize: "0.6875rem",
-                            color: "var(--color-brand-text-faint)",
+                            color: "var(--text-faint)",
                           }}
                         >
                           • {item.meta}
@@ -3464,7 +3458,7 @@ function TestimonialsSection({
               className="rounded-3xl p-6 cursor-grab active:cursor-grabbing"
               style={{
                 x: dragX,
-                background: "var(--color-brand-surface)",
+                background: "var(--surface)",
                 border: `2px solid ${theme.border}`,
                 boxShadow: `0 20px 56px ${theme.border}`,
               }}
@@ -3485,7 +3479,7 @@ function TestimonialsSection({
                 className="italic mb-6"
                 style={{
                   fontSize: "1.0625rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   lineHeight: "1.82",
                 }}
               >
@@ -3509,7 +3503,7 @@ function TestimonialsSection({
                       className="font-display font-bold"
                       style={{
                         fontSize: "0.9375rem",
-                        color: "var(--color-brand-blue-navy)",
+                        color: "var(--blue-navy)",
                       }}
                     >
                       {content.items[active].name}
@@ -3519,7 +3513,7 @@ function TestimonialsSection({
                     <p
                       style={{
                         fontSize: "0.75rem",
-                        color: "var(--color-brand-text-faint)",
+                        color: "var(--text-faint)",
                       }}
                     >
                       {content.items[active].role}
@@ -3531,7 +3525,7 @@ function TestimonialsSection({
                 className="text-center mt-4"
                 style={{
                   fontSize: "0.6875rem",
-                  color: "var(--color-brand-text-faint)",
+                  color: "var(--text-faint)",
                 }}
               >
                 Geser untuk selanjutnya →
@@ -3548,8 +3542,7 @@ function TestimonialsSection({
                   width: active === i ? 24 : 8,
                   height: 8,
                   borderRadius: 9999,
-                  background:
-                    active === i ? theme.primary : "var(--color-brand-border)",
+                  background: active === i ? theme.primary : "var(--border)",
                   border: "none",
                   cursor: "pointer",
                   transition: "all 0.25s ease",
@@ -3580,7 +3573,7 @@ function FAQSection({
     <section
       id="faq"
       className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--color-brand-bg)" }}
+      style={{ background: "var(--bg-soft)" }}
     >
       <div
         className="pointer-events-none absolute inset-0"
@@ -3609,7 +3602,7 @@ function FAQSection({
               <div
                 className="rounded-2xl overflow-hidden"
                 style={{
-                  border: `1.5px solid ${open === i ? theme.border : "var(--color-brand-border-soft)"}`,
+                  border: `1.5px solid ${open === i ? theme.border : "var(--border-soft)"}`,
                   transition: "border-color 0.25s ease",
                 }}
               >
@@ -3617,8 +3610,7 @@ function FAQSection({
                   onClick={() => setOpen(open === i ? null : i)}
                   className="w-full flex items-center justify-between gap-4 p-5 text-left"
                   style={{
-                    background:
-                      open === i ? theme.soft : "var(--color-brand-surface)",
+                    background: open === i ? theme.soft : "var(--surface)",
                     border: "none",
                     cursor: "pointer",
                   }}
@@ -3627,7 +3619,7 @@ function FAQSection({
                     className="font-display font-bold"
                     style={{
                       fontSize: "0.9375rem",
-                      color: "var(--color-brand-blue-navy)",
+                      color: "var(--blue-navy)",
                     }}
                   >
                     {faq.q}
@@ -3676,7 +3668,7 @@ function FAQSection({
                           className="pt-4"
                           style={{
                             fontSize: "0.875rem",
-                            color: "var(--color-brand-text-muted)",
+                            color: "var(--text-muted)",
                             lineHeight: "1.78",
                           }}
                         >
@@ -3714,7 +3706,7 @@ function FAQSection({
                 className="font-display font-bold"
                 style={{
                   fontSize: "0.9375rem",
-                  color: "var(--color-brand-blue-navy)",
+                  color: "var(--blue-navy)",
                 }}
               >
                 Masih ada pertanyaan lain?
@@ -3722,7 +3714,7 @@ function FAQSection({
               <p
                 style={{
                   fontSize: "0.8125rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                   marginTop: "2px",
                 }}
               >
@@ -3753,7 +3745,7 @@ function FAQSection({
 
 /* ─────────────────────────────────────────────────────────────
  * SECTION: CTA
- * Uses a fixed deep-navy background (#060f2e = --color-brand-blue-abyss)
+ * Uses a fixed deep-navy background (#060f2e = --blue-abyss)
  * so it never conflicts with the program's primary color.
  * ───────────────────────────────────────────────────────────── */
 function CTASection({
@@ -3779,7 +3771,7 @@ function CTASection({
        */}
       <div
         className="absolute inset-0"
-        style={{ background: "var(--color-brand-blue-abyss)" }}
+        style={{ background: "var(--blue-abyss)" }}
       />
 
       {/* Subtle dot grid */}
@@ -4204,14 +4196,14 @@ function EmptyState({ theme }: { theme: Theme }) {
         <div>
           <p
             className="font-display font-bold mb-2"
-            style={{ fontSize: "1rem", color: "var(--color-brand-blue-navy)" }}
+            style={{ fontSize: "1rem", color: "var(--blue-navy)" }}
           >
             Foto dokumentasi segera hadir
           </p>
           <p
             style={{
               fontSize: "0.875rem",
-              color: "var(--color-brand-text-muted)",
+              color: "var(--text-muted)",
               maxWidth: "300px",
               lineHeight: "1.68",
             }}
@@ -4227,7 +4219,7 @@ function EmptyState({ theme }: { theme: Theme }) {
             padding: "0.625rem 1.25rem",
             fontSize: "0.8125rem",
             color: theme.primary,
-            background: "var(--color-brand-surface)",
+            background: "var(--surface)",
             border: `1.5px solid ${theme.border}`,
             textDecoration: "none",
           }}
@@ -4511,7 +4503,7 @@ function ConversionNudge({ theme }: { theme: Theme }) {
                 className="font-display font-medium"
                 style={{
                   fontSize: "0.8125rem",
-                  color: "var(--color-brand-text-muted)",
+                  color: "var(--text-muted)",
                 }}
               >
                 {item.text}
@@ -4762,7 +4754,7 @@ export function GallerySection({
       <section
         id="gallery"
         className="relative py-20 lg:py-28 overflow-hidden"
-        style={{ background: "var(--color-brand-surface)" }}
+        style={{ background: "var(--surface)" }}
       >
         <div
           className="pointer-events-none absolute inset-0"
@@ -4823,7 +4815,7 @@ export function GallerySection({
                   style={{
                     fontSize: "clamp(1.75rem, 3.2vw, 2.625rem)",
                     letterSpacing: "-0.026em",
-                    color: "var(--color-brand-blue-navy)",
+                    color: "var(--blue-navy)",
                   }}
                 >
                   {content.title}
@@ -4836,7 +4828,7 @@ export function GallerySection({
                 <p
                   style={{
                     fontSize: "0.9375rem",
-                    color: "var(--color-brand-text-muted)",
+                    color: "var(--text-muted)",
                     maxWidth: "440px",
                     lineHeight: "1.75",
                     marginBottom: "1.25rem",
