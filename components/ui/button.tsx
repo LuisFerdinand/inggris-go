@@ -9,6 +9,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        primary: [
+          "bg-gold-btn",
+          "text-[var(--blue-abyss)]",
+          "shadow-[var(--shadow-glow-gold-btn)]",
+          "hover:shadow-[var(--shadow-glow-gold-btn-hover)]",
+          "hover:-translate-y-0.5",
+        ].join(" "),
         default: [
           "bg-gold-btn",
           "text-[var(--blue-abyss)]", // dark text
@@ -26,6 +33,29 @@ const buttonVariants = cva(
           "hover:shadow-[var(--shadow-glow-navy-btn-hover)]",
           "hover:-translate-y-px",
           "active:translate-y-0 active:scale-[0.98]",
+        ].join(" "), // Add inside variants: { variant: { ... } }
+        dashboard: [
+          "bg-[var(--blue-abyss)]",
+          "text-white",
+          "rounded-lg",
+          "shadow-sm",
+          "hover:bg-[var(--blue-navy)]",
+          "hover:-translate-y-px",
+          "hover:shadow-md",
+          "active:translate-y-0",
+          "active:scale-[0.98]",
+        ].join(" "),
+
+        "dashboard-outline": [
+          "border",
+          "border-[rgba(6,15,46,0.25)]",
+          "text-[var(--blue-abyss)]",
+          "bg-transparent",
+          "rounded-lg",
+          "hover:border-[var(--blue-abyss)]",
+          "hover:bg-[var(--blue-abyss)]",
+          "hover:text-white",
+          "active:scale-[0.98]",
         ].join(" "),
         ghost:
           "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",

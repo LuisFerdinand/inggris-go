@@ -389,7 +389,7 @@ export default function HeroAnimated() {
             {/* Headline */}
             <motion.h1
               variants={item}
-              className="font-display font-extrabold leading-[1.07] mb-5"
+              className="font-jakarta font-extrabold leading-[1.07] mb-5"
               style={{
                 color: BRAND.blueNavy,
                 fontSize: "clamp(2.4rem, 4.8vw, 4rem)",

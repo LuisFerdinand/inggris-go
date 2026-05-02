@@ -1,4 +1,5 @@
 import { AuthPageShell } from "@/components/AuthPageShell";
+
 import type { Metadata } from "next";
 import { Suspense } from "react";
 

@@ -17,6 +17,7 @@ import {
   Tent,
   ChevronRight,
 } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 /* ─── Data ───────────────────────────────────────────────────── */
 const NAV_LINKS = [
@@ -441,7 +442,7 @@ export default function NotFound() {
       `}</style>
 
       {/* ── Navbar ── */}
-      <nav className="e e1 relative z-20 flex items-center justify-between px-5 lg:px-10 py-3.5 lg:py-4">
+      {/* <nav className="e e1 relative z-20 flex items-center justify-between px-5 lg:px-10 py-3.5 lg:py-4">
         <Link href="/" className="flex items-center gap-2.5">
           <Image
             src="/logo.png"
@@ -471,8 +472,8 @@ export default function NotFound() {
         >
           Lihat Program
         </Link>
-      </nav>
-
+      </nav> */}
+      {/* <Navbar /> */}
       {/* ── Content ── */}
       <main className="relative z-10 flex-1 flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-10 xl:gap-16 px-5 lg:px-10 py-4 lg:py-0">
         {/* LEFT */}

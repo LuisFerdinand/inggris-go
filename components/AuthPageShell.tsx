@@ -69,7 +69,7 @@ const TESTIMONIALS = [
 /* ─── Tab-aware dynamic content ──────────────────────────── */
 const TAB_CONTENT = {
   login: {
-    badge: "SELAMAT DATANG KEMBALI",
+    badge: "SELAMAT DATANG",
     headline: (
       <>
         Lanjutkan
@@ -80,7 +80,7 @@ const TAB_CONTENT = {
       </>
     ),
     sub: "Program, progres, dan komunitas kamu sudah menunggu.",
-    cardTitle: "Selamat datang kembali 👋",
+    cardTitle: "Selamat datang",
     cardSub: "Masuk untuk melanjutkan progres belajarmu.",
     footerText: "Belum punya akun?",
     footerLink: "Daftar gratis",

@@ -652,7 +652,7 @@ export function MobileDrawer({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.22 }}
-        className="fixed inset-0 z-40 lg:hidden"
+        className="fixed inset-0 z-[1500] lg:hidden"
         style={{
           background: "rgba(15,35,64,0.35)",
           backdropFilter: "blur(4px)",
@@ -666,7 +666,7 @@ export function MobileDrawer({
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 28, stiffness: 230 }}
-        className="fixed top-0 right-0 bottom-0 z-50 lg:hidden flex flex-col"
+        className="fixed top-0 right-0 bottom-0 z-[2000] lg:hidden flex flex-col"
         style={{
           width: "min(85vw, 320px)",
           background: "white",

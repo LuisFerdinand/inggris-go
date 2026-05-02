@@ -11,6 +11,7 @@ import {
   EyeOff,
   LayoutDashboard,
   Loader2,
+  LogIn,
   LogOut,
   Mail,
   Settings,
@@ -22,17 +23,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth/client";
 import { BRAND } from "@/constants/brand";
 import { AuthForm } from "./AuthForm";
+import { useSignOut } from "@/hooks/use-sign-out";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const SPRING = { type: "spring", damping: 28, stiffness: 240 } as const;
 
-export const USER_MENU_ITEMS = [
+export const NAV_MENU_ITEMS = [
   {
     label: "Dashboard",
     shortLabel: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
     desc: "Ringkasan aktivitas",
+    color: "#1a52c8",
+    bg: "rgba(26,82,200,0.08)",
   },
   {
     label: "Program Saya",
@@ -40,13 +44,17 @@ export const USER_MENU_ITEMS = [
     href: "/dashboard/programs",
     icon: BookOpen,
     desc: "Akses semua kelas",
+    color: "#0a9e8a",
+    bg: "rgba(10,158,138,0.08)",
   },
   {
-    label: "Profil & Pengaturan",
+    label: "Pengaturan",
     shortLabel: "Pengaturan",
     href: "/dashboard/settings",
     icon: Settings,
     desc: "Akun & preferensi",
+    color: "#7c5fcf",
+    bg: "rgba(124,95,207,0.08)",
   },
 ] as const;
 
@@ -96,7 +104,8 @@ export function UserAvatar({
         alt={user.name}
         width={size}
         height={size}
-        className={`rounded-full object-cover ring-2 ring-white/20 ${className}`}
+        className={`rounded-full object-cover ${className}`}
+        style={{ width: size, height: size, flexShrink: 0 }}
         onError={() => setImgError(true)}
       />
     );
@@ -104,13 +113,12 @@ export function UserAvatar({
 
   return (
     <div
-      className={`rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 ring-2 ring-white/20 ${className}`}
+      className={`rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 ${className}`}
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.34,
+        fontSize: size * 0.35,
         background: `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`,
-        boxShadow: `0 2px 8px rgba(255,107,53,0.4)`,
       }}
     >
       {getInitials(user.name)}
@@ -145,11 +153,14 @@ interface AuthModalProps {
   onClose: () => void;
   defaultTab?: AuthTab;
 }
+interface AuthModalProps {
+  onClose: () => void;
+  defaultTab?: AuthTab;
+}
 
 function AuthModal({ onClose, defaultTab = "login" }: AuthModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Keyboard close + body scroll lock
   useEffect(() => {
     const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", handler);
@@ -187,12 +198,8 @@ function AuthModal({ onClose, defaultTab = "login" }: AuthModalProps) {
           border: "1px solid var(--border-soft)",
         }}
       >
-        {/* ── Branded Header ── */}
         <ModalHeader onClose={onClose} defaultTab={defaultTab} />
-
-        {/* ── Body ── */}
         <div className="px-7 py-6 overflow-y-auto">
-          {" "}
           <AuthForm
             variant="modal"
             defaultTab={defaultTab}
@@ -205,7 +212,6 @@ function AuthModal({ onClose, defaultTab = "login" }: AuthModalProps) {
   );
 }
 
-/* ─── Modal Header ───────────────────────────────────────── */
 function ModalHeader({
   onClose,
   defaultTab,
@@ -221,36 +227,31 @@ function ModalHeader({
           "linear-gradient(135deg, var(--blue-abyss) 0%, var(--blue-navy) 100%)",
       }}
     >
-      {/* Dot grid */}
+      {/* Subtle dot grid */}
       <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage:
-            "radial-gradient(circle, white 1px, transparent 1px)",
+            "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
           backgroundSize: "20px 20px",
+          opacity: 0.6,
         }}
       />
-      {/* Glow orbs */}
+      {/* Gold accent line */}
       <div
-        className="absolute -top-12 -right-12 w-52 h-52 rounded-full pointer-events-none"
+        className="absolute bottom-0 left-0 right-0 h-[2px]"
         style={{
           background:
-            "radial-gradient(circle, rgba(26,82,200,0.28), transparent 70%)",
+            "linear-gradient(90deg, transparent 0%, #f7b500 30%, #ffc107 70%, transparent 100%)",
+          opacity: 0.6,
         }}
       />
+      {/* Glow orb */}
       <div
-        className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full pointer-events-none"
+        className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle, rgba(247,181,0,0.12), transparent 70%)",
-        }}
-      />
-      {/* Gold line */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[1.5px]"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent, var(--gold-mid), transparent)",
+            "radial-gradient(circle, rgba(247,181,0,0.12), transparent 65%)",
         }}
       />
 
@@ -343,22 +344,21 @@ function UserDropdown({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 6, scale: 0.96 }}
-      transition={{ duration: 0.18, ease: EASE }}
-      className="absolute top-[calc(100%+12px)] right-0 z-50"
-      style={{ width: "268px" }}
+      transition={{ duration: 0.2, ease: EASE }}
+      className="absolute top-[calc(100%+14px)] right-0 z-50"
+      style={{ width: "280px" }}
       role="menu"
-      aria-label="User menu"
     >
-      {/* Arrow tip */}
-      <div className="absolute -top-[7px] right-[18px] pointer-events-none z-10">
+      {/* Arrow */}
+      <div className="absolute -top-[7px] right-[20px] pointer-events-none z-10">
         <svg width="14" height="7" viewBox="0 0 14 7" fill="none">
           <path
             d="M0 7L7 0L14 7"
             fill="white"
-            stroke="rgba(15,35,64,0.07)"
+            stroke="rgba(10,45,135,0.08)"
             strokeWidth="1"
           />
         </svg>
@@ -368,38 +368,54 @@ function UserDropdown({
         className="rounded-2xl overflow-hidden"
         style={{
           background: "white",
-          border: "1px solid rgba(15,35,64,0.08)",
+          border: "1px solid rgba(10,45,135,0.09)",
           boxShadow:
-            "0 20px 60px rgba(15,35,64,0.16), 0 4px 16px rgba(15,35,64,0.06)",
+            "0 24px 70px rgba(10,45,135,0.18), 0 4px 16px rgba(10,45,135,0.06)",
         }}
       >
-        {/* Identity header — navy gradient matching mobile */}
+        {/* Identity header */}
         <div
           className="relative px-4 py-4 overflow-hidden"
           style={{
-            background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
+            background: "linear-gradient(140deg, #060f2e 0%, #0a2d87 100%)",
           }}
         >
           <div
-            className="absolute inset-0 opacity-[0.035]"
+            className="absolute inset-0 pointer-events-none opacity-[0.04]"
             style={{
               backgroundImage:
                 "radial-gradient(circle, white 1px, transparent 1px)",
-              backgroundSize: "16px 16px",
+              backgroundSize: "14px 14px",
+            }}
+          />
+          {/* Gold shimmer */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-[1.5px] pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, rgba(247,181,0,0.5), transparent)",
             }}
           />
           <div
-            className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-15"
+            className="absolute -top-8 -right-8 w-28 h-28 rounded-full pointer-events-none"
             style={{
-              background: `radial-gradient(circle, ${BRAND.blue}, transparent 70%)`,
+              background:
+                "radial-gradient(circle, rgba(247,181,0,0.14), transparent 65%)",
             }}
           />
+
           <div className="relative flex items-center gap-3">
-            <UserAvatar user={user} size={42} />
+            <div className="relative flex-shrink-0">
+              <UserAvatar user={user} size={40} />
+              <div
+                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px]"
+                style={{ background: "#22C55E", borderColor: "#060f2e" }}
+              />
+            </div>
             <div className="flex-1 min-w-0">
               <p
-                className="font-display font-bold text-white truncate"
-                style={{ fontSize: "0.9375rem" }}
+                className="font-bold text-white truncate"
+                style={{ fontSize: "0.9rem", letterSpacing: "-0.01em" }}
               >
                 {user.name}
               </p>
@@ -407,7 +423,7 @@ function UserDropdown({
                 className="truncate"
                 style={{
                   fontSize: "0.6875rem",
-                  color: "rgba(255,255,255,0.5)",
+                  color: "rgba(255,255,255,0.45)",
                 }}
               >
                 {user.email}
@@ -417,41 +433,55 @@ function UserDropdown({
         </div>
 
         {/* Nav items */}
-        <div className="p-2">
-          {USER_MENU_ITEMS.map((item, i) => {
+        <div className="p-2 space-y-0.5">
+          {NAV_MENU_ITEMS.map((item, i) => {
             const Icon = item.icon;
             return (
               <motion.div
                 key={item.href}
-                initial={{ opacity: 0, x: -5 }}
+                initial={{ opacity: 0, x: -6 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.03 * i, duration: 0.18, ease: EASE }}
+                transition={{
+                  delay: 0.04 * i + 0.05,
+                  duration: 0.18,
+                  ease: EASE,
+                }}
                 role="menuitem"
               >
                 <Link
                   href={item.href}
                   onClick={onClose}
-                  className="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 hover:bg-slate-50"
+                  className="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150"
                   style={{
                     textDecoration: "none",
-                    border: "1px solid rgba(15,35,64,0.05)",
-                    marginBottom: i < USER_MENU_ITEMS.length - 1 ? "4px" : "0",
-                    display: "flex",
+                    border: "1px solid transparent",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background =
+                      "#F8FAFF";
+                    (e.currentTarget as HTMLElement).style.border =
+                      "1px solid rgba(26,82,200,0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background =
+                      "transparent";
+                    (e.currentTarget as HTMLElement).style.border =
+                      "1px solid transparent";
                   }}
                 >
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150 group-hover:scale-105"
-                    style={{ background: "#F1F5F9" }}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150"
+                    style={{ background: item.bg }}
                   >
                     <Icon
-                      className="w-3.5 h-3.5 transition-colors duration-150"
-                      style={{ color: "#64748B" }}
+                      className="w-3.5 h-3.5"
+                      style={{ color: item.color }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p
-                      className="font-display font-semibold transition-colors duration-150 group-hover:text-orange-600"
-                      style={{ fontSize: "0.8125rem", color: BRAND.blueNavy }}
+                      className="font-semibold"
+                      style={{ fontSize: "0.8125rem", color: "#0a2d87" }}
                     >
                       {item.label}
                     </p>
@@ -460,7 +490,7 @@ function UserDropdown({
                     </p>
                   </div>
                   <ChevronRight
-                    className="w-3 h-3 opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all duration-150"
+                    className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-150"
                     style={{ color: BRAND.blue }}
                   />
                 </Link>
@@ -469,40 +499,45 @@ function UserDropdown({
           })}
         </div>
 
-        {/* Sign out — separated */}
+        {/* Divider + Sign out */}
         <div className="px-2 pb-2">
           <div
             style={{
-              borderTop: `1px solid rgba(15,35,64,0.08)`,
+              borderTop: "1px solid rgba(10,45,135,0.07)",
               paddingTop: 6,
-              marginTop: 2,
             }}
           >
             <button
               onClick={onSignOut}
               disabled={isSigningOut}
-              className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150 hover:bg-red-50 disabled:opacity-60 disabled:cursor-not-allowed"
-              style={{ border: "1px solid rgba(239,68,68,0.06)" }}
+              className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 disabled:opacity-60 cursor-pointer"
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "#FFF5F5";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  "transparent";
+              }}
               role="menuitem"
             >
               <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-150 group-hover:bg-red-100"
-                style={{ background: "#F1F5F9" }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150"
+                style={{ background: "rgba(239,68,68,0.07)" }}
               >
                 {isSigningOut ? (
                   <Loader2
                     className="w-3.5 h-3.5 animate-spin"
-                    style={{ color: "#94A3B8" }}
+                    style={{ color: "#EF4444" }}
                   />
                 ) : (
                   <LogOut
-                    className="w-3.5 h-3.5 transition-colors duration-150 group-hover:text-red-500"
-                    style={{ color: "#94A3B8" }}
+                    className="w-3.5 h-3.5"
+                    style={{ color: "#EF4444" }}
                   />
                 )}
               </div>
               <span
-                className="font-display font-semibold transition-colors duration-150 group-hover:text-red-600"
+                className="font-semibold group-hover:text-red-600 transition-colors duration-150"
                 style={{ fontSize: "0.8125rem", color: "#64748B" }}
               >
                 {isSigningOut ? "Keluar..." : "Keluar"}
@@ -516,24 +551,12 @@ function UserDropdown({
 }
 
 export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
-  const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: session, isPending } = authClient.useSession();
 
-  const handleSignOut = useCallback(async () => {
-    setIsSigningOut(true);
-    try {
-      await authClient.signOut();
-      setDropdownOpen(false);
-      router.push("/");
-      router.refresh();
-    } finally {
-      setIsSigningOut(false);
-    }
-  }, [router]);
-
+  const { signOut, isSigningOut } = useSignOut();
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -548,71 +571,31 @@ export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
   }, []);
 
   if (isPending) {
-    return (
-      <div className="w-[72px] h-9 rounded-xl bg-slate-100 animate-pulse" />
-    );
+    return <div className="w-20 h-9 rounded-xl bg-white/10 animate-pulse" />;
   }
 
   if (!session?.user) {
-    return (
-      <button
-        onClick={onOpenAuthModal}
-        className="inline-flex items-center gap-2 font-display font-semibold rounded-xl px-4 py-2 transition-all duration-150 hover:-translate-y-px active:translate-y-0 cursor-pointer"
-        style={{
-          fontSize: "0.8125rem",
-          color: "white",
-          background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
-          border: "1.5px solid rgba(255,255,255,0.08)",
-          boxShadow: `0 2px 8px rgba(15,35,64,0.25)`,
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow =
-            `0 4px 16px rgba(15,35,64,0.3), inset 0 0 0 1px rgba(255,107,53,0.25)`;
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.boxShadow =
-            `0 2px 8px rgba(15,35,64,0.25)`;
-        }}
-      >
-        Masuk
-      </button>
-    );
+    return <SignInButton onOpen={onOpenAuthModal} />;
   }
 
   const user = session.user as AuthUser;
 
   return (
     <div ref={dropdownRef} className="relative">
-      {/* Trigger button — navy pill matching mobile header aesthetic */}
+      {/* Trigger */}
       <button
         onClick={() => setDropdownOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl pl-1.5 pr-3 py-1.5 transition-all duration-200 cursor-pointer"
+        className="flex items-center gap-2 rounded-xl pl-1.5 pr-3 py-1.5 transition-all duration-200 cursor-pointer select-none"
         style={{
           background: dropdownOpen
-            ? `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`
-            : `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
+            ? "linear-gradient(135deg, #060f2e 0%, #0a2d87 100%)"
+            : "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
           border: dropdownOpen
-            ? `1.5px solid rgba(255,107,53,0.35)`
-            : `1.5px solid rgba(255,255,255,0.07)`,
+            ? "1.5px solid rgba(247,181,0,0.35)"
+            : "1.5px solid rgba(255,255,255,0.08)",
           boxShadow: dropdownOpen
-            ? `0 4px 16px rgba(15,35,64,0.3), 0 0 0 3px rgba(255,107,53,0.08)`
-            : `0 2px 8px rgba(15,35,64,0.2)`,
-        }}
-        onMouseEnter={(e) => {
-          if (!dropdownOpen) {
-            (e.currentTarget as HTMLElement).style.border =
-              `1.5px solid rgba(255,107,53,0.2)`;
-            (e.currentTarget as HTMLElement).style.boxShadow =
-              `0 4px 14px rgba(15,35,64,0.28)`;
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (!dropdownOpen) {
-            (e.currentTarget as HTMLElement).style.border =
-              `1.5px solid rgba(255,255,255,0.07)`;
-            (e.currentTarget as HTMLElement).style.boxShadow =
-              `0 2px 8px rgba(15,35,64,0.2)`;
-          }
+            ? "0 6px 20px rgba(10,45,135,0.35), 0 0 0 3px rgba(247,181,0,0.08)"
+            : "0 2px 10px rgba(10,45,135,0.2)",
         }}
         aria-haspopup="true"
         aria-expanded={dropdownOpen}
@@ -620,14 +603,14 @@ export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
       >
         <UserAvatar user={user} size={28} />
         <span
-          className="font-display font-semibold hidden xl:block max-w-[90px] truncate text-white"
+          className="font-semibold hidden xl:block max-w-[100px] truncate text-white"
           style={{ fontSize: "0.8125rem" }}
         >
           {user.name.split(" ")[0]}
         </span>
         <motion.span
           animate={{ rotate: dropdownOpen ? 180 : 0 }}
-          transition={{ duration: 0.2, ease: EASE }}
+          transition={{ duration: 0.22, ease: EASE }}
           className="inline-flex"
         >
           <ChevronDown
@@ -642,7 +625,7 @@ export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
           <UserDropdown
             user={user}
             onClose={() => setDropdownOpen(false)}
-            onSignOut={handleSignOut}
+            onSignOut={signOut}
             isSigningOut={isSigningOut}
           />
         )}
@@ -650,18 +633,6 @@ export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
     </div>
   );
 }
-
-const GRID_ITEMS: MenuItem[] = [
-  ...USER_MENU_ITEMS.map((item) => ({ ...item, danger: false })),
-  {
-    label: "Keluar",
-    shortLabel: "Keluar",
-    href: null,
-    icon: LogOut,
-    desc: "Keluar dari akun",
-    danger: true,
-  },
-];
 
 export function MobileUserSection({
   onClose,
@@ -691,12 +662,12 @@ export function MobileUserSection({
     return (
       <div
         className="rounded-2xl overflow-hidden"
-        style={{ border: "1.5px solid rgba(15,35,64,0.08)" }}
+        style={{ border: "1.5px solid rgba(10,45,135,0.08)" }}
       >
         <div
           className="flex items-center gap-3 px-3.5 py-3"
           style={{
-            background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #1a3a5c 100%)`,
+            background: "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
           }}
         >
           <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse flex-shrink-0" />
@@ -704,18 +675,6 @@ export function MobileUserSection({
             <div className="h-2.5 bg-white/10 rounded-full animate-pulse w-24" />
             <div className="h-2 bg-white/10 rounded-full animate-pulse w-36" />
           </div>
-          <div className="w-5 h-5 bg-white/10 rounded animate-pulse" />
-        </div>
-        <div className="grid grid-cols-4 gap-1 px-2 py-2.5 bg-white">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="flex flex-col items-center gap-1.5 py-2 px-1"
-            >
-              <div className="w-8 h-8 rounded-xl bg-slate-100 animate-pulse" />
-              <div className="h-2 bg-slate-100 rounded-full animate-pulse w-10" />
-            </div>
-          ))}
         </div>
       </div>
     );
@@ -728,14 +687,17 @@ export function MobileUserSection({
           onClose();
           onOpenAuthModal();
         }}
-        className="w-full flex items-center justify-center gap-2.5 font-display font-bold rounded-2xl py-3 transition-all duration-150 active:scale-[0.98] hover:-translate-y-px cursor-pointer"
+        className="w-full flex items-center justify-center gap-2.5 font-bold rounded-2xl py-3.5 transition-all duration-150 active:scale-[0.98] cursor-pointer"
         style={{
           fontSize: "0.875rem",
           color: "white",
-          background: `linear-gradient(135deg, ${BRAND.blue} 0%, #E8521C 100%)`,
-          boxShadow: "0 4px 16px rgba(255,107,53,0.35)",
+          background: "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
+          boxShadow:
+            "0 4px 20px rgba(10,45,135,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
+          border: "1.5px solid rgba(247,181,0,0.2)",
         }}
       >
+        <LogIn className="w-4 h-4 text-white" />
         Masuk / Daftar Akun
       </button>
     );
@@ -745,27 +707,25 @@ export function MobileUserSection({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden"
+      className="rounded-2xl overflow-hidden transition-all duration-200"
       style={{
         border: expanded
-          ? "1.5px solid rgba(255,107,53,0.22)"
-          : "1.5px solid rgba(15,35,64,0.09)",
-        boxShadow: expanded ? "0 4px 20px rgba(255,107,53,0.1)" : "none",
-        transition: "border-color 0.2s, box-shadow 0.2s",
+          ? "1.5px solid rgba(26,82,200,0.2)"
+          : "1.5px solid rgba(10,45,135,0.09)",
+        boxShadow: expanded ? "0 4px 24px rgba(10,45,135,0.1)" : "none",
       }}
     >
-      {/* ── Navy branded header row ── */}
+      {/* Header row */}
       <button
         onClick={() => setExpanded((o) => !o)}
         className="relative w-full flex items-center gap-2.5 px-3.5 py-3 overflow-hidden cursor-pointer"
         style={{
-          background: `linear-gradient(135deg, ${BRAND.blueNavy} 0%, #18355a 100%)`,
+          background: "linear-gradient(140deg, #060f2e 0%, #0a2d87 100%)",
         }}
         aria-expanded={expanded}
-        aria-label="Toggle user menu"
       >
         <div
-          className="absolute inset-0 opacity-[0.035] pointer-events-none"
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{
             backgroundImage:
               "radial-gradient(circle, white 1px, transparent 1px)",
@@ -773,24 +733,25 @@ export function MobileUserSection({
           }}
         />
         <div
-          className="absolute -top-5 -right-5 w-20 h-20 rounded-full pointer-events-none"
+          className="absolute bottom-0 left-0 right-0 h-[1.5px] pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle, rgba(255,107,53,0.25), transparent 70%)",
+              "linear-gradient(90deg, transparent, rgba(247,181,0,0.45), transparent)",
+            display: expanded ? "block" : "none",
           }}
         />
 
         <div className="relative flex-shrink-0">
           <UserAvatar user={user} size={32} />
           <div
-            className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
-            style={{ background: "#22C55E", borderColor: BRAND.blueNavy }}
+            className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px]"
+            style={{ background: "#22C55E", borderColor: "#060f2e" }}
           />
         </div>
 
-        <div className="flex-1 min-w-0 text-left relative">
+        <div className="flex-1 min-w-0 text-left">
           <p
-            className="font-display font-bold truncate leading-tight text-white"
+            className="font-bold text-white truncate leading-tight"
             style={{ fontSize: "0.8125rem" }}
           >
             {user.name}
@@ -806,14 +767,13 @@ export function MobileUserSection({
         <motion.span
           animate={{ rotate: expanded ? 180 : 0 }}
           transition={{ duration: 0.22, ease: EASE }}
-          className="relative flex items-center justify-center"
           style={{ color: "rgba(255,255,255,0.4)" }}
         >
           <ChevronDown className="w-3.5 h-3.5" />
         </motion.span>
       </button>
 
-      {/* ── Expandable grid ── */}
+      {/* Expandable grid */}
       <AnimatePresence initial={false}>
         {expanded && (
           <motion.div
@@ -823,73 +783,58 @@ export function MobileUserSection({
             transition={{ duration: 0.24, ease: EASE }}
             style={{ overflow: "hidden", background: "white" }}
           >
-            {/* Orange separator */}
-            <div
-              style={{
-                height: "2px",
-                background: `linear-gradient(90deg, ${BRAND.blue} 0%, rgba(255,107,53,0) 100%)`,
-                opacity: 0.25,
-              }}
-            />
-
-            {/* Nav tiles (3-up) */}
-            <div className="grid grid-cols-3 px-2 pt-2.5 pb-1 gap-1.5">
-              {GRID_ITEMS.filter((item) => !item.danger).map((item, i) => {
+            <div className="grid grid-cols-3 px-2 pt-3 pb-1 gap-2">
+              {NAV_MENU_ITEMS.map((item, i) => {
                 const Icon = item.icon;
                 return (
                   <Link
-                    key={item.href!}
-                    href={item.href!}
+                    key={item.href}
+                    href={item.href}
                     onClick={onClose}
-                    className="group flex flex-col items-center gap-1.5 px-1 py-2.5 rounded-xl transition-all duration-150 active:scale-95"
+                    className="flex flex-col items-center gap-1.5 px-1 py-2.5 rounded-xl transition-all duration-150 active:scale-95"
                     style={{
                       textDecoration: "none",
-                      border: "1px solid rgba(15,35,64,0.06)",
+                      border: "1px solid rgba(10,45,135,0.07)",
                       background: "rgba(248,250,252,0.8)",
                     }}
                   >
                     <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
+                      initial={{ scale: 0.7, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{
                         delay: 0.04 * i,
                         duration: 0.2,
                         ease: EASE,
                       }}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center"
                       style={{
-                        background: "rgba(255,107,53,0.07)",
-                        border: "1px solid rgba(255,107,53,0.12)",
+                        background: item.bg,
+                        border: `1px solid ${item.color}18`,
                       }}
                     >
                       <Icon
                         className="w-3.5 h-3.5"
-                        style={{ color: BRAND.blue }}
+                        style={{ color: item.color }}
                       />
                     </motion.div>
                     <motion.span
-                      initial={{ opacity: 0, y: 3 }}
+                      initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        delay: 0.04 * i + 0.06,
-                        duration: 0.18,
-                        ease: EASE,
-                      }}
-                      className="font-display font-semibold text-center leading-tight whitespace-nowrap"
+                      transition={{ delay: 0.04 * i + 0.06, duration: 0.18 }}
+                      className="font-semibold text-center leading-tight"
                       style={{ fontSize: "0.5625rem", color: "#475569" }}
                     >
-                      {"shortLabel" in item ? item.shortLabel : item.label}
+                      {item.shortLabel}
                     </motion.span>
                   </Link>
                 );
               })}
             </div>
 
-            {/* Sign out — separated row */}
             <div
-              className="px-2 pb-2.5 pt-1.5"
+              className="px-2 pb-3 pt-2"
               style={{
-                borderTop: "1px solid rgba(15,35,64,0.06)",
+                borderTop: "1px solid rgba(10,45,135,0.07)",
                 margin: "0 8px",
               }}
             >
@@ -900,8 +845,8 @@ export function MobileUserSection({
                 style={{ border: "1px solid rgba(239,68,68,0.08)" }}
               >
                 <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-150 group-hover:bg-red-100"
-                  style={{ background: "rgba(239,68,68,0.06)" }}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(239,68,68,0.07)" }}
                 >
                   {isSigningOut ? (
                     <Loader2
@@ -910,13 +855,13 @@ export function MobileUserSection({
                     />
                   ) : (
                     <LogOut
-                      className="w-3.5 h-3.5 transition-colors duration-150 group-hover:text-red-500"
+                      className="w-3.5 h-3.5"
                       style={{ color: "#EF4444" }}
                     />
                   )}
                 </div>
                 <span
-                  className="font-display font-semibold transition-colors duration-150 group-hover:text-red-600"
+                  className="font-semibold group-hover:text-red-600 transition-colors duration-150"
                   style={{ fontSize: "0.8125rem", color: "#EF4444" }}
                 >
                   {isSigningOut ? "Keluar..." : "Keluar dari akun"}
@@ -943,5 +888,36 @@ export function AuthModalPortal({
     <AnimatePresence>
       {isOpen && <AuthModal onClose={onClose} defaultTab={defaultTab} />}
     </AnimatePresence>
+  );
+}
+
+function SignInButton({ onOpen }: { onOpen: () => void }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      onClick={onOpen}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative inline-flex items-center gap-2 font-semibold rounded-xl px-4 py-2 overflow-hidden transition-all duration-200 cursor-pointer"
+      style={{
+        fontSize: "0.8125rem",
+        color: "white",
+        background: "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
+        border: "1.5px solid rgba(255,255,255,0.1)",
+        boxShadow: hovered
+          ? "0 8px 24px rgba(10,45,135,0.35), inset 0 0 0 1px rgba(247,181,0,0.2)"
+          : "0 2px 10px rgba(10,45,135,0.22)",
+        transform: hovered ? "translateY(-1px)" : "translateY(0)",
+      }}
+    >
+      <span>Masuk</span>
+      <motion.span
+        animate={{ x: hovered ? 2 : 0 }}
+        transition={{ duration: 0.18 }}
+      >
+        <ChevronRight className="w-3.5 h-3.5 opacity-70" />
+      </motion.span>
+    </button>
   );
 }

@@ -9,28 +9,6 @@ import { Toaster } from "react-hot-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-const syne = Syne({
-  subsets: ["latin"],
-  variable: "--font-syne",
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  variable: "--font-dm-sans",
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-const dmMono = DM_Mono({
-  subsets: ["latin"],
-  variable: "--font-dm-mono",
-  weight: ["400", "500"],
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: "Inggris Go — Belajar Bahasa Inggris Tanpa Takut Salah",
   description:
@@ -50,12 +28,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id" className={cn("h-full", "font-sans", geist.variable)}>
-      <body
-        className={`${syne.variable} ${dmSans.variable} ${dmMono.variable} font-body h-full antialiased`}
-      >
+      <body className={`font-body h-full antialiased`}>
         <TooltipProvider delayDuration={0}>
-   
-
           <main>
             {children}
 

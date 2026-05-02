@@ -46,14 +46,7 @@ export default function WAButton({
         className,
       )}
     >
-      <a
-        href={buildWhatsAppUrl({
-          intent: "program",
-          title: program,
-        })}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
+      <a href={"/contact"} rel="noopener noreferrer">
         {icon && <WhatsAppIcon className="size-5" />}
         <span className="">{label}</span>
       </a>

@@ -24,18 +24,14 @@ import {
   ProgramBatch,
   PriceTier,
 } from "@/app/modules/program/program.types";
+import { PROGRAM_CATEGORY_STATUS, PROGRAM_STATUS } from "@/lib/enums";
 
-export const programCategoryStatusEnum = pgEnum("program_category_status", [
-  "draft",
-  "published",
-  "archived",
-]);
+export const programCategoryStatusEnum = pgEnum(
+  "program_category_status",
+  PROGRAM_CATEGORY_STATUS,
+);
 
-export const programStatusEnum = pgEnum("program_status", [
-  "draft",
-  "published",
-  "archived",
-]);
+export const programStatusEnum = pgEnum("program_status", PROGRAM_STATUS);
 
 export const programs = pgTable(
   "programs",

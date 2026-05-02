@@ -181,7 +181,7 @@ export default function Navbar() {
               {/* ── Visual separator ──────────────────────────────────── */}
               <div
                 className="h-6 w-px flex-shrink-0"
-                style={{ background: "var(--border)" }}
+                style={{ background: "var(--border-strong)" }}
                 aria-hidden="true"
               />
 
