@@ -57,8 +57,6 @@ export default function RootLayout({
               }}
             />
           </main>
-
-          <Footer />
         </TooltipProvider>
       </body>
     </html>
