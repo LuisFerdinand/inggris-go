@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * WhyBenefitsSection — Enhanced with image collage + lightbox
- *
- * Layout modes:
- *  A) No images → centered header + card grid (original behaviour, unchanged)
- *  B) With images → left collage | right text+benefits (desktop)
- *                    title → h-scroll images → benefits list (mobile)
- *
- * Collage maps any number of images into 4 named slots: A B C D
- * Slot D shows "+N" overlay when total > 4.
- * Clicking any slot opens the existing GallerySection lightbox.
- */
-
 import React, {
   useState,
   useCallback,
@@ -22,24 +9,11 @@ import React, {
 } from "react";
 import { motion, AnimatePresence, HTMLMotionProps } from "framer-motion";
 import { Icon } from "@/components/Icon";
-
-/* ─── Assumed shared primitives (re-export from your project) ── */
-// Replace these with your real imports:
-// import { Reveal, SectionPill, SectionHeading, Icon, EASE } from "@/components/shared";
-// import type { Theme } from "@/types";
-
-/* ── Stub types / helpers for standalone usage ── */
-type Theme = {
-  primary: string;
-  soft: string;
-  softStrong: string;
-  border: string;
-};
+import { Theme } from "@/lib/utils";
 
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
-/* Reveal wrapper — scroll-triggered fade+slide */
-
+/* ─── Reveal ─────────────────────────────────────────────────── */
 type RevealProps = {
   children: React.ReactNode;
   delay?: number;
@@ -61,13 +35,14 @@ function Reveal({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.55, delay, ease: EASE }}
-      {...props} // ✅ now style, onClick, etc. all work
+      {...props}
     >
       {children}
     </motion.div>
   );
 }
 
+/* ─── SectionPill ────────────────────────────────────────────── */
 function SectionPill({
   theme,
   children,
@@ -92,6 +67,7 @@ function SectionPill({
   );
 }
 
+/* ─── SectionHeading ─────────────────────────────────────────── */
 function SectionHeading({
   tagline,
   taglineAccent,
@@ -104,7 +80,6 @@ function SectionHeading({
   align?: "center" | "left";
 }) {
   const parts = taglineAccent ? tagline.split(taglineAccent) : [tagline];
-
   return (
     <h2
       className="font-display font-extrabold leading-[1.07]"
@@ -142,12 +117,18 @@ export type BenefitItem = {
   icon: string;
 };
 
+export type BenefitConclusion = {
+  tagline: string;
+  taglineAccent?: string;
+};
+
 export type BenefitsSectionContent = {
-  title: string; // pill label
+  title: string;
   subtitle?: string;
   icon?: string;
   tagline: string;
   taglineAccent?: string;
+  conclusion?: BenefitConclusion;
   images?: BenefitImage[];
   items: BenefitItem[];
 };
@@ -211,7 +192,6 @@ export function Lightbox({
     >
       <div className="absolute inset-0" onClick={onClose} />
       <div className="relative z-10 flex flex-col items-center max-w-[94vw] w-full">
-        {/* Close */}
         <button
           onClick={onClose}
           className="absolute -top-11 right-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors"
@@ -224,8 +204,6 @@ export function Lightbox({
         >
           ✕
         </button>
-
-        {/* Image */}
         <AnimatePresence mode="wait">
           <motion.div
             key={idx}
@@ -243,8 +221,6 @@ export function Lightbox({
             />
           </motion.div>
         </AnimatePresence>
-
-        {/* Caption */}
         <div className="text-center mt-4 min-h-8 px-4">
           {current.tag && (
             <p
@@ -270,8 +246,6 @@ export function Lightbox({
             </p>
           )}
         </div>
-
-        {/* Nav */}
         <div className="flex items-center gap-5 mt-4">
           {([-1, 1] as const).map((dir, ki) => {
             const disabled = dir === -1 ? idx === 0 : idx === photos.length - 1;
@@ -310,8 +284,6 @@ export function Lightbox({
             );
           })}
         </div>
-
-        {/* Dot scrubber */}
         <div className="flex items-center gap-1.5 mt-3">
           {photos.map((_, i) => (
             <motion.button
@@ -328,7 +300,6 @@ export function Lightbox({
             />
           ))}
         </div>
-
         <p
           className="sm:hidden mt-3"
           style={{
@@ -344,17 +315,12 @@ export function Lightbox({
   );
 }
 
-/* ─── Image hover overlay ────────────────────────────────────── */
+/* ─── ImgOverlay ─────────────────────────────────────────────── */
 function ImgOverlay({ caption, tag }: { caption?: string; tag?: string }) {
   return (
     <>
-      {/* Zoom icon on hover */}
       <div className="absolute inset-0 flex items-center justify-center group-hover:bg-black/[.15] transition-colors duration-300">
-        <div
-          className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center
-                     opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100
-                     transition-all duration-300"
-        >
+        <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300">
           <Icon
             name="zoom-in"
             className="w-5 h-5"
@@ -362,14 +328,8 @@ function ImgOverlay({ caption, tag }: { caption?: string; tag?: string }) {
           />
         </div>
       </div>
-      {/* Caption gradient */}
       {(caption || tag) && (
-        <div
-          className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8
-                     bg-gradient-to-t from-black/65 to-transparent
-                     opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
-                     transition-all duration-300"
-        >
+        <div className="absolute bottom-0 left-0 right-0 px-3 pb-3 pt-8 bg-gradient-to-t from-black/65 to-transparent opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
           {tag && (
             <p
               className="mb-0.5 font-semibold uppercase"
@@ -396,14 +356,7 @@ function ImgOverlay({ caption, tag }: { caption?: string; tag?: string }) {
   );
 }
 
-// ─── NEW: CollageRow — single-row grid for 1-column layout ───────────────────
-//
-// Logic:
-//   n <= 3  → show all 3 in a 3-col grid
-//   n >= 4  → show 4 slots; last slot gets "+remaining" overlay if n > 4
-//
-// The `aspect-ratio: 3/4` keeps images tall and readable at any narrow width.
-
+/* ─── CollageRow (mobile) ────────────────────────────────────── */
 function CollageRow({
   images,
   theme,
@@ -414,12 +367,8 @@ function CollageRow({
   onOpen: (idx: number) => void;
 }) {
   const n = images.length;
-
-  // How many slots to actually render in the row
   const slotCount = n <= 3 ? n : 4;
-  // How many are hidden behind the overlay on the last slot
-  const remaining = n > 4 ? n - 4 : 0; // n===4 → no overlay, n>4 → overlay
-
+  const remaining = n > 4 ? n - 4 : 0;
   const slots = images.slice(0, slotCount);
   const isOverflowSlot = (i: number) => remaining > 0 && i === slotCount - 1;
 
@@ -434,7 +383,6 @@ function CollageRow({
     >
       {slots.map((photo, i) => {
         const showOverlay = isOverflowSlot(i);
-
         return (
           <Reveal key={i} delay={i * 0.07}>
             <motion.div
@@ -442,13 +390,12 @@ function CollageRow({
               style={{
                 aspectRatio: "3 / 4",
                 border: `1.5px solid ${theme.border}`,
-                boxShadow: `0 2px 10px rgba(0,0,0,0.07)`,
+                boxShadow: "0 2px 10px rgba(0,0,0,0.07)",
               }}
               whileHover={{ scale: 1.03, y: -2 }}
               transition={{ duration: 0.28, ease: EASE }}
               onClick={() => onOpen(showOverlay ? slotCount - 1 : i)}
             >
-              {/* Image — always rendered, even under the overlay */}
               <img
                 src={photo.src}
                 alt={photo.caption ?? `Foto ${i + 1}`}
@@ -462,9 +409,7 @@ function CollageRow({
                 loading="lazy"
                 className="group-hover:scale-[1.06]"
               />
-
               {showOverlay ? (
-                /* "+N more" overlay */
                 <div
                   className="absolute inset-0 flex flex-col items-center justify-center"
                   style={{ background: "rgba(10,22,40,0.62)" }}
@@ -489,57 +434,7 @@ function CollageRow({
                   </span>
                 </div>
               ) : (
-                /* Normal hover: zoom icon + caption gradient */
-                <>
-                  {/* Zoom icon */}
-                  <div className="absolute inset-0 flex items-center justify-center transition-colors duration-300 group-hover:bg-black/[.12]">
-                    <div
-                      className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center
-                                 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100
-                                 transition-all duration-300"
-                    >
-                      <Icon
-                        name="zoom-in"
-                        className="w-4 h-4"
-                        style={{ color: "#0a1628" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Caption on hover */}
-                  {(photo.caption || photo.tag) && (
-                    <div
-                      className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 pt-6
-                                 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
-                                 transition-all duration-300"
-                      style={{
-                        background:
-                          "linear-gradient(to top, rgba(0,0,0,0.6), transparent)",
-                      }}
-                    >
-                      {photo.tag && (
-                        <p
-                          className="font-semibold uppercase mb-0.5"
-                          style={{
-                            fontSize: "0.5rem",
-                            color: "rgba(255,255,255,0.55)",
-                            letterSpacing: "0.12em",
-                          }}
-                        >
-                          {photo.tag}
-                        </p>
-                      )}
-                      {photo.caption && (
-                        <p
-                          className="text-white font-medium leading-snug"
-                          style={{ fontSize: "0.6875rem" }}
-                        >
-                          {photo.caption}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </>
+                <ImgOverlay caption={photo.caption} tag={photo.tag} />
               )}
             </motion.div>
           </Reveal>
@@ -549,7 +444,7 @@ function CollageRow({
   );
 }
 
-/* ─── Collage — desktop ──────────────────────────────────────── */
+/* ─── CollageDesktop ─────────────────────────────────────────── */
 function CollageDesktop({
   images,
   theme,
@@ -561,11 +456,8 @@ function CollageDesktop({
 }) {
   const n = images.length;
   const remaining = n > 4 ? n - 4 : 0;
-
-  // slot indices into the images array
   const slotIndex = (slot: "A" | "B" | "C" | "D") =>
     ({ A: 0, B: 1, C: 2, D: 3 })[slot];
-
   const imgStyle: React.CSSProperties = {
     width: "100%",
     height: "100%",
@@ -586,16 +478,14 @@ function CollageDesktop({
   }) {
     const i = slotIndex(slot);
     const photo = images[i];
-    const isD = slot === "D";
-    const showOverflow = isD && remaining > 0;
-
+    const showOverflow = slot === "D" && remaining > 0;
     return (
       <Reveal delay={delay} className={`relative ${className}`} style={style}>
         <motion.div
           className="relative group w-full h-full rounded-2xl overflow-hidden cursor-pointer"
           style={{
             border: `1.5px solid ${theme.border}`,
-            boxShadow: `0 4px 24px rgba(0,0,0,0.09)`,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.09)",
           }}
           whileHover={{ scale: 1.025, y: -3 }}
           transition={{ duration: 0.3, ease: EASE }}
@@ -636,17 +526,13 @@ function CollageDesktop({
     );
   }
 
-  /* ── 1 image ── */
-  if (n === 1) {
+  if (n === 1)
     return (
       <div style={{ height: "100%", minHeight: 380 }}>
         <SlotImg slot="A" delay={0} className="h-full" />
       </div>
     );
-  }
-
-  /* ── 2 images ── */
-  if (n === 2) {
+  if (n === 2)
     return (
       <div
         className="grid grid-cols-2 gap-3"
@@ -656,10 +542,7 @@ function CollageDesktop({
         <SlotImg slot="B" delay={0.08} className="h-full" />
       </div>
     );
-  }
-
-  /* ── 3 images ── */
-  if (n === 3) {
+  if (n === 3)
     return (
       <div
         className="grid gap-3"
@@ -670,15 +553,11 @@ function CollageDesktop({
           minHeight: 420,
         }}
       >
-        {/* A spans 2 rows on the left */}
         <SlotImg slot="A" delay={0} style={{ gridRow: "1 / 3" }} />
         <SlotImg slot="B" delay={0.08} />
         <SlotImg slot="C" delay={0.14} />
       </div>
     );
-  }
-
-  /* ── 4+ images ── */
   return (
     <div
       className="grid gap-3"
@@ -689,7 +568,6 @@ function CollageDesktop({
         minHeight: 460,
       }}
     >
-      {/* A — large, spans all 3 rows */}
       <SlotImg slot="A" delay={0} style={{ gridRow: "1 / 4" }} />
       <SlotImg slot="B" delay={0.07} />
       <SlotImg slot="C" delay={0.13} />
@@ -698,178 +576,15 @@ function CollageDesktop({
   );
 }
 
-/* ─── Collage — mobile horizontal scroll ────────────────────── */
-function CollageMobile({
-  images,
-  theme,
-  onOpen,
-}: {
-  images: BenefitImage[];
-  theme: Theme;
-  onOpen: (idx: number) => void;
-}) {
-  const n = images.length;
-  const visibleCount = Math.min(n, 4);
-  const remaining = n > 4 ? n - 4 : 0;
-
-  return (
-    <div
-      className="flex gap-3 overflow-x-auto pb-2"
-      style={{
-        scrollSnapType: "x mandatory",
-        WebkitOverflowScrolling: "touch",
-        scrollbarWidth: "none",
-      }}
-    >
-      {images.slice(0, visibleCount).map((photo, i) => {
-        const isLast = i === visibleCount - 1 && remaining > 0;
-        return (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{
-              duration: 0.45,
-              delay: i * 0.07,
-              ease: EASE,
-              scale: { duration: 0.28, ease: EASE }, // 👈 hover animation
-            }}
-            className="relative group shrink-0 rounded-2xl overflow-hidden cursor-pointer"
-            style={{
-              width: "72vw",
-              maxWidth: 260,
-              aspectRatio: "4/5",
-              scrollSnapAlign: "start",
-              border: `1.5px solid ${theme.border}`,
-              boxShadow: `0 4px 18px rgba(0,0,0,0.08)`,
-            }}
-            whileHover={{ scale: 1.02 }}
-            onClick={() => onOpen(isLast ? 4 : i)}
-          >
-            <img
-              src={photo.src}
-              alt={photo.caption ?? `Foto ${i + 1}`}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                transition: "transform 0.5s",
-              }}
-              loading="lazy"
-            />
-            {isLast ? (
-              <div
-                className="absolute inset-0 flex flex-col items-center justify-center"
-                style={{ background: "rgba(10,22,40,0.62)" }}
-              >
-                <span
-                  className="font-extrabold text-white leading-none"
-                  style={{ fontSize: "1.75rem", letterSpacing: "-0.02em" }}
-                >
-                  +{remaining + 1}
-                </span>
-                <span
-                  className="font-semibold uppercase tracking-widest mt-0.5"
-                  style={{
-                    fontSize: "0.5rem",
-                    color: "rgba(255,255,255,0.55)",
-                  }}
-                >
-                  foto lagi
-                </span>
-              </div>
-            ) : (
-              <ImgOverlay caption={photo.caption} tag={photo.tag} />
-            )}
-          </motion.div>
-        );
-      })}
-    </div>
-  );
-}
-
-/* ─── Benefit item ───────────────────────────────────────────── */
-function BenefitRow({
-  item,
-  theme,
-  delay,
-  isProblem,
-}: {
-  item: BenefitItem;
-  theme: Theme;
-  delay: number;
-  isProblem: boolean;
-}) {
-  const iconColor = isProblem ? "#ff6b35" : theme.primary;
-  const iconBg = isProblem ? "rgba(255,107,53,0.08)" : theme.soft;
-  const iconBorder = isProblem ? "rgba(255,107,53,0.18)" : theme.border;
-
-  return (
-    <Reveal delay={delay} y={14}>
-      <motion.div
-        className="flex items-start gap-4 group"
-        whileHover={{ x: 4 }}
-        transition={{ duration: 0.25, ease: EASE }}
-      >
-        {/* Icon pill */}
-        <div
-          className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center mt-0.5"
-          style={{
-            background: iconBg,
-            border: `1.5px solid ${iconBorder}`,
-            transition: "box-shadow 0.3s",
-          }}
-        >
-          <Icon
-            name={item.icon}
-            className="w-5 h-5"
-            style={{ color: iconColor }}
-          />
-        </div>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0">
-          {/* Accent line */}
-          <div
-            className="w-6 h-0.5 rounded-full mb-2"
-            style={{ background: iconColor, opacity: 0.4 }}
-          />
-          <p
-            className="font-display font-extrabold mb-1 leading-snug"
-            style={{
-              fontSize: "0.9375rem",
-              color: "var(--blue-navy, #0a1628)",
-            }}
-          >
-            {item.title}
-          </p>
-          {item.description && (
-            <p
-              style={{
-                fontSize: "0.8125rem",
-                color: "var(--text-muted, #64748b)",
-                lineHeight: "1.65",
-              }}
-            >
-              {item.description}
-            </p>
-          )}
-        </div>
-      </motion.div>
-    </Reveal>
-  );
-}
-
-/* ─── Decorative count badge ─────────────────────────────────── */
+/* ─── PhotoCountBadge ────────────────────────────────────────── */
 function PhotoCountBadge({ count, theme }: { count: number; theme: Theme }) {
   return (
     <div
-      className="absolute -bottom-3 -right-3 z-20 flex items-center gap-1.5 rounded-xl px-3 py-2 shadow-lg"
+      className="absolute -bottom-3 -right-3 z-20 flex items-center gap-1.5 rounded-xl px-3 py-2"
       style={{
         background: "white",
         border: `1.5px solid ${theme.border}`,
-        boxShadow: `0 8px 24px rgba(0,0,0,0.1)`,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
       }}
     >
       <svg viewBox="0 0 16 16" className="w-3.5 h-3.5" fill="none">
@@ -900,27 +615,192 @@ function PhotoCountBadge({ count, theme }: { count: number; theme: Theme }) {
   );
 }
 
+/* ─── BenefitCard — border-left style ───────────────────────── */
+function BenefitCard({
+  item,
+  theme,
+  delay,
+  index,
+}: {
+  item: BenefitItem;
+  theme: Theme;
+  delay: number;
+  index: number;
+}) {
+  return (
+    <Reveal delay={delay} y={14} className="h-full">
+      <motion.div
+        className="relative flex items-start gap-4 h-full"
+        whileHover={{ x: 3 }}
+        transition={{ duration: 0.22, ease: EASE }}
+        style={{
+          background: "var(--surface, #ffffff)",
+          borderLeft: `3px solid ${theme.primary}`,
+          borderTop: `1px solid ${theme.border}`,
+          borderRight: `1px solid ${theme.border}`,
+          borderBottom: `1px solid ${theme.border}`,
+          borderRadius: "14px",
+          padding: "16px 18px 16px 20px",
+          boxShadow: `0 2px 12px rgba(0,0,0,0.04)`,
+          overflow: "hidden",
+        }}
+      >
+        {/* Corner glow */}
+        <div
+          className="absolute top-0 right-0 w-20 h-20 rounded-bl-full pointer-events-none"
+          style={{ background: theme.soft, opacity: 0.7 }}
+        />
+
+        {/* Icon */}
+        <div
+          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mt-0.5 relative z-10"
+          style={{
+            background: theme.soft,
+            border: `1.5px solid ${theme.border}`,
+          }}
+        >
+          <Icon
+            name={item.icon}
+            className="w-5 h-5"
+            style={{ color: theme.primary }}
+          />
+        </div>
+
+        {/* Text */}
+        <div className="flex-1 min-w-0 relative z-10">
+          <p
+            className="font-display font-extrabold leading-snug mb-1"
+            style={{
+              fontSize: "0.9375rem",
+              color: "var(--blue-navy, #0a1628)",
+            }}
+          >
+            {item.title}
+          </p>
+          {item.description && (
+            <p
+              style={{
+                fontSize: "0.8125rem",
+                color: "var(--text-muted, #64748b)",
+                lineHeight: "1.65",
+              }}
+            >
+              {item.description}
+            </p>
+          )}
+        </div>
+
+        {/* Step number */}
+        <div
+          className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center relative z-10"
+          style={{
+            background: theme.soft,
+            fontSize: "0.625rem",
+            fontWeight: 700,
+            color: theme.primary,
+            opacity: 0.6,
+            letterSpacing: "0.03em",
+          }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </div>
+      </motion.div>
+    </Reveal>
+  );
+}
+
+/* ─── ConclusionCard — wide block ────────────────────────────── */
+function ConclusionCard({
+  conclusion,
+  theme,
+  delay = 0,
+}: {
+  conclusion: BenefitConclusion;
+  theme: Theme;
+  delay?: number;
+}) {
+  return (
+    <Reveal delay={delay} y={12}>
+      <motion.div
+        whileHover={{ x: 3 }}
+        transition={{ duration: 0.22, ease: EASE }}
+        className="relative w-full"
+        style={{
+          borderLeft: `3px solid ${theme.primary}`,
+          borderTop: `1px solid ${theme.border}`,
+          borderRight: `1px solid ${theme.border}`,
+          borderBottom: `1px solid ${theme.border}`,
+          borderRadius: "16px",
+          padding: "22px 28px",
+          background: theme.soft,
+          overflow: "hidden",
+        }}
+      >
+        {/* Ambient shape */}
+        <div
+          className="absolute -right-8 -top-8 w-40 h-40 rounded-full pointer-events-none"
+          style={{ background: theme.border, opacity: 0.4 }}
+        />
+
+        {/* Accent bar */}
+        <div
+          className="w-8 h-0.5 rounded-full mb-3 relative z-10"
+          style={{ background: theme.primary, opacity: 0.55 }}
+        />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:gap-6 gap-2">
+          {conclusion.taglineAccent && (
+            <p
+              className="font-display font-extrabold shrink-0"
+              style={{
+                fontSize: "0.9375rem",
+                color: "var(--blue-navy, #0a1628)",
+                minWidth: "fit-content",
+              }}
+            >
+              {conclusion.taglineAccent}
+            </p>
+          )}
+          {conclusion.taglineAccent && (
+            <div
+              className="hidden sm:block w-px self-stretch"
+              style={{ background: theme.border }}
+            />
+          )}
+          <p
+            style={{
+              fontSize: "0.875rem",
+              color: "var(--text-muted, #64748b)",
+              lineHeight: "1.75",
+            }}
+          >
+            {conclusion.tagline}
+          </p>
+        </div>
+      </motion.div>
+    </Reveal>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════════
    MAIN COMPONENT
-═══════════════════════════════════════════════════════════════ */
-export function WhyBenefitsSection({
+════════════════════════════════════════════════════════════════ */
+export function BenefitsSection({
   content,
   theme,
   id,
-  variant = "benefits",
 }: {
   content: BenefitsSectionContent;
   theme: Theme;
   id: string;
-  variant?: "why" | "benefits" | "fit";
 }) {
-  const isProblem = variant === "why";
   const hasImages = (content.images?.length ?? 0) > 0;
   const images = content.images ?? [];
+  const hasConclusion = !!content.conclusion;
 
   const [lbOpen, setLbOpen] = useState(false);
   const [lbIdx, setLbIdx] = useState(0);
-
   const openLb = useCallback((idx: number) => {
     setLbIdx(idx);
     setLbOpen(true);
@@ -930,132 +810,97 @@ export function WhyBenefitsSection({
   const colCount =
     content.items.length <= 2 ? 2 : content.items.length === 3 ? 3 : 4;
 
-  /* ── Mode A: no images — original card grid ── */
+  /* ── Mode A: no images — card grid ── */
   if (!hasImages) {
     return (
-      <section
-        id={id}
-        className="relative py-20 lg:py-28 overflow-hidden"
-        style={{ background: isProblem ? "var(--surface)" : "var(--bg-soft)" }}
-      >
-        {isProblem && (
+      <>
+        <section
+          id={id}
+          className="relative py-20 lg:py-28 overflow-hidden"
+          style={{ background: "var(--bg-soft, #f8fafc)" }}
+        >
           <div
             className="pointer-events-none absolute inset-0"
             style={{
-              backgroundImage: `radial-gradient(ellipse 55% 45% at 0% 60%, ${theme.soft} 0%, transparent 55%)`,
+              backgroundImage: `radial-gradient(ellipse 55% 45% at 100% 40%, ${theme.soft} 0%, transparent 55%)`,
             }}
           />
-        )}
-        <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-          {/* Header */}
-          <div className="flex flex-col items-center text-center mb-14">
-            <Reveal>
-              <SectionPill theme={theme}>
-                {content.icon && (
-                  <Icon
-                    name={content.icon}
-                    className="w-3.5 h-3.5"
-                    style={{ color: theme.primary }}
-                  />
-                )}
-                {content.title}
-              </SectionPill>
-            </Reveal>
-            <Reveal delay={0.07} className="mt-5 mb-4">
-              <SectionHeading
-                tagline={content.tagline}
-                taglineAccent={content.taglineAccent}
-                theme={theme}
-              />
-            </Reveal>
-            {content.subtitle && (
-              <Reveal delay={0.13}>
-                <p
-                  style={{
-                    fontSize: "0.9375rem",
-                    color: "var(--text-muted)",
-                    maxWidth: "460px",
-                    lineHeight: "1.75",
-                  }}
-                >
-                  {content.subtitle}
-                </p>
+          <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+            {/* Header */}
+            <div className="flex flex-col items-center text-center mb-12">
+              <Reveal>
+                <SectionPill theme={theme}>
+                  {content.icon && (
+                    <Icon
+                      name={content.icon}
+                      className="w-3.5 h-3.5"
+                      style={{ color: theme.primary }}
+                    />
+                  )}
+                  {content.title}
+                </SectionPill>
               </Reveal>
+              <Reveal delay={0.07} className="mt-5 mb-4">
+                <SectionHeading
+                  tagline={content.tagline}
+                  taglineAccent={content.taglineAccent}
+                  theme={theme}
+                />
+              </Reveal>
+              {content.subtitle && (
+                <Reveal delay={0.13}>
+                  <p
+                    style={{
+                      fontSize: "0.9375rem",
+                      color: "var(--text-muted)",
+                      maxWidth: "460px",
+                      lineHeight: "1.75",
+                    }}
+                  >
+                    {content.subtitle}
+                  </p>
+                </Reveal>
+              )}
+            </div>
+
+            {/* Cards grid */}
+            <div
+              className={`grid gap-3 mb-4 ${colCount <= 2 ? "sm:grid-cols-2 max-w-2xl mx-auto" : colCount === 3 ? "sm:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4"}`}
+            >
+              {content.items.map((item, i) => (
+                <BenefitCard
+                  key={item.title}
+                  item={item}
+                  index={i}
+                  theme={theme}
+                  delay={i * 0.07}
+                />
+              ))}
+            </div>
+
+            {/* Conclusion — full width below cards */}
+            {hasConclusion && (
+              <div className={colCount <= 2 ? "max-w-2xl mx-auto" : ""}>
+                <ConclusionCard
+                  conclusion={content.conclusion!}
+                  theme={theme}
+                  delay={content.items.length * 0.07 + 0.06}
+                />
+              </div>
             )}
           </div>
-
-          {/* Cards */}
-          <div
-            className={`grid gap-5 ${
-              colCount <= 2
-                ? "sm:grid-cols-2 max-w-2xl mx-auto"
-                : colCount === 3
-                  ? "sm:grid-cols-2 lg:grid-cols-3"
-                  : "sm:grid-cols-2 lg:grid-cols-4"
-            }`}
-          >
-            {content.items.map((item, i) => (
-              <Reveal key={item.title} delay={i * 0.07} y={28}>
-                <motion.div
-                  whileHover={{ y: -6, scale: 1.02 }}
-                  transition={{ duration: 0.28, ease: EASE }}
-                  className="relative flex flex-col h-full rounded-2xl p-5 overflow-hidden"
-                  style={{
-                    background: "var(--surface)",
-                    border: `1.5px solid var(--border-soft)`,
-                    boxShadow: "var(--shadow-badge)",
-                  }}
-                >
-                  <div
-                    className="absolute top-0 right-0 w-20 h-20 rounded-bl-full"
-                    style={{ background: theme.soft, opacity: 0.6 }}
-                  />
-                  <div
-                    className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 relative z-10"
-                    style={{
-                      background: isProblem
-                        ? "rgba(255,107,53,0.08)"
-                        : theme.soft,
-                      border: `1.5px solid ${isProblem ? "rgba(255,107,53,0.18)" : theme.border}`,
-                    }}
-                  >
-                    <Icon
-                      name={item.icon}
-                      className="w-5 h-5"
-                      style={{ color: isProblem ? "#ff6b35" : theme.primary }}
-                    />
-                  </div>
-                  <div
-                    className="w-8 h-0.5 rounded-full mb-3 relative z-10"
-                    style={{
-                      background: isProblem ? "#ff6b35" : theme.primary,
-                      opacity: 0.45,
-                    }}
-                  />
-                  <p
-                    className="font-display font-extrabold mb-2 relative z-10"
-                    style={{ fontSize: "0.9375rem", color: "var(--blue-navy)" }}
-                  >
-                    {item.title}
-                  </p>
-                  {item.description && (
-                    <p
-                      className="relative z-10"
-                      style={{
-                        fontSize: "0.8125rem",
-                        color: "var(--text-muted)",
-                        lineHeight: "1.65",
-                      }}
-                    >
-                      {item.description}
-                    </p>
-                  )}
-                </motion.div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+        <AnimatePresence>
+          {lbOpen && (
+            <Lightbox
+              photos={images}
+              initialIdx={lbIdx}
+              onClose={closeLb}
+              theme={theme}
+            />
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 
@@ -1065,11 +910,8 @@ export function WhyBenefitsSection({
       <section
         id={id}
         className="relative py-20 lg:py-28 overflow-hidden"
-        style={{
-          background: isProblem ? "var(--surface)" : "var(--bg-soft, #f8fafc)",
-        }}
+        style={{ background: "var(--bg-soft, #f8fafc)" }}
       >
-        {/* Ambient glow */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{
@@ -1078,9 +920,9 @@ export function WhyBenefitsSection({
         />
 
         <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-          {/* ── MOBILE layout ── */}
+          {/* ── MOBILE ── */}
           <div className="lg:hidden flex flex-col gap-8">
-            {/* Header — centered */}
+            {/* Header */}
             <div className="flex flex-col items-center text-center">
               <Reveal>
                 <SectionPill theme={theme}>
@@ -1119,115 +961,132 @@ export function WhyBenefitsSection({
               )}
             </div>
 
-            {/* Horizontal scroll images */}
+            {/* Image row */}
             <Reveal delay={0.08}>
               <CollageRow images={images} theme={theme} onOpen={openLb} />
             </Reveal>
 
-            {/* Benefit list */}
-            <div className="flex flex-col gap-5">
+            {/* Cards */}
+            <div className="flex flex-col gap-3">
               {content.items.map((item, i) => (
-                <BenefitRow
+                <BenefitCard
                   key={item.title}
                   item={item}
+                  index={i}
                   theme={theme}
                   delay={i * 0.07}
-                  isProblem={isProblem}
                 />
               ))}
             </div>
+
+            {/* Conclusion */}
+            {hasConclusion && (
+              <ConclusionCard
+                conclusion={content.conclusion!}
+                theme={theme}
+                delay={content.items.length * 0.06}
+              />
+            )}
           </div>
 
-          {/* ── DESKTOP layout: 2-column ── */}
-          <div className="hidden lg:grid lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.1fr_0.9fr] gap-14 xl:gap-20 items-center">
-            {/* LEFT — image collage */}
-            <div className="relative" style={{ minHeight: 460 }}>
-              {/* Decorative background shape */}
-              <div
-                className="absolute -inset-6 rounded-3xl"
-                style={{ background: theme.soft, opacity: 0.45 }}
-              />
-              {/* Photo count badge */}
-              <div
-                className="relative"
-                style={{ height: "100%", minHeight: 460 }}
-              >
-                <CollageDesktop images={images} theme={theme} onOpen={openLb} />
-                {images.length > 1 && (
-                  <PhotoCountBadge count={images.length} theme={theme} />
-                )}
-              </div>
-            </div>
-
-            {/* RIGHT — text + benefits */}
-            <div className="flex flex-col justify-center">
-              {/* Section pill */}
-              <Reveal>
-                <SectionPill theme={theme}>
-                  {content.icon && (
-                    <Icon
-                      name={content.icon}
-                      className="w-3.5 h-3.5"
-                      style={{ color: theme.primary }}
-                    />
-                  )}
-                  {content.title}
-                </SectionPill>
-              </Reveal>
-
-              {/* Heading */}
-              <Reveal delay={0.07} className="mt-5 mb-3">
-                <SectionHeading
-                  tagline={content.tagline}
-                  taglineAccent={content.taglineAccent}
-                  theme={theme}
-                  align="left"
-                />
-              </Reveal>
-
-              {/* Subtitle */}
-              {content.subtitle && (
-                <Reveal delay={0.11}>
-                  <p
-                    className="mb-8"
-                    style={{
-                      fontSize: "0.9375rem",
-                      color: "var(--text-muted)",
-                      lineHeight: "1.78",
-                      maxWidth: 420,
-                    }}
-                  >
-                    {content.subtitle}
-                  </p>
-                </Reveal>
-              )}
-
-              {/* Thin divider */}
-              <Reveal delay={0.13}>
+          {/* ── DESKTOP: 2-column ── */}
+          <div className="hidden lg:flex lg:flex-col gap-8">
+            {/* Top row: image collage | text + benefit cards */}
+            <div className="grid lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.1fr_0.9fr] gap-14 xl:gap-20 items-center">
+              {/* LEFT — collage */}
+              <div className="relative" style={{ minHeight: 460 }}>
                 <div
-                  className="mb-7 w-12 h-0.5 rounded-full"
-                  style={{ background: theme.primary, opacity: 0.35 }}
+                  className="absolute -inset-6 rounded-3xl"
+                  style={{ background: theme.soft, opacity: 0.45 }}
                 />
-              </Reveal>
-
-              {/* Benefit rows */}
-              <div className="flex flex-col gap-6">
-                {content.items.map((item, i) => (
-                  <BenefitRow
-                    key={item.title}
-                    item={item}
+                <div
+                  className="relative"
+                  style={{ height: "100%", minHeight: 460 }}
+                >
+                  <CollageDesktop
+                    images={images}
                     theme={theme}
-                    delay={0.14 + i * 0.08}
-                    isProblem={isProblem}
+                    onOpen={openLb}
                   />
-                ))}
+                  {images.length > 1 && (
+                    <PhotoCountBadge count={images.length} theme={theme} />
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT — header + benefit cards */}
+              <div className="flex flex-col justify-center">
+                <Reveal>
+                  <SectionPill theme={theme}>
+                    {content.icon && (
+                      <Icon
+                        name={content.icon}
+                        className="w-3.5 h-3.5"
+                        style={{ color: theme.primary }}
+                      />
+                    )}
+                    {content.title}
+                  </SectionPill>
+                </Reveal>
+                <Reveal delay={0.07} className="mt-5 mb-3">
+                  <SectionHeading
+                    tagline={content.tagline}
+                    taglineAccent={content.taglineAccent}
+                    theme={theme}
+                    align="left"
+                  />
+                </Reveal>
+                {content.subtitle && (
+                  <Reveal delay={0.11}>
+                    <p
+                      className="mb-6"
+                      style={{
+                        fontSize: "0.9375rem",
+                        color: "var(--text-muted)",
+                        lineHeight: "1.78",
+                        maxWidth: 420,
+                      }}
+                    >
+                      {content.subtitle}
+                    </p>
+                  </Reveal>
+                )}
+
+                {/* Divider */}
+                <Reveal delay={0.13}>
+                  <div
+                    className="mb-5 w-10 h-0.5 rounded-full"
+                    style={{ background: theme.primary, opacity: 0.35 }}
+                  />
+                </Reveal>
+
+                {/* Benefit cards stacked */}
+                <div className="flex flex-col gap-3">
+                  {content.items.map((item, i) => (
+                    <BenefitCard
+                      key={item.title}
+                      item={item}
+                      index={i}
+                      theme={theme}
+                      delay={0.14 + i * 0.08}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
+
+            {/* Conclusion — full width below the 2-column grid */}
+            {hasConclusion && (
+              <ConclusionCard
+                conclusion={content.conclusion!}
+                theme={theme}
+                delay={0.14 + content.items.length * 0.08 + 0.1}
+              />
+            )}
           </div>
         </div>
       </section>
 
-      {/* Lightbox */}
       <AnimatePresence>
         {lbOpen && (
           <Lightbox
@@ -1242,4 +1101,4 @@ export function WhyBenefitsSection({
   );
 }
 
-export default WhyBenefitsSection;
+export default BenefitsSection;

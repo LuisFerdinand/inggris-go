@@ -746,6 +746,10 @@ type WhySection = BaseSection & {
     icon?: string;
     tagline: string;
     taglineAccent?: string;
+    conclusion?: {
+      tagline: string;
+      taglineAccent?: string;
+    };
     items: Benefit[];
   };
 };
@@ -864,6 +868,7 @@ type BenefitsSection = BaseSection & {
     icon?: string;
     tagline: string;
     taglineAccent?: string;
+    conclusion?: { tagline: string; taglineAccent?: string };
     images?: BenefitImage[];
     items: Benefit[];
   };
@@ -2786,6 +2791,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           taglineAccent: "Berani",
           subtitle:
             "Masalahnya bukan di kemampuan, tapi di kepercayaan diri anak",
+
           items: [
             {
               title: "Takut salah",
@@ -2811,7 +2817,6 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         },
       },
 
-      // ───────────────── BENEFITS (SOLUTION) ─────────────────
       {
         id: "benefits",
         type: "benefits",
@@ -3539,7 +3544,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
 
     sections: [
       {
-        id: "hero",
+        id: "hero-1",
         type: "hero",
         content: {
           image: "/images/home-hero.png",
@@ -3571,7 +3576,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         },
       },
       {
-        id: "benefits",
+        id: "benefits-1",
         type: "benefits",
         content: {
           title: "Aman, Nyaman, dan Terpantau",
@@ -3701,6 +3706,11 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           tagline: "Tapi",
           taglineAccent: "Tidak Berani",
           subtitle: "Masalah yang sering dihadapi orang tua seperti Anda",
+          conclusion: {
+            tagline:
+              "Lingkungan di mana mereka bisa berlatih tanpa takut, mendapat dukungan, dan melihat contoh dari teman sebaya.",
+            taglineAccent: "Anak butuh lingkungan yang tepat untuk berkembang",
+          },
           items: [
             {
               title: "Malu & Takut Salah",
@@ -3725,13 +3735,18 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
       },
 
       {
-        id: "benefits",
+        id: "benefits-2",
         type: "benefits",
         content: {
           title: "Perubahan Nyata dalam Waktu Singkat",
           tagline: "Yang Akan Anak Anda",
           taglineAccent: "Rasakan",
           subtitle: "Transformasi yang terlihat dalam waktu singkat",
+          conclusion: {
+            tagline:
+              "Orang tua biasanya sudah melihat perbedaan signifikan di hari ke-3 atau ke-4. Saat pulang, anak akan lebih berani, lebih tenang, dan lebih mandiri.",
+            taglineAccent: "Perubahan Terlihat Jelas",
+          },
           items: [
             {
               title: "Lebih Berani Berbicara",

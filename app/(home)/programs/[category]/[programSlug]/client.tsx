@@ -19,12 +19,13 @@ import { HeroContent, ProgramDetail, ProgramSection } from "../data";
 import { cn, generateTheme, type Theme } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import Image from "next/image";
-import WhyBenefitsSection from "./_components/BenefitsSection";
+import BenefitsSection from "./_components/BenefitsSection";
 import { TimelineSection } from "./_components/TimelineSection";
 import FacilitiesSection from "./_components/FacilitiesSection";
 import PricingSection from "./_components/PricingSection";
 import { ClassesSection } from "./_components/ClassesSection";
 import MentorshipSection from "./_components/MentorshipSection";
+import WhySection from "./_components/WhySection";
 
 /* ─────────────────────────────────────────────────────────────
  * CONSTANTS
@@ -3835,17 +3836,16 @@ function SectionRenderer({
 
     case "why":
       return (
-        <WhyBenefitsSection
+        <WhySection
           content={section.content}
           theme={theme}
           id={`why-${section.id}`}
-          variant="why"
         />
       );
 
     case "benefits":
       return (
-        <WhyBenefitsSection
+        <BenefitsSection
           content={section.content}
           theme={theme}
           id={section.id}
@@ -3977,18 +3977,9 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
           <BatchBanner batches={details.batches} theme={theme} />
         )}
 
-        {/* Sticky secondary nav */}
-        {/* <StickyNav
-          sections={navSections}
-          theme={theme}
-          ctaLabel={ctaLabel}
-          ctaHref={ctaHref}
-        /> */}
-
         {/* Batch section (if program has batches) */}
         {details.hasBatch && details.batches && details.batches.length > 0 && (
           <>
-            {/* Inject batches section between hero and the first non-hero section */}
             {details.sections.map((section) => {
               if (section.type === "hero") {
                 return (
