@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@/components/Icon";
 
 import { createPortal } from "react-dom";
+import { TimelineDay, TimelineWeek } from "../../data";
+import { Theme } from "@/lib/utils";
 
 type MetaLightboxProps = {
   photos: LightboxPhoto[];
@@ -40,13 +42,226 @@ export type TimelineContent = {
     week: string;
     title: string;
     points?: string[];
-    days?: { range: string; title: string; highlight?: boolean }[];
+    days?: {
+      startTime: string;
+      endTime?: string;
+      title: string;
+      highlight?: boolean;
+    }[];
   }[];
 };
 
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
-// ─── Shared animation wrapper ─────────────────────────────────────────────────
+function ClockIcon({ size = 11 }: { size?: number }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      style={{ width: size, height: size, flexShrink: 0 }}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="8" cy="8" r="6" />
+      <polyline points="8 5 8 8 10.2 9.2" />
+    </svg>
+  );
+}
+
+function formatTime(day: TimelineDay): string {
+  return day.endTime ? `${day.startTime} – ${day.endTime}` : day.startTime;
+}
+
+function ScheduleCard({ week, theme }: { week: TimelineWeek; theme: Theme }) {
+  return (
+    <Reveal>
+      <div
+        className="rounded-3xl overflow-hidden"
+        style={{
+          background: "var(--surface)",
+          border: `1.5px solid ${theme.border}`,
+          boxShadow: `0 8px 40px ${theme.border}`,
+        }}
+      >
+        {/* Card header */}
+        <div
+          className="flex items-center gap-3.5 px-7 py-5"
+          style={{
+            background: theme.soft,
+            borderBottom: `1.5px solid ${theme.border}`,
+          }}
+        >
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: theme.primary,
+              boxShadow: `0 4px 16px ${theme.border}`,
+            }}
+          >
+            <Icon
+              name={week.icon as any}
+              className="w-5 h-5"
+              style={{ color: "white" }}
+            />
+          </div>
+          <div>
+            <p
+              className="font-display font-bold uppercase"
+              style={{
+                fontSize: "0.625rem",
+                letterSpacing: "0.14em",
+                color: theme.primary,
+                marginBottom: 2,
+              }}
+            >
+              {week.week}
+            </p>
+            <p
+              className="font-display font-extrabold"
+              style={{ fontSize: "1.125rem", color: "var(--blue-navy)" }}
+            >
+              {week.title}
+            </p>
+          </div>
+        </div>
+
+        {/* Points (optional) — shown above days if present */}
+        {week.points && week.points.length > 0 && (
+          <div
+            className="px-7 py-5 grid sm:grid-cols-2 gap-3"
+            style={{ borderBottom: `1px solid var(--border-soft)` }}
+          >
+            {week.points.map((pt) => (
+              <div key={pt} className="flex items-start gap-3">
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{
+                    background: theme.soft,
+                    border: `1px solid ${theme.border}`,
+                  }}
+                >
+                  <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none">
+                    <path
+                      d="M2 5l2 2 4-4"
+                      stroke={theme.primary}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <p
+                  style={{
+                    fontSize: "0.875rem",
+                    color: "var(--text-muted)",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  {pt}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Days — horizontal grid */}
+        {week.days && week.days.length > 0 && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+            }}
+          >
+            {week.days.map((day, i) => {
+              const isHighlight = !!day.highlight;
+              return (
+                <Reveal key={`${day.startTime}-${i}`} delay={i * 0.05}>
+                  <motion.div
+                    whileHover={{
+                      backgroundColor: isHighlight ? "#fff2e0" : "#f8fafc",
+                    }}
+                    transition={{ duration: 0.18 }}
+                    className="relative flex flex-col items-center text-center"
+                    style={{
+                      padding: "18px 14px 16px",
+                      background: isHighlight ? "#fff7ed" : "transparent",
+                      // right-border divider (CSS, not JS)
+                      borderRight:
+                        i < week.days!.length - 1
+                          ? "1px solid var(--border-soft)"
+                          : "none",
+                      // on mobile wrap: bottom borders via Tailwind won't work cleanly
+                      // we handle with the wrapper's divide utility below
+                    }}
+                  >
+                    {/* Time badge */}
+                    <div
+                      className="inline-flex items-center gap-1 rounded-full mb-2.5"
+                      style={{
+                        padding: "4px 10px",
+                        fontSize: "0.6875rem",
+                        fontWeight: 700,
+                        letterSpacing: "0.01em",
+                        background: isHighlight ? "#fff7ed" : theme.soft,
+                        color: isHighlight ? "#c2410c" : theme.primary,
+                        border: `1px solid ${isHighlight ? "#fed7aa" : theme.border}`,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <ClockIcon size={11} />
+                      {formatTime(day)}
+                    </div>
+
+                    {/* Dot accent */}
+                    <div
+                      className="rounded-full mb-2"
+                      style={{
+                        width: 6,
+                        height: 6,
+                        background: isHighlight ? "#f97316" : theme.primary,
+                        opacity: isHighlight ? 0.7 : 0.45,
+                      }}
+                    />
+
+                    {/* Title */}
+                    <p
+                      className="font-display font-semibold leading-snug"
+                      style={{
+                        fontSize: "0.8125rem",
+                        color: isHighlight ? "#c2410c" : "var(--blue-navy)",
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {day.title}
+                    </p>
+
+                    {/* "Final" badge for highlighted */}
+                    {isHighlight && (
+                      <span
+                        className="mt-2 px-2 py-0.5 rounded-full font-display font-bold"
+                        style={{
+                          fontSize: "0.5rem",
+                          background: "#f97316",
+                          color: "white",
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Final
+                      </span>
+                    )}
+                  </motion.div>
+                </Reveal>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </Reveal>
+  );
+}
 
 function Reveal({
   children,
@@ -696,14 +911,12 @@ function MetaArea({ meta, theme }: { meta: TimelineMetaItem[]; theme: Theme }) {
   );
 }
 
-// ─── Week Card ────────────────────────────────────────────────────────────────
-
 function WeekCard({
   week,
   index,
   theme,
 }: {
-  week: TimelineContent["weeks"][number];
+  week: TimelineWeek;
   index: number;
   theme: Theme;
 }) {
@@ -751,10 +964,7 @@ function WeekCard({
             </p>
             <p
               className="font-display font-extrabold"
-              style={{
-                fontSize: "1rem",
-                color: "var(--blue-navy)",
-              }}
+              style={{ fontSize: "1rem", color: "var(--blue-navy)" }}
             >
               {week.title}
             </p>
@@ -797,29 +1007,33 @@ function WeekCard({
           </div>
         )}
 
-        {/* Days */}
+        {/* Days — vertical list for multi-week layout */}
         {week.days && (
           <div className="divide-y" style={{ borderColor: theme.border }}>
-            {week.days.map((day) => (
+            {week.days.map((day, i) => (
               <div
-                key={day.range}
+                key={`${day.startTime}-${i}`}
                 className="flex items-center gap-4 px-6 py-3.5"
                 style={{
                   background: day.highlight ? theme.soft : undefined,
                 }}
               >
+                {/* Time range */}
                 <span
-                  className="font-display font-bold flex-shrink-0"
+                  className="font-display font-bold flex-shrink-0 inline-flex items-center gap-1"
                   style={{
                     fontSize: "0.75rem",
                     color: theme.primary,
-                    minWidth: "72px",
+                    minWidth: "80px",
                   }}
                 >
-                  {day.range}
+                  <ClockIcon size={11} />
+                  {formatTime(day)}
                 </span>
+
+                {/* Title */}
                 <p
-                  className="font-display font-semibold"
+                  className="font-display"
                   style={{
                     fontSize: "0.875rem",
                     color: day.highlight ? theme.primary : "var(--text-muted)",
@@ -828,6 +1042,8 @@ function WeekCard({
                 >
                   {day.title}
                 </p>
+
+                {/* Highlight badge */}
                 {day.highlight && (
                   <span
                     className="ml-auto px-2 py-0.5 rounded-full font-display font-bold flex-shrink-0"
@@ -848,9 +1064,6 @@ function WeekCard({
     </Reveal>
   );
 }
-
-// ─── Main Component ────────────────────────────────────────────────────────────
-
 export function TimelineSection({
   content,
   theme,
@@ -859,6 +1072,7 @@ export function TimelineSection({
   theme: Theme;
 }) {
   const hasMeta = content.meta && content.meta.length > 0;
+  const isSingleWeek = content.weeks.length === 1;
 
   return (
     <section
@@ -912,11 +1126,15 @@ export function TimelineSection({
           )}
         </div>
 
-        {/* ── Meta Area (image + icon) ── */}
+        {/* ── Meta Area ── */}
         {hasMeta && <MetaArea meta={content.meta!} theme={theme} />}
 
-        {/* ── Week Cards ── */}
-        {content.weeks.length > 0 && (
+        {/* ── Week layout: branch on count ── */}
+        {isSingleWeek ? (
+          // Single week → full-width horizontal schedule card
+          <ScheduleCard week={content.weeks[0]} theme={theme} />
+        ) : (
+          // Multiple weeks → 2-col grid (original behavior)
           <div
             className={`grid gap-6 ${
               content.weeks.length === 1
@@ -933,15 +1151,6 @@ export function TimelineSection({
     </section>
   );
 }
-
-// ─── Type stubs (replace with your actual imports) ───────────────────────────
-
-type Theme = {
-  primary: string;
-  soft: string;
-  softStrong: string;
-  border: string;
-};
 
 function SectionPill({
   children,

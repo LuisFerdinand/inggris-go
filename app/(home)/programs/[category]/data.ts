@@ -490,7 +490,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     href: "/programs/offline",
 
     icon: "tent",
-    theme: { primary: "#f7b500" },
+    theme: { primary: "#4da3ff" },
 
     quickDecisionLabel: "Saya ingin perubahan cepat",
     quickDecisionDesc: "Immersive full di Kampung Inggris Pare",
@@ -660,6 +660,7 @@ type ProgramSectionType =
   | "testimonials"
   | "classes"
   | "facilities"
+  | "mentorship"
   | "cta";
 
 type FacilityItem = {
@@ -701,7 +702,7 @@ export type Benefit = {
   icon: string;
 };
 
-type Bonus = {
+export type Bonus = {
   title: string;
   description?: string;
   highlight?: string;
@@ -751,17 +752,21 @@ type WhySection = BaseSection & {
 
 type ClassItem = {
   title: string;
+  duration?: string;
   description?: string;
 
-  highlight?: string; // date, age, label
+  highlight?: string;
   icon?: string;
 
+  /** NEW */
+  schedules?: string[];
+
   meta?: {
-    label: string; // e.g. "Usia", "Jadwal", "Durasi"
+    label: string;
     value: string;
   }[];
 
-  tag?: string; // e.g. "Recommended", "Popular"
+  tag?: string;
 };
 
 type ClassesSection = BaseSection & {
@@ -773,7 +778,13 @@ type ClassesSection = BaseSection & {
     tagline?: string;
     taglineAccent?: string;
 
-    layout?: "grid" | "timeline" | "card"; // optional UI control
+    layout?: "grid" | "timeline" | "card";
+
+    /** NEW */
+    info?: {
+      label: string;
+      value: string;
+    }[];
 
     items: ClassItem[];
   };
@@ -791,7 +802,7 @@ type StepsSection = BaseSection & {
   };
 };
 
-type PricingPackage = {
+export type PricingPackage = {
   label: string; // e.g. "5x Pertemuan"
   price: string;
   originalPrice?: string;
@@ -799,7 +810,7 @@ type PricingPackage = {
   note?: string;
 };
 
-type PricingGroup = {
+export type PricingGroup = {
   title: string; // "Exclusive" | "Intensive"
   subtitle?: string; // "Flexible & Personal"
   icon?: string; // 💎 or ⚡
@@ -817,6 +828,8 @@ type PricingSection = BaseSection & {
 
     groups: PricingGroup[];
 
+    bonusTitle?: string;
+    bonusNote?: string;
     bonus?: Bonus[]; // 👈 MOVE BONUS HERE
 
     urgency?: string; // limited slots
@@ -856,13 +869,14 @@ type BenefitsSection = BaseSection & {
   };
 };
 
-type TimelineDay = {
-  range: string;
+export type TimelineDay = {
+  startTime: string;
+  endTime?: string;
   title: string;
   highlight?: boolean;
 };
 
-type TimelineWeek = {
+export type TimelineWeek = {
   icon: string;
   week: string;
   title: string;
@@ -875,7 +889,7 @@ export type TimelineMetaItem = {
   description?: string;
 } & ({ icon: string; image?: never } | { image: string; icon?: never });
 
-type TimelineSection = BaseSection & {
+export type TimelineSection = BaseSection & {
   type: "timeline";
   content: {
     icon?: string;
@@ -929,6 +943,33 @@ type TestimonialSection = BaseSection & {
   };
 };
 
+type MentorshipSection = BaseSection & {
+  type: "mentorship";
+  content: {
+    tagline?: string;
+    taglineAccent?: string;
+
+    title: string;
+    subtitle?: string;
+
+    highlight?: string;
+
+    items: {
+      title: string;
+      description: string;
+      icon: string;
+    }[];
+
+    visuals: {
+      type: "icon" | "image";
+      icon?: string;
+      src: string;
+      alt?: string;
+      caption?: string;
+    }[];
+  };
+};
+
 export type ProgramSection =
   | HeroSection
   | WhySection
@@ -941,6 +982,7 @@ export type ProgramSection =
   | BonusSection
   | FacilitiesSection
   | FAQSection
+  | MentorshipSection
   | TestimonialSection
   | CTASection;
 
@@ -969,7 +1011,6 @@ export type ProgramDetail = {
   };
   hasBatch?: boolean;
   batches?: ProgramBatch[];
-
   sections: ProgramSection[];
 };
 
@@ -3466,7 +3507,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
     hasBatch: true,
 
     theme: {
-      primary: "#f7b500", // warm, premium, kid-friendly
+      primary: "#4da3ff", // warm, premium, kid-friendly
     },
 
     batches: [
@@ -3538,19 +3579,21 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
 
           images: [
             {
-              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              src: "https://plus.unsplash.com/premium_photo-1663106423058-c5242333348c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bWVudG9yJTIwd2l0aCUyMGNoaWxkcmVufGVufDB8fDB8fHww",
+              caption: "Pendampingan 24 Jam",
+              highlight: true,
             },
             {
-              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              src: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2FmZSUyMGVudmlyb25tZW50JTIwY2hpbGRyZW58ZW58MHx8MHx8fDA%3D",
+              caption: "Update Kegiatan Real-Time",
             },
             {
-              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              src: "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+              caption: "Lingkungan Aman & Terkontrol",
             },
             {
-              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
-            },
-            {
-              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              src: "https://images.unsplash.com/photo-1758873268113-326c61b29968?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGZyaWVuZGx5JTIwdGVhY2hlciUyMHNtaWxpbmd8ZW58MHx8MHx8fDA%3D",
+              caption: "Staf Terlatih & Bersertifikat",
             },
           ],
           items: [
@@ -3728,43 +3771,43 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
             "Anak belajar sambil bermain, dengan suasana yang menyenangkan dan berenergi",
           meta: [
             {
-              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              image:
+                "https://images.unsplash.com/flagged/photo-1567116681178-c326fa4e2c8b?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aW50ZXJhY3RpdmUlMjBjbGFzcyUyMGtpZHN8ZW58MHx8MHx8fDA%3D",
+              title: "Kelas Interaktif",
+              description:
+                "5x kelas per hari dengan fokus pada speaking, listening, reading, dan writing dengan metode menyenangkan",
+            },
+            {
+              image:
+                "https://plus.unsplash.com/premium_photo-1661927916191-495b5718a113?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8c3BlYWtpbmclMjBwcmFjdGljZSUyMGtpZHN8ZW58MHx8MHx8fDA%3D",
+              title: "Speaking Practice",
+              description:
+                "Latihan berbicara dalam berbagai situasi: presentasi, diskusi, games, dan aktivitas kelompok",
+            },
+            {
+              image:
+                "https://plus.unsplash.com/premium_photo-1686920245950-58617c8a602e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8a2lkcyUyMGdhbWVzJTIwYW5kJTIwYWN0aXZpdHl8ZW58MHx8MHx8fDA%3D",
               title: "Games & Activity",
               description:
                 "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
             },
             {
-              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
-              title: "Games & Activity",
-              description:
-                "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
-            },
-            {
-              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
-              title: "Games & Activity",
-              description:
-                "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
-            },
-            {
-              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
-              title: "Games & Activity",
-              description:
-                "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
-            },
-            {
-              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              image:
+                "https://media.istockphoto.com/id/2219667811/photo/teacher-and-her-students-building-and-engineering-in-the-lab.webp?a=1&b=1&s=612x612&w=0&k=20&c=EJ8J1iwoehMoBwO97YRU0j96XiPgVINqAvVp2n_VQBs=",
               title: "Project Learning",
               description:
                 "Anak bekerja dalam proyek, membuat presentasi, dan belajar dari pengalaman langsung",
             },
             {
-              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              image:
+                "https://images.unsplash.com/photo-1560421683-6856ea585c78?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8a2lkcyUyMGNyZWF0aXZlJTIwYWN0aXZpdHl8ZW58MHx8MHx8fDA%3D",
               title: "Creative Activities",
               description:
                 "Seni, musik, drama, dan aktivitas kreatif lainnya untuk mengekspresikan diri dalam bahasa Inggris",
             },
             {
-              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              image:
+                "https://images.unsplash.com/photo-1667386427340-ea2cbca9ad01?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8a2lkcyUyMGRyYW1hJTIwbXVzaWMlMjBhY3Rpdml0eXxlbnwwfHwwfHx8MA%3D%3D",
               title: "Evening Program",
               description:
                 "Seni, musik, drama, dan aktivitas kreatif lainnya untuk mengekspresikan diri dalam bahasa Inggris",
@@ -3777,12 +3820,34 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
               week: "Daily Schedule",
               title: "Kegiatan Harian",
               days: [
-                { range: "06:00", title: "Morning Meeting" },
-                { range: "07:00 - 09:00", title: "Kelas 1 & 2" },
-                { range: "09:00 - 11:00", title: "Kelas & Activity" },
-                { range: "13:00 - 15:00", title: "Kelas 4 & 5" },
-                { range: "15:00 - 16:30", title: "Outdoor Activity" },
-                { range: "19:00 - 21:00", title: "Evening Program" },
+                { startTime: "06:00", title: "Morning Meeting" },
+                { startTime: "07:00", endTime: "09:00", title: "Kelas 1 & 2" },
+                {
+                  startTime: "09:00",
+                  endTime: "11:00",
+                  title: "Kelas 3 & Activity",
+                },
+                {
+                  startTime: "12:00",
+                  endTime: "13:00",
+                  title: "Makan & Istirahat",
+                },
+                { startTime: "13:00", endTime: "15:00", title: "Kelas 4 & 5" },
+                {
+                  startTime: "15:00",
+                  endTime: "16:30",
+                  title: "Outdoor Activity",
+                },
+                {
+                  startTime: "17:00",
+                  endTime: "18:00",
+                  title: "Speaking Club",
+                },
+                {
+                  startTime: "19:00",
+                  endTime: "21:00",
+                  title: "Evening Program",
+                },
               ],
             },
           ],
@@ -3835,6 +3900,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
               type: "image",
               src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-1.jpeg",
             },
+
             {
               type: "image",
               src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-2.jpeg",
@@ -3866,6 +3932,65 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
             {
               type: "image",
               src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-9.jpeg",
+            },
+          ],
+        },
+      },
+      {
+        type: "mentorship",
+        id: "mentorship",
+        content: {
+          title: "Mentor Terpercaya",
+          tagline: "Tidak Hanya Belajar,",
+          taglineAccent: "Tapi Dibimbing",
+          subtitle: "Tutor kami adalah pembimbing, bukan hanya pengajar",
+          items: [
+            {
+              icon: "heart",
+              title: "Pendampingan Moral",
+              description:
+                "Membangun karakter yang baik, kejujuran, tanggung jawab, dan empati",
+            },
+            {
+              icon: "sparkles",
+              title: "Pendampingan Spiritual",
+              description:
+                "Aktivitas rohani yang sesuai keyakinan, meditasi, dan refleksi diri",
+            },
+            {
+              icon: "award",
+              title: "Pembentukan Karakter",
+              description:
+                "Program khusus untuk mengembangkan kepemimpinan dan soft skills",
+            },
+            {
+              icon: "message-circle-heart",
+              title: "Tutor Sebagai Teman",
+              description:
+                "Hubungan hangat, anak merasa nyaman berbagi, bukan takut pada tutor",
+            },
+          ],
+          visuals: [
+            {
+              type: "image",
+              src: "https://plus.unsplash.com/premium_photo-1661714188599-e132395b5bf8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8dGVhY2hlciUyMGxhdWdoJTIwc3R1ZGVudHxlbnwwfHwwfHx8MA%3D%3D",
+              caption: "Pendamping Moral",
+            },
+
+            {
+              type: "image",
+              src: "https://plus.unsplash.com/premium_photo-1681825313495-88a3e574e4d8?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2hpbGQlMjBwcmF5aW5nJTIwcGVhY2VmdWx8ZW58MHx8MHx8fDA%3D",
+              caption: "Pendamping Spiritual",
+            },
+            {
+              type: "image",
+              src: "https://unsplash.com/photos/group-of-women-standing-on-green-grass-field-during-daytime-DqgMHzeio7g",
+              caption: "Pembentukan Karakter",
+            },
+            {
+              type: "image",
+              src: "https://images.unsplash.com/photo-1758687126448-df2ab9d1eda9?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGZyaWVuZGx5JTIwdGVhY2hlciUyMHN0dWRlbnR8ZW58MHx8MHx8fDA%3D",
+              caption: "Tutor Sebagai Teman",
             },
           ],
         },
@@ -3905,19 +4030,33 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           title: "Pilihan Program",
           tagline: "Pilih Durasi",
           taglineAccent: "Sesuai Kebutuhan",
+          subtitle: "Pilih durasi yang sesuai dengan rencana liburan anak Anda",
+          info: [
+            {
+              label: "Target Peserta",
+              value: "SD – SMP (usia 8–15 tahun)",
+            },
+            {
+              label: "Level",
+              value: "Program disesuaikan dari pemula hingga advanced",
+            },
+          ],
 
           items: [
             {
-              title: "1 Minggu",
+              title: "Program Singkat",
+              duration: "1 Minggu",
+
               description:
                 "Cocok untuk trial dan adaptasi awal dengan lingkungan camp",
-              highlight: "21 – 28 Juni / 28 Juni – 5 Juli",
+              schedules: ["21 – 28 Juni 2026", "28 Juni – 5 Juli 2026"],
             },
             {
-              title: "2 Minggu",
+              title: "Program Intensif",
+              duration: "2 Minggu",
               description:
                 "Transformasi lebih dalam dengan hasil yang lebih signifikan",
-              highlight: "21 Juni – 5 Juli",
+              schedules: ["21 Juni – 5 Juli 2026"],
               tag: "Rekomendasi",
             },
           ],
@@ -3954,20 +4093,29 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
               ],
             },
           ],
-
+          bonusTitle: "Penawaran Khusus",
           bonus: [
             {
               title: "Diskon Alumni",
               highlight: "Potongan Rp100.000",
+              description: "Diskon spesial untuk alumni",
               icon: "gift",
             },
             {
               title: "Daftar 2 Anak",
               highlight: "Potongan Rp50.000 / anak",
+              description: "Potongan per anak",
+              icon: "user-plus",
+            },
+            {
+              title: "Daftar 3+ Anak",
+              highlight: "Potongan Rp75.000 / anak",
+              description: "Potongan per anak",
               icon: "users",
             },
           ],
-
+          bonusNote:
+            "Promo bisa digabungkan dengan opsi pembayaran cicilan. Hubungi kami untuk detail lebih lanjut.",
           urgency: "Kuota terbatas setiap batch",
         },
       },
@@ -4018,7 +4166,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
   },
   rombongan: {
     slug: "kelas-rombongan",
-    theme: { primary: "#f7b500" }, // more institutional blue
+    theme: { primary: "#4da3ff" }, // more institutional blue
     hasBatch: false,
 
     sections: [

@@ -396,6 +396,159 @@ function ImgOverlay({ caption, tag }: { caption?: string; tag?: string }) {
   );
 }
 
+// ─── NEW: CollageRow — single-row grid for 1-column layout ───────────────────
+//
+// Logic:
+//   n <= 3  → show all 3 in a 3-col grid
+//   n >= 4  → show 4 slots; last slot gets "+remaining" overlay if n > 4
+//
+// The `aspect-ratio: 3/4` keeps images tall and readable at any narrow width.
+
+function CollageRow({
+  images,
+  theme,
+  onOpen,
+}: {
+  images: BenefitImage[];
+  theme: Theme;
+  onOpen: (idx: number) => void;
+}) {
+  const n = images.length;
+
+  // How many slots to actually render in the row
+  const slotCount = n <= 3 ? n : 4;
+  // How many are hidden behind the overlay on the last slot
+  const remaining = n > 4 ? n - 4 : 0; // n===4 → no overlay, n>4 → overlay
+
+  const slots = images.slice(0, slotCount);
+  const isOverflowSlot = (i: number) => remaining > 0 && i === slotCount - 1;
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${slotCount}, minmax(0, 1fr))`,
+        gap: 8,
+        width: "100%",
+      }}
+    >
+      {slots.map((photo, i) => {
+        const showOverlay = isOverflowSlot(i);
+
+        return (
+          <Reveal key={i} delay={i * 0.07}>
+            <motion.div
+              className="relative group rounded-2xl overflow-hidden cursor-pointer"
+              style={{
+                aspectRatio: "3 / 4",
+                border: `1.5px solid ${theme.border}`,
+                boxShadow: `0 2px 10px rgba(0,0,0,0.07)`,
+              }}
+              whileHover={{ scale: 1.03, y: -2 }}
+              transition={{ duration: 0.28, ease: EASE }}
+              onClick={() => onOpen(showOverlay ? slotCount - 1 : i)}
+            >
+              {/* Image — always rendered, even under the overlay */}
+              <img
+                src={photo.src}
+                alt={photo.caption ?? `Foto ${i + 1}`}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                  transition: "transform 0.45s cubic-bezier(.25,.1,.25,1)",
+                }}
+                loading="lazy"
+                className="group-hover:scale-[1.06]"
+              />
+
+              {showOverlay ? (
+                /* "+N more" overlay */
+                <div
+                  className="absolute inset-0 flex flex-col items-center justify-center"
+                  style={{ background: "rgba(10,22,40,0.62)" }}
+                >
+                  <span
+                    className="font-extrabold text-white leading-none"
+                    style={{
+                      fontSize: "clamp(1.25rem, 4vw, 1.75rem)",
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    +{remaining + 1}
+                  </span>
+                  <span
+                    className="font-semibold uppercase tracking-widest mt-1"
+                    style={{
+                      fontSize: "0.5rem",
+                      color: "rgba(255,255,255,0.55)",
+                    }}
+                  >
+                    foto lagi
+                  </span>
+                </div>
+              ) : (
+                /* Normal hover: zoom icon + caption gradient */
+                <>
+                  {/* Zoom icon */}
+                  <div className="absolute inset-0 flex items-center justify-center transition-colors duration-300 group-hover:bg-black/[.12]">
+                    <div
+                      className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center
+                                 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100
+                                 transition-all duration-300"
+                    >
+                      <Icon
+                        name="zoom-in"
+                        className="w-4 h-4"
+                        style={{ color: "#0a1628" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Caption on hover */}
+                  {(photo.caption || photo.tag) && (
+                    <div
+                      className="absolute bottom-0 left-0 right-0 px-2.5 pb-2.5 pt-6
+                                 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
+                                 transition-all duration-300"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(0,0,0,0.6), transparent)",
+                      }}
+                    >
+                      {photo.tag && (
+                        <p
+                          className="font-semibold uppercase mb-0.5"
+                          style={{
+                            fontSize: "0.5rem",
+                            color: "rgba(255,255,255,0.55)",
+                            letterSpacing: "0.12em",
+                          }}
+                        >
+                          {photo.tag}
+                        </p>
+                      )}
+                      {photo.caption && (
+                        <p
+                          className="text-white font-medium leading-snug"
+                          style={{ fontSize: "0.6875rem" }}
+                        >
+                          {photo.caption}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </motion.div>
+          </Reveal>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ─── Collage — desktop ──────────────────────────────────────── */
 function CollageDesktop({
   images,
@@ -968,7 +1121,7 @@ export function WhyBenefitsSection({
 
             {/* Horizontal scroll images */}
             <Reveal delay={0.08}>
-              <CollageMobile images={images} theme={theme} onOpen={openLb} />
+              <CollageRow images={images} theme={theme} onOpen={openLb} />
             </Reveal>
 
             {/* Benefit list */}
