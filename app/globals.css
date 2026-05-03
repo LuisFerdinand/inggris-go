@@ -506,7 +506,7 @@
 
 :root {
   --navbar-height: 56px; /* mobile */
-  --background: var(--bg-soft);
+  --background: var(--surface);
   --foreground: var(--text-main);
 
   --card: var(--surface);
@@ -552,12 +552,6 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--blue);
 
-  @media (min-width: 1024px) {
-    :root {
-      --navbar-height: 72px; /* desktop */
-    }
-  }
-
   /* ─── Base reset ───────────────────────────────────────────── */
 
   /* ─── Leaflet z-index hard reset ───────────────────────────── */
@@ -586,6 +580,12 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --navbar-height: 72px; /* desktop */
   }
 }
 

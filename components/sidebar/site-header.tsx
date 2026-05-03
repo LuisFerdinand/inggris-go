@@ -28,7 +28,7 @@ export function SiteHeader({
       className={cn(
         "sticky top-0 z-30 w-full",
         "border-b border-border/60",
-        "bg-background",
+        "bg-white",
         "transition-all duration-200",
       )}
     >

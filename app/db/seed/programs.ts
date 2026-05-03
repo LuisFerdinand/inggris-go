@@ -11,7 +11,7 @@ export async function seedPrograms() {
       categoryId: "cat-efk",
       status: "published",
       basePrice: 500000,
-      duration: "1 bulan",
+      duration: 30,
       level: "beginner",
     },
     {
@@ -22,7 +22,7 @@ export async function seedPrograms() {
       categoryId: "cat-toefl",
       status: "published",
       basePrice: 1500000,
-      duration: "2 minggu",
+      duration: 14,
       level: "intermediate",
     },
   ]);

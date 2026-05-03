@@ -1,5 +1,8 @@
 CREATE TYPE "public"."program_category_status" AS ENUM('draft', 'published', 'archived');--> statement-breakpoint
+CREATE TYPE "public"."program_format" AS ENUM('online', 'offline', 'hybrid');--> statement-breakpoint
+CREATE TYPE "public"."program_level" AS ENUM('beginner', 'intermediate', 'advanced');--> statement-breakpoint
 CREATE TYPE "public"."program_status" AS ENUM('draft', 'published', 'archived');--> statement-breakpoint
+CREATE TYPE "public"."role_enum" AS ENUM('guest', 'user', 'teacher', 'author', 'admin', 'super_admin');--> statement-breakpoint
 CREATE TABLE "batch" (
 	"id" text PRIMARY KEY NOT NULL,
 	"teacher_id" text NOT NULL,
@@ -76,9 +79,9 @@ CREATE TABLE "programs" (
 	"tags" jsonb,
 	"icon" text,
 	"thumbnail" text,
-	"duration" text,
-	"format" text,
-	"level" text,
+	"duration" integer,
+	"level" "program_level" DEFAULT 'beginner' NOT NULL,
+	"format" "program_format" DEFAULT 'online' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp,
 	CONSTRAINT "programs_slug_category_id_unique" UNIQUE("slug","category_id")
@@ -132,12 +135,103 @@ CREATE TABLE "verification" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "role" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" "role_enum" NOT NULL,
+	"description" text,
+	CONSTRAINT "role_name_unique" UNIQUE("name")
+);
+--> statement-breakpoint
+CREATE TABLE "user_role" (
+	"id" text PRIMARY KEY NOT NULL,
+	"user_id" text NOT NULL,
+	"role_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "post" (
+	"id" text PRIMARY KEY NOT NULL,
+	"title" text NOT NULL,
+	"slug" text NOT NULL,
+	"excerpt" text,
+	"content" jsonb,
+	"content_html" text,
+	"cover_image" text,
+	"author_id" text NOT NULL,
+	"status" text DEFAULT 'draft',
+	"published_at" timestamp,
+	"read_time" integer,
+	"view_count" integer DEFAULT 0,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp,
+	CONSTRAINT "post_slug_unique" UNIQUE("slug")
+);
+--> statement-breakpoint
+CREATE TABLE "post_category" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"slug" text NOT NULL,
+	"description" text,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "post_category_slug_unique" UNIQUE("slug")
+);
+--> statement-breakpoint
+CREATE TABLE "post_like" (
+	"id" text PRIMARY KEY NOT NULL,
+	"post_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "post_save" (
+	"id" text PRIMARY KEY NOT NULL,
+	"post_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "post_tag" (
+	"id" text PRIMARY KEY NOT NULL,
+	"post_id" text NOT NULL,
+	"tag_id" text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "post_view" (
+	"id" text PRIMARY KEY NOT NULL,
+	"post_id" text NOT NULL,
+	"user_id" text,
+	"ip_address" text,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "tag" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"slug" text NOT NULL,
+	CONSTRAINT "tag_name_unique" UNIQUE("name"),
+	CONSTRAINT "tag_slug_unique" UNIQUE("slug")
+);
+--> statement-breakpoint
 ALTER TABLE "batch" ADD CONSTRAINT "batch_teacher_id_user_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "batch" ADD CONSTRAINT "batch_program_id_programs_id_fk" FOREIGN KEY ("program_id") REFERENCES "public"."programs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "program_content" ADD CONSTRAINT "program_content_program_id_programs_id_fk" FOREIGN KEY ("program_id") REFERENCES "public"."programs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "programs" ADD CONSTRAINT "programs_category_id_program_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."program_categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_role" ADD CONSTRAINT "user_role_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_role" ADD CONSTRAINT "user_role_role_id_role_id_fk" FOREIGN KEY ("role_id") REFERENCES "public"."role"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post" ADD CONSTRAINT "post_author_id_user_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post_like" ADD CONSTRAINT "post_like_post_id_post_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."post"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post_like" ADD CONSTRAINT "post_like_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post_save" ADD CONSTRAINT "post_save_post_id_post_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."post"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post_save" ADD CONSTRAINT "post_save_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post_tag" ADD CONSTRAINT "post_tag_post_id_post_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."post"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post_tag" ADD CONSTRAINT "post_tag_tag_id_tag_id_fk" FOREIGN KEY ("tag_id") REFERENCES "public"."tag"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "post_view" ADD CONSTRAINT "post_view_post_id_post_id_fk" FOREIGN KEY ("post_id") REFERENCES "public"."post"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "account_userId_idx" ON "account" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "session_userId_idx" ON "session" USING btree ("user_id");--> statement-breakpoint
-CREATE INDEX "verification_identifier_idx" ON "verification" USING btree ("identifier");
+CREATE INDEX "verification_identifier_idx" ON "verification" USING btree ("identifier");--> statement-breakpoint
+CREATE INDEX "user_role_user_idx" ON "user_role" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "user_role_role_idx" ON "user_role" USING btree ("role_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "post_like_unique" ON "post_like" USING btree ("post_id","user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "post_save_unique" ON "post_save" USING btree ("post_id","user_id");

@@ -24,12 +24,19 @@ import {
   ProgramBatch,
   PriceTier,
 } from "@/app/modules/program/program.types";
-import { PROGRAM_CATEGORY_STATUS, PROGRAM_STATUS } from "@/lib/enums";
+import {
+  PROGRAM_CATEGORY_STATUS,
+  PROGRAM_FORMAT,
+  PROGRAM_LEVEL,
+  PROGRAM_STATUS,
+} from "@/lib/enums";
 
 export const programCategoryStatusEnum = pgEnum(
   "program_category_status",
   PROGRAM_CATEGORY_STATUS,
 );
+export const programLevelEnum = pgEnum("program_level", PROGRAM_LEVEL);
+export const programFormatEnum = pgEnum("program_format", PROGRAM_FORMAT);
 
 export const programStatusEnum = pgEnum("program_status", PROGRAM_STATUS);
 
@@ -67,9 +74,9 @@ export const programs = pgTable(
     thumbnail: text("thumbnail"),
 
     // 📦 Simple info
-    duration: text("duration"),
-    format: text("format"),
-    level: text("level"),
+    duration: integer("duration"), //in days
+    level: programLevelEnum("level").default("beginner").notNull(),
+    format: programFormatEnum("format").default("online").notNull(),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),

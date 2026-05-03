@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/sidebar/site-header";
 
 export default async function Page() {
   return (
-    <>
+    <main className="bg-white">
       <SiteHeader />
       <div className="flex flex-1 flex-col">
         <div className="@container/main flex flex-1 flex-col gap-2">
@@ -20,6 +20,6 @@ export default async function Page() {
           </div>
         </div>
       </div>
-    </>
+    </main>
   );
 }

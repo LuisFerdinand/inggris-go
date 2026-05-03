@@ -659,7 +659,36 @@ type ProgramSectionType =
   | "faq"
   | "testimonials"
   | "classes"
+  | "facilities"
   | "cta";
+
+type FacilityItem = {
+  title: string;
+  description?: string;
+  icon: string;
+};
+
+type FacilitiesSection = BaseSection & {
+  type: "facilities";
+  content: {
+    title: string;
+    subtitle?: string;
+
+    tagline?: string;
+    taglineAccent?: string;
+
+    visuals: {
+      type: "image" | "icon";
+      src?: string;
+      icon?: string;
+      alt?: string;
+      caption?: string;
+      tag?: string;
+    }[];
+
+    items: FacilityItem[];
+  };
+};
 
 type MetaData = {
   title: string;
@@ -671,6 +700,7 @@ export type Benefit = {
   description?: string;
   icon: string;
 };
+
 type Bonus = {
   title: string;
   description?: string;
@@ -806,6 +836,13 @@ type CTASection = BaseSection & {
   content: ProgramCTA;
 };
 
+type BenefitImage = {
+  src: string;
+  caption?: string;
+  tag?: string;
+  highlight?: boolean;
+};
+
 type BenefitsSection = BaseSection & {
   type: "benefits";
   content: {
@@ -814,6 +851,7 @@ type BenefitsSection = BaseSection & {
     icon?: string;
     tagline: string;
     taglineAccent?: string;
+    images?: BenefitImage[];
     items: Benefit[];
   };
 };
@@ -832,6 +870,11 @@ type TimelineWeek = {
   days?: TimelineDay[];
 };
 
+export type TimelineMetaItem = {
+  title: string;
+  description?: string;
+} & ({ icon: string; image?: never } | { image: string; icon?: never });
+
 type TimelineSection = BaseSection & {
   type: "timeline";
   content: {
@@ -840,7 +883,7 @@ type TimelineSection = BaseSection & {
     taglineAccent?: string;
     title: string;
     subtitle?: string;
-    meta?: Benefit[];
+    meta?: TimelineMetaItem[];
     weeks: TimelineWeek[];
   };
 };
@@ -896,6 +939,7 @@ export type ProgramSection =
   | GallerySection
   | PricingSection
   | BonusSection
+  | FacilitiesSection
   | FAQSection
   | TestimonialSection
   | CTASection;
@@ -3485,6 +3529,126 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           },
         },
       },
+      {
+        id: "benefits",
+        type: "benefits",
+        content: {
+          title: "Aman, Nyaman, dan Terpantau",
+          tagline: "Keamanan dan kenyamanan anak adalah prioritas utama kami.",
+
+          images: [
+            {
+              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+            },
+            {
+              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+            },
+            {
+              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+            },
+            {
+              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+            },
+            {
+              src: "/images/categories/offline/rombongan/rombongan-1.jpg",
+            },
+          ],
+          items: [
+            {
+              title: "Pendampingan 24 Jam",
+              description:
+                "Tutor berpengalaman mendampingi anak siang dan malam",
+              icon: "clock", // or "clock-24h"
+            },
+            {
+              title: "Update Kegiatan Real-Time",
+              description: "Foto dan video kegiatan anak dikirim setiap hari",
+              icon: "camera", // or "video"
+            },
+            {
+              title: "Lingkungan Aman & Terkontrol",
+              description: "1 gate system, keamanan berlapis, lokasi strategis",
+              icon: "shield-check", // ❗ replace "user"
+            },
+            {
+              title: "Staf Terlatih & Bersertifikat",
+              description: "Semua tutor memiliki sertifikasi dan pengalaman",
+              icon: "badge-check", // or "certificate"
+            },
+          ],
+        },
+      },
+      {
+        id: "gallery",
+        type: "gallery",
+        content: {
+          tagline: "Dokumentasi Nyata",
+          taglineAccent: "Kegiatan Anak Selama Camp",
+
+          title: "Momen Belajar & Kebersamaan",
+          subtitle:
+            "Lihat langsung bagaimana anak-anak belajar, bermain, dan berkembang setiap hari di camp",
+
+          photos: [
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-1.jpg",
+              caption: "Suasana kelas interaktif bersama tutor",
+              tag: "Kelas",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-2.jpg",
+              caption: "Latihan speaking dalam kelompok kecil",
+              tag: "Speaking",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-3.jpg",
+              caption: "Outdoor activity & team games",
+              tag: "Activity",
+              highlight: true,
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-4.jpg",
+              caption: "Kebersamaan & bonding antar peserta",
+              tag: "Bonding",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-5.jpg",
+              caption: "Suasana kamar & tempat tinggal anak",
+              tag: "Fasilitas",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-6.jpg",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-7.jpg",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-8.jpg",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-9.jpg",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-10.jpg",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-11.jpeg",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-12.jpeg",
+            },
+            {
+              src: "/images/categories/offline/vip-kids/vip-kids-13.jpeg",
+            },
+          ],
+
+          trustSignals: [
+            "Dokumentasi real dari batch sebelumnya",
+            "Update kegiatan dikirim ke orang tua setiap hari",
+            "Lingkungan aman dan terpantau 24 jam",
+          ],
+        },
+      },
 
       {
         id: "why",
@@ -3493,20 +3657,24 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           title: "Anak Sebenarnya Bisa",
           tagline: "Tapi",
           taglineAccent: "Tidak Berani",
+          subtitle: "Masalah yang sering dihadapi orang tua seperti Anda",
           items: [
             {
-              title: "Malu & takut salah",
-              description: "Takut ditertawakan saat berbicara",
+              title: "Malu & Takut Salah",
+              description:
+                "Anak merasa malu saat berbicara, takut membuat kesalahan, atau takut ditertawakan teman",
               icon: "alert-circle",
             },
             {
-              title: "Kurang percaya diri",
-              description: "Tidak berani menunjukkan kemampuan",
+              title: "Kurang Percaya Diri",
+              description:
+                "Kemampuan ada, tapi tidak berani menunjukkan karena kurang percaya diri dengan diri sendiri",
               icon: "user-x",
             },
             {
-              title: "Terlalu bergantung",
-              description: "Sulit mandiri tanpa bantuan orang tua",
+              title: "Terlalu Bergantung pada Orang Tua",
+              description:
+                "Selalu meminta bantuan, jarang mengambil keputusan sendiri, butuh dorongan dalam setiap hal",
               icon: "users",
             },
           ],
@@ -3520,22 +3688,184 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           title: "Perubahan Nyata dalam Waktu Singkat",
           tagline: "Yang Akan Anak Anda",
           taglineAccent: "Rasakan",
+          subtitle: "Transformasi yang terlihat dalam waktu singkat",
           items: [
             {
-              title: "Berani berbicara",
+              title: "Lebih Berani Berbicara",
+              description:
+                "Dalam lingkungan yang mendukung, anak akan mulai berani mencoba mengucapkan kata-kata baru",
               icon: "mic",
             },
             {
-              title: "Lebih percaya diri",
+              title: "Lebih Percaya Diri",
+              description:
+                "Setiap kali berhasil, anak mendapat pujian. Kepercayaan diri tumbuh dari kesuksesan kecil",
               icon: "sparkles",
             },
             {
-              title: "Lebih mandiri",
+              title: "Lebih Mandiri",
+              description:
+                "Jauh dari orang tua, anak belajar mengurus diri sendiri, membuat keputusan, dan memecahkan masalah",
               icon: "user",
             },
             {
-              title: "Terbiasa bahasa Inggris",
+              title: "Terbiasa dengan Bahasa Inggris",
+              description:
+                "Dari pagi hingga malam, anak mendengar dan berbicara Inggris. Ini menjadi kebiasaan baru",
               icon: "globe",
+            },
+          ],
+        },
+      },
+      {
+        id: "timeline",
+        type: "timeline",
+        content: {
+          title: "Rutinitas Harian",
+          tagline: "Sehari Penuh",
+          taglineAccent: "Belajar & Aktivitas",
+          subtitle:
+            "Anak belajar sambil bermain, dengan suasana yang menyenangkan dan berenergi",
+          meta: [
+            {
+              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              title: "Games & Activity",
+              description:
+                "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
+            },
+            {
+              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              title: "Games & Activity",
+              description:
+                "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
+            },
+            {
+              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              title: "Games & Activity",
+              description:
+                "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
+            },
+            {
+              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              title: "Games & Activity",
+              description:
+                "Permainan edukatif, kompetisi antar tim, dan aktivitas outdoor yang seru dan melatih kolaborasi",
+            },
+            {
+              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              title: "Project Learning",
+              description:
+                "Anak bekerja dalam proyek, membuat presentasi, dan belajar dari pengalaman langsung",
+            },
+            {
+              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              title: "Creative Activities",
+              description:
+                "Seni, musik, drama, dan aktivitas kreatif lainnya untuk mengekspresikan diri dalam bahasa Inggris",
+            },
+            {
+              image: "/images/categories/offline/rombongan/rombongan-1.jpg",
+              title: "Evening Program",
+              description:
+                "Seni, musik, drama, dan aktivitas kreatif lainnya untuk mengekspresikan diri dalam bahasa Inggris",
+            },
+          ],
+
+          weeks: [
+            {
+              icon: "sun",
+              week: "Daily Schedule",
+              title: "Kegiatan Harian",
+              days: [
+                { range: "06:00", title: "Morning Meeting" },
+                { range: "07:00 - 09:00", title: "Kelas 1 & 2" },
+                { range: "09:00 - 11:00", title: "Kelas & Activity" },
+                { range: "13:00 - 15:00", title: "Kelas 4 & 5" },
+                { range: "15:00 - 16:30", title: "Outdoor Activity" },
+                { range: "19:00 - 21:00", title: "Evening Program" },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        type: "facilities",
+        id: "facilities",
+        content: {
+          title: "Fasilitas yang Tersedia",
+          tagline: "Fasilitas Nyaman untuk",
+          taglineAccent: "Anak Anda",
+          subtitle:
+            "Semua yang dibutuhkan untuk kenyamanan dan kesejahteraan anak selama camp",
+          items: [
+            {
+              icon: "bed",
+              title: "Kamar AC",
+              description: "Kamar nyaman dan bersih dengan AC",
+            },
+            {
+              icon: "bath",
+              title: "Kamar Mandi Dalam",
+              description: "Setiap kamar dilengkapi kamar mandi pribadi",
+            },
+            {
+              icon: "users",
+              title: "1 Kamar 2 Anak",
+              description: "Anak belajar bersosialisasi dalam satu kamar",
+            },
+            {
+              icon: "utensils",
+              title: "Makan 3x Sehari",
+              description:
+                "Menu bergizi dan lezat, dipersiapkan khusus untuk anak-anak",
+            },
+            {
+              icon: "shirt",
+              title: "Layanan Laundry",
+              description: "Pakaian anak dicuci setiap hari",
+            },
+            {
+              icon: "shield-check",
+              title: "Lingkungan Aman",
+              description: "Lokasi aman, terlihat jelas, dan terkontrol penuh",
+            },
+          ],
+          visuals: [
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-1.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-2.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-3.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-4.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-5.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-6.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-7.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-8.jpeg",
+            },
+            {
+              type: "image",
+              src: "/images/categories/offline/vip-kids/facilities/vip-kids-facility-9.jpeg",
             },
           ],
         },
@@ -3567,31 +3897,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           ],
         },
       },
-      {
-        id: "timeline",
-        type: "timeline",
-        content: {
-          title: "Rutinitas Harian",
-          tagline: "Sehari Penuh",
-          taglineAccent: "Belajar & Aktivitas",
 
-          weeks: [
-            {
-              icon: "sun",
-              week: "Daily Schedule",
-              title: "Kegiatan Harian",
-              days: [
-                { range: "06:00", title: "Morning Meeting" },
-                { range: "07:00 - 09:00", title: "Kelas 1 & 2" },
-                { range: "09:00 - 11:00", title: "Kelas & Activity" },
-                { range: "13:00 - 15:00", title: "Kelas 4 & 5" },
-                { range: "15:00 - 16:30", title: "Outdoor Activity" },
-                { range: "19:00 - 21:00", title: "Evening Program" },
-              ],
-            },
-          ],
-        },
-      },
       {
         id: "classes",
         type: "classes",

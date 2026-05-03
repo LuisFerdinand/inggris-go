@@ -16,9 +16,12 @@ import {
   useMotionValue,
 } from "framer-motion";
 import { HeroContent, ProgramDetail, ProgramSection } from "../data";
-import { generateTheme, type Theme } from "@/lib/utils";
+import { cn, generateTheme, type Theme } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import Image from "next/image";
+import WhyBenefitsSection from "./_components/BenefitsSection";
+import { TimelineSection } from "./_components/TimelineSection";
+import FacilitiesSection from "./_components/FacilitiesSection";
 
 /* ─────────────────────────────────────────────────────────────
  * CONSTANTS
@@ -2052,162 +2055,6 @@ function ProgramImageMobile({
 }
 
 /* ─────────────────────────────────────────────────────────────
- * SECTION: WHY / BENEFITS
- * ───────────────────────────────────────────────────────────── */
-function WhyBenefitsSection({
-  content,
-  theme,
-  id,
-  variant = "benefits",
-}: {
-  content: {
-    title: string;
-    subtitle?: string;
-    icon?: string;
-    tagline: string;
-    taglineAccent?: string;
-    items: { title: string; description?: string; icon: string }[];
-  };
-  theme: Theme;
-  id: string;
-  variant?: "why" | "benefits" | "fit";
-}) {
-  const isProblem = variant === "why";
-  const colCount =
-    content.items.length <= 2 ? 2 : content.items.length === 3 ? 3 : 4;
-
-  return (
-    <section
-      id={id}
-      className="relative py-20 lg:py-28 overflow-hidden"
-      style={{
-        background: isProblem ? "var(--surface)" : "var(--bg-soft)",
-      }}
-    >
-      {isProblem && (
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            backgroundImage: `radial-gradient(ellipse 55% 45% at 0% 60%, ${theme.soft} 0%, transparent 55%)`,
-          }}
-        />
-      )}
-
-      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        <div className="flex flex-col items-center text-center mb-14">
-          <Reveal>
-            <SectionPill theme={theme}>
-              {content.icon && (
-                <Icon
-                  name={content.icon as any}
-                  className="w-3.5 h-3.5"
-                  style={{ color: theme.primary }}
-                />
-              )}
-              {content.title}
-            </SectionPill>
-          </Reveal>
-          <Reveal delay={0.07} className="mt-5 mb-4">
-            <SectionHeading
-              tagline={content.tagline}
-              taglineAccent={content.taglineAccent}
-              theme={theme}
-            />
-          </Reveal>
-          {content.subtitle && (
-            <Reveal delay={0.13}>
-              <p
-                style={{
-                  fontSize: "0.9375rem",
-                  color: "var(--text-muted)",
-                  maxWidth: "460px",
-                  lineHeight: "1.75",
-                }}
-              >
-                {content.subtitle}
-              </p>
-            </Reveal>
-          )}
-        </div>
-
-        <div
-          className={`grid gap-5 ${
-            colCount <= 2
-              ? "sm:grid-cols-2 max-w-2xl mx-auto"
-              : colCount === 3
-                ? "sm:grid-cols-2 lg:grid-cols-3"
-                : "sm:grid-cols-2 lg:grid-cols-4"
-          }`}
-        >
-          {content.items.map((item, i) => (
-            <Reveal key={item.title} delay={i * 0.07} y={28}>
-              <motion.div
-                whileHover={{ y: -6, scale: 1.02 }}
-                transition={{ duration: 0.28, ease: EASE }}
-                className="relative flex flex-col h-full rounded-2xl p-5 overflow-hidden"
-                style={{
-                  background: "var(--surface)",
-                  border: `1.5px solid var(--border-soft)`,
-                  boxShadow: "var(--shadow-badge)",
-                }}
-              >
-                <div
-                  className="absolute top-0 right-0 w-20 h-20 rounded-bl-full"
-                  style={{ background: theme.soft, opacity: 0.6 }}
-                />
-                <div
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4 relative z-10"
-                  style={{
-                    background: isProblem
-                      ? "rgba(255,107,53,0.08)"
-                      : theme.soft,
-                    border: `1.5px solid ${isProblem ? "rgba(255,107,53,0.18)" : theme.border}`,
-                  }}
-                >
-                  <Icon
-                    name={item.icon as any}
-                    className="w-5 h-5"
-                    style={{ color: isProblem ? "#ff6b35" : theme.primary }}
-                  />
-                </div>
-                <div
-                  className="w-8 h-0.5 rounded-full mb-3 relative z-10"
-                  style={{
-                    background: isProblem ? "#ff6b35" : theme.primary,
-                    opacity: 0.45,
-                  }}
-                />
-                <p
-                  className="font-display font-extrabold mb-2 relative z-10"
-                  style={{
-                    fontSize: "0.9375rem",
-                    color: "var(--blue-navy)",
-                  }}
-                >
-                  {item.title}
-                </p>
-                {item.description && (
-                  <p
-                    className="relative z-10"
-                    style={{
-                      fontSize: "0.8125rem",
-                      color: "var(--text-muted)",
-                      lineHeight: "1.65",
-                    }}
-                  >
-                    {item.description}
-                  </p>
-                )}
-              </motion.div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────
  * SECTION: STEPS
  * ───────────────────────────────────────────────────────────── */
 function StepsSection({
@@ -2380,286 +2227,6 @@ function StepsSection({
             ))}
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────
- * SECTION: TIMELINE
- * ───────────────────────────────────────────────────────────── */
-function TimelineSection({
-  content,
-  theme,
-}: {
-  content: {
-    icon?: string;
-    tagline: string;
-    taglineAccent?: string;
-    title: string;
-    subtitle?: string;
-    meta?: { icon: string; title: string; description?: string }[];
-    weeks: {
-      icon: string;
-      week: string;
-      title: string;
-      points?: string[];
-      days?: { range: string; title: string; highlight?: boolean }[];
-    }[];
-  };
-  theme: Theme;
-}) {
-  return (
-    <section
-      id="timeline"
-      className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--bg-soft)" }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `radial-gradient(ellipse 50% 60% at 100% 50%, ${theme.soft} 0%, transparent 55%)`,
-        }}
-      />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        <div className="flex flex-col items-center text-center mb-12">
-          <Reveal>
-            <SectionPill theme={theme}>
-              {content.icon && (
-                <Icon
-                  name={content.icon as any}
-                  className="w-3.5 h-3.5"
-                  style={{ color: theme.primary }}
-                />
-              )}
-              {content.title}
-            </SectionPill>
-          </Reveal>
-          <Reveal delay={0.07} className="mt-5 mb-4">
-            <SectionHeading
-              tagline={content.tagline}
-              taglineAccent={content.taglineAccent}
-              theme={theme}
-            />
-          </Reveal>
-          {content.subtitle && (
-            <Reveal delay={0.13}>
-              <p
-                style={{
-                  fontSize: "0.9375rem",
-                  color: "var(--text-muted)",
-                  maxWidth: "420px",
-                  lineHeight: "1.72",
-                }}
-              >
-                {content.subtitle}
-              </p>
-            </Reveal>
-          )}
-        </div>
-
-        {content.meta && content.meta.length > 0 && (
-          <Reveal delay={0.1}>
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
-              {content.meta.map((m) => (
-                <div
-                  key={m.title}
-                  className="inline-flex items-center gap-2.5 px-4 py-3 rounded-2xl"
-                  style={{
-                    background: "var(--surface)",
-                    border: `1.5px solid ${theme.border}`,
-                    boxShadow: "var(--shadow-badge)",
-                  }}
-                >
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: theme.soft }}
-                  >
-                    <Icon
-                      name={m.icon as any}
-                      className="w-4 h-4"
-                      style={{ color: theme.primary }}
-                    />
-                  </div>
-                  <div>
-                    <p
-                      className="font-display font-bold"
-                      style={{
-                        fontSize: "0.875rem",
-                        color: "var(--blue-navy)",
-                      }}
-                    >
-                      {m.title}
-                    </p>
-                    {m.description && (
-                      <p
-                        style={{
-                          fontSize: "0.625rem",
-                          color: "var(--text-faint)",
-                        }}
-                      >
-                        {m.description}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-        )}
-
-        {content.weeks.length > 0 && (
-          <div
-            className={`grid gap-6 ${content.weeks.length === 1 ? "max-w-2xl mx-auto" : "lg:grid-cols-2"}`}
-          >
-            {content.weeks.map((week, i) => (
-              <Reveal key={week.week} delay={i * 0.1}>
-                <div
-                  className="rounded-3xl overflow-hidden"
-                  style={{
-                    background: "var(--surface)",
-                    border: `1.5px solid ${theme.border}`,
-                    boxShadow: `0 8px 36px ${theme.border}`,
-                  }}
-                >
-                  <div
-                    className="px-6 py-4 flex items-center gap-3"
-                    style={{
-                      background: i === 0 ? theme.soft : theme.softStrong,
-                      borderBottom: `1px solid ${theme.border}`,
-                    }}
-                  >
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{
-                        background: theme.primary,
-                        boxShadow: `0 4px 16px ${theme.border}`,
-                      }}
-                    >
-                      <Icon
-                        name={week.icon as any}
-                        className="w-5 h-5"
-                        style={{ color: "white" }}
-                      />
-                    </div>
-                    <div>
-                      <p
-                        className="font-display font-bold uppercase"
-                        style={{
-                          fontSize: "0.625rem",
-                          letterSpacing: "0.14em",
-                          color: theme.primary,
-                        }}
-                      >
-                        {week.week}
-                      </p>
-                      <p
-                        className="font-display font-extrabold"
-                        style={{
-                          fontSize: "1rem",
-                          color: "var(--blue-navy)",
-                        }}
-                      >
-                        {week.title}
-                      </p>
-                    </div>
-                  </div>
-
-                  {week.points && (
-                    <div className="px-6 py-4 space-y-2.5">
-                      {week.points.map((pt) => (
-                        <div key={pt} className="flex items-center gap-3">
-                          <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={{
-                              background: theme.soft,
-                              border: `1px solid ${theme.border}`,
-                            }}
-                          >
-                            <svg
-                              viewBox="0 0 10 10"
-                              className="w-2.5 h-2.5"
-                              fill="none"
-                            >
-                              <path
-                                d="M2 5l2 2 4-4"
-                                stroke={theme.primary}
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </div>
-                          <p
-                            style={{
-                              fontSize: "0.875rem",
-                              color: "var(--text-muted)",
-                            }}
-                          >
-                            {pt}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {week.days && (
-                    <div
-                      className="divide-y"
-                      style={{ borderColor: theme.border }}
-                    >
-                      {week.days.map((day) => (
-                        <div
-                          key={day.range}
-                          className="flex items-center gap-4 px-6 py-3.5"
-                          style={{
-                            background: day.highlight ? theme.soft : undefined,
-                          }}
-                        >
-                          <span
-                            className="font-display font-bold flex-shrink-0"
-                            style={{
-                              fontSize: "0.75rem",
-                              color: theme.primary,
-                              minWidth: "72px",
-                            }}
-                          >
-                            {day.range}
-                          </span>
-                          <p
-                            className="font-display font-semibold"
-                            style={{
-                              fontSize: "0.875rem",
-                              color: day.highlight
-                                ? theme.primary
-                                : "var(--text-muted)",
-                              fontWeight: day.highlight ? 700 : 500,
-                            }}
-                          >
-                            {day.title}
-                          </p>
-                          {day.highlight && (
-                            <span
-                              className="ml-auto px-2 py-0.5 rounded-full font-display font-bold"
-                              style={{
-                                fontSize: "0.5625rem",
-                                background: theme.primary,
-                                color: "white",
-                              }}
-                            >
-                              Final
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        )}
       </div>
     </section>
   );
@@ -4275,9 +3842,6 @@ function SingleLayout({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
- * LAYOUT: FEW (2–3)
- * ───────────────────────────────────────────────────────────── */
 function FewLayout({
   photos,
   theme,
@@ -4318,10 +3882,6 @@ function FewLayout({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
- * LAYOUT: MOSAIC (4+)
- * Featured 2×2 tile + supporting tiles + +N overflow badge.
- * ───────────────────────────────────────────────────────────── */
 function MosaicLayout({
   photos,
   theme,
@@ -4470,11 +4030,6 @@ function MosaicLayout({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
- * CONVERSION NUDGE ROW
- * Below-gallery micro-copy that answers the subconscious
- * question: "Is this a real, safe, quality learning environment?"
- * ───────────────────────────────────────────────────────────── */
 function ConversionNudge({ theme }: { theme: Theme }) {
   const items = [
     { icon: "clock", text: "Sesi berlangsung setiap hari" },
@@ -4516,9 +4071,6 @@ function ConversionNudge({ theme }: { theme: Theme }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
- * LIGHTBOX
- * ───────────────────────────────────────────────────────────── */
 function Lightbox({
   photos,
   initialIdx,
@@ -4726,9 +4278,6 @@ function Lightbox({
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
- * MAIN EXPORT: GallerySection
- * ───────────────────────────────────────────────────────────── */
 export function GallerySection({
   content,
   theme,
@@ -4925,6 +4474,8 @@ function SectionRenderer({
 
     case "timeline":
       return <TimelineSection content={section.content} theme={theme} />;
+    case "facilities":
+      return <FacilitiesSection content={section.content} theme={theme} />;
 
     case "classes":
       return <ClassesSection content={section.content} theme={theme} />;
