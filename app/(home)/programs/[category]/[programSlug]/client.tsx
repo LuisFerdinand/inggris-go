@@ -1399,14 +1399,6 @@ function HeroSection({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ProgramVisualPanel
-//
-// Spatial layout (top → bottom, no overlaps):
-//   [A] Program-at-a-glance card       ~top 22%
-//   [B] Human image + step orbs        ~middle 52%
-//   [C] Testimonial strip + badge row  ~bottom 26%
-// ─────────────────────────────────────────────────────────────────────────────
 function ProgramVisualPanel({
   content,
   theme,
@@ -1590,10 +1582,6 @@ function ProgramVisualPanel({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ProgramGlanceCard — Zone A
-// Compact card: label pill + tags/highlights scannable at a glance
-// ─────────────────────────────────────────────────────────────────────────────
 function ProgramGlanceCard({
   content,
   theme,
@@ -1734,10 +1722,6 @@ function ProgramGlanceCard({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ProgramStepOrbs — Zone B left edge
-// Visual indicator of program progression steps
-// ─────────────────────────────────────────────────────────────────────────────
 function ProgramStepOrbs({
   content,
   theme,
@@ -1834,10 +1818,6 @@ function ProgramStepOrbs({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TestimonialStrip — Zone C
-// Glassmorphism strip with quote + avatar row
-// ─────────────────────────────────────────────────────────────────────────────
 function TestimonialStrip({
   content,
   theme,
@@ -1954,9 +1934,6 @@ function TestimonialStrip({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ProgramImageMobile — mobile only, simple image + one badge
-// ─────────────────────────────────────────────────────────────────────────────
 function ProgramImageMobile({
   content,
   theme,
@@ -3849,7 +3826,6 @@ function SectionRenderer({
           content={section.content}
           theme={theme}
           id={section.id}
-          variant={section.id === "fit" ? "fit" : "benefits"}
         />
       );
 

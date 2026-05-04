@@ -1,0 +1,32 @@
+"use client";
+import { ChartAreaInteractive } from "@/components/sidebar/chart-area-interactive";
+import { DataTable } from "@/components/sidebar/data-table";
+import { SectionCards } from "@/components/sidebar/section-cards";
+
+import data from "./data.json";
+import { SiteHeader } from "@/components/sidebar/site-header";
+export const ProgramsView = () => {
+  return (
+    <>
+      <main className="bg-white">
+        <SiteHeader
+          breadcrumbs={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Programs", href: "/dashboard/programs" },
+          ]}
+        />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
+              <SectionCards />
+              <div className="">
+                <ChartAreaInteractive />
+              </div>
+              <DataTable data={data} />
+            </div>
+          </div>
+        </div>
+      </main>
+    </>
+  );
+};

@@ -1,5 +1,5 @@
 // "use client";
-
+// import { zodResolver } from "@hookform/resolvers/zod";
 // import { SiteHeader } from "@/components/sidebar/site-header";
 // import { Button } from "@/components/ui/button";
 // import { ProgramCreateInput, programCreateSchema } from "@/lib/zodSchemas";
@@ -7,6 +7,7 @@
 //   ArrowLeft,
 //   BookOpen,
 //   Check,
+//   ChevronDown,
 //   ChevronRight,
 //   Clock,
 //   DollarSign,
@@ -30,75 +31,129 @@
 //   Zap,
 //   AlertCircle,
 //   Loader2,
+//   CheckCircle2,
 // } from "lucide-react";
 // import Link from "next/link";
 // import React, { useState, useCallback, useRef, useEffect } from "react";
-// import { useForm, Controller, useFieldArray, Resolver } from "react-hook-form";
+// import {
+//   useForm,
+//   Controller,
+//   useFieldArray,
+//   Resolver,
+//   UseFormReturn,
+// } from "react-hook-form";
 // import { cn } from "@/lib/utils";
 // import * as z from "zod";
+// type FormValues = z.infer<typeof programCreateSchema>;
 
-// /* ─── Custom Zod v4 Resolver ─────────────────────────── */
-// // @hookform/resolvers/zod targets Zod v3. Zod v4 changed the error format,
-// // so we build a minimal resolver ourselves that works with Zod v4's issue list.
-// function zodV4Resolver<T extends z.ZodType>(schema: T): Resolver<z.infer<T>> {
-//   return async (values) => {
-//     const result = schema.safeParse(values);
-//     if (result.success) {
-//       return { values: result.data, errors: {} };
-//     }
-
-//     // Zod v4: result.error.issues is the array of ZodIssue objects
-//     const errors: Record<string, { type: string; message: string }> = {};
-//     for (const issue of result.error.issues) {
-//       const path = issue.path.join(".");
-//       if (path && !errors[path]) {
-//         errors[path] = { type: issue.code, message: issue.message };
-//       }
-//     }
-
-//     return { values: {}, errors };
-//   };
-// }
-
-// /* ─── Types ──────────────────────────────────────────── */
 // type SectionId = "basic" | "details" | "pricing" | "media";
 
-// type Section = {
+// type SectionConfig = {
 //   id: SectionId;
 //   label: string;
 //   icon: React.ReactNode;
 //   description: string;
+//   color: {
+//     accent: string; // border-left color (hex)
+//     bg: string; // card header bg (tailwind)
+//     border: string; // card border (tailwind)
+//     pill: string; // pill bg+text for active nav
+//     iconBg: string; // icon wrapper bg
+//     iconText: string; // icon color
+//     badgeBg: string; // snippet badge bg
+//     badgeText: string; // snippet badge text
+//     dividerBg: string; // section divider bg
+//     dividerBorder: string; // section divider border
+//     checkBg: string; // completed check bg
+//     checkText: string; // completed check icon color
+//   };
 // };
 
-// /* ─── Section Config ─────────────────────────────────── */
-// const SECTIONS: Section[] = [
+// /* ─── Section Config ─────────────────────────────────────────── */
+// const SECTIONS: SectionConfig[] = [
 //   {
 //     id: "basic",
 //     label: "Basic Info",
 //     icon: <FileText className="size-4" />,
 //     description: "Title, description & category",
+//     color: {
+//       accent: "#3b82f6",
+//       bg: "bg-blue-50/40",
+//       border: "border-blue-100",
+//       pill: "bg-blue-600 text-white shadow-blue-600/30",
+//       iconBg: "bg-blue-100",
+//       iconText: "text-blue-600",
+//       badgeBg: "bg-blue-50 border border-blue-100",
+//       badgeText: "text-blue-700",
+//       dividerBg: "bg-blue-50/60",
+//       dividerBorder: "border-blue-100",
+//       checkBg: "bg-blue-50",
+//       checkText: "text-blue-600",
+//     },
 //   },
 //   {
 //     id: "details",
 //     label: "Details",
 //     icon: <Layers className="size-4" />,
 //     description: "Format, level & duration",
+//     color: {
+//       accent: "#14b8a6",
+//       bg: "bg-teal-50/40",
+//       border: "border-teal-100",
+//       pill: "bg-teal-600 text-white shadow-teal-600/30",
+//       iconBg: "bg-teal-100",
+//       iconText: "text-teal-600",
+//       badgeBg: "bg-teal-50 border border-teal-100",
+//       badgeText: "text-teal-700",
+//       dividerBg: "bg-teal-50/60",
+//       dividerBorder: "border-teal-100",
+//       checkBg: "bg-teal-50",
+//       checkText: "text-teal-600",
+//     },
 //   },
 //   {
 //     id: "pricing",
 //     label: "Pricing",
 //     icon: <DollarSign className="size-4" />,
 //     description: "Pricing model & tiers",
+//     color: {
+//       accent: "#f59e0b",
+//       bg: "bg-amber-50/40",
+//       border: "border-amber-100",
+//       pill: "bg-amber-500 text-white shadow-amber-500/30",
+//       iconBg: "bg-amber-100",
+//       iconText: "text-amber-600",
+//       badgeBg: "bg-amber-50 border border-amber-100",
+//       badgeText: "text-amber-700",
+//       dividerBg: "bg-amber-50/60",
+//       dividerBorder: "border-amber-100",
+//       checkBg: "bg-amber-50",
+//       checkText: "text-amber-600",
+//     },
 //   },
 //   {
 //     id: "media",
 //     label: "Media & Tags",
 //     icon: <ImageIcon className="size-4" />,
 //     description: "Thumbnail, icon & tags",
+//     color: {
+//       accent: "#8b5cf6",
+//       bg: "bg-purple-50/40",
+//       border: "border-purple-100",
+//       pill: "bg-purple-600 text-white shadow-purple-600/30",
+//       iconBg: "bg-purple-100",
+//       iconText: "text-purple-600",
+//       badgeBg: "bg-purple-50 border border-purple-100",
+//       badgeText: "text-purple-700",
+//       dividerBg: "bg-purple-50/60",
+//       dividerBorder: "border-purple-100",
+//       checkBg: "bg-purple-50",
+//       checkText: "text-purple-600",
+//     },
 //   },
 // ];
 
-// /* ─── Option Data ────────────────────────────────────── */
+// /* ─── Option Data ────────────────────────────────────────────── */
 // const FORMAT_OPTIONS = [
 //   {
 //     value: "online",
@@ -157,16 +212,15 @@
 //   { id: "cat-6", label: "Finance" },
 // ];
 
-// /* ─── Shared input class ─────────────────────────────── */
+// /* ─── Shared input styles ────────────────────────────────────── */
 // const baseInput =
 //   "h-10 w-full rounded-lg border bg-white px-3 py-2 text-sm transition-all outline-none " +
-//   "placeholder:text-neutral-400 " +
-//   "border-neutral-200 hover:border-neutral-300 " +
+//   "placeholder:text-neutral-400 border-neutral-200 hover:border-neutral-300 " +
 //   "focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 ";
 
 // const errorInput = "border-red-400 focus:border-red-500 focus:ring-red-500/10 ";
 
-// /* ─── Field wrapper ──────────────────────────────────── */
+// /* ─── Field ──────────────────────────────────────────────────── */
 // function Field({
 //   label,
 //   htmlFor,
@@ -210,7 +264,7 @@
 //   );
 // }
 
-// /* ─── Input ──────────────────────────────────────────── */
+// /* ─── Input ──────────────────────────────────────────────────── */
 // function Input({
 //   invalid,
 //   className,
@@ -229,7 +283,7 @@
 //   );
 // }
 
-// /* ─── Textarea ───────────────────────────────────────── */
+// /* ─── Textarea ───────────────────────────────────────────────── */
 // function Textarea({
 //   invalid,
 //   className,
@@ -250,7 +304,7 @@
 //   );
 // }
 
-// /* ─── Currency input ─────────────────────────────────── */
+// /* ─── CurrencyInput ──────────────────────────────────────────── */
 // function CurrencyInput({
 //   invalid,
 //   value,
@@ -285,7 +339,7 @@
 //   );
 // }
 
-// /* ─── Tag input ──────────────────────────────────────── */
+// /* ─── TagInput ───────────────────────────────────────────────── */
 // function TagInput({
 //   value = [],
 //   onChange,
@@ -314,7 +368,7 @@
 //             type="button"
 //             onClick={() => onChange(value.filter((t) => t !== tag))}
 //             className="ml-0.5 opacity-60 hover:opacity-100 transition-opacity"
-//             aria-label={`Remove tag ${tag}`}
+//             aria-label={`Remove ${tag}`}
 //           >
 //             <X className="size-2.5" />
 //           </button>
@@ -327,9 +381,8 @@
 //           if (e.key === "Enter" || e.key === ",") {
 //             e.preventDefault();
 //             commit();
-//           } else if (e.key === "Backspace" && !draft && value.length) {
+//           } else if (e.key === "Backspace" && !draft && value.length)
 //             onChange(value.slice(0, -1));
-//           }
 //         }}
 //         placeholder={value.length === 0 ? "Type a tag, then press Enter" : ""}
 //         className="flex-1 min-w-28 bg-transparent outline-none placeholder:text-neutral-400 text-sm"
@@ -338,30 +391,36 @@
 //   );
 // }
 
-// /* ─── Section divider ────────────────────────────────── */
+// /* ─── Section Divider (internal, colored) ────────────────────── */
 // function SectionDivider({
 //   id,
 //   icon,
 //   title,
 //   description,
-//   accentClass,
+//   color,
 // }: {
 //   id: SectionId;
 //   icon: React.ReactNode;
 //   title: string;
 //   description: string;
-//   accentClass: string;
+//   color: SectionConfig["color"];
 // }) {
 //   return (
 //     <div
 //       id={`section-${id}`}
 //       className={cn(
 //         "flex items-center gap-3 rounded-xl border px-5 py-4 scroll-mt-24",
-//         accentClass,
+//         color.dividerBg,
+//         color.dividerBorder,
 //       )}
 //     >
-//       <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/80 shadow-sm">
-//         {icon}
+//       <div
+//         className={cn(
+//           "flex size-9 shrink-0 items-center justify-center rounded-lg shadow-sm",
+//           color.iconBg,
+//         )}
+//       >
+//         <span className={color.iconText}>{icon}</span>
 //       </div>
 //       <div>
 //         <h2 className="text-sm font-semibold text-neutral-800">{title}</h2>
@@ -371,16 +430,18 @@
 //   );
 // }
 
-// /* ─── Sidebar nav ────────────────────────────────────── */
+// /* ─── Sidebar nav ────────────────────────────────────────────── */
 // function SideNav({
 //   activeSection,
 //   sectionErrors,
 //   completedSections,
+//   expandedSections,
 //   onNavigate,
 // }: {
 //   activeSection: SectionId;
 //   sectionErrors: Record<SectionId, boolean>;
 //   completedSections: Set<SectionId>;
+//   expandedSections: Set<SectionId>;
 //   onNavigate: (id: SectionId) => void;
 // }) {
 //   return (
@@ -389,6 +450,7 @@
 //         const isActive = activeSection === s.id;
 //         const hasError = sectionErrors[s.id];
 //         const isDone = completedSections.has(s.id) && !hasError;
+//         const isExpanded = expandedSections.has(s.id);
 //         return (
 //           <button
 //             key={s.id}
@@ -396,18 +458,18 @@
 //             onClick={() => onNavigate(s.id)}
 //             className={cn(
 //               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-150 w-full group",
-//               isActive ? "bg-blue-50" : "hover:bg-neutral-50",
+//               isActive ? "bg-neutral-100" : "hover:bg-neutral-50",
 //             )}
 //           >
 //             <div
 //               className={cn(
 //                 "flex size-7 shrink-0 items-center justify-center rounded-md transition-all",
 //                 isActive
-//                   ? "bg-blue-600 text-white shadow-sm shadow-blue-600/30"
+//                   ? cn(s.color.iconBg, s.color.iconText)
 //                   : hasError
 //                     ? "bg-red-50 text-red-500"
 //                     : isDone
-//                       ? "bg-emerald-50 text-emerald-600"
+//                       ? cn(s.color.checkBg, s.color.checkText)
 //                       : "bg-neutral-100 text-neutral-400",
 //               )}
 //             >
@@ -424,7 +486,7 @@
 //                 className={cn(
 //                   "text-xs font-semibold leading-none",
 //                   isActive
-//                     ? "text-blue-700"
+//                     ? "text-neutral-800"
 //                     : hasError
 //                       ? "text-red-600"
 //                       : "text-neutral-600",
@@ -436,9 +498,16 @@
 //                 {s.description}
 //               </p>
 //             </div>
-//             {isActive && (
-//               <ChevronRight className="size-3.5 text-blue-400 shrink-0" />
-//             )}
+//             <div className="flex items-center gap-1 shrink-0">
+//               {!isExpanded && (
+//                 <span className="text-[9px] text-neutral-300 font-medium uppercase tracking-wide">
+//                   collapsed
+//                 </span>
+//               )}
+//               {isActive && (
+//                 <ChevronRight className="size-3.5 text-neutral-400" />
+//               )}
+//             </div>
 //           </button>
 //         );
 //       })}
@@ -446,15 +515,296 @@
 //   );
 // }
 
-// /* ══════════════════════════════════════════════════════
-//    SECTION COMPONENTS
-// ══════════════════════════════════════════════════════ */
+// /* ─── Progress bar ───────────────────────────────────────────── */
+// function ProgressBar({ form }: { form: UseFormReturn<FormValues> }) {
+//   const title = form.watch("title") || "";
+//   const description = form.watch("description") || "";
+//   const categoryId = form.watch("categoryId") || "";
+//   const format = form.watch("format") || "";
+//   const level = form.watch("level") || "";
+//   const status = form.watch("status") || "";
 
-// /* ── Basic Info ── */
-// function BasicSection({
+//   const fields = [title, description, categoryId, format, level, status];
+//   const filled = fields.filter(Boolean).length;
+//   const pct = Math.round((filled / fields.length) * 100);
+
+//   const color =
+//     pct < 34
+//       ? "bg-red-400"
+//       : pct < 67
+//         ? "bg-amber-400"
+//         : pct < 100
+//           ? "bg-blue-500"
+//           : "bg-emerald-500";
+
+//   return (
+//     <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+//       <div className="flex items-center justify-between mb-2">
+//         <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+//           Completion
+//         </p>
+//         <span
+//           className={cn(
+//             "text-xs font-bold tabular-nums",
+//             pct === 100 ? "text-emerald-600" : "text-neutral-600",
+//           )}
+//         >
+//           {pct}%
+//         </span>
+//       </div>
+//       <div className="h-1.5 w-full rounded-full bg-neutral-100 overflow-hidden">
+//         <div
+//           className={cn(
+//             "h-full rounded-full transition-all duration-500",
+//             color,
+//           )}
+//           style={{ width: `${pct}%` }}
+//         />
+//       </div>
+//       {pct === 100 && (
+//         <p className="mt-2 text-[10px] text-emerald-600 font-medium flex items-center gap-1">
+//           <CheckCircle2 className="size-3" /> All key fields filled
+//         </p>
+//       )}
+//     </div>
+//   );
+// }
+
+// /* ─── Section snippet (collapsed preview) ────────────────────── */
+// function SectionSnippet({
+//   id,
+//   form,
+//   color,
+// }: {
+//   id: SectionId;
+//   form: UseFormReturn<FormValues>;
+//   color: SectionConfig["color"];
+// }) {
+//   const snippets: Record<
+//     SectionId,
+//     { label: string; value: string | undefined }[]
+//   > = {
+//     basic: [
+//       { label: "Title", value: (form.watch("title") as string) || undefined },
+//       {
+//         label: "Category",
+//         value: CATEGORIES.find((c) => c.id === form.watch("categoryId"))?.label,
+//       },
+//       { label: "Status", value: (form.watch("status") as string) || undefined },
+//     ],
+//     details: [
+//       {
+//         label: "Format",
+//         value: FORMAT_OPTIONS.find((f) => f.value === form.watch("format"))
+//           ?.label,
+//       },
+//       {
+//         label: "Level",
+//         value: LEVEL_OPTIONS.find((l) => l.value === form.watch("level"))
+//           ?.label,
+//       },
+//       {
+//         label: "Duration",
+//         value: form.watch("duration")
+//           ? `${form.watch("duration")} hrs`
+//           : undefined,
+//       },
+//     ],
+//     pricing: [
+//       {
+//         label: "Base Price",
+//         value: form.watch("basePrice")
+//           ? `Rp ${Number(form.watch("basePrice")).toLocaleString("id-ID")}`
+//           : undefined,
+//       },
+//       {
+//         label: "Tiers",
+//         value:
+//           (form.watch("priceTiers")?.length ?? 0) > 0
+//             ? `${form.watch("priceTiers")?.length} tier(s)`
+//             : undefined,
+//       },
+//     ],
+//     media: [
+//       {
+//         label: "Thumbnail",
+//         value: form.watch("thumbnail") ? "Set" : undefined,
+//       },
+//       {
+//         label: "Tags",
+//         value:
+//           (form.watch("tags")?.length ?? 0) > 0
+//             ? `${form.watch("tags")?.length} tag(s)`
+//             : undefined,
+//       },
+//     ],
+//   };
+
+//   const items = snippets[id].filter((i) => i.value);
+
+//   if (items.length === 0) {
+//     return (
+//       <p className="text-xs text-neutral-400 italic px-6 pb-4">
+//         No fields filled yet — expand to get started.
+//       </p>
+//     );
+//   }
+
+//   return (
+//     <div className="flex flex-wrap gap-2 px-6 pb-4">
+//       {items.map((item) => (
+//         <span
+//           key={item.label}
+//           className={cn(
+//             "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+//             color.badgeBg,
+//             color.badgeText,
+//           )}
+//         >
+//           <span className="opacity-60">{item.label}:</span>
+//           <span className="font-semibold">{item.value}</span>
+//         </span>
+//       ))}
+//     </div>
+//   );
+// }
+
+// /* ─── Collapsible Section Card ───────────────────────────────── */
+// function SectionCard({
+//   section,
+//   isExpanded,
+//   hasError,
+//   isComplete,
+//   onToggle,
+//   children,
 //   form,
 // }: {
-//   form: ReturnType<typeof useForm<ProgramCreateInput>>;
+//   section: SectionConfig;
+//   isExpanded: boolean;
+//   hasError: boolean;
+//   isComplete: boolean;
+//   onToggle: () => void;
+//   children: React.ReactNode;
+//   form: UseFormReturn<FormValues>;
+// }) {
+//   const { color } = section;
+//   const borderColor = hasError
+//     ? "#ef4444"
+//     : isComplete
+//       ? "#22c55e"
+//       : color.accent;
+
+//   return (
+//     <div
+//       className={cn(
+//         "rounded-xl border bg-white shadow-sm overflow-hidden transition-all duration-200",
+//         hasError
+//           ? "border-red-200"
+//           : isComplete
+//             ? "border-green-100"
+//             : "border-neutral-200",
+//       )}
+//       style={{ borderLeftColor: borderColor, borderLeftWidth: 4 }}
+//     >
+//       {/* Header / toggle */}
+//       <button
+//         type="button"
+//         onClick={onToggle}
+//         className={cn(
+//           "w-full flex items-center gap-4 px-6 py-4 text-left transition-colors duration-150 group",
+//           isExpanded
+//             ? cn(color.bg, "border-b", color.border)
+//             : "hover:bg-neutral-50/60",
+//         )}
+//         aria-expanded={isExpanded}
+//       >
+//         {/* Icon */}
+//         <div
+//           className={cn(
+//             "flex size-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200",
+//             hasError
+//               ? "bg-red-50 text-red-500"
+//               : isComplete
+//                 ? "bg-emerald-50 text-emerald-600"
+//                 : cn(color.iconBg, color.iconText),
+//           )}
+//         >
+//           {hasError ? (
+//             <AlertCircle className="size-4" />
+//           ) : isComplete ? (
+//             <Check className="size-4" strokeWidth={2.5} />
+//           ) : (
+//             section.icon
+//           )}
+//         </div>
+
+//         {/* Title */}
+//         <div className="flex-1 min-w-0">
+//           <div className="flex items-center gap-2">
+//             <h2
+//               className={cn(
+//                 "text-sm font-bold",
+//                 hasError
+//                   ? "text-red-700"
+//                   : isComplete
+//                     ? "text-emerald-700"
+//                     : "text-neutral-800",
+//               )}
+//             >
+//               {section.label}
+//             </h2>
+//             {hasError && (
+//               <span className="text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-600 rounded px-1.5 py-0.5">
+//                 Needs attention
+//               </span>
+//             )}
+//             {isComplete && !hasError && (
+//               <span className="text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-600 rounded px-1.5 py-0.5">
+//                 Complete
+//               </span>
+//             )}
+//           </div>
+//           <p className="text-xs text-neutral-400 mt-0.5">
+//             {section.description}
+//           </p>
+//         </div>
+
+//         {/* Chevron */}
+//         <ChevronDown
+//           className={cn(
+//             "size-4 text-neutral-400 shrink-0 transition-transform duration-200 group-hover:text-neutral-600",
+//             isExpanded && "rotate-180",
+//           )}
+//         />
+//       </button>
+
+//       {/* Collapsed snippet */}
+//       {!isExpanded && (
+//         <div className="animate-in fade-in slide-in-from-top-1 duration-200">
+//           <SectionSnippet id={section.id} form={form} color={color} />
+//         </div>
+//       )}
+
+//       {/* Expanded body */}
+//       {isExpanded && (
+//         <div className="p-6 sm:p-8 animate-in fade-in slide-in-from-top-2 duration-200">
+//           {children}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+// /* ══════════════════════════════════════════════════════════════
+//    SECTION COMPONENTS
+// ══════════════════════════════════════════════════════════════ */
+
+// function BasicSection({
+//   form,
+//   color,
+// }: {
+//   form: UseFormReturn<FormValues>;
+//   color: SectionConfig["color"];
 // }) {
 //   const title = (form.watch("title") ?? "") as string;
 //   const desc = (form.watch("description") ?? "") as string;
@@ -464,13 +814,12 @@
 //     <div className="flex flex-col gap-5">
 //       <SectionDivider
 //         id="basic"
-//         icon={<FileText className="size-4 text-blue-600" />}
+//         icon={<FileText className="size-4" />}
 //         title="Basic Information"
 //         description="Name, describe, and categorise your program"
-//         accentClass="bg-blue-50/60 border-blue-100"
+//         color={color}
 //       />
 
-//       {/* Title */}
 //       <Controller
 //         name="title"
 //         control={form.control}
@@ -505,7 +854,6 @@
 //         )}
 //       />
 
-//       {/* Full description */}
 //       <Controller
 //         name="description"
 //         control={form.control}
@@ -522,7 +870,7 @@
 //                 {...field}
 //                 id="f-desc"
 //                 rows={5}
-//                 placeholder="What will learners achieve? What do they need to get started? What sets this program apart?"
+//                 placeholder="What will learners achieve? What do they need to get started?"
 //                 invalid={fieldState.invalid}
 //               />
 //               <span className="pointer-events-none absolute right-3 bottom-3 text-xs text-neutral-300 tabular-nums">
@@ -533,7 +881,6 @@
 //         )}
 //       />
 
-//       {/* Short description */}
 //       <Controller
 //         name="shortDesc"
 //         control={form.control}
@@ -568,7 +915,6 @@
 //         )}
 //       />
 
-//       {/* Category */}
 //       <Controller
 //         name="categoryId"
 //         control={form.control}
@@ -607,7 +953,6 @@
 //         )}
 //       />
 
-//       {/* Status */}
 //       <Controller
 //         name="status"
 //         control={form.control}
@@ -689,7 +1034,6 @@
 //         )}
 //       />
 
-//       {/* Badge + Highlight */}
 //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 //         <Controller
 //           name="badge"
@@ -744,23 +1088,23 @@
 //   );
 // }
 
-// /* ── Details ── */
 // function DetailsSection({
 //   form,
+//   color,
 // }: {
-//   form: ReturnType<typeof useForm<ProgramCreateInput>>;
+//   form: UseFormReturn<FormValues>;
+//   color: SectionConfig["color"];
 // }) {
 //   return (
 //     <div className="flex flex-col gap-5">
 //       <SectionDivider
 //         id="details"
-//         icon={<Layers className="size-4 text-teal-600" />}
+//         icon={<Layers className="size-4" />}
 //         title="Program Details"
 //         description="Format, difficulty level, and time commitment"
-//         accentClass="bg-teal-50/60 border-teal-100"
+//         color={color}
 //       />
 
-//       {/* Format */}
 //       <Controller
 //         name="format"
 //         control={form.control}
@@ -822,7 +1166,6 @@
 //         )}
 //       />
 
-//       {/* Level */}
 //       <Controller
 //         name="level"
 //         control={form.control}
@@ -843,7 +1186,7 @@
 //                     className={cn(
 //                       "relative flex items-center gap-2.5 rounded-lg border px-3 py-3 text-left transition-all duration-150",
 //                       sel
-//                         ? "border-blue-500 bg-blue-50"
+//                         ? "border-teal-500 bg-teal-50"
 //                         : "border-neutral-200 bg-white hover:border-neutral-300",
 //                     )}
 //                   >
@@ -853,14 +1196,14 @@
 //                     <span
 //                       className={cn(
 //                         "text-xs font-semibold",
-//                         sel ? "text-blue-700" : "text-neutral-600",
+//                         sel ? "text-teal-700" : "text-neutral-600",
 //                       )}
 //                     >
 //                       {opt.label}
 //                     </span>
 //                     {sel && (
 //                       <Check
-//                         className="absolute top-2 right-2 size-3 text-blue-500"
+//                         className="absolute top-2 right-2 size-3 text-teal-500"
 //                         strokeWidth={3}
 //                       />
 //                     )}
@@ -872,7 +1215,6 @@
 //         )}
 //       />
 
-//       {/* Duration + Sort Order */}
 //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 //         <Controller
 //           name="duration"
@@ -892,10 +1234,11 @@
 //                   placeholder="0"
 //                   name={field.name}
 //                   ref={field.ref}
-//                   value={field.value ?? ""}
-//                   onChange={(e) =>
-//                     field.onChange(e.target.value === "" ? "" : e.target.value)
-//                   }
+//                   value={(field.value as number | undefined) ?? ""}
+//                   onChange={(e) => {
+//                     const value = e.target.value;
+//                     field.onChange(value === "" ? undefined : Number(value));
+//                   }}
 //                   onBlur={field.onBlur}
 //                   aria-invalid={fieldState.invalid}
 //                   className={cn(
@@ -912,7 +1255,6 @@
 //             </Field>
 //           )}
 //         />
-
 //         <Controller
 //           name="order"
 //           control={form.control}
@@ -930,7 +1272,7 @@
 //                 placeholder="0"
 //                 name={field.name}
 //                 ref={field.ref}
-//                 value={field.value ?? ""}
+//                 value={(field.value as number | undefined) ?? ""}
 //                 onChange={(e) =>
 //                   field.onChange(e.target.value === "" ? "" : e.target.value)
 //                 }
@@ -946,11 +1288,12 @@
 //   );
 // }
 
-// /* ── Pricing ── */
 // function PricingSection({
 //   form,
+//   color,
 // }: {
-//   form: ReturnType<typeof useForm<ProgramCreateInput>>;
+//   form: UseFormReturn<FormValues>;
+//   color: SectionConfig["color"];
 // }) {
 //   const { fields, append, remove } = useFieldArray({
 //     control: form.control,
@@ -960,8 +1303,8 @@
 
 //   const rawBp = form.watch("basePrice");
 //   const rawOp = form.watch("originalPrice");
-//   const bp = rawBp !== undefined && rawBp !== "" ? Number(rawBp) : undefined;
-//   const op = rawOp !== undefined && rawOp !== "" ? Number(rawOp) : undefined;
+//   const bp = rawBp ?? undefined;
+//   const op = rawOp ?? undefined;
 //   const discount =
 //     bp !== undefined && op !== undefined && op > bp
 //       ? Math.round(((op - bp) / op) * 100)
@@ -992,13 +1335,12 @@
 //     <div className="flex flex-col gap-5">
 //       <SectionDivider
 //         id="pricing"
-//         icon={<DollarSign className="size-4 text-amber-600" />}
+//         icon={<DollarSign className="size-4" />}
 //         title="Pricing"
 //         description="Choose a pricing model that works for your program"
-//         accentClass="bg-amber-50/60 border-amber-100"
+//         color={color}
 //       />
 
-//       {/* Mode picker */}
 //       <div className="grid grid-cols-3 gap-2">
 //         {modeOptions.map((m) => {
 //           const sel = mode === m.id;
@@ -1040,7 +1382,6 @@
 //         })}
 //       </div>
 
-//       {/* Free */}
 //       {mode === "free" && (
 //         <div className="flex items-center gap-4 rounded-xl bg-emerald-50 border border-emerald-200 px-5 py-4 animate-in fade-in duration-200">
 //           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
@@ -1058,15 +1399,13 @@
 //         </div>
 //       )}
 
-//       {/* Single price */}
 //       {mode === "single" && (
 //         <div className="flex flex-col gap-4 animate-in fade-in duration-200">
 //           <div className="flex items-start gap-2.5 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3">
 //             <Info className="size-3.5 text-blue-500 shrink-0 mt-0.5" />
 //             <p className="text-xs text-blue-700 leading-relaxed">
 //               Set an <strong>Original Price</strong> and a lower{" "}
-//               <strong>Sale Price</strong> to display a discount badge. Leave
-//               both empty for free.
+//               <strong>Sale Price</strong> to display a discount badge.
 //             </p>
 //           </div>
 //           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1086,7 +1425,7 @@
 //                     invalid={fieldState.invalid}
 //                     name={field.name}
 //                     ref={field.ref}
-//                     value={field.value ?? ""}
+//                     value={(field.value as number | undefined) ?? ""}
 //                     onChange={(e) =>
 //                       field.onChange(
 //                         e.target.value === "" ? "" : e.target.value,
@@ -1113,7 +1452,7 @@
 //                     invalid={fieldState.invalid}
 //                     name={field.name}
 //                     ref={field.ref}
-//                     value={field.value ?? ""}
+//                     value={(field.value as number | undefined) ?? ""}
 //                     onChange={(e) =>
 //                       field.onChange(
 //                         e.target.value === "" ? "" : e.target.value,
@@ -1125,7 +1464,6 @@
 //               )}
 //             />
 //           </div>
-
 //           {discount !== null && (
 //             <div className="flex flex-wrap items-center gap-3 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 animate-in fade-in slide-in-from-bottom-1 duration-200">
 //               <Sparkles className="size-3.5 text-emerald-600 shrink-0" />
@@ -1134,8 +1472,8 @@
 //               </span>
 //               <span className="text-xs text-emerald-600">
 //                 Rp {op!.toLocaleString("id-ID")}
-//                 <span className="mx-1.5 font-semibold">→</span>
-//                 Rp {bp!.toLocaleString("id-ID")}
+//                 <span className="mx-1.5 font-semibold">→</span>Rp{" "}
+//                 {bp!.toLocaleString("id-ID")}
 //               </span>
 //               <span className="ml-auto text-xs text-emerald-500">
 //                 Saves Rp {(op! - bp!).toLocaleString("id-ID")}
@@ -1145,7 +1483,6 @@
 //         </div>
 //       )}
 
-//       {/* Tiers */}
 //       {mode === "tiers" && (
 //         <div className="flex flex-col gap-3 animate-in fade-in duration-200">
 //           <p className="text-xs text-neutral-500">
@@ -1158,7 +1495,7 @@
 //             >
 //               <div className="flex items-center justify-between">
 //                 <div className="flex items-center gap-2">
-//                   <div className="flex size-5 items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-bold">
+//                   <div className="flex size-5 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold">
 //                     {idx + 1}
 //                   </div>
 //                   <span className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
@@ -1197,7 +1534,7 @@
 //                         invalid={fieldState.invalid}
 //                         name={field.name}
 //                         ref={field.ref}
-//                         value={field.value ?? ""}
+//                         value={(field.value as number | undefined) ?? ""}
 //                         onChange={(e) =>
 //                           field.onChange(
 //                             e.target.value === "" ? 0 : e.target.value,
@@ -1226,7 +1563,7 @@
 //           <button
 //             type="button"
 //             onClick={() => append({ label: "", price: 0, description: "" })}
-//             className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-200 p-4 text-sm font-medium text-neutral-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50 transition-all duration-150 group"
+//             className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-200 p-4 text-sm font-medium text-neutral-400 hover:border-amber-400 hover:text-amber-500 hover:bg-amber-50/50 transition-all duration-150 group"
 //           >
 //             <Plus className="size-4 group-hover:scale-110 transition-transform duration-150" />
 //             Add Pricing Tier
@@ -1237,11 +1574,12 @@
 //   );
 // }
 
-// /* ── Media & Tags ── */
 // function MediaSection({
 //   form,
+//   color,
 // }: {
-//   form: ReturnType<typeof useForm<ProgramCreateInput>>;
+//   form: UseFormReturn<FormValues>;
+//   color: SectionConfig["color"];
 // }) {
 //   const thumbnail = (form.watch("thumbnail") ?? "") as string;
 //   const icon = (form.watch("icon") ?? "") as string;
@@ -1251,10 +1589,10 @@
 //     <div className="flex flex-col gap-5">
 //       <SectionDivider
 //         id="media"
-//         icon={<ImageIcon className="size-4 text-purple-600" />}
+//         icon={<ImageIcon className="size-4" />}
 //         title="Media & Tags"
-//         description="Visuals and tags that help your program stand out in search"
-//         accentClass="bg-purple-50/60 border-purple-100"
+//         description="Visuals and tags that help your program stand out"
+//         color={color}
 //       />
 
 //       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1291,7 +1629,6 @@
 //             </Field>
 //           )}
 //         />
-
 //         <Controller
 //           name="icon"
 //           control={form.control}
@@ -1349,9 +1686,9 @@
 //   );
 // }
 
-// /* ══════════════════════════════════════════════════════
+// /* ══════════════════════════════════════════════════════════════
 //    MAIN PAGE
-// ══════════════════════════════════════════════════════ */
+// ══════════════════════════════════════════════════════════════ */
 // const ProgramCreatePage = () => {
 //   const [activeSection, setActiveSection] = useState<SectionId>("basic");
 //   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1359,17 +1696,13 @@
 //   const [completedSections, setCompletedSections] = useState<Set<SectionId>>(
 //     new Set(),
 //   );
+//   const [expandedSections, setExpandedSections] = useState<Set<SectionId>>(
+//     new Set(["basic"]),
+//   );
+//   const [bannerDismissed, setBannerDismissed] = useState(false);
 
-//   const sectionRefs = useRef<Record<SectionId, HTMLDivElement | null>>({
-//     basic: null,
-//     details: null,
-//     pricing: null,
-//     media: null,
-//   });
-
-//   const form = useForm<ProgramCreateInput>({
-//     // Use the custom Zod v4 resolver instead of @hookform/resolvers/zod
-//     resolver: zodV4Resolver(programCreateSchema),
+//   const form = useForm<z.infer<typeof programCreateSchema>>({
+//     resolver: zodResolver(programCreateSchema),
 //     defaultValues: {
 //       title: "",
 //       description: "",
@@ -1388,7 +1721,6 @@
 
 //   const { formState } = form;
 
-//   /* Compute which sections have errors after submission */
 //   const sectionErrors: Record<SectionId, boolean> = {
 //     basic: !!(
 //       formState.errors.title ||
@@ -1416,6 +1748,14 @@
 //     ),
 //   };
 
+//   const totalErrors = Object.values(sectionErrors).filter(Boolean).length;
+//   const showBanner =
+//     formState.submitCount > 0 && totalErrors > 0 && !bannerDismissed;
+
+//   useEffect(() => {
+//     if (formState.submitCount > 0) setBannerDismissed(false);
+//   }, [formState.submitCount]);
+
 //   /* Scroll-spy */
 //   useEffect(() => {
 //     const handleScroll = () => {
@@ -1428,9 +1768,8 @@
 //         "media",
 //       ] as SectionId[]) {
 //         const el = document.getElementById(`section-${id}`);
-//         if (el && el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+//         if (el && el.getBoundingClientRect().top + window.scrollY <= scrollY)
 //           current = id;
-//         }
 //       }
 //       setActiveSection(current);
 //     };
@@ -1440,6 +1779,8 @@
 
 //   const handleNavigate = useCallback((id: SectionId) => {
 //     setActiveSection(id);
+//     // Auto-expand when navigating
+//     setExpandedSections((prev) => new Set([...prev, id]));
 //     const el = document.getElementById(`section-${id}`);
 //     if (el) {
 //       const top = el.getBoundingClientRect().top + window.scrollY - 96;
@@ -1447,7 +1788,16 @@
 //     }
 //   }, []);
 
-//   async function onSubmit(values: ProgramCreateInput) {
+//   const toggleSection = useCallback((id: SectionId) => {
+//     setExpandedSections((prev) => {
+//       const next = new Set(prev);
+//       if (next.has(id)) next.delete(id);
+//       else next.add(id);
+//       return next;
+//     });
+//   }, []);
+
+//   async function onSubmit(values: FormValues) {
 //     setIsSubmitting(true);
 //     await new Promise((r) => setTimeout(r, 1800));
 //     console.log(values);
@@ -1459,13 +1809,14 @@
 //     const order: SectionId[] = ["basic", "details", "pricing", "media"];
 //     for (const id of order) {
 //       if (sectionErrors[id]) {
+//         setExpandedSections((prev) => new Set([...prev, id]));
 //         handleNavigate(id);
 //         break;
 //       }
 //     }
 //   }
 
-//   /* ── Success screen ── */
+//   /* Success screen */
 //   if (isSuccess) {
 //     return (
 //       <>
@@ -1503,6 +1854,7 @@
 //                 onClick={() => {
 //                   setIsSuccess(false);
 //                   setCompletedSections(new Set());
+//                   setExpandedSections(new Set(["basic"]));
 //                   form.reset();
 //                   window.scrollTo({ top: 0 });
 //                 }}
@@ -1517,7 +1869,6 @@
 //     );
 //   }
 
-//   /* Live preview items */
 //   const previewItems = [
 //     { label: "Title", value: form.watch("title") || null },
 //     {
@@ -1535,8 +1886,6 @@
 //     { label: "Status", value: form.watch("status") || null },
 //   ];
 
-//   const totalErrors = Object.values(sectionErrors).filter(Boolean).length;
-
 //   return (
 //     <>
 //       <SiteHeader
@@ -1547,8 +1896,8 @@
 //         ]}
 //       />
 
-//       <div className="flex flex-1 flex-col ">
-//         <div className="mx-auto w-full max-w-6xl py-6 lg:py-8">
+//       <div className="flex flex-1 flex-col">
+//         <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:py-8">
 //           {/* Page header */}
 //           <div className="mb-8 flex items-start gap-4">
 //             <Button
@@ -1569,39 +1918,69 @@
 //                 Fill out all sections, then submit when ready.
 //               </p>
 //             </div>
+//             {/* Mobile submit button in header */}
+//             <button
+//               type="submit"
+//               form="program-create-form"
+//               disabled={isSubmitting}
+//               className={cn(
+//                 "lg:hidden flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all",
+//                 "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed",
+//               )}
+//             >
+//               {isSubmitting ? (
+//                 <>
+//                   <Loader2 className="size-3.5 animate-spin" />
+//                   Saving…
+//                 </>
+//               ) : (
+//                 <>
+//                   <Check className="size-3.5" />
+//                   Create
+//                 </>
+//               )}
+//             </button>
 //           </div>
 
-//           {/* Validation error banner */}
-//           {formState.submitCount > 0 && totalErrors > 0 && (
-//             <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-200">
+//           {/* Dismissible error banner */}
+//           {showBanner && (
+//             <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 animate-in fade-in slide-in-from-top-2 duration-200">
 //               <AlertCircle className="size-4 text-red-500 shrink-0 mt-0.5" />
-//               <div>
+//               <div className="flex-1">
 //                 <p className="text-sm font-medium text-red-700">
-//                   Please fix the errors in {totalErrors} section
+//                   Please fix errors in {totalErrors} section
 //                   {totalErrors > 1 ? "s" : ""} before submitting.
 //                 </p>
 //                 <div className="flex flex-wrap gap-2 mt-1.5">
 //                   {(Object.entries(sectionErrors) as [SectionId, boolean][])
-//                     .filter(([, hasError]) => hasError)
+//                     .filter(([, hasErr]) => hasErr)
 //                     .map(([id]) => (
 //                       <button
 //                         key={id}
 //                         type="button"
 //                         onClick={() => handleNavigate(id)}
-//                         className="text-xs text-red-600 underline underline-offset-2 hover:text-red-800"
+//                         className="text-xs text-red-600 underline underline-offset-2 hover:text-red-800 font-medium"
 //                       >
 //                         {SECTIONS.find((s) => s.id === id)?.label}
 //                       </button>
 //                     ))}
 //                 </div>
 //               </div>
+//               <button
+//                 type="button"
+//                 onClick={() => setBannerDismissed(true)}
+//                 className="shrink-0 flex size-7 items-center justify-center rounded-lg text-red-400 hover:bg-red-100 hover:text-red-600 transition-all"
+//                 aria-label="Dismiss error banner"
+//               >
+//                 <X className="size-4" />
+//               </button>
 //             </div>
 //           )}
 
 //           {/* Two-column layout */}
 //           <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] xl:grid-cols-[240px_1fr] gap-4 items-start">
 //             {/* ── Sticky sidebar ── */}
-//             <aside className="hidden lg:flex flex-col gap-4 sticky top-6">
+//             <aside className="hidden lg:flex flex-col gap-3 sticky top-6">
 //               <div className="rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
 //                 <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
 //                   Sections
@@ -1610,9 +1989,13 @@
 //                   activeSection={activeSection}
 //                   sectionErrors={sectionErrors}
 //                   completedSections={completedSections}
+//                   expandedSections={expandedSections}
 //                   onNavigate={handleNavigate}
 //                 />
 //               </div>
+
+//               {/* Progress bar */}
+//               <ProgressBar form={form} />
 
 //               {/* Live preview */}
 //               <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
@@ -1640,15 +2023,14 @@
 //                 </div>
 //               </div>
 
-//               {/* Submit button in sidebar */}
+//               {/* Submit in sidebar */}
 //               <button
 //                 type="submit"
 //                 form="program-create-form"
 //                 disabled={isSubmitting}
 //                 className={cn(
 //                   "flex items-center justify-center gap-2 w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-150",
-//                   "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/30",
-//                   "disabled:opacity-50 disabled:cursor-not-allowed",
+//                   "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed",
 //                 )}
 //               >
 //                 {isSubmitting ? (
@@ -1671,70 +2053,43 @@
 //               onSubmit={form.handleSubmit(onSubmit, onError)}
 //               noValidate
 //             >
-//               <div className="flex flex-col gap-8">
-//                 {/* Basic Info */}
-//                 <div
-//                   ref={(el) => {
-//                     sectionRefs.current.basic = el;
-//                   }}
-//                   className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden"
-//                 >
-//                   <div className="p-6 sm:p-8">
-//                     <BasicSection form={form} />
-//                   </div>
-//                 </div>
-
-//                 {/* Details */}
-//                 <div
-//                   ref={(el) => {
-//                     sectionRefs.current.details = el;
-//                   }}
-//                   className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden"
-//                 >
-//                   <div className="p-6 sm:p-8">
-//                     <DetailsSection form={form} />
-//                   </div>
-//                 </div>
-
-//                 {/* Pricing */}
-//                 <div
-//                   ref={(el) => {
-//                     sectionRefs.current.pricing = el;
-//                   }}
-//                   className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden"
-//                 >
-//                   <div className="p-6 sm:p-8">
-//                     <PricingSection form={form} />
-//                   </div>
-//                 </div>
-
-//                 {/* Media & Tags */}
-//                 <div
-//                   ref={(el) => {
-//                     sectionRefs.current.media = el;
-//                   }}
-//                   className="rounded-xl border border-neutral-200 bg-white shadow-sm overflow-hidden"
-//                 >
-//                   <div className="p-6 sm:p-8">
-//                     <MediaSection form={form} />
-//                   </div>
-//                 </div>
+//               <div className="flex flex-col gap-4">
+//                 {SECTIONS.map((section) => (
+//                   <SectionCard
+//                     key={section.id}
+//                     section={section}
+//                     isExpanded={expandedSections.has(section.id)}
+//                     hasError={sectionErrors[section.id]}
+//                     isComplete={
+//                       completedSections.has(section.id) &&
+//                       !sectionErrors[section.id]
+//                     }
+//                     onToggle={() => toggleSection(section.id)}
+//                     form={form}
+//                   >
+//                     {section.id === "basic" && (
+//                       <BasicSection form={form} color={section.color} />
+//                     )}
+//                     {section.id === "details" && (
+//                       <DetailsSection form={form} color={section.color} />
+//                     )}
+//                     {section.id === "pricing" && (
+//                       <PricingSection form={form} color={section.color} />
+//                     )}
+//                     {section.id === "media" && (
+//                       <MediaSection form={form} color={section.color} />
+//                     )}
+//                   </SectionCard>
+//                 ))}
 
 //                 {/* Mobile submit */}
-//                 <div className="lg:hidden flex flex-col gap-3">
-//                   {formState.submitCount > 0 && totalErrors > 0 && (
-//                     <p className="text-xs text-red-500 text-center">
-//                       Fix errors in {totalErrors} section
-//                       {totalErrors > 1 ? "s" : ""} above before submitting.
-//                     </p>
-//                   )}
+//                 <div className="lg:hidden pt-2">
 //                   <button
 //                     type="submit"
 //                     disabled={isSubmitting}
 //                     className={cn(
 //                       "flex items-center justify-center gap-2 w-full rounded-xl px-4 py-3.5 text-sm font-semibold transition-all duration-150",
-//                       "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/30",
-//                       "disabled:opacity-50 disabled:cursor-not-allowed",
+//                       "bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed",
 //                     )}
 //                   >
 //                     {isSubmitting ? (
@@ -1766,7 +2121,6 @@
 // };
 
 // export default ProgramCreatePage;
-
 import React from "react";
 
 const page = () => {
