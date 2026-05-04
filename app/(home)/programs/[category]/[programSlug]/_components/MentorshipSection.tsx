@@ -649,10 +649,6 @@ function MentorshipCollage({
   );
 }
 
-// ════════════════════════════════════════════════════════════════
-//   MAIN COMPONENT
-// ════════════════════════════════════════════════════════════════
-
 export function MentorshipSection({
   content,
   theme,
@@ -695,9 +691,9 @@ export function MentorshipSection({
           <div className="lg:hidden flex flex-col gap-10">
             {/* Header */}
             <div>
-              {content.tagline && (
+              {content.title && (
                 <Reveal>
-                  <SectionPill theme={theme}>✦ {content.tagline}</SectionPill>
+                  <SectionPill theme={theme}>✦ {content.title}</SectionPill>
                 </Reveal>
               )}
               <Reveal delay={0.06} className="mt-5 mb-3">
@@ -709,7 +705,7 @@ export function MentorshipSection({
                     color: "var(--blue-navy)",
                   }}
                 >
-                  {content.title}
+                  {content.tagline}
                   {content.taglineAccent && (
                     <span style={{ color: theme.primary }}>
                       {" "}
@@ -781,9 +777,9 @@ export function MentorshipSection({
           <div className="hidden lg:grid lg:grid-cols-[5fr_7fr] xl:grid-cols-[1fr_1.3fr] gap-14 xl:gap-20 items-center">
             {/* LEFT — text + item cards */}
             <div className="flex flex-col justify-center">
-              {content.tagline && (
+              {content.title && (
                 <Reveal>
-                  <SectionPill theme={theme}>✦ {content.tagline}</SectionPill>
+                  <SectionPill theme={theme}>✦ {content.title}</SectionPill>
                 </Reveal>
               )}
 
@@ -796,7 +792,7 @@ export function MentorshipSection({
                     color: "var(--blue-navy)",
                   }}
                 >
-                  {content.title}
+                  {content.tagline}
                   {content.taglineAccent && (
                     <span style={{ color: theme.primary }}>
                       {" "}

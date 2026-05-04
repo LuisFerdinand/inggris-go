@@ -994,16 +994,29 @@ export type ProgramSection =
 export type ProgramBatch = {
   id: string;
   label: string;
+
   startDate?: string;
   endDate?: string;
   schedule?: string;
   note?: string;
+
   status: "open" | "full" | "coming_soon" | "closed";
   isOpen: boolean;
+
   capacity?: number;
   enrolled?: number;
-  ctaLabel?: string;
-  ctaHref?: string;
+
+  brochure?: {
+    url: string;
+    label?: string;
+  };
+
+  primaryCtaLabel?: string;
+  primaryCtaHref?: string;
+  primaryCtaIcon?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
+  secondaryCtaIcon?: string;
 };
 
 export type ProgramDetail = {
@@ -2652,8 +2665,9 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         capacity: 8,
         enrolled: 5,
 
-        ctaLabel: "Daftarkan Sekarang",
-        ctaHref: buildWhatsAppUrl({
+        primaryCtaLabel: "Konsultasi",
+        primaryCtaIcon: "message-circle",
+        primaryCtaHref: buildWhatsAppUrl({
           title: "English for Kids Batch 1",
           price: "Rp 349.000",
           format: "Zoom",
@@ -3132,8 +3146,9 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         enrolled: 26,
         note: "Max 8 siswa per kelas",
 
-        ctaLabel: "Gabung Batch Ini",
-        ctaHref: buildWhatsAppUrl({
+        primaryCtaLabel: "Konsultasi",
+        primaryCtaIcon: "message-circle",
+        primaryCtaHref: buildWhatsAppUrl({
           title: "Daily Conversation Batch 1",
           price: "Rp 249.000",
           format: "Zoom",
@@ -3512,33 +3527,112 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
     hasBatch: true,
 
     theme: {
-      primary: "#4da3ff", // warm, premium, kid-friendly
+      primary: "#4da3ff",
     },
 
     batches: [
       {
         id: "batch-june-1",
-        label: "21 – 28 Juni 2026",
+        label: "Program Juni 1",
+
         startDate: "2026-06-21",
-        endDate: "2026-06-28",
+        endDate: "2026-06-27",
         status: "open",
         isOpen: true,
+        brochure: {
+          url: "/pdf/brochure/vip-kids/vip-kids-june-july-2026.pdf",
+        },
+
+        primaryCtaLabel: "Daftar",
+        primaryCtaHref: "/programs/offline/vip-kids/register",
+        primaryCtaIcon: "arrow-right",
+
+        secondaryCtaLabel: "Konsultasi",
+        secondaryCtaIcon: "message-circle",
+        secondaryCtaHref: buildWhatsAppUrl({
+          title: "VIP Kids English Camp",
+          duration: "21 – 27 Juni 2026",
+          intent: "consultation",
+          message: `
+Halo Inggris Go! 👋
+
+Saya tertarik dengan program *VIP Kids English Camp* Batch Juni 1.
+
+- Jadwal: 21 – 27 Juni 2026
+
+Saya ingin konsultasi terlebih dahulu sebelum mendaftar.
+
+Mohon dibantu ya 😊
+`,
+        }),
       },
       {
         id: "batch-june-2",
-        label: "28 Juni – 5 Juli 2026",
+        label: "Program Juni 2",
         startDate: "2026-06-28",
-        endDate: "2026-07-05",
+        endDate: "2026-07-04",
         status: "open",
         isOpen: true,
+        brochure: {
+          url: "/pdf/brochure/vip-kids/vip-kids-june-july-2026.pdf",
+        },
+
+        primaryCtaLabel: "Daftar",
+        primaryCtaHref: "/programs/offline/vip-kids/register",
+        primaryCtaIcon: "arrow-right",
+
+        secondaryCtaLabel: "Konsultasi",
+        secondaryCtaIcon: "message-circle",
+        secondaryCtaHref: buildWhatsAppUrl({
+          title: "VIP Kids English Camp",
+          duration: "28 Juni - 4 Juli 2026",
+          intent: "consultation",
+          message: `
+Halo Inggris Go! 👋
+
+Saya tertarik dengan program *VIP Kids English Camp* Batch Juni 2.
+
+- Jadwal: 28 Juni - 4 Juli 2026
+
+Saya ingin konsultasi terlebih dahulu sebelum mendaftar.
+
+Mohon dibantu ya 😊
+`,
+        }),
       },
       {
         id: "batch-june-full",
-        label: "21 Juni – 5 Juli 2026 (2 Minggu)",
+        label: "Program Intensif Juni 1",
         startDate: "2026-06-21",
-        endDate: "2026-07-05",
+        endDate: "2026-07-04",
         status: "open",
         isOpen: true,
+        brochure: {
+          url: "/pdf/brochure/vip-kids/vip-kids-june-july-2026.pdf",
+        },
+
+        primaryCtaLabel: "Daftar",
+        primaryCtaHref: "/programs/offline/vip-kids/register",
+        primaryCtaIcon: "arrow-right",
+
+        secondaryCtaLabel: "Konsultasi",
+        secondaryCtaIcon: "message-circle",
+        secondaryCtaHref: buildWhatsAppUrl({
+          title: "VIP Kids English Camp",
+          duration: "21 Juni – 4 Juli 2026",
+          intent: "consultation",
+          message: `
+Halo Inggris Go! 👋
+
+Saya tertarik dengan program *VIP Kids English Camp* Batch Intensif Juni 1.
+
+- Jadwal: 21 Juni – 4 Juli 2026
+
+Saya ingin konsultasi terlebih dahulu sebelum mendaftar.
+
+Mohon dibantu ya 😊
+`,
+        }),
       },
     ],
 
@@ -3702,10 +3796,10 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "why",
         type: "why",
         content: {
-          title: "Anak Sebenarnya Bisa",
-          tagline: "Tapi",
+          title: "Apa yang Menghambat Anak Anda?",
+          tagline: "Anak Sebenarnya Bisa Tapi",
           taglineAccent: "Tidak Berani",
-          subtitle: "Masalah yang sering dihadapi orang tua seperti Anda",
+          subtitle: "Masalah yang sering dihadapi anak Anda",
           conclusion: {
             tagline:
               "Lingkungan di mana mereka bisa berlatih tanpa takut, mendapat dukungan, dan melihat contoh dari teman sebaya.",
@@ -3738,13 +3832,13 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         id: "benefits-2",
         type: "benefits",
         content: {
-          title: "Perubahan Nyata dalam Waktu Singkat",
-          tagline: "Yang Akan Anak Anda",
-          taglineAccent: "Rasakan",
+          title: "Transformasi Anak",
+          tagline: "Perubahan Nyata",
+          taglineAccent: "Yang Akan Anak Anda Rasakan",
           subtitle: "Transformasi yang terlihat dalam waktu singkat",
           conclusion: {
             tagline:
-              "Orang tua biasanya sudah melihat perbedaan signifikan di hari ke-3 atau ke-4. Saat pulang, anak akan lebih berani, lebih tenang, dan lebih mandiri.",
+              "Orang tua biasanya sudah melihat perbedaan signifi`kan di hari ke-3 atau ke-4. Saat pulang, anak akan lebih berani, lebih tenang, dan lebih mandiri.",
             taglineAccent: "Perubahan Terlihat Jelas",
           },
           items: [

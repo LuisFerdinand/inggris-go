@@ -76,6 +76,7 @@ Saya ingin langsung mendaftar untuk *${data.title}*.
 
 Mohon info langkah pendaftaran dan pembayaran ya.
     `,
+    
   };
 
   const message =
