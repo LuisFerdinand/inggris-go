@@ -1,11 +1,11 @@
 import { ChartAreaInteractive } from "@/components/sidebar/chart-area-interactive";
 import { DataTable } from "@/components/sidebar/data-table";
 import { SectionCards } from "@/components/sidebar/section-cards";
-import React from "react";
-import data from "../data.json";
+
 import { SiteHeader } from "@/components/sidebar/site-header";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { tableData } from "./_modules/ui/views/data";
 const CoursesPage = () => {
   return (
     <>
@@ -25,7 +25,7 @@ const CoursesPage = () => {
             <div className="">
               <ChartAreaInteractive />
             </div>
-            <DataTable data={data} />
+            <DataTable data={tableData} />
           </div>
         </div>
       </div>

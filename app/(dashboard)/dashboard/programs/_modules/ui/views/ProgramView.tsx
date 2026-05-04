@@ -3,8 +3,8 @@ import { ChartAreaInteractive } from "@/components/sidebar/chart-area-interactiv
 import { DataTable } from "@/components/sidebar/data-table";
 import { SectionCards } from "@/components/sidebar/section-cards";
 
-import data from "./data.json";
 import { SiteHeader } from "@/components/sidebar/site-header";
+import { tableData } from "./data";
 export const ProgramsView = () => {
   return (
     <>
@@ -22,7 +22,7 @@ export const ProgramsView = () => {
               <div className="">
                 <ChartAreaInteractive />
               </div>
-              <DataTable data={data} />
+              <DataTable data={tableData} />
             </div>
           </div>
         </div>

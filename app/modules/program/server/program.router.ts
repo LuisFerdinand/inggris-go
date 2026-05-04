@@ -1,7 +1,7 @@
-import { publicProcedure, router } from "@/app/server/api/trpc";
+import { baseProcedure, createTRPCRouter } from "@/lib/trpc/init";
 
-export const programRouter = router({
-  getAll: publicProcedure.query(() => {
+export const programRouter = createTRPCRouter({
+  getAll: baseProcedure.query(() => {
     return [];
   }),
 });
