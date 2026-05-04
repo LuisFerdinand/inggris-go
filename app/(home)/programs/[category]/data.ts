@@ -3544,7 +3544,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
         },
 
         primaryCtaLabel: "Daftar",
-        primaryCtaHref: "/programs/offline/vip-kids/register",
+        primaryCtaHref: "https://forms.gle/zGnAkSHjbKLcTVoe8",
         primaryCtaIcon: "arrow-right",
 
         secondaryCtaLabel: "Konsultasi",
@@ -3578,7 +3578,7 @@ Mohon dibantu ya 😊
         },
 
         primaryCtaLabel: "Daftar",
-        primaryCtaHref: "/programs/offline/vip-kids/register",
+        primaryCtaHref: "https://forms.gle/zGnAkSHjbKLcTVoe8",
         primaryCtaIcon: "arrow-right",
 
         secondaryCtaLabel: "Konsultasi",
@@ -3612,7 +3612,7 @@ Mohon dibantu ya 😊
         },
 
         primaryCtaLabel: "Daftar",
-        primaryCtaHref: "/programs/offline/vip-kids/register",
+        primaryCtaHref: "https://forms.gle/zGnAkSHjbKLcTVoe8",
         primaryCtaIcon: "arrow-right",
 
         secondaryCtaLabel: "Konsultasi",
