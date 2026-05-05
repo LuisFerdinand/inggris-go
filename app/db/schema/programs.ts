@@ -37,6 +37,10 @@ export const programCategoryStatusEnum = pgEnum(
 );
 export const programLevelEnum = pgEnum("program_level", PROGRAM_LEVEL);
 export const programFormatEnum = pgEnum("program_format", PROGRAM_FORMAT);
+export const programBatchModeEnum = pgEnum(
+  "program_batch_enum",
+  PROGRAM_FORMAT,
+);
 
 export const programStatusEnum = pgEnum("program_status", PROGRAM_STATUS);
 
@@ -139,13 +143,12 @@ export const programContent = pgTable("program_content", {
 
   // Optional extras
   hasBatch: boolean("has_batch").default(false),
-  batches: jsonb("batches").$type<ProgramBatch[]>(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const batch = pgTable("batch", {
+export const programBatches = pgTable("batch", {
   id: text("id").primaryKey(),
   teacherId: text("teacher_id")
     .notNull()
@@ -163,7 +166,7 @@ export const batch = pgTable("batch", {
 
   capacity: integer("capacity"), // max students
 
-  mode: text("mode"), // online | offline | hybrid
+  mode: programBatchModeEnum("mode"),
 
   location: text("location"), // for camp / offline
 

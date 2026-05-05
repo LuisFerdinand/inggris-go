@@ -11,7 +11,7 @@ export const getQueryClient = cache(makeQueryClient);
 
 const caller = createCallerFactory(appRouter)(async () =>
   createTRPCContext({
-    headers: await headers(), // ✅ THIS IS THE FIX
+    headers: await headers(),
   }),
 );
 

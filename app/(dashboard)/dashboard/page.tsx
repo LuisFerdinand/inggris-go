@@ -1,12 +1,12 @@
 import { HydrateClient } from "@/lib/trpc/server";
-import { ProgramsView } from "./programs/_modules/ui/views/ProgramView";
+import { ProgramsPageView } from "./programs/_modules/ui/views/ProgramsPageView";
 
 export const dynamic = "force-dynamic";
 
 export default async function Page() {
   return (
     <HydrateClient>
-      <ProgramsView></ProgramsView>
+      <ProgramsPageView></ProgramsPageView>
     </HydrateClient>
   );
 }

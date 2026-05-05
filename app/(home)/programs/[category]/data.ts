@@ -3533,7 +3533,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
     batches: [
       {
         id: "batch-june-1",
-        label: "Program Juni 1",
+        label: "VIP Camp Batch 1",
 
         startDate: "2026-06-21",
         endDate: "2026-06-27",
@@ -3556,7 +3556,7 @@ export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {
           message: `
 Halo Inggris Go! 👋
 
-Saya tertarik dengan program *VIP Kids English Camp* Batch Juni 1.
+Saya tertarik dengan program *VIP Kids English Camp Batch 1*.
 
 - Jadwal: 21 – 27 Juni 2026
 
@@ -3568,7 +3568,7 @@ Mohon dibantu ya 😊
       },
       {
         id: "batch-june-2",
-        label: "Program Juni 2",
+        label: "VIP Camp Batch 2",
         startDate: "2026-06-28",
         endDate: "2026-07-04",
         status: "open",
@@ -3590,7 +3590,7 @@ Mohon dibantu ya 😊
           message: `
 Halo Inggris Go! 👋
 
-Saya tertarik dengan program *VIP Kids English Camp* Batch Juni 2.
+Saya tertarik dengan program *VIP Kids English Camp Batch 2*.
 
 - Jadwal: 28 Juni - 4 Juli 2026
 
@@ -3602,7 +3602,7 @@ Mohon dibantu ya 😊
       },
       {
         id: "batch-june-full",
-        label: "Program Intensif Juni 1",
+        label: "VIP Camp 2 Weeks",
         startDate: "2026-06-21",
         endDate: "2026-07-04",
         status: "open",
@@ -3624,7 +3624,7 @@ Mohon dibantu ya 😊
           message: `
 Halo Inggris Go! 👋
 
-Saya tertarik dengan program *VIP Kids English Camp* Batch Intensif Juni 1.
+Saya tertarik dengan program *VIP Kids English Camp 2 Weeks*.
 
 - Jadwal: 21 Juni – 4 Juli 2026
 
@@ -3784,11 +3784,7 @@ Mohon dibantu ya 😊
             },
           ],
 
-          trustSignals: [
-            "Dokumentasi real dari batch sebelumnya",
-            "Update kegiatan dikirim ke orang tua setiap hari",
-            "Lingkungan aman dan terpantau 24 jam",
-          ],
+          trustSignals: [],
         },
       },
 
@@ -4093,7 +4089,7 @@ Mohon dibantu ya 😊
             },
             {
               type: "image",
-              src: "https://unsplash.com/photos/group-of-women-standing-on-green-grass-field-during-daytime-DqgMHzeio7g",
+              src: "https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
               caption: "Pembentukan Karakter",
             },
             {

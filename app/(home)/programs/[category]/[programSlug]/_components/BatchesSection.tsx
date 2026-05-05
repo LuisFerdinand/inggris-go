@@ -1074,8 +1074,8 @@ export function BatchesSection({
             </svg>
           </div>
           <p style={{ fontSize: "0.8125rem", color: "var(--text-faint)" }}>
-            Batch baru dibuka secara berkala. Hubungi admin untuk info batch
-            berikutnya.
+            Batch dibuka secara berkala — pendaftaran bisa ditutup sewaktu-waktu
+            jika kuota penuh.
           </p>
         </motion.div>
       </div>

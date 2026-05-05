@@ -34,6 +34,15 @@ export const PROGRAM_FORMAT_LABEL: Record<ProgramFormat, string> = {
   hybrid: "Hybrid",
 };
 
+export const PROGRAM_BATCH_MODE = ["online", "offline", "hybrid"] as const;
+export type ProgramBatchMode = (typeof PROGRAM_BATCH_MODE)[number];
+export const programBatchModeEnum = z.enum(PROGRAM_BATCH_MODE);
+export const PROGRAM_BATCH_MODE_LABEL: Record<ProgramBatchMode, string> = {
+  online: "Online",
+  offline: "Offline",
+  hybrid: "Hybrid",
+};
+
 export const PROGRAM_LEVEL = ["beginner", "intermediate", "advanced"] as const;
 export type ProgramLevel = (typeof PROGRAM_LEVEL)[number];
 export const programLevelEnum = z.enum(PROGRAM_LEVEL);

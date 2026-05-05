@@ -2,19 +2,20 @@ import { CATEGORIES } from "@/app/(home)/programs/[category]/data";
 import { db } from "../db";
 import { programCategories } from "../schema";
 
+type CategoryInsert = typeof programCategories.$inferInsert;
 export async function seedCategories() {
+  console.log("1. Seeding Program Categories...");
   for (const key in CATEGORIES) {
     const cat = CATEGORIES[key];
-    type CategoryInsert = typeof programCategories.$inferInsert;
     const data: CategoryInsert = {
       id: `cat-${cat.key}`,
       key: cat.key,
-      slug: cat.href.split("/").pop()!,
+      slug: cat.href.replace(/\/+$/, "").split("/").pop()!,
 
       label: cat.label,
       shortLabel: cat.shortLabel,
       order: 0,
-      status: "published" as const,
+      status: "published" as CategoryInsert["status"],
 
       icon: cat.icon,
       heroImage: cat.heroImage,

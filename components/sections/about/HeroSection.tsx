@@ -710,9 +710,6 @@ function EditorialBand() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   MAIN EXPORT
-───────────────────────────────────────────────────────────────────── */
 export const HeroSection = () => {
   const reduced = useReducedMotion();
 

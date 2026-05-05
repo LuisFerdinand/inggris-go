@@ -1,13 +1,14 @@
 import "dotenv/config"; // ✅ MUST be first, before ANY import
 
 import { db } from "@/app/db/db";
-import { seedCategories } from "./categories";
+import { seedCategories } from "./categories.seed";
+import { seedPrograms } from "./programs.seed";
 
 async function main() {
   console.log("🌱 Seeding...");
-  console.log(process.env.DATABASE_URL);
 
   await seedCategories();
+  await seedPrograms();
 
   console.log("✅ Done seeding");
   process.exit(0);
