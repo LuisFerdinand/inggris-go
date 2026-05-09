@@ -83,3 +83,58 @@ export const programUpdateSchema = programBaseObject.partial();
 
 export type ProgramCreateInput = z.input<typeof programCreateSchema>;
 export type ProgramCreateOutput = z.output<typeof programCreateSchema>;
+
+export const onlineOrderSchema = z.object({
+  type: z.literal("online"),
+
+  programId: z.string(),
+  batchId: z.string().optional(),
+
+  fullName: z.string().min(1),
+  whatsapp: z.string().min(1),
+  email: z.string().email().optional(),
+  age: z.number().optional(),
+});
+
+export const offlineOrderSchema = z.object({
+  type: z.literal("offline"),
+
+  programId: z.string(),
+  batchId: z.string(),
+  batchLabel: z.string(),
+
+  nama: z.string(),
+  panggilan: z.string(),
+  jenisKelamin: z.enum(["L", "P"]),
+
+  tempatLahir: z.string(),
+  tanggalLahir: z.string(),
+
+  usia: z.number(),
+
+  kelas: z.string(),
+  sekolah: z.string(),
+  kotaAsal: z.string(),
+
+  namaOrtu: z.string(),
+  hpOrtu: z.string(),
+
+  hpAnak: z.string().optional(),
+  email: z.string().email().optional(),
+
+  alumni: z.enum(["yes", "no"]),
+  sumberInfo: z.string(),
+
+  alergi: z.enum(["yes", "no"]),
+  detailAlergi: z.string().optional(),
+
+  catatan: z.string().optional(),
+  harapan: z.string(),
+
+  ukuranKaos: z.string(),
+});
+
+export const orderSchema = z.discriminatedUnion("type", [
+  onlineOrderSchema,
+  offlineOrderSchema,
+]);

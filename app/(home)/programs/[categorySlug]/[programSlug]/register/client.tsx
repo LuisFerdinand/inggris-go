@@ -28,6 +28,13 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
+import { nanoid } from "zod";
+import { inferRouterOutputs } from "@trpc/server";
+import { AppRouter } from "@/lib/trpc/routers/_app";
+import { parseAge } from "@/lib/utils";
+
+type RouterOutput = inferRouterOutputs<AppRouter>;
+type ProgramPageData = RouterOutput["programs"]["getProgramPage"];
 
 interface FormData {
   batch: string;
@@ -60,9 +67,102 @@ interface FormData {
   fotoPreview: string;
 }
 
-type StepId = 0 | 1 | 2 | 3 | 4 | 5;
+export function createOfflineOrderPayload({
+  form,
+  program,
+  batch,
+  uploadedFotoUrl,
+}: {
+  form: FormData;
+  program: {
+    id: string;
+    title: string;
+    slug: string;
+    price?: number;
+  };
+  batch?: {
+    id: string;
+    title?: string;
+    startDate?: Date;
+  };
+  uploadedFotoUrl?: string;
+}) {
+  return {
+    id: nanoid(),
 
-// ─── Constants ───────────────────────────────────────────────────────────────
+    programId: program.id,
+    batchId: batch?.id ?? null,
+
+    // snapshot (VERY IMPORTANT)
+    programSnapshot: {
+      title: program.title,
+      slug: program.slug,
+      price: program.price ?? null,
+      batchLabel: form.batchLabel,
+    },
+
+    // 🔥 PROMOTED FIELDS
+    customerName: form.namaOrtu,
+    phone: form.hpOrtu,
+    email: form.email || null,
+
+    childName: form.nama,
+    age: parseAge(form.usia),
+
+    // 🧠 FLEXIBLE DATA
+    data: {
+      // Program
+      batchId: form.batch,
+      batchLabel: form.batchLabel,
+
+      // Child
+      child: {
+        nama: form.nama,
+        panggilan: form.panggilan,
+        jenisKelamin: form.jenisKelamin,
+        tempatLahir: form.tempatLahir,
+        tanggalLahir: form.tanggalLahir,
+        usia: form.usia,
+        kelas: form.kelas,
+        sekolah: form.sekolah,
+        kotaAsal: form.kotaAsal,
+      },
+
+      // Parent
+      parent: {
+        nama: form.namaOrtu,
+        hpOrtu: form.hpOrtu,
+        hpAnak: form.hpAnak,
+        email: form.email,
+      },
+
+      // Extra
+      extra: {
+        alumni: form.alumni,
+        sumberInfo: form.sumberInfo,
+        alergi: form.alergi,
+        detailAlergi: form.detailAlergi,
+        catatan: form.catatan,
+        harapan: form.harapan,
+      },
+
+      // Logistics
+      logistics: {
+        ukuranKaos: form.ukuranKaos,
+      },
+    },
+
+    // 📎 FILES
+    attachments: {
+      foto: uploadedFotoUrl ?? null,
+    },
+
+    source: "web",
+    status: "pending",
+  };
+}
+
+type StepId = 0 | 1 | 2 | 3 | 4 | 5;
 
 const PRIMARY = "#4da3ff";
 const PRIMARY_DARK = "#2186f0";
@@ -1553,9 +1653,11 @@ function NavRow({
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+interface Props {
+  program: ProgramPageData;
+}
 
-export default function ProgramRegisterPage() {
+export default function ProgramRegisterPageClient({ program }: Props) {
   const [step, setStep] = useState<StepId>(0);
   const [data, setData] = useState<FormData>(INITIAL);
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});

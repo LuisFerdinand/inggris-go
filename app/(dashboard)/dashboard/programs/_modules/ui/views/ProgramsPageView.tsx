@@ -23,7 +23,7 @@ export const ProgramsPageView = () => {
           <>Loading</>
         ) : categories ? (
           categories.map((category) => {
-            return <>{category.key}</>;
+            return <>{category.label}</>;
           })
         ) : (
           <>No data</>

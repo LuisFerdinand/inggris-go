@@ -1,16 +1,7 @@
-import slugify from "slugify";
-
 import { db } from "@/app/db/db";
 import { programs } from "@/app/db/schema";
+import { generateSlug } from "@/lib/utils";
 import { eq } from "drizzle-orm";
-
-export function generateSlug(title: string) {
-  return slugify(title, {
-    lower: true,
-    strict: true,
-    trim: true,
-  });
-}
 
 export async function createUniqueSlug(title: string, categoryId: string) {
   const baseSlug = generateSlug(title);

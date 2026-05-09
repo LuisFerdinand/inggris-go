@@ -12,7 +12,7 @@ import {
   CATEGORIES,
   CategoryMeta,
   ProgramMeta,
-} from "../../../[category]/data";
+} from "../../../[categorySlug]/data";
 import { HeroSection } from "../components/HeroSection";
 import { QuickDecisionSection } from "../components/QuickDecisionSection";
 

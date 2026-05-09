@@ -5,10 +5,10 @@ import CategoryPageClient from "./client";
 export default async function CategoryPage({
   params,
 }: {
-  params: Promise<{ category: string }>;
+  params: Promise<{ categorySlug: string }>;
 }) {
-  const { category } = await params;
-  const meta = CATEGORIES[category];
+  const { categorySlug } = await params;
+  const meta = CATEGORIES[categorySlug];
   if (!meta) notFound();
 
   return <CategoryPageClient meta={meta} />;

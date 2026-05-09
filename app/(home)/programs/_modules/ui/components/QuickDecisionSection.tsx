@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CATEGORIES } from "../../../[category]/data";
+import { CATEGORIES } from "../../../[categorySlug]/data";
 import { EASE, Reveal } from "../views/ProgramsView";
 import { generateTheme } from "@/lib/utils";
 import { motion, useInView, AnimatePresence } from "framer-motion";

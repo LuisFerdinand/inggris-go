@@ -1,7 +1,10 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import chroma from "chroma-js";
-import { PROGRAM_DETAILS } from "@/app/(home)/programs/[category]/data";
+import { PROGRAM_DETAILS } from "@/app/(home)/programs/[categorySlug]/data";
+import slugify from "slugify";
+import { nanoid } from "nanoid";
+import { sql } from "drizzle-orm";
 
 export type Theme = {
   /** Full-opacity primary hex — use for buttons, icons, accents */
@@ -71,4 +74,28 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getProgramDetail(slug: string) {
   return PROGRAM_DETAILS[slug];
+}
+
+export function generateId(prefix?: string) {
+  const id = nanoid(12); // short but safe
+  return prefix ? `${prefix}_${id}` : id;
+}
+
+export function generateSlug(title: string) {
+  return slugify(title, {
+    lower: true,
+    strict: true,
+    trim: true,
+  });
+}
+
+export function excludedColumns(columns: string[]) {
+  return Object.fromEntries(
+    columns.map((column) => [column, sql.raw(`excluded.${column}`)]),
+  );
+}
+
+export function parseAge(usia: string): number | null {
+  const match = usia.match(/\d+/);
+  return match ? Number(match[0]) : null;
 }

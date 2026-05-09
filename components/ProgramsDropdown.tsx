@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import * as Icons from "lucide-react";
-import { CATEGORIES } from "@/app/(home)/programs/[category]/data";
+import { CATEGORIES } from "@/app/(home)/programs/[categorySlug]/data";
 import { BRAND } from "@/constants/brand";
 import { generateTheme } from "@/lib/utils";
 

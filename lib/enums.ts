@@ -25,6 +25,23 @@ export const PROGRAM_CATEGORY_STATUS_LABEL: Record<
   archived: "Diarsipkan",
 };
 
+export const PROGRAM_BATCH_STATUS = [
+  "draft",
+  "open",
+  "full",
+  "closed",
+  "completed",
+] as const;
+export type ProgramBatchStatus = (typeof PROGRAM_BATCH_STATUS)[number];
+export const programBatchStatusEnum = z.enum(PROGRAM_BATCH_STATUS);
+export const PROGRAM_BATCH_STATUS_LABEL: Record<ProgramBatchStatus, string> = {
+  draft: "Draft",
+  open: "Terbuka",
+  full: "Penuh",
+  closed: "Ditutup",
+  completed: "Selesai",
+};
+
 export const PROGRAM_FORMAT = ["online", "offline", "hybrid"] as const;
 export type ProgramFormat = (typeof PROGRAM_FORMAT)[number];
 export const programFormatEnum = z.enum(PROGRAM_FORMAT);
@@ -50,4 +67,23 @@ export const PROGRAM_LEVEL_LABEL: Record<ProgramLevel, string> = {
   beginner: "Pemula",
   intermediate: "Menengah",
   advanced: "Lanjutan",
+};
+
+export const MATERIAL_TYPE = [
+  "brochure",
+  "guidebook",
+  "schedule",
+  "pricing",
+  "rundown",
+  "other",
+] as const;
+export type MaterialType = (typeof MATERIAL_TYPE)[number];
+export const materialTypeEnum = z.enum(MATERIAL_TYPE);
+export const MATERIAL_TYPE_LABEL: Record<MaterialType, string> = {
+  brochure: "Brosur",
+  guidebook: "Panduan",
+  schedule: "Jadwal",
+  pricing: "Daftar Harga",
+  rundown: "Rundown Acara",
+  other: "Lainnya",
 };

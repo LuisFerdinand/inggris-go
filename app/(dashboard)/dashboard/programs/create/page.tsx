@@ -44,9 +44,13 @@ import {
 } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import * as z from "zod";
+import { trpc } from "@/lib/trpc/client";
+import {} from "@/app/(home)/programs/[categorySlug]/data";
 type FormValues = z.infer<typeof programCreateSchema>;
 
 type SectionId = "basic" | "details" | "pricing" | "media";
+
+type Category = { id: string; label: string; icon?: string | null };
 
 type SectionConfig = {
   id: SectionId;
@@ -200,15 +204,6 @@ const STATUS_OPTIONS = [
     icon: <Archive className="size-4" />,
     desc: "Hidden from listings",
   },
-];
-
-const CATEGORIES = [
-  { id: "cat-1", label: "Web Development" },
-  { id: "cat-2", label: "Data Science" },
-  { id: "cat-3", label: "Design" },
-  { id: "cat-4", label: "Marketing" },
-  { id: "cat-5", label: "Business" },
-  { id: "cat-6", label: "Finance" },
 ];
 
 /* ─── Shared input styles ────────────────────────────────────── */
@@ -574,10 +569,12 @@ function SectionSnippet({
   id,
   form,
   color,
+  categories,
 }: {
   id: SectionId;
   form: UseFormReturn<FormValues>;
   color: SectionConfig["color"];
+  categories: Category[];
 }) {
   const snippets: Record<
     SectionId,
@@ -587,7 +584,7 @@ function SectionSnippet({
       { label: "Title", value: (form.watch("title") as string) || undefined },
       {
         label: "Category",
-        value: CATEGORIES.find((c) => c.id === form.watch("categoryId"))?.label,
+        value: categories.find((c) => c.id === form.watch("categoryId"))?.label,
       },
       { label: "Status", value: (form.watch("status") as string) || undefined },
     ],
@@ -677,6 +674,7 @@ function SectionCard({
   onToggle,
   children,
   form,
+  categories,
 }: {
   section: SectionConfig;
   isExpanded: boolean;
@@ -685,6 +683,7 @@ function SectionCard({
   onToggle: () => void;
   children: React.ReactNode;
   form: UseFormReturn<FormValues>;
+  categories: Category[];
 }) {
   const { color } = section;
   const borderColor = hasError
@@ -780,7 +779,12 @@ function SectionCard({
       {/* Collapsed snippet */}
       {!isExpanded && (
         <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-          <SectionSnippet id={section.id} form={form} color={color} />
+          <SectionSnippet
+            id={section.id}
+            form={form}
+            color={color}
+            categories={categories}
+          />
         </div>
       )}
 
@@ -797,9 +801,13 @@ function SectionCard({
 function BasicSection({
   form,
   color,
+  categories,
+  isLoadingCategories,
 }: {
   form: UseFormReturn<FormValues>;
   color: SectionConfig["color"];
+  categories: Category[];
+  isLoadingCategories: boolean;
 }) {
   const title = (form.watch("title") ?? "") as string;
   const desc = (form.watch("description") ?? "") as string;
@@ -916,33 +924,54 @@ function BasicSection({
         render={({ field, fieldState }) => (
           <Field label="Category" required error={fieldState.error?.message}>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {CATEGORIES.map((cat) => {
-                const sel = field.value === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => field.onChange(cat.id)}
-                    className={cn(
-                      "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-left transition-all duration-150",
-                      sel
-                        ? "border-blue-500 bg-blue-50 text-blue-700 font-medium"
-                        : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50 text-neutral-600",
-                      fieldState.invalid && !field.value && "border-red-300",
-                    )}
-                  >
-                    <span className="flex-1 truncate text-xs font-medium">
-                      {cat.label}
-                    </span>
-                    {sel && (
-                      <Check
-                        className="size-3.5 shrink-0 text-blue-600"
-                        strokeWidth={2.5}
-                      />
-                    )}
-                  </button>
-                );
-              })}
+              {isLoadingCategories ? (
+                // ✅ Skeleton Loader (matches card UI)
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-[42px] rounded-lg border border-neutral-200 bg-neutral-100 animate-pulse"
+                  />
+                ))
+              ) : categories && categories.length > 0 ? (
+                // ✅ Normal State
+                categories.map((cat) => {
+                  const sel = field.value === cat.id;
+
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => field.onChange(cat.id)}
+                      disabled={isLoadingCategories}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm text-left transition-all duration-150",
+                        "focus:outline-none focus:ring-2 focus:ring-blue-500/20",
+                        sel
+                          ? "border-blue-500 bg-blue-50 text-blue-700 font-medium"
+                          : "border-neutral-200 bg-white hover:border-neutral-300 hover:bg-neutral-50 text-neutral-600",
+                        fieldState.invalid && !field.value && "border-red-300",
+                        isLoadingCategories && "opacity-60 cursor-not-allowed",
+                      )}
+                    >
+                      <span className="flex-1 truncate text-xs font-medium">
+                        {cat.label}
+                      </span>
+
+                      {sel && (
+                        <Check
+                          className="size-3.5 shrink-0 text-blue-600"
+                          strokeWidth={2.5}
+                        />
+                      )}
+                    </button>
+                  );
+                })
+              ) : (
+                // ✅ Empty State
+                <div className="col-span-full text-xs text-neutral-500 border border-dashed border-neutral-300 rounded-lg p-3 text-center">
+                  Tidak ada kategori tersedia
+                </div>
+              )}
             </div>
           </Field>
         )}
@@ -1682,6 +1711,9 @@ function MediaSection({
 }
 
 const ProgramCreatePage = () => {
+  const { data: categories = [], isLoading: isLoadingCategories } =
+    trpc.programs.getCategories.useQuery();
+
   const [activeSection, setActiveSection] = useState<SectionId>("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -1699,7 +1731,7 @@ const ProgramCreatePage = () => {
       title: "",
       description: "",
       shortDesc: "",
-      categoryId: "",
+      categoryId: categories.length > 0 ? categories[0].id : "",
       status: "draft",
       format: "online",
       level: "beginner",
@@ -1866,7 +1898,7 @@ const ProgramCreatePage = () => {
     {
       label: "Category",
       value:
-        CATEGORIES.find((c) => c.id === form.watch("categoryId"))?.label ||
+        categories.find((c) => c.id === form.watch("categoryId"))?.label ||
         null,
     },
     { label: "Format", value: form.watch("format") || null },
@@ -1889,7 +1921,7 @@ const ProgramCreatePage = () => {
       />
 
       <div className="flex flex-1 flex-col">
-        <div className="mx-auto w-full max-w-6xl px-4 py-6 lg:py-8">
+        <div className=" w-full max-w-6xl px-8 py-6 lg:py-8">
           {/* Page header */}
           <div className="mb-8 flex items-start gap-4">
             <Button
@@ -2058,9 +2090,15 @@ const ProgramCreatePage = () => {
                     }
                     onToggle={() => toggleSection(section.id)}
                     form={form}
+                    categories={categories}
                   >
                     {section.id === "basic" && (
-                      <BasicSection form={form} color={section.color} />
+                      <BasicSection
+                        form={form}
+                        color={section.color}
+                        categories={categories}
+                        isLoadingCategories={isLoadingCategories}
+                      />
                     )}
                     {section.id === "details" && (
                       <DetailsSection form={form} color={section.color} />

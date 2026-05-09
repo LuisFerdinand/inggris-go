@@ -25,6 +25,8 @@ import {
   PriceTier,
 } from "@/app/modules/program/program.types";
 import {
+  MaterialType,
+  PROGRAM_BATCH_STATUS,
   PROGRAM_CATEGORY_STATUS,
   PROGRAM_FORMAT,
   PROGRAM_LEVEL,
@@ -41,58 +43,64 @@ export const programBatchModeEnum = pgEnum(
   "program_batch_enum",
   PROGRAM_FORMAT,
 );
+export const programBatchStatusEnum = pgEnum(
+  "program_batch_status",
+  PROGRAM_BATCH_STATUS,
+);
 
 export const programStatusEnum = pgEnum("program_status", PROGRAM_STATUS);
 
-export const programs = pgTable(
-  "programs",
-  {
-    id: text("id").primaryKey(),
+export const registrationTypeEnum = pgEnum("registration_type", [
+  "online",
+  "offline",
+]);
+export const programBatchTypeEnum = pgEnum("program_batch_type", [
+  "scheduled",
+  "package",
+]);
+export const programs = pgTable("programs", {
+  id: text("id").primaryKey(),
 
-    title: text("title").notNull(),
-    slug: text("slug").notNull(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
 
-    description: text("description").notNull(),
-    shortDesc: text("short_desc"),
+  description: text("description").notNull(),
+  shortDesc: text("short_desc"),
 
-    categoryId: text("category_id")
-      .notNull()
-      .references(() => programCategories.id, { onDelete: "cascade" }),
+  categoryId: text("category_id")
+    .notNull()
+    .references(() => programCategories.id, { onDelete: "cascade" }),
 
-    status: programStatusEnum("status").default("draft").notNull(),
+  status: programStatusEnum("status").default("draft").notNull(),
+  registrationType: registrationTypeEnum("registration_type")
+    .default("online")
+    .notNull(),
 
-    order: integer("order").default(0),
+  order: integer("order").default(0),
 
-    // 💰 Pricing
-    basePrice: integer("base_price"),
-    originalPrice: integer("original_price"),
-    priceTiers: jsonb("price_tiers").$type<PriceTier[]>(),
+  startingPrice: integer("starting_price"),
+  startingOriginalPrice: integer("starting_original_price"),
 
-    // 🎯 Marketing
-    badge: text("badge"),
-    highlight: text("highlight"),
+  // 🎯 Marketing
+  badge: text("badge"),
+  highlight: text("highlight"),
 
-    // 🏷️ Metadata
-    tags: jsonb("tags").$type<string[]>(),
-    icon: text("icon"),
-    thumbnail: text("thumbnail"),
+  // 🏷️ Metadata
+  tags: jsonb("tags").$type<string[]>(),
+  icon: text("icon"),
+  thumbnail: text("thumbnail"),
 
-    // 📦 Simple info
-    duration: integer("duration"), //in days
-    level: programLevelEnum("level").default("beginner").notNull(),
-    format: programFormatEnum("format").default("online").notNull(),
+  // 📦 Simple info
+  duration: integer("duration"), //in days
+  level: programLevelEnum("level").default("beginner").notNull(),
+  format: programFormatEnum("format").default("online").notNull(),
 
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
-  },
-  (table) => ({
-    uniqueSlugPerCategory: unique().on(table.slug, table.categoryId),
-  }),
-);
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
+});
 
 export const programCategories = pgTable("program_categories", {
   id: text("id").primaryKey(),
-  key: text("key").notNull().unique(),
   slug: text("slug").notNull().unique(),
 
   label: text("label").notNull(),
@@ -129,6 +137,67 @@ export const programCategories = pgTable("program_categories", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+export const programBatches = pgTable("batch", {
+  id: text("id").primaryKey(),
+
+  teacherId: text("teacher_id").references(() => user.id, {
+    onDelete: "set null",
+  }),
+
+  programId: text("program_id")
+    .notNull()
+    .references(() => programs.id, { onDelete: "cascade" }),
+
+  title: text("title").notNull(),
+  type: programBatchTypeEnum("type").default("scheduled").notNull(),
+  isUnlimited: boolean("is_unlimited").default(false).notNull(),
+
+  slug: text("slug").notNull().unique(),
+  price: integer("price"),
+  originalPrice: integer("original_price"),
+
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+
+  capacity: integer("capacity"),
+  enrolledCount: integer("enrolled_count").default(0),
+  status: programBatchStatusEnum("status").default("draft").notNull(),
+
+  isOpen: boolean("is_open").default(true).notNull(),
+
+  mode: programBatchModeEnum("mode"),
+
+  location: text("location"),
+
+  meetingDays: jsonb("meeting_days"),
+  meetingTime: text("meeting_time"),
+
+  materials: jsonb("materials").$type<
+    Array<{
+      label: string;
+      type?: MaterialType;
+      url: string;
+    }>
+  >(),
+
+  primaryCta: jsonb("primary_cta").$type<{
+    label: string;
+    href: string;
+    icon?: string;
+  }>(),
+
+  secondaryCta: jsonb("secondary_cta").$type<{
+    label: string;
+    href: string;
+    icon?: string;
+  }>(),
+
+  notes: text("notes"),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+
+  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
+});
 
 export const programContent = pgTable("program_content", {
   id: text("id").primaryKey(),
@@ -148,36 +217,6 @@ export const programContent = pgTable("program_content", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const programBatches = pgTable("batch", {
-  id: text("id").primaryKey(),
-  teacherId: text("teacher_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-
-  programId: text("program_id")
-    .notNull()
-    .references(() => programs.id, { onDelete: "cascade" }),
-
-  title: text("title"), // e.g. "Jan 2026 Batch"
-  slug: text("slug"),
-
-  startDate: timestamp("start_date"),
-  endDate: timestamp("end_date"),
-
-  capacity: integer("capacity"), // max students
-
-  mode: programBatchModeEnum("mode"),
-
-  location: text("location"), // for camp / offline
-
-  meetingDays: jsonb("meeting_days"), // ["Mon", "Tue"]
-  meetingTime: text("meeting_time"), // "20:00"
-
-  status: text("status").default("draft"), // draft | open | full | completed
-
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const categoryRelations = relations(programCategories, ({ many }) => ({
   programs: many(programs),
 }));
@@ -189,10 +228,18 @@ export const programContentRelations = relations(programContent, ({ one }) => ({
   }),
 }));
 
-export const programRelations = relations(programs, ({ one }) => ({
+export const programBatchRelations = relations(programBatches, ({ one }) => ({
+  program: one(programs, {
+    fields: [programBatches.programId],
+    references: [programs.id],
+  }),
+}));
+
+export const programRelations = relations(programs, ({ one, many }) => ({
   category: one(programCategories, {
     fields: [programs.categoryId],
     references: [programCategories.id],
   }),
   content: one(programContent),
+  batches: many(programBatches),
 }));

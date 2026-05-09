@@ -3,7 +3,7 @@ import {
   CATEGORIES,
   CategoryMeta,
   ProgramMeta,
-} from "../../../[category]/data";
+} from "../../../[categorySlug]/data";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   EASE,
