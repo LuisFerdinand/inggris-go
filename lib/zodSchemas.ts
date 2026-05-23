@@ -1,90 +1,258 @@
 import { z } from "zod";
 import {
-  PROGRAM_STATUS,
+  programBatchModeEnum,
+  programBatchStatusEnum,
   programFormatEnum,
   programLevelEnum,
+  programScheduleTypeEnum,
   programStatusEnum,
 } from "./enums";
 
-const required = (label: string) => `${label} wajib diisi`;
-const min = (label: string, n: number) => `${label} minimal ${n} karakter`;
-const max = (label: string, n: number) => `${label} maksimal ${n} karakter`;
-const invalidNumber = (label: string) => `${label} harus berupa angka`;
-const nonNegative = (label: string) => `${label} tidak boleh negatif`;
+export function makeResolver<T extends z.ZodType>(schema: T) {
+  return async (values: unknown) => {
+    const result = schema.safeParse(values);
+    if (result.success)
+      return { values: result.data as z.infer<T>, errors: {} };
+    const errors: Record<string, { type: string; message: string }> = {};
+    for (const issue of result.error.issues) {
+      const key = issue.path.join(".");
+      if (!errors[key])
+        errors[key] = { type: issue.code, message: issue.message };
+    }
+    return { values: {}, errors };
+  };
+}
+const requiredMsg = (label: string) => `${label} wajib diisi`;
+// ─────────────────────────────────────────────────────────────────────────────
+// Package schema
+// ─────────────────────────────────────────────────────────────────────────────
 
-const priceTierSchema = z.object({
-  label: z.string().min(1, required("Label paket")),
-  price: z.coerce
+const packageBaseObject = z.object({
+  title: z
+    .string()
+    .min(1, requiredMsg("Nama paket"))
+    .max(100, "Nama paket maksimal 100 karakter"),
+
+  description: z
+    .string()
+    .max(500, "Deskripsi paket maksimal 500 karakter")
+    .optional()
+    .nullable(),
+
+  price: z
     .number()
     .int("Harga harus berupa angka bulat")
-    .nonnegative("Harga tidak boleh negatif"),
-  description: z.string().optional(),
+    .min(0, "Harga tidak boleh negatif"),
+
+  originalPrice: z
+    .number()
+    .int("Harga asli harus berupa angka bulat")
+    .min(0, "Harga asli tidak boleh negatif")
+    .optional()
+    .nullable(),
+
+  isDefault: z.boolean().default(false),
+
+  enrollment: z.number().int().min(0).default(0),
 });
 
-const programBaseObject = z.object({
-  title: z.string().min(3).max(120),
-  description: z.string().min(10),
-  shortDesc: z.string().max(200).optional(),
-  categoryId: z.string().min(1),
+// Cross-field: originalPrice must exceed price when both are set
+const withPriceValidation = <
+  T extends z.ZodType<{
+    price?: number | null;
+    originalPrice?: number | null;
+  }>,
+>(
+  schema: T,
+) =>
+  schema.superRefine((data, ctx) => {
+    if (
+      data.originalPrice != null &&
+      data.originalPrice > 0 &&
+      data.price != null &&
+      data.originalPrice <= data.price
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Harga asli harus lebih besar dari harga jual",
+        path: ["originalPrice"],
+      });
+    }
+  });
+
+export const packageSchema = withPriceValidation(packageBaseObject);
+
+export const packageCreateSchema = withPriceValidation(
+  packageBaseObject.extend({
+    programId: z.string().min(1, requiredMsg("Program")),
+    batchId: z.string().optional().nullable(),
+  }),
+);
+
+export const packageUpdateSchema = withPriceValidation(
+  packageBaseObject.partial().extend({
+    id: z.string().min(1),
+    programId: z.string().optional(),
+    batchId: z.string().optional().nullable(),
+  }),
+);
+
+export type PackageData = z.infer<typeof packageSchema>;
+export type PackageCreateData = z.infer<typeof packageCreateSchema>;
+export type PackageUpdateData = z.infer<typeof packageUpdateSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Batch schema
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const batchCreateSchema = z.object({
+  programId: z.string().min(1, requiredMsg("Program")),
+
+  title: z
+    .string()
+    .min(1, requiredMsg("Judul batch"))
+    .max(200, "Judul batch maksimal 200 karakter"),
+
+  status: programBatchStatusEnum.default("draft"),
+
+  isOpen: z.boolean().default(true),
+
+  startDate: z.string().datetime().optional().nullable(),
+  endDate: z.string().datetime().optional().nullable(),
+
+  capacity: z.number().int().min(1).optional().nullable(),
+
+  mode: programBatchModeEnum.optional().nullable(),
+
+  location: z.string().max(500).optional().nullable(),
+
+  meetingDays: z.array(z.string()).optional().nullable(),
+
+  meetingTime: z.string().max(100).optional().nullable(),
+
+  notes: z.string().max(1000).optional().nullable(),
+
+  teacherId: z.string().optional().nullable(),
+
+  // Packages created together with the batch
+  packages: z.array(packageSchema).default([]),
+});
+
+export const batchUpdateSchema = batchCreateSchema
+  .omit({ programId: true })
+  .partial()
+  .extend({
+    id: z.string().min(1),
+    programId: z.string().min(1),
+  });
+
+export type BatchCreateData = z.infer<typeof batchCreateSchema>;
+export type BatchUpdateData = z.infer<typeof batchUpdateSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Program — shared content fields
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// These fields appear on both /create and /edit.
+// Pricing and batch management live exclusively on /edit.
+
+const programContentObject = z.object({
+  title: z
+    .string()
+    .min(3, "Judul program minimal 3 karakter")
+    .max(100, "Judul program maksimal 100 karakter"),
+
+  description: z
+    .string()
+    .min(10, "Deskripsi minimal 10 karakter")
+    .max(5000, "Deskripsi maksimal 5.000 karakter"),
+
+  shortDesc: z
+    .string()
+    .max(200, "Deskripsi singkat maksimal 200 karakter")
+    .optional()
+    .nullable(),
+
+  categoryId: z.string().min(1, requiredMsg("Kategori")),
+
+  // Determines enrollment flow:
+  //   permanent  → packages attached directly to the program
+  //   scheduled  → packages attached to batches under the program
+  scheduleType: programScheduleTypeEnum.default("permanent"),
 
   status: programStatusEnum.default("draft"),
 
-  order: z.coerce.number().int().nonnegative().default(0),
+  registrationType: z.enum(["online", "offline"]).default("online"),
 
-  basePrice: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().int().nonnegative().optional(),
-  ),
-
-  originalPrice: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().int().nonnegative().optional(),
-  ),
-
-  priceTiers: z.array(priceTierSchema).optional(),
-
-  badge: z.string().max(50).optional(),
-  highlight: z.string().max(160).optional(),
-
-  tags: z.array(z.string().min(1)).optional(),
-
-  icon: z.string().url().optional(),
-  thumbnail: z.string().url().optional(),
-
-  duration: z.preprocess(
-    (val) => (val === "" ? undefined : val),
-    z.coerce.number().int().nonnegative().optional(),
-  ),
+  enrollment: z.coerce
+    .number()
+    .int("Urutan harus berupa angka bulat")
+    .min(0, "Urutan tidak boleh negatif")
+    .default(0),
 
   format: programFormatEnum.default("online"),
+
   level: programLevelEnum.default("beginner"),
+
+  duration: z.coerce
+    .number()
+    .int("Durasi harus berupa angka bulat")
+    .min(1, "Durasi wajib diisi")
+    .optional()
+    .nullable(),
+
+  badge: z.string().max(50, "Badge maksimal 50 karakter").optional().nullable(),
+
+  highlight: z
+    .string()
+    .max(160, "Highlight maksimal 160 karakter")
+    .optional()
+    .nullable(),
+
+  tags: z.array(z.string().min(1)).optional().nullable(),
+
+  icon: z.string().optional().nullable(),
+
+  thumbnail: z
+    .string()
+    .url("URL thumbnail tidak valid")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
 });
 
-export const programBaseSchema = programBaseObject.refine(
-  (data) =>
-    !data.originalPrice ||
-    !data.basePrice ||
-    data.originalPrice >= data.basePrice,
-  {
-    message: "Harga promo harus ≥ harga utama",
-    path: ["originalPrice"],
-  },
-);
+// ─── Create schema ────────────────────────────────────────────────────────────
+//
+// /create collects the program shell only.
+// No pricing, no batches, no packages.
+// startingPrice is derived automatically once packages are added on /edit.
 
-export const programQuickCreateSchema = programBaseObject.pick({
+export const programCreateSchema = programContentObject;
+
+export type ProgramCreateData = z.infer<typeof programCreateSchema>;
+
+// ─── Update schema ────────────────────────────────────────────────────────────
+//
+// /edit allows changing all content fields.
+// Pricing/packages/batches are managed through their own dedicated mutations.
+
+export const programUpdateSchema = programContentObject.partial().extend({
+  id: z.string().min(1),
+});
+
+export type ProgramUpdateData = z.infer<typeof programUpdateSchema>;
+
+// ─── Quick-create (minimal, for inline dialogs) ───────────────────────────────
+
+export const programQuickCreateSchema = programContentObject.pick({
   title: true,
   description: true,
   categoryId: true,
 });
 
-export const programCreateSchema = programBaseSchema;
+export type ProgramQuickCreateData = z.infer<typeof programQuickCreateSchema>;
 
-export const programUpdateSchema = programBaseObject.partial();
-
-export type ProgramCreateInput = z.input<typeof programCreateSchema>;
-export type ProgramCreateOutput = z.output<typeof programCreateSchema>;
-
-export const onlineOrderSchema = z.object({
+export const onlineEnrollmentSchema = z.object({
   type: z.literal("online"),
 
   programId: z.string(),
@@ -96,7 +264,7 @@ export const onlineOrderSchema = z.object({
   age: z.number().optional(),
 });
 
-export const offlineOrderSchema = z.object({
+export const offlineEnrollmentSchema = z.object({
   type: z.literal("offline"),
 
   programId: z.string(),
@@ -134,7 +302,20 @@ export const offlineOrderSchema = z.object({
   ukuranKaos: z.string(),
 });
 
-export const orderSchema = z.discriminatedUnion("type", [
-  onlineOrderSchema,
-  offlineOrderSchema,
+export const enrollmentSchema = z.discriminatedUnion("type", [
+  onlineEnrollmentSchema,
+  offlineEnrollmentSchema,
 ]);
+
+// export const wizardProgramSchema = z.object({
+//   step1: programCreateSchema,
+//   step2: z.object({
+//     batches: z.array(batchCreateSchema),
+//     hasBatches: z.boolean().default(false),
+//   }),
+//   step3: z.object({
+//     packages: z.array(packageSchemaWithCrossValidation),
+//   }),
+// });
+
+// export type WizardProgramData = z.infer<typeof wizardProgramSchema>;

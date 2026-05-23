@@ -26,7 +26,7 @@ import {
   Zap,
   Loader2,
   BookOpen,
-  Sparkles,
+  PartyPopper,
   Heart,
   MapPin,
   ExternalLink,
@@ -385,7 +385,7 @@ function SuccessScreen({ onReset }: { onReset: () => void }) {
           <CheckCircle2 className="w-10 h-10 text-green-500" />
         </div>
         <div className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center shadow-md">
-          <Sparkles className="w-3.5 h-3.5 text-amber-900" />
+          <PartyPopper className="w-3.5 h-3.5 text-amber-900" />
         </div>
       </div>
 

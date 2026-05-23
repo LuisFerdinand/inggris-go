@@ -6,21 +6,24 @@ import {
   boolean,
   index,
   pgEnum,
+  unique,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 
-export const roleEnum = pgEnum("role_enum", [
+export const ROLES = [
   "guest",
   "user",
   "teacher",
   "author",
   "admin",
   "super_admin",
-]);
+] as const;
+export type Role = (typeof ROLES)[number];
+export const userRoleEnum = pgEnum("role", ROLES);
 
-export const role = pgTable("role", {
+export const role = pgTable("roles", {
   id: text("id").primaryKey(),
-  name: roleEnum("name").notNull().unique(),
+  name: userRoleEnum("name").notNull().unique(),
   description: text("description"),
 });
 
@@ -31,17 +34,24 @@ export const userRole = pgTable(
 
     userId: text("user_id")
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => user.id, {
+        onDelete: "cascade",
+      }),
 
     roleId: text("role_id")
       .notNull()
-      .references(() => role.id, { onDelete: "cascade" }),
+      .references(() => role.id, {
+        onDelete: "cascade",
+      }),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
     index("user_role_user_idx").on(table.userId),
+
     index("user_role_role_idx").on(table.roleId),
+
+    unique().on(table.userId, table.roleId),
   ],
 );
 

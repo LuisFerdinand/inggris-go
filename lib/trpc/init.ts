@@ -4,7 +4,7 @@ import { cache } from "react";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { db } from "@/app/db/db";
-import { user as users } from "@/app/db/schema";
+import { role, userRole, user } from "@/app/db/schema";
 
 export const createTRPCContext = async (opts?: { headers?: Headers }) => {
   const session = await auth.api.getSession({
@@ -31,20 +31,24 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const [user] = await db
+  const [authUser] = await db
     .select()
-    .from(users)
-    .where(eq(users.id, ctx.authUserId))
+    .from(user)
+    .where(eq(user.id, ctx.authUserId))
     .limit(1);
 
-  if (!user) {
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (!authUser) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "User not found" });
   }
 
+  const roleRows = await db
+    .select({ role: role.name })
+    .from(userRole)
+    .innerJoin(role, eq(role.id, userRole.roleId))
+    .where(eq(userRole.userId, authUser.id));
+
+  const roles = roleRows.map((r) => r.role);
   return next({
-    ctx: {
-      ...ctx,
-      user,
-    },
+    ctx: { ...ctx, auth: { userId: authUser.id, user: authUser, roles } },
   });
 });

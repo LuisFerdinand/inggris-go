@@ -138,7 +138,7 @@ export const NAV_ICONS: Record<string, React.ElementType> = {
   "/go-private": Laptop,
   "/vip-camp": Tent,
   "/school-camp": School,
-  "/tentang-kami": Info,
+  "/about": Info,
   "/hubungi-kami": Phone,
   "/blog": Images,
 };
@@ -148,3 +148,5 @@ export const SOCIAL_PROOF = {
   activeStudents: 247,
   parentsTrusted: 500,
 };
+
+export const DEFAULT_LIMIT = 12;

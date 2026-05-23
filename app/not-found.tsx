@@ -22,7 +22,7 @@ import Navbar from "@/components/Navbar";
 /* ─── Data ───────────────────────────────────────────────────── */
 const NAV_LINKS = [
   { label: "Beranda", href: "/", icon: Home },
-  { label: "Tentang Kami", href: "/tentang-kami", icon: Users },
+  { label: "Tentang Kami", href: "/about", icon: Users },
   { label: "Program", href: "/programs", icon: BookOpen },
   { label: "Blog", href: "/blog", icon: FileText },
   { label: "Kontak", href: "/contact", icon: MessageCircle },

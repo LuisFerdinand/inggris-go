@@ -8,6 +8,8 @@ type SearchParams = Promise<{
   category?: string;
   program?: string;
   batch?: string;
+  // ★ package param — used for permanent programs only
+  package?: string;
 }>;
 
 export default async function RegisterPage({
@@ -21,6 +23,7 @@ export default async function RegisterPage({
   const categorySlug = params.category;
   const programSlug = params.program;
   const batchSlug = params.batch;
+  const packageSlug = params.package;
 
   if (!categorySlug && !programSlug && !batchSlug) {
     return <ProgramRegisterPageClient initialData={null} />;
@@ -31,14 +34,11 @@ export default async function RegisterPage({
       categorySlug,
       programSlug,
       batchSlug,
+      packageSlug,
     });
 
     return <ProgramRegisterPageClient initialData={data} />;
   } catch (error) {
-    /**
-     * Invalid category/program relation
-     * should 404.
-     */
     notFound();
   }
 }

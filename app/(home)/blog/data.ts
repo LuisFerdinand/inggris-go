@@ -56,7 +56,7 @@ export const blogCategories: BlogCategory[] = [
     id: "c4",
     name: "Tips & Motivation",
     slug: "tips-motivation",
-    icon: "sparkles",
+    icon: "lightbulb",
   },
 ];
 

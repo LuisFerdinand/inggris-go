@@ -13,7 +13,7 @@ export const siteConfig = {
 
 export const navLinks = [
   { label: "Beranda", href: "/" },
-  { label: "Tentang Kami", href: "/tentang-kami" },
+  { label: "Tentang Kami", href: "/about" },
   { label: "Program Kami", href: "/programs" },
   { label: "Blog", href: "/blog" },
 ] as const;
@@ -76,7 +76,6 @@ Saya ingin langsung mendaftar untuk *${data.title}*.
 
 Mohon info langkah pendaftaran dan pembayaran ya.
     `,
-    
   };
 
   const message =

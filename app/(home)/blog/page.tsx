@@ -16,7 +16,6 @@ import {
   Mic,
   BookOpen,
   List,
-  Sparkles,
   ChevronRight,
   ChevronLeft,
   PlayCircle,
@@ -38,6 +37,9 @@ import {
   Headphones,
   ChevronsLeft,
   ChevronsRight,
+  Lightbulb,
+  Layers3,
+  CirclePlus,
 } from "lucide-react";
 import {
   blogCategories,
@@ -834,7 +836,7 @@ function BlogSidebar({
       {/* Tags — Expandable */}
       <ExpandableSection
         title="Topik"
-        icon={<Sparkles className="w-3.5 h-3.5" />}
+        icon={<Layers3 className="w-3.5 h-3.5" />}
         defaultOpen={true}
         badge={
           activeTag ? (
@@ -1711,7 +1713,7 @@ export default function BlogPage() {
             <Reveal delay={blogPlaylists.length * 100}>
               <div className="relative flex flex-col items-center justify-center min-h-[210px] rounded-2xl border-2 border-dashed border-slate-200 bg-white/60 text-center p-6 hover:border-blue-300 hover:bg-white transition-all duration-300">
                 <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
-                  <Sparkles className="w-5 h-5 text-slate-300" />
+                  <CirclePlus className="w-5 h-5 text-slate-300" />
                 </div>
                 <p className="font-bold text-slate-400 text-sm mb-1">
                   Playlist Baru

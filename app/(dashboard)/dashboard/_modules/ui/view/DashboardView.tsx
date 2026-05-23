@@ -6,19 +6,13 @@ import { SectionCards } from "@/components/sidebar/section-cards";
 import { SiteHeader } from "@/components/sidebar/site-header";
 import { tableData } from "./data";
 import { trpc } from "@/lib/trpc/client";
-export const ProgramsPageView = () => {
+export const DashboardView = () => {
   const { data: categories, isLoading } =
     trpc.programs.getCategories.useQuery();
 
   return (
     <>
       <main className="bg-white">
-        <SiteHeader
-          breadcrumbs={[
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "Programs", href: "/dashboard/programs" },
-          ]}
-        />
         {isLoading ? (
           <>Loading</>
         ) : categories ? (
