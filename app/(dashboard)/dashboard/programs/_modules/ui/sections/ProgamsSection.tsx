@@ -8,7 +8,7 @@ import { ProgramsViewSwitcher } from "../components/ProgramsViewSwitcher";
 
 export function ProgramsSection() {
   return (
-    <div className="flex px-4 pb-8 items-center justify-center">
+    <div className="flex w-full px-4 pb-8 items-center justify-start ">
       <Suspense fallback={<ProgramTableSkeleton />}>
         <ErrorBoundary fallback={<ProgramsError />}>
           <ProgramsViewSwitcher />

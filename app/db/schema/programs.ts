@@ -152,7 +152,9 @@ export const programs = pgTable("programs", {
 
   // Visual assets
   icon: text("icon"),
-  thumbnail: text("thumbnail"),
+  thumbnailUrl: text("thumbnail_url"),
+  thumbnailKey: text("thumbnail_key"),
+  thumbnailBlurDataUrl: text("thumbnail_blur_data_url"),
 
   // Estimated duration
   // Example: hours/days depending on app logic
@@ -165,6 +167,7 @@ export const programs = pgTable("programs", {
   format: programFormatEnum("format").default("online").notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  publishedAt: timestamp("published_at").defaultNow().notNull(),
 
   updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
 });

@@ -212,13 +212,6 @@ const programContentObject = z.object({
   tags: z.array(z.string().min(1)).optional().nullable(),
 
   icon: z.string().optional().nullable(),
-
-  thumbnail: z
-    .string()
-    .url("URL thumbnail tidak valid")
-    .optional()
-    .nullable()
-    .or(z.literal("")),
 });
 
 // ─── Create schema ────────────────────────────────────────────────────────────

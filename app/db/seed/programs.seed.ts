@@ -102,8 +102,8 @@ const PROGRAM_DATA: RawProgram[] = [
       "14 Hari Challenge • Latihan tiap hari • Feedback langsung • Via WhatsApp",
     tags: ["WhatsApp", "14 Hari", "Pemula", "Speaking"],
     icon: "target",
-    thumbnail: THUMB,
-    duration: 14,
+    thumbnailUrl: THUMB,
+    duration: 20160,
   },
 
   // ── ONLINE ───────────────────────────────────────────────────────────────────
@@ -127,8 +127,8 @@ const PROGRAM_DATA: RawProgram[] = [
       "10x Live Zoom • 60 menit • Max 8 siswa • Full speaking practice",
     tags: ["Zoom", "10x Pertemuan", "2 Minggu", "Speaking"],
     icon: "message-circle",
-    thumbnail: THUMB,
-    duration: 14,
+    thumbnailUrl: THUMB,
+    duration: 20160,
   },
   {
     categorySlug: "online",
@@ -150,8 +150,8 @@ const PROGRAM_DATA: RawProgram[] = [
       "10x Zoom • Max 6 siswa • Fun & interactive • Fokus percaya diri",
     tags: ["Anak 6–12", "Zoom", "Fun Learning", "Speaking"],
     icon: "star",
-    thumbnail: THUMB,
-    duration: 14,
+    thumbnailUrl: THUMB,
+    duration: 20160,
   },
   {
     categorySlug: "online",
@@ -172,7 +172,7 @@ const PROGRAM_DATA: RawProgram[] = [
     highlight: "1-on-1 • Jadwal bebas • Materi custom • Fokus hasil",
     tags: ["1-on-1", "Flexible Schedule", "Custom Material", "Zoom"],
     icon: "user",
-    thumbnail: THUMB,
+    thumbnailUrl: THUMB,
     duration: null,
   },
   {
@@ -195,7 +195,7 @@ const PROGRAM_DATA: RawProgram[] = [
     highlight: "1-on-1 • Jadwal bebas • Fun learning • Fokus perkembangan anak",
     tags: ["Usia 4+", "1-on-1", "Flexible Schedule", "Zoom", "Fun Learning"],
     icon: "sparkles",
-    thumbnail: THUMB,
+    thumbnailUrl: THUMB,
     duration: null,
   },
 
@@ -220,8 +220,8 @@ const PROGRAM_DATA: RawProgram[] = [
     highlight: "Lingkungan English-speaking 24 jam selama program berlangsung",
     tags: ["Offline", "Anak-anak", "Kampung Inggris", "Intensif", "Camp"],
     icon: "tent",
-    thumbnail: THUMB,
-    duration: 7,
+    thumbnailUrl: THUMB,
+    duration: 10080,
   },
   {
     categorySlug: "offline",
@@ -243,7 +243,7 @@ const PROGRAM_DATA: RawProgram[] = [
     highlight: "Kuota terbatas — cocok untuk sekolah, kampus & komunitas",
     tags: ["Offline", "Grup", "Custom", "Kampung Inggris"],
     icon: "handshake",
-    thumbnail: THUMB,
+    thumbnailUrl: THUMB,
     duration: null,
   },
 ];
@@ -840,7 +840,7 @@ export async function seedPrograms() {
           "highlight",
           "tags",
           "icon",
-          "thumbnail",
+          "thumbnail_url",
           "duration",
           "level",
           "format",

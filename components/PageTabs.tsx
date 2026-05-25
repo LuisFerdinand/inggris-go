@@ -3,6 +3,11 @@
 import { cn } from "@/lib/utils";
 import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import { usePageNav } from "./PageHeader";
+import {
+  PROGRAM_TAB_REGISTRY,
+  ProgramTab,
+} from "@/app/(dashboard)/dashboard/programs/[programId]/_modules/config/program-detail.config";
+import { Skeleton } from "./ui/skeleton";
 
 type IndicatorStyle = {
   left: number;
@@ -238,6 +243,41 @@ export function PageTabs({
           style={indicatorStyle}
           aria-hidden
         />
+      </div>
+    </div>
+  );
+}
+
+export function PageTabsSkeleton({
+  tabCount = 5,
+  className,
+}: {
+  tabCount?: number;
+  className?: string;
+}) {
+  // Vary widths so it feels organic, not mechanical
+  const widths = [56, 52, 44, 68, 60, 48, 72, 50];
+
+  return (
+    <div
+      className={cn(
+        "bg-background/95 backdrop-blur-sm",
+        "border-b border-border/60",
+        className,
+      )}
+    >
+      <div className="flex items-end gap-1 px-4 lg:px-6 overflow-hidden">
+        {Array.from({ length: tabCount }).map((_, i) => (
+          <div key={i} className="flex flex-col items-center gap-2 px-3 py-3">
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="h-3.5 w-3.5 rounded" /> {/* icon */}
+              <Skeleton
+                className="h-4 rounded"
+                style={{ width: widths[i % widths.length] }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

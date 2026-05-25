@@ -206,7 +206,7 @@ export function ProgramsViewSwitcher() {
   );
 
   return (
-    <div className="flex flex-col rounded-xl border border-neutral-200 bg-white overflow-hidden shadow-sm">
+    <div className="flex flex-col rounded-xl border border-neutral-200 bg-white overflow-hidden shadow-sm w-full">
       {/* ── Top header: view tabs only ── */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100">
         <ViewTabBar active={view as ProgramView} onChange={(v) => setView(v)} />

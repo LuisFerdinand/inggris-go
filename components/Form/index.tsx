@@ -58,6 +58,46 @@ export const tokens = {
   ].join(" "),
 } as const;
 
+function usePortalCoords(
+  open: boolean,
+  triggerRef: React.RefObject<HTMLElement | null>,
+) {
+  const [coords, setCoords] = useState({
+    top: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+  });
+
+  useEffect(() => {
+    if (!open || !triggerRef.current) return;
+
+    function measure() {
+      if (!triggerRef.current) return;
+      const r = triggerRef.current.getBoundingClientRect();
+      setCoords({
+        top: r.bottom + window.scrollY + 6,
+        left: r.left + window.scrollX,
+        right: window.innerWidth - r.right,
+        width: r.width,
+      });
+    }
+
+    measure();
+    window.addEventListener("scroll", measure, {
+      passive: true,
+      capture: true,
+    });
+    window.addEventListener("resize", measure, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", measure, { capture: true });
+      window.removeEventListener("resize", measure);
+    };
+  }, [open, triggerRef]);
+
+  return coords;
+}
+
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
 export function FieldLabel({
@@ -596,13 +636,13 @@ function OptionItem({
         )}
 
         {/* Color dot */}
-        {option.color && (
+        {/* {option.color && (
           <span
             className="h-2 w-2 shrink-0 rounded-full"
             style={{ backgroundColor: option.color }}
             aria-hidden="true"
           />
-        )}
+        )} */}
 
         {/* Icon */}
         {option.icon && (
@@ -1007,12 +1047,6 @@ export function SelectInput(props: SelectProps) {
             <span className="flex flex-1 min-w-0 items-center gap-2.5">
               {selectedOptions[0] ? (
                 <>
-                  {selectedOptions[0].color && (
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: selectedOptions[0].color }}
-                    />
-                  )}
                   {selectedOptions[0].icon && (
                     <Icon
                       className="h-4 w-4 shrink-0  text-[#1a52c8]"
@@ -1235,6 +1269,91 @@ function SelectTag({
 }
 
 // ─── StyledTextarea ───────────────────────────────────────────────────────────
+
+type InputCounterProps = {
+  characters: number;
+  maxLength: number;
+  words?: number;
+  className?: string;
+};
+
+export function InputCounterFooter({
+  characters,
+  maxLength,
+  words,
+  className,
+}: InputCounterProps) {
+  const pct = maxLength ? characters / maxLength : 0;
+
+  const nearLimit = pct > 0.8;
+  const atLimit = pct >= 1;
+
+  const arcColor = atLimit ? "#ef4444" : nearLimit ? "#f59e0b" : "#1a52c8";
+
+  const r = 8;
+  const circ = 2 * Math.PI * r;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-between border-t border-border px-3 py-2",
+        className,
+      )}
+    >
+      {/* Left */}
+      <div className="text-[11px] text-muted-foreground font-medium">
+        {typeof words === "number" ? `${words} kata` : "\u00A0"}
+      </div>
+
+      {/* Right */}
+      <div
+        className="flex items-center gap-1.5 pointer-events-none"
+        aria-hidden="true"
+      >
+        <svg width="18" height="18" viewBox="0 0 20 20">
+          <circle
+            cx="10"
+            cy="10"
+            r={r}
+            fill="none"
+            stroke="#e2e8f0"
+            strokeWidth="2.5"
+          />
+
+          <circle
+            cx="10"
+            cy="10"
+            r={r}
+            fill="none"
+            stroke={arcColor}
+            strokeWidth="2.5"
+            strokeDasharray={circ}
+            strokeDashoffset={circ * (1 - pct)}
+            strokeLinecap="round"
+            transform="rotate(-90 10 10)"
+            style={{
+              transition: "stroke-dashoffset 0.2s, stroke 0.2s",
+            }}
+          />
+        </svg>
+
+        <span
+          className={cn(
+            "text-[10px] font-bold tabular-nums transition-colors",
+            atLimit
+              ? "text-red-500"
+              : nearLimit
+                ? "text-amber-500"
+                : "text-slate-400",
+          )}
+        >
+          {characters}/{maxLength}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export const StyledTextarea = forwardRef<
   HTMLTextAreaElement,
   React.TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: boolean }
@@ -1271,7 +1390,7 @@ export const StyledTextarea = forwardRef<
         className={cn(
           tokens.inputBase,
           "h-auto py-3 resize-none leading-relaxed",
-          maxLength && "pb-8",
+          maxLength && "pb-3",
           error && tokens.inputError,
           className,
         )}

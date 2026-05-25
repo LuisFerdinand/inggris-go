@@ -9,6 +9,7 @@ import { db } from "@/app/db/db";
 import {
   programBatches,
   programCategories,
+  programContent,
   programFormatEnum,
   programLevelEnum,
   programPackages,
@@ -34,6 +35,7 @@ import { TRPCError } from "@trpc/server";
 import {
   and,
   asc,
+  count,
   desc,
   eq,
   ilike,
@@ -62,7 +64,7 @@ const PROGRAM_COLS = {
   slug: true,
   title: true,
   shortDesc: true,
-  thumbnail: true,
+  thumbnailUrl: true,
   registrationType: true,
   categoryId: true,
   level: true,
@@ -241,7 +243,7 @@ export const programRouter = createTRPCRouter({
           level: true,
           startingPrice: true,
           startingOriginalPrice: true,
-          thumbnail: true,
+          thumbnailUrl: true,
           badge: true,
           createdAt: true,
         },
@@ -528,7 +530,7 @@ export const programRouter = createTRPCRouter({
           slug: true,
           title: true,
           shortDesc: true,
-          thumbnail: true,
+          thumbnailUrl: true,
           registrationType: true,
           startingPrice: true,
           startingOriginalPrice: true,
@@ -629,7 +631,7 @@ export const programRouter = createTRPCRouter({
         highlight: input.highlight ?? null,
         tags: input.tags ?? [],
         duration: input.duration ?? null,
-        thumbnail: input.thumbnail || null,
+
         icon: input.icon || null,
         startingPrice: null,
         startingOriginalPrice: null,
@@ -998,7 +1000,7 @@ export const programRouter = createTRPCRouter({
 
           slug: programs.slug,
 
-          thumbnail: programs.thumbnail,
+          thumbnailUrl: programs.thumbnailUrl,
 
           status: programs.status,
 
@@ -1066,8 +1068,222 @@ export const programRouter = createTRPCRouter({
 
       return rows;
     }),
+  getDetailShell: baseProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const program = await db.query.programs.findFirst({
+        where: eq(programs.id, input.id),
+
+        columns: {
+          id: true,
+          title: true,
+          slug: true,
+          shortDesc: true,
+          status: true,
+
+          scheduleType: true,
+          registrationType: true,
+          format: true,
+          level: true,
+
+          thumbnailUrl: true,
+        },
+
+        with: {
+          category: {
+            columns: {
+              id: true,
+              label: true,
+              slug: true,
+            },
+          },
+        },
+      });
+
+      if (!program) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+        });
+      }
+
+      /* ========================================================
+       COUNTS
+    ======================================================== */
+
+      const [batchesResult, packagesResult, contentResult] = await Promise.all([
+        db
+          .select({
+            count: count(),
+          })
+          .from(programBatches)
+          .where(eq(programBatches.programId, input.id)),
+
+        db
+          .select({
+            count: count(),
+          })
+          .from(programPackages)
+          .where(eq(programPackages.programId, input.id)),
+
+        db.query.programContent.findFirst({
+          where: eq(programContent.programId, input.id),
+          columns: {
+            sections: true,
+          },
+        }),
+      ]);
+
+      const batchesCount = batchesResult[0]?.count ?? 0;
+      const packagesCount = packagesResult[0]?.count ?? 0;
+
+      const contentSectionsCount = contentResult?.sections?.length ?? 0;
+
+      return {
+        ...program,
+
+        stats: {
+          batchesCount,
+          packagesCount,
+
+          // placeholder for future enrollment system
+          enrollmentsCount: 0,
+
+          contentSectionsCount,
+        },
+
+        features: {
+          hasBatches: batchesCount > 0,
+          hasPackages: packagesCount > 0,
+          hasContent: contentSectionsCount > 0,
+        },
+      };
+    }),
+
+  getOverview: baseProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const program = await db.query.programs.findFirst({
+        where: eq(programs.id, input.id),
+
+        columns: {
+          id: true,
+
+          title: true,
+          slug: true,
+
+          description: true,
+          shortDesc: true,
+
+          status: true,
+
+          scheduleType: true,
+          registrationType: true,
+
+          format: true,
+          level: true,
+
+          duration: true,
+
+          badge: true,
+          highlight: true,
+
+          startingPrice: true,
+          startingOriginalPrice: true,
+
+          thumbnailUrl: true,
+          tags: true,
+          categoryId: true,
+          icon: true,
+
+          createdAt: true,
+          publishedAt: true,
+        },
+
+        with: {
+          category: {
+            columns: {
+              id: true,
+              label: true,
+              slug: true,
+            },
+          },
+        },
+      });
+
+      if (!program) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+        });
+      }
+
+      const [batchesResult, packagesResult, contentResult] = await Promise.all([
+        db
+          .select({
+            count: count(),
+          })
+          .from(programBatches)
+          .where(eq(programBatches.programId, input.id)),
+
+        db
+          .select({
+            count: count(),
+          })
+          .from(programPackages)
+          .where(eq(programPackages.programId, input.id)),
+
+        db.query.programContent.findFirst({
+          where: eq(programContent.programId, input.id),
+
+          columns: {
+            updatedAt: true,
+            sections: true,
+          },
+        }),
+      ]);
+
+      const batchesCount = batchesResult[0]?.count ?? 0;
+
+      const packagesCount = packagesResult[0]?.count ?? 0;
+
+      const contentSectionsCount = contentResult?.sections?.length ?? 0;
+
+      return {
+        ...program,
+
+        stats: {
+          batchesCount,
+          packagesCount,
+
+          contentSectionsCount,
+
+          // future-ready
+          enrollmentsCount: 0,
+        },
+
+        health: {
+          hasBatches: batchesCount > 0,
+
+          hasPackages: packagesCount > 0,
+
+          hasContent: contentSectionsCount > 0,
+        },
+
+        contentMeta: {
+          updatedAt: contentResult?.updatedAt ?? null,
+        },
+      };
+    }),
 });
 
 export type FilteredProgramsResult = RouterOutputs["programs"]["getFiltered"];
 
 export type FilteredProgram = FilteredProgramsResult[number];
+export type OverviewData = RouterOutputs["programs"]["getOverview"];

@@ -149,4 +149,4 @@ export const SOCIAL_PROOF = {
   parentsTrusted: 500,
 };
 
-export const DEFAULT_LIMIT = 12;
+export const DEFAULT_LIMIT = 4;

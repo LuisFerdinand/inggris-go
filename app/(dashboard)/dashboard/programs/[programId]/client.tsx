@@ -530,10 +530,10 @@ export default function ProgramDetailPage() {
           </div>
 
           {/* Thumbnail */}
-          {program.thumbnail && (
+          {program.thumbnailUrl && (
             <div className="overflow-hidden rounded-2xl aspect-video bg-neutral-100">
               <img
-                src={program.thumbnail}
+                src={program.thumbnailUrl}
                 alt={program.title}
                 className="w-full h-full object-cover"
               />

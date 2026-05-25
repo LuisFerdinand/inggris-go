@@ -14,6 +14,7 @@ import Link from "@tiptap/extension-link";
 import { Menubar } from "./Menubar";
 
 import { cn } from "@/lib/utils";
+import { InputCounterFooter } from "../Form";
 
 const MAX_LENGTH = 5000;
 
@@ -104,23 +105,11 @@ export function RichTextEditor({ field }: { field: any }) {
 
       <EditorContent editor={editor} />
 
-      {/* Footer */}
-      <div className="flex items-center justify-between border-t border-border px-3 py-2 text-xs">
-        <span className="text-muted-foreground">{words} kata</span>
-
-        <span
-          className={cn(
-            "font-medium tabular-nums transition-colors",
-            atLimit
-              ? "text-red-500"
-              : nearLimit
-                ? "text-amber-500"
-                : "text-muted-foreground",
-          )}
-        >
-          {characters}/{MAX_LENGTH}
-        </span>
-      </div>
+      <InputCounterFooter
+        characters={characters}
+        maxLength={MAX_LENGTH}
+        words={words}
+      />
     </div>
   );
 }

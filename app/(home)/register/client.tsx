@@ -105,7 +105,7 @@ export type ProgramSnap = {
   slug: string;
   title: string;
   shortDesc: string | null;
-  thumbnail: string | null;
+  thumbnailUrl: string | null;
   registrationType: "online" | "offline";
   categoryId: string;
   level: string;
@@ -143,7 +143,7 @@ export type ProgramListItem = {
   slug: string;
   title: string;
   shortDesc: string | null;
-  thumbnail: string | null;
+  thumbnailUrl: string | null;
   registrationType: string;
   startingPrice?: number | null;
   startingOriginalPrice?: number | null;
@@ -577,10 +577,10 @@ function ProgramCard({
           : "border-slate-200 bg-white hover:border-[#1a52c8]/50 hover:shadow-xl hover:shadow-slate-200/80",
       )}
     >
-      {program.thumbnail ? (
+      {program.thumbnailUrl ? (
         <div className="relative w-full h-40 overflow-hidden bg-slate-100">
           <img
-            src={program.thumbnail}
+            src={program.thumbnailUrl}
             alt={program.title}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
@@ -3106,7 +3106,7 @@ export default function ProgramRegisterPageClient({
       slug: prog.slug,
       title: prog.title,
       shortDesc: prog.shortDesc,
-      thumbnail: prog.thumbnail,
+      thumbnailUrl: prog.thumbnailUrl,
       registrationType: prog.registrationType as "online" | "offline",
       categoryId: selectedCategoryId ?? "",
       level: prog.level,

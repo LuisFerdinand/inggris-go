@@ -18,6 +18,8 @@ import React, {
   useState,
 } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
+import { Skeleton } from "./ui/skeleton";
+import { PageTabsSkeleton } from "./PageTabs";
 
 /* ═══════════════════════════════════════════════════════════════
    SCROLL DETECTION
@@ -333,6 +335,64 @@ export function PageHeader({
           <div className="flex shrink-0 items-center gap-2">{actions}</div>
         )}
       </div>
+    </div>
+  );
+}
+
+export function PageHeaderSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "bg-white px-4 lg:px-6 pt-5 pb-4",
+        "border-b border-transparent",
+        className,
+      )}
+    >
+      {/* Breadcrumb row — 3 crumbs + 2 separators */}
+      <div className="flex items-center gap-1.5 mb-3">
+        <Skeleton className="h-5 w-20 rounded-md" />
+        <Skeleton className="h-3 w-3 rounded-full" />
+        <Skeleton className="h-5 w-24 rounded-md" />
+        <Skeleton className="h-3 w-3 rounded-full" />
+        <Skeleton className="h-5 w-28 rounded-md" />
+        <Skeleton className="h-3 w-3 rounded-full" />
+        <Skeleton className="h-5 w-20 rounded-md" />
+      </div>
+
+      {/* Title row */}
+      <div className="flex items-start justify-between gap-4">
+        {/* Left: title + description */}
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-6 w-48 rounded-md" /> {/* title */}
+            <Skeleton className="h-5 w-14 rounded-full" /> {/* badge */}
+          </div>
+          <Skeleton className="h-4 w-72 rounded-md" /> {/* description */}
+        </div>
+
+        {/* Right: actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <Skeleton className="h-9 w-9 rounded-lg" />
+          <Skeleton className="h-9 w-28 rounded-lg" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PageNavSkeleton({
+  tabCount = 5,
+  sticky,
+  className,
+}: {
+  tabCount?: number;
+  sticky?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={cn(sticky && ["sticky z-40", "top-10"], className)}>
+      <PageHeaderSkeleton />
+      <PageTabsSkeleton tabCount={tabCount} />
     </div>
   );
 }

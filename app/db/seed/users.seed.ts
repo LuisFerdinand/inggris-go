@@ -45,6 +45,12 @@ const USERS = [
 
     roles: ["super_admin"],
   },
+  {
+    name: "Luis",
+    email: "ferdinandluis88@gmail.com",
+
+    roles: ["super_admin"],
+  },
 ] as const;
 
 export async function seedRoles() {

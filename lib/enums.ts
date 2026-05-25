@@ -2,36 +2,91 @@ import { SelectOption } from "@/components/Form";
 import z from "zod";
 
 export const PROGRAM_STATUS = ["draft", "published", "archived"] as const;
+
 export type ProgramStatus = (typeof PROGRAM_STATUS)[number];
 export const programStatusEnum = z.enum(PROGRAM_STATUS);
-export const PROGRAM_STATUS_LABEL: Record<ProgramStatus, string> = {
-  draft: "Draft",
-  published: "Dipublikasikan",
-  archived: "Diarsipkan",
+type StatusMeta = {
+  label: string;
+
+  shortLabel?: string;
+
+  icon: string;
+
+  shortDesc?: string;
+
+  color: string;
+
+  ui: {
+    bg: string;
+    text: string;
+    border: string;
+    dot: string;
+    softBg?: string;
+  };
 };
-export const PROGRAM_STATUS_OPTIONS: SelectOption[] = [
-  {
-    id: "draft",
+
+export const PROGRAM_STATUS_META: Record<ProgramStatus, StatusMeta> = {
+  draft: {
     label: "Draft",
+    shortLabel: "Draft",
     icon: "file-edit",
     shortDesc: "Program masih dalam tahap penyusunan",
     color: "#f59e0b",
+
+    ui: {
+      bg: "bg-amber-50",
+      text: "text-amber-700",
+      border: "border-amber-200",
+      dot: "bg-amber-400",
+      softBg: "bg-amber-500/10",
+    },
   },
-  {
-    id: "published",
+
+  published: {
     label: "Dipublikasikan",
+    shortLabel: "Published",
     icon: "globe",
     shortDesc: "Program sudah tersedia untuk pengguna",
     color: "#22c55e",
+
+    ui: {
+      bg: "bg-emerald-50",
+      text: "text-emerald-700",
+      border: "border-emerald-200",
+      dot: "bg-emerald-500",
+      softBg: "bg-emerald-500/10",
+    },
   },
-  {
-    id: "archived",
+
+  archived: {
     label: "Diarsipkan",
+    shortLabel: "Archived",
     icon: "archive",
     shortDesc: "Program disimpan dan tidak aktif",
     color: "#64748b",
+
+    ui: {
+      bg: "bg-neutral-100",
+      text: "text-neutral-600",
+      border: "border-neutral-200",
+      dot: "bg-neutral-400",
+      softBg: "bg-neutral-500/10",
+    },
   },
-];
+};
+export const PROGRAM_STATUS_OPTIONS: SelectOption[] = PROGRAM_STATUS.map(
+  (status) => ({
+    id: status,
+    label: PROGRAM_STATUS_META[status].label,
+    icon: PROGRAM_STATUS_META[status].icon,
+    shortDesc: PROGRAM_STATUS_META[status].shortDesc,
+    color: PROGRAM_STATUS_META[status].color,
+  }),
+);
+export const PROGRAM_STATUS_LABEL: Record<ProgramStatus, string> =
+  Object.fromEntries(
+    PROGRAM_STATUS.map((status) => [status, PROGRAM_STATUS_META[status].label]),
+  ) as Record<ProgramStatus, string>;
 
 export const PROGRAM_CATEGORY_STATUS = [
   "draft",

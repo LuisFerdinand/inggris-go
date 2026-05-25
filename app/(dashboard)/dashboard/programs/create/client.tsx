@@ -29,6 +29,7 @@ import {
   PlusCircle,
   Rocket,
   Pencil,
+  Tags,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useCallback, useEffect } from "react";
@@ -44,12 +45,18 @@ import {
 import {
   PROGRAM_FORMAT_OPTIONS,
   PROGRAM_LEVEL_OPTIONS,
+  PROGRAM_STATUS_META,
   PROGRAM_STATUS_OPTIONS,
 } from "@/lib/enums";
 import DurationInput from "@/components/Form/DurationInput";
 import { PageHeader } from "@/components/PageHeader";
 import { RichTextEditor } from "@/components/rich-text-editor/Editor";
 import { IconPicker } from "@/components/IconPicker";
+import { Icon } from "@/components/Icon";
+import { useImageUpload } from "@/components/file-uploader/useImageUpload";
+import toast from "react-hot-toast";
+import { uploadFiles } from "@/lib/uploadthing/client";
+import { ImageUploadField } from "@/components/file-uploader/ImageUploadField";
 
 type FormValues = ProgramCreateData;
 type SectionId = "basic" | "details" | "media";
@@ -179,11 +186,13 @@ function Input({
 
 // ─── Tag Input ────────────────────────────────────────────────────────────────
 
-function TagInput({
+export function TagInput({
   value = [],
   onChange,
+  placeholder,
 }: {
   value?: string[];
+  placeholder?: string;
   onChange: (v: string[]) => void;
 }) {
   const [draft, setDraft] = useState("");
@@ -227,7 +236,11 @@ function TagInput({
           }
         }}
         placeholder={
-          value.length === 0 ? "Ketik tag, tekan Enter atau koma" : ""
+          value.length === 0
+            ? placeholder
+              ? placeholder
+              : "Ketik tag, tekan Enter atau koma"
+            : ""
         }
         className="flex-1 min-w-28 bg-transparent outline-none placeholder:text-neutral-400 text-sm"
       />
@@ -424,17 +437,21 @@ function ProgressBar({ form }: { form: UseFormReturn<FormValues> }) {
 
 // ─── Section snippet (collapsed preview) ─────────────────────────────────────
 
+type SectionSnippetProps = {
+  id: SectionId;
+  form: UseFormReturn<FormValues>;
+  color: SectionColor;
+  categories: Category[];
+  imagePreviewUrl?: string | null;
+};
+
 function SectionSnippet({
   id,
   form,
   color,
   categories,
-}: {
-  id: SectionId;
-  form: UseFormReturn<FormValues>;
-  color: SectionColor;
-  categories: Category[];
-}) {
+  imagePreviewUrl,
+}: SectionSnippetProps) {
   const snippets: Record<
     SectionId,
     { label: string; value: string | undefined }[]
@@ -477,7 +494,7 @@ function SectionSnippet({
     media: [
       {
         label: "Thumbnail",
-        value: form.watch("thumbnail") ? "Sudah diatur" : undefined,
+        value: imagePreviewUrl ? "Sudah diupload" : undefined,
       },
       {
         label: "Tag",
@@ -527,6 +544,7 @@ function SectionCard({
   children,
   form,
   categories,
+  imageUpload,
 }: {
   section: SectionConfig;
   isExpanded: boolean;
@@ -536,6 +554,7 @@ function SectionCard({
   children: React.ReactNode;
   form: UseFormReturn<FormValues>;
   categories: Category[];
+  imageUpload: ReturnType<typeof useImageUpload>;
 }) {
   const { color } = section;
   const borderLeftColor = hasError
@@ -639,6 +658,7 @@ function SectionCard({
             form={form}
             color={color}
             categories={categories}
+            imagePreviewUrl={imageUpload.previewUrl}
           />
         </div>
       )}
@@ -694,7 +714,7 @@ function BasicSection({
       <Controller
         name="description"
         control={form.control}
-        render={({ field, fieldState }) => (
+        render={({ field }) => (
           <FormField
             label="Deskripsi Lengkap"
             required
@@ -989,96 +1009,79 @@ function DetailsSection({
 function MediaSection({
   form,
   color,
+  imageUpload,
+  isSubmitting,
 }: {
   form: UseFormReturn<FormValues>;
   color: SectionColor;
+  imageUpload: ReturnType<typeof useImageUpload>;
+  isSubmitting: boolean;
 }) {
   const { control } = form;
-  const thumbnail = (form.watch("thumbnail") ?? "") as string;
   const tags = form.watch("tags") ?? [];
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <SectionDivider
         id="media"
         icon={<ImageIcon className="size-4" />}
-        title="Media & Tag"
-        description="Visual dan tag yang membantu program ditemukan"
+        title="Media & Tags"
+        description="Visuals and tags that help your program get discovered"
         color={color}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Thumbnail */}
-        <Controller
-          name="thumbnail"
-          control={control}
-          render={({ field, fieldState }) => (
-            <FormField
-              label="URL Thumbnail"
-              hint="Disarankan rasio 16:9 (1280×720)"
-              error={fieldState.error?.message}
-            >
-              <Input
-                {...field}
-                value={field.value ?? ""}
-                type="url"
-                placeholder="https://…/thumbnail.jpg"
-                invalid={fieldState.invalid}
-              />
-              {thumbnail && !fieldState.invalid && (
-                <div className="mt-2 overflow-hidden rounded-lg border border-neutral-200 aspect-video bg-neutral-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={thumbnail}
-                    alt="Preview thumbnail"
-                    className="h-full w-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </div>
-              )}
-            </FormField>
-          )}
-        />
+      {/* ── Primary: Thumbnail upload ── */}
+      <ImageUploadField
+        value={imageUpload.previewUrl}
+        onChange={imageUpload.handleFileSelect}
+        onRemove={imageUpload.removeFile}
+        disabled={isSubmitting}
+        label="Program Thumbnail"
+        hint="Recommended 1280 × 720px for best quality"
+        description="PNG, JPG, WEBP"
+        maxSizeLabel="Max 4MB"
+        aspectRatioPresets={["16/9", "4/3", "1/1"]}
+        error={imageUpload.error}
+      />
 
+      {/* ── Supporting metadata ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Icon picker */}
         <Controller
           name="icon"
           control={control}
           render={({ field, fieldState }) => (
             <FormField
-              label="Nama Ikon"
-              hint="Pilih ikon dari library Lucide"
+              label="Program Icon"
+              hint="Choose an icon from Lucide"
               error={fieldState.error?.message}
             >
               <IconPicker
                 value={field.value ?? undefined}
                 onChange={(name) => field.onChange(name ?? "")}
-                placeholder="Pilih ikon…"
+                placeholder="Select icon..."
               />
             </FormField>
           )}
         />
-      </div>
 
-      {/* Tags */}
-      <Controller
-        name="tags"
-        control={control}
-        render={({ field }) => (
-          <FormField
-            label="Tag Program"
-            hint="Tekan Enter atau koma untuk menambah tag. Membantu peserta menemukan program."
-          >
-            <TagInput value={field.value ?? []} onChange={field.onChange} />
-            {(tags.length ?? 0) > 0 && (
-              <p className="text-xs text-neutral-400">
-                {tags.length} tag ditambahkan
-              </p>
-            )}
-          </FormField>
-        )}
-      />
+        {/* Tags */}
+        <Controller
+          name="tags"
+          control={control}
+          render={({ field }) => (
+            <FormField label="Tags" hint="Press Enter or comma to add tags">
+              <TagInput value={field.value ?? []} onChange={field.onChange} />
+
+              {tags.length > 0 && (
+                <p className="text-xs text-neutral-400">
+                  {tags.length} tags added
+                </p>
+              )}
+            </FormField>
+          )}
+        />
+      </div>
     </div>
   );
 }
@@ -1144,69 +1147,303 @@ function EditReminder() {
 
 // ─── Live preview sidebar card ────────────────────────────────────────────────
 
-function PreviewCard({
-  form,
-  categories,
-}: {
-  form: UseFormReturn<FormValues>;
-  categories: Category[];
-}) {
-  const scheduleType = form.watch("scheduleType");
-  const items = [
-    { label: "Judul", value: form.watch("title") || null },
-    {
-      label: "Kategori",
-      value:
-        categories.find((c) => c.id === form.watch("categoryId"))?.label ||
-        null,
-    },
-    { label: "Format", value: form.watch("format") || null },
-    { label: "Level", value: form.watch("level") || null },
-    {
-      label: "Durasi",
-      value: form.watch("duration") ? `${form.watch("duration")} hari` : null,
-    },
-    { label: "Status", value: form.watch("status") || null },
-    {
-      label: "Jadwal",
-      value:
-        scheduleType === "scheduled"
-          ? "Terjadwal"
-          : scheduleType === "permanent"
-            ? "Permanen"
-            : null,
-    },
-  ];
+export function getOptionLabel(
+  options: { id: string; label: string }[],
+  value: string | null | undefined,
+): string | null {
+  if (!value) return null;
+  return options.find((o) => o.id === value)?.label ?? null;
+}
 
+export function getOptionMeta<T extends { id: string; label: string }>(
+  options: T[],
+  value: string | null | undefined,
+): T | null {
+  if (!value) return null;
+  return options.find((o) => o.id === value) ?? null;
+}
+
+const SCHEDULE_META: Record<
+  string,
+  { label: string; icon: string; iconNode: React.ReactNode }
+> = {
+  permanent: {
+    label: "Permanen",
+    icon: "repeat",
+    iconNode: <Repeat className="size-2.5" />,
+  },
+  scheduled: {
+    label: "Terjadwal",
+    icon: "calendar-clock",
+    iconNode: <CalendarClock className="size-2.5" />,
+  },
+};
+
+function PreviewBadge({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  // inline hex color from option.color
+  style?: { bg: string; text: string };
+}) {
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-      <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-        Pratinjau
-      </p>
-      <div className="flex flex-col gap-2.5">
-        {items.map(({ label, value }) => (
-          <div key={label} className="flex flex-col gap-0.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
-              {label}
-            </span>
-            <span
-              className={cn(
-                "text-xs font-medium truncate",
-                value ? "text-neutral-700" : "text-neutral-300 italic",
-              )}
-            >
-              {value ?? "Belum diisi"}
-            </span>
-          </div>
-        ))}
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5",
+        "text-[9px] font-semibold uppercase tracking-wide",
+        style?.bg ?? "bg-neutral-100",
+        style?.text ?? "text-neutral-600",
+        "border-current border-opacity-20",
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+function OptionBadge({
+  option,
+  size = "sm",
+}: {
+  option: { label: string; icon?: string; color?: string } | null;
+  size?: "sm" | "xs";
+}) {
+  if (!option) return null;
+  const iconSize = size === "xs" ? "size-2" : "size-2.5";
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+      style={
+        option.color
+          ? {
+              backgroundColor: option.color + "18", // ~10% alpha
+              color: option.color,
+              borderColor: option.color + "33",
+            }
+          : undefined
+      }
+    >
+      <Icon name={option.icon} className={iconSize} />
+      {option.label}
+    </span>
+  );
+}
+
+function SkeletonLine({ w = "w-24" }: { w?: string }) {
+  return (
+    <div className={cn("h-2 rounded-full bg-neutral-100 animate-pulse", w)} />
+  );
+}
+
+function ThumbnailArea({ src }: { src: string | null | undefined }) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt="Thumbnail"
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = "none";
+        }}
+      />
+    );
+  }
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+      <div className="flex size-9 items-center justify-center rounded-xl border-2 border-dashed border-neutral-200">
+        <ImageIcon className="size-4 text-neutral-300" />
       </div>
+      <p className="text-[9px] text-neutral-400 font-medium tracking-wide">
+        Tambah thumbnail
+      </p>
     </div>
   );
 }
 
+type PreviewCardProps = {
+  form: UseFormReturn<FormValues>;
+  categories: Category[];
+  thumbnailUrl?: string | null;
+};
+
+export function PreviewCard({
+  form,
+  categories,
+  thumbnailUrl,
+}: PreviewCardProps) {
+  const title = form.watch("title");
+  const shortDesc = form.watch("shortDesc");
+  const categoryId = form.watch("categoryId");
+  const format = form.watch("format");
+  const level = form.watch("level");
+  const status = form.watch("status");
+  const duration = form.watch("duration");
+  const scheduleType = form.watch("scheduleType");
+  const tags = form.watch("tags") ?? [];
+  const badge = form.watch("badge");
+  const highlight = form.watch("highlight");
+
+  // Resolve rich option objects — icons and colors come from the arrays directly
+  const formatOption = getOptionMeta(PROGRAM_FORMAT_OPTIONS, format);
+  const levelOption = getOptionMeta(PROGRAM_LEVEL_OPTIONS, level);
+  const statusOption = getOptionMeta(PROGRAM_STATUS_OPTIONS, status);
+  const categoryLabel =
+    categories.find((c) => c.id === categoryId)?.label ?? null;
+  const schedMeta = scheduleType ? SCHEDULE_META[scheduleType] : null;
+  const statusStyle = status ? PROGRAM_STATUS_META[status].ui : null;
+
+  const isEmpty = !title && !shortDesc && !categoryId && !format && !level;
+
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white overflow-hidden shadow-sm">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-neutral-100 bg-neutral-50/60">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+          Pratinjau Program
+        </p>
+        {!isEmpty && (
+          <span className="text-[9px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5 inline-flex items-center gap-1">
+            <span className="size-1 rounded-full bg-emerald-500 inline-block" />
+            Live
+          </span>
+        )}
+      </div>
+
+      {/* ── Thumbnail ── */}
+      <div className="relative bg-neutral-50 border-b border-neutral-100 aspect-[16/9] overflow-hidden">
+        <ThumbnailArea src={thumbnailUrl} />
+
+        {/* Status badge overlay — bottom-left */}
+        {statusOption && statusStyle && (
+          <div className="absolute top-2 left-2">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5",
+                "text-[9px] font-bold uppercase tracking-wide border",
+                statusStyle.bg,
+                statusStyle.text,
+                "border-current border-opacity-20",
+              )}
+            >
+              <span className={cn("size-1.5 rounded-full", statusStyle.dot)} />
+              <Icon name={statusOption.icon} className="size-2.5" />
+              {statusOption.label}
+            </span>
+          </div>
+        )}
+
+        {/* Badge pill — top-right */}
+        {badge && (
+          <div className="absolute top-2 right-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 text-amber-950 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide">
+              <Award className="size-2.5" />
+              {badge}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Content ── */}
+      <div className="flex flex-col gap-3 p-3.5">
+        {/* Category + format + level row */}
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {categoryLabel ? (
+            <span className="text-[10px] font-medium text-neutral-500 bg-neutral-100 border border-neutral-200 rounded-full px-2 py-0.5">
+              {categoryLabel}
+            </span>
+          ) : (
+            <SkeletonLine w="w-16" />
+          )}
+          <OptionBadge option={formatOption} />
+          <OptionBadge option={levelOption} />
+        </div>
+
+        {/* Title */}
+        {title ? (
+          <p className="text-[13px] font-bold text-neutral-800 leading-snug line-clamp-2">
+            {title}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <SkeletonLine w="w-full" />
+            <SkeletonLine w="w-3/4" />
+          </div>
+        )}
+
+        {/* Short description */}
+        {shortDesc ? (
+          <p className="text-[11px] text-neutral-500 leading-relaxed line-clamp-2">
+            {shortDesc}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-1">
+            <SkeletonLine w="w-full" />
+            <SkeletonLine w="w-2/3" />
+          </div>
+        )}
+
+        {/* Divider */}
+        <div className="h-px bg-neutral-100" />
+
+        {/* Meta: duration + schedule */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {duration ? (
+            <span className="inline-flex items-center gap-1 text-[10px] text-neutral-500">
+              <Clock className="size-2.5 text-neutral-400" />
+              {duration} hari
+            </span>
+          ) : (
+            <SkeletonLine w="w-12" />
+          )}
+          {schedMeta ? (
+            <span className="inline-flex items-center gap-1 text-[10px] text-neutral-500">
+              {schedMeta.iconNode}
+              {schedMeta.label}
+            </span>
+          ) : (
+            <SkeletonLine w="w-14" />
+          )}
+        </div>
+
+        {/* Tags */}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 text-[9px] bg-purple-50 text-purple-700 border border-purple-100 rounded-full px-1.5 py-0.5 font-medium"
+              >
+                <Tag className="size-2" />
+                {tag}
+              </span>
+            ))}
+            {tags.length > 4 && (
+              <span className="text-[9px] text-neutral-400 font-medium self-center">
+                +{tags.length - 4} lainnya
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Highlight banner */}
+        {highlight && (
+          <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-100 px-2.5 py-1.5">
+            <Check className="size-3 text-amber-600 shrink-0" />
+            <span className="text-[10px] font-semibold text-amber-800">
+              {highlight}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const CreateProgramPageClient = () => {
+  const utils = trpc.useUtils();
   const { data: categories = [], isLoading: isLoadingCategories } =
     trpc.programs.getCategories.useQuery();
   const createProgram = trpc.programs.createProgram.useMutation();
@@ -1254,11 +1491,7 @@ const CreateProgramPageClient = () => {
       formState.errors.level ||
       formState.errors.duration
     ),
-    media: !!(
-      formState.errors.thumbnail ||
-      formState.errors.icon ||
-      formState.errors.tags
-    ),
+    media: !!(formState.errors.icon || formState.errors.tags),
   };
 
   const totalErrors = Object.values(sectionErrors).filter(Boolean).length;
@@ -1305,15 +1538,32 @@ const CreateProgramPageClient = () => {
     });
   }, []);
 
+  const imageUpload = useImageUpload({ maxSizeMB: 4 });
+
   async function onSubmit(values: ProgramCreateData) {
     setIsSubmitting(true);
+    const toastId = toast.loading("Creating program...");
     try {
-      const result = await createProgram.mutateAsync(values);
-      setCreatedSlug(result.slug);
-      setCreatedId(result.id);
+      const program = await createProgram.mutateAsync(values);
+
+      if (imageUpload.file) {
+        toast.loading("Uploading thumbnail...", { id: toastId });
+        const res = await uploadFiles("programThumbnailUploader", {
+          files: [imageUpload.file],
+          input: { programId: program.id },
+        });
+        if (!res?.[0]) {
+          throw new Error("Failed to upload thumbnail");
+        }
+      }
+      utils.programs.getFiltered.invalidate();
+      toast.success("Program created successfully", { id: toastId });
+
+      setCreatedSlug(program.slug);
+      setCreatedId(program.id);
       setIsSuccess(true);
-    } catch (err) {
-      console.error("Gagal membuat program:", err);
+    } catch (error: any) {
+      toast.error(error.message, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -1485,6 +1735,7 @@ const CreateProgramPageClient = () => {
                     onToggle={() => toggleSection(section.id)}
                     form={form}
                     categories={categories}
+                    imageUpload={imageUpload}
                   >
                     {section.id === "basic" && (
                       <BasicSection
@@ -1498,7 +1749,12 @@ const CreateProgramPageClient = () => {
                       <DetailsSection form={form} color={section.color} />
                     )}
                     {section.id === "media" && (
-                      <MediaSection form={form} color={section.color} />
+                      <MediaSection
+                        form={form}
+                        color={section.color}
+                        imageUpload={imageUpload}
+                        isSubmitting={isSubmitting}
+                      />
                     )}
                   </SectionCard>
                 ))}
@@ -1543,7 +1799,11 @@ const CreateProgramPageClient = () => {
               <ProgressBar form={form} />
 
               {/* Live preview */}
-              <PreviewCard form={form} categories={categories} />
+              <PreviewCard
+                form={form}
+                categories={categories}
+                thumbnailUrl={imageUpload.previewUrl}
+              />
 
               {/* Reminder */}
               <EditReminder />

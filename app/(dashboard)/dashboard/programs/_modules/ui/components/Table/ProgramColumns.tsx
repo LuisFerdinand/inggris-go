@@ -38,6 +38,7 @@ import {
   ProgramScheduleType,
   ProgramStatus,
 } from "@/lib/enums";
+import { ProgramThumb, CountBadge, ProgramStatusBadge } from "..";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -53,23 +54,6 @@ function relDate(ds: string | Date) {
   if (diff < 365) return `${Math.floor(diff / 30)} bln lalu`;
   return `${Math.floor(diff / 365)} thn lalu`;
 }
-
-const STATUS_STYLES: Record<ProgramStatus, string> = {
-  published: "bg-teal-50 border-teal-200 text-teal-800",
-  draft: "bg-blue-50 border-blue-200 text-blue-800",
-  archived: "bg-neutral-100 border-neutral-200 text-neutral-600",
-};
-const STATUS_DOT: Record<ProgramStatus, string> = {
-  published: "bg-teal-500",
-  draft: "bg-blue-500",
-  archived: "bg-neutral-400",
-};
-const STATUS_LABEL: Record<string, string> = {
-  published: "Terbit",
-  draft: "Draf",
-  archived: "Diarsip",
-  scheduled: "Terjadwal",
-};
 
 const FORMAT_CONFIG: Record<
   ProgramFormat,
@@ -129,71 +113,6 @@ function SortHeader({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-        STATUS_STYLES[status as ProgramStatus] ??
-          "bg-neutral-100 border-neutral-200 text-neutral-600",
-      )}
-    >
-      <span
-        className={cn(
-          "size-1.5 rounded-full",
-          STATUS_DOT[status as ProgramStatus] ?? "bg-neutral-400",
-        )}
-        aria-hidden="true"
-      />
-      <span>{STATUS_LABEL[status] ?? status}</span>
-    </span>
-  );
-}
-
-function CountBadge({ count }: { count: number }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center justify-center min-w-[22px] h-5 rounded-full px-1.5 text-[11px] font-medium border",
-        count > 0
-          ? "bg-blue-50 border-blue-200 text-blue-700"
-          : "bg-neutral-100 border-neutral-200 text-neutral-400",
-      )}
-    >
-      {count}
-    </span>
-  );
-}
-
-function ProgramThumb({
-  thumbnail,
-  title,
-}: {
-  thumbnail?: string | null;
-  title: string;
-}) {
-  const initials = title
-    .split(" ")
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("");
-
-  if (thumbnail) {
-    return (
-      <img
-        src={thumbnail}
-        alt={title}
-        className="size-9 rounded-lg object-cover border border-neutral-200 shrink-0"
-      />
-    );
-  }
-  return (
-    <div className="size-9 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-100 flex items-center justify-center shrink-0 text-[11px] font-semibold text-blue-700 select-none">
-      {initials}
-    </div>
-  );
-}
-
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
 export function getProgramColumns(): ColumnDef<FilteredProgram>[] {
@@ -203,10 +122,10 @@ export function getProgramColumns(): ColumnDef<FilteredProgram>[] {
       accessorKey: "title",
       header: ({ column }) => <SortHeader column={column} label="Program" />,
       cell: ({ row }) => {
-        const { title, slug, thumbnail } = row.original;
+        const { title, slug, thumbnailUrl } = row.original;
         return (
           <div className="flex items-center gap-2.5 min-w-[180px] max-w-[260px]">
-            <ProgramThumb thumbnail={thumbnail} title={title} />
+            <ProgramThumb thumbnail={thumbnailUrl} title={title} />
             <div className="min-w-0">
               <p className="text-[12px] font-semibold text-neutral-800 truncate leading-tight">
                 {title}
@@ -290,9 +209,7 @@ export function getProgramColumns(): ColumnDef<FilteredProgram>[] {
     {
       accessorKey: "status",
       header: ({ column }) => <SortHeader column={column} label="Status" />,
-      cell: ({ row }) => (
-        <StatusBadge status={row.original.status ?? "draft"} />
-      ),
+      cell: ({ row }) => <ProgramStatusBadge status={row.original.status} />,
       sortingFn: (a, b) => {
         const order = { published: 0, scheduled: 1, draft: 2, archived: 3 };
         return (

@@ -2,6 +2,8 @@
 
 import React, { Suspense } from "react";
 import { ProgramTab } from "../../config/program-detail.config";
+import { trpc } from "@/lib/trpc/client";
+import OverviewTab from "../../tabs/OverviewTab";
 
 /* ─────────────────────────────────────────────────────────────
    TAB COMPONENT STUBS
@@ -10,9 +12,6 @@ import { ProgramTab } from "../../config/program-detail.config";
      const OverviewTab = lazy(() => import("../tabs/OverviewTab"))
 ───────────────────────────────────────────────────────────── */
 
-function OverviewTab({ programId }: { programId: string }) {
-  return <TabPlaceholder label="Overview" programId={programId} />;
-}
 function BatchesTab({ programId }: { programId: string }) {
   return <TabPlaceholder label="Batches" programId={programId} />;
 }
@@ -28,15 +27,26 @@ function ContentTab({ programId }: { programId: string }) {
 function AnalyticsTab({ programId }: { programId: string }) {
   return <TabPlaceholder label="Analytics" programId={programId} />;
 }
+function MarketingTab({ programId }: { programId: string }) {
+  return <TabPlaceholder label="Marketing" programId={programId} />;
+}
+
+function SettingsTab({ programId }: { programId: string }) {
+  return <TabPlaceholder label="Settings" programId={programId} />;
+}
 
 /* ─────────────────────────────────────────────────────────────
    TAB REGISTRY
    Maps tab value → component.  Extend here only.
 ───────────────────────────────────────────────────────────── */
+type TabComponentProps = {
+  programId: string;
+  overviewInfoRef?: React.RefObject<{ startEditing: () => void } | null>;
+};
 
 const TAB_COMPONENTS: Record<
   ProgramTab,
-  React.ComponentType<{ programId: string }>
+  React.ComponentType<TabComponentProps>
 > = {
   overview: OverviewTab,
   batches: BatchesTab,
@@ -44,26 +54,30 @@ const TAB_COMPONENTS: Record<
   enrollments: EnrollmentsTab,
   content: ContentTab,
   analytics: AnalyticsTab,
+  marketing: MarketingTab,
+  settings: SettingsTab,
 };
 
 /* ─────────────────────────────────────────────────────────────
    SECTION COMPONENT
    Responsibilities:
-   • Receives currentTab from ProgramDetailPageView (no tab state here)
+   • Receives currentTab from ProgramDetailView (no tab state here)
    • Resolves + renders the matching tab component
    • Wraps in Suspense for future lazy() splits
    • Does NOT touch sticky layout, PageNav, or PageHeader
 ───────────────────────────────────────────────────────────── */
 
-interface ProgramDetailPageSectionProps {
+interface ProgramDetailSectionProps {
   programId: string;
   currentTab: ProgramTab;
+  overviewInfoRef?: React.RefObject<{ startEditing: () => void } | null>;
 }
 
-export default function ProgramDetailPageSection({
+export default function ProgramDetailSection({
   programId,
   currentTab,
-}: ProgramDetailPageSectionProps) {
+  overviewInfoRef,
+}: ProgramDetailSectionProps) {
   const TabComponent = TAB_COMPONENTS[currentTab] ?? OverviewTab;
 
   return (
@@ -74,7 +88,7 @@ export default function ProgramDetailPageSection({
       No other code changes required.
     */
     <Suspense fallback={<TabSkeleton />}>
-      <TabComponent programId={programId} />
+      <TabComponent programId={programId} overviewInfoRef={overviewInfoRef} />
     </Suspense>
   );
 }
@@ -84,7 +98,7 @@ export default function ProgramDetailPageSection({
    Used by Suspense fallback during lazy tab chunk loads.
 ───────────────────────────────────────────────────────────── */
 
-function TabSkeleton() {
+export function TabSkeleton() {
   return (
     <div
       className="animate-pulse space-y-4"
