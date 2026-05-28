@@ -2013,7 +2013,7 @@ export default function BatchesTab({ programId }: BatchesTabProps) {
       batches.find((b) => b.status === "open") ||
       null
     );
-  }, []);
+  }, [batches]);
 
   const filteredBatches = useMemo(() => {
     return batches.filter((b) => {
@@ -2072,7 +2072,7 @@ export default function BatchesTab({ programId }: BatchesTabProps) {
     <div className="flex flex-col gap-5">
       {/* KPI Cards */}
       <BatchSummaryCards batches={batches} />
-
+      {/* {JSON.stringify(batches)} */}
       {/* Toolbar */}
       {hasBatches && (
         <BatchToolbar
