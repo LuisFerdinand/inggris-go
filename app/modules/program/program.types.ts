@@ -1,90 +1,3 @@
-export type Benefit = {
-  title: string;
-  description?: string;
-  icon: string;
-};
-
-export type ComparisonItem = {
-  label: string;
-  value: string;
-};
-
-export type PainPoint = {
-  title: string;
-  description: string;
-  icon?: string;
-};
-
-export type Step = {
-  n?: string;
-  title: string;
-  description: string;
-  icon?: string;
-};
-
-export type ExperienceItem = {
-  title: string;
-  description: string;
-  icon?: string;
-};
-
-export type SocialProof = {
-  quote: string;
-  name?: string;
-  role?: string;
-  meta?: string;
-};
-
-export type CategoryCTA = {
-  title: string;
-  titleAccent?: string;
-  description: string;
-  primaryLabel: string;
-  primaryHref: string;
-  secondaryLabel?: string;
-  secondaryHref?: string;
-};
-export type HeroCTA = {
-  label: string;
-  href?: string;
-  icon?: string;
-};
-
-export type Tag = {
-  title: string;
-  icon?: string;
-};
-
-export type PriceTier = { label: string; price: string };
-
-export type ProgramSection =
-  | HeroSection
-  | WhySection
-  | StepsSection
-  | BenefitsSection
-  | TimelineSection
-  | ClassesSection
-  | GallerySection
-  | PricingSection
-  | BonusSection
-  | FAQSection
-  | TestimonialSection
-  | CTASection;
-
-export type ProgramBatch = {
-  id: string;
-  label: string;
-  startDate?: string;
-  endDate?: string;
-  schedule?: string;
-  note?: string;
-  status: "open" | "full" | "coming_soon" | "closed";
-  isOpen: boolean;
-  capacity?: number;
-  enrolled?: number;
-  ctaLabel?: string;
-  ctaHref?: string;
-};
 type ProgramSectionType =
   | "hero"
   | "why"
@@ -95,9 +8,14 @@ type ProgramSectionType =
   | "gallery"
   | "pricing"
   | "faq"
+  | "bonus"
   | "testimonials"
   | "classes"
+  | "facilities"
+  | "mentorship"
+  | "batches"
   | "cta";
+
 type BaseSection = {
   id: string;
   type: ProgramSectionType;
@@ -107,6 +25,17 @@ type BaseSection = {
     variant?: "light" | "dark" | "primary" | "accent";
     background?: string;
   };
+};
+
+export type HeroCTA = {
+  label: string;
+  href?: string;
+  icon?: string;
+};
+
+export type Tag = {
+  title: string;
+  icon?: string;
 };
 
 export type HeroContent = {
@@ -127,6 +56,12 @@ type HeroSection = BaseSection & {
   content: HeroContent;
 };
 
+export type Benefit = {
+  title: string;
+  description?: string;
+  icon: string;
+};
+
 type WhySection = BaseSection & {
   type: "why";
   content: {
@@ -135,23 +70,31 @@ type WhySection = BaseSection & {
     icon?: string;
     tagline: string;
     taglineAccent?: string;
+    conclusion?: {
+      tagline: string;
+      taglineAccent?: string;
+    };
     items: Benefit[];
   };
 };
 
 type ClassItem = {
   title: string;
+  duration?: string;
   description?: string;
 
-  highlight?: string; // date, age, label
+  highlight?: string;
   icon?: string;
 
+  /** NEW */
+  schedules?: string[];
+
   meta?: {
-    label: string; // e.g. "Usia", "Jadwal", "Durasi"
+    label: string;
     value: string;
   }[];
 
-  tag?: string; // e.g. "Recommended", "Popular"
+  tag?: string;
 };
 
 type ClassesSection = BaseSection & {
@@ -163,10 +106,47 @@ type ClassesSection = BaseSection & {
     tagline?: string;
     taglineAccent?: string;
 
-    layout?: "grid" | "timeline" | "card"; // optional UI control
+    layout?: "grid" | "timeline" | "card";
+
+    /** NEW */
+    info?: {
+      label: string;
+      value: string;
+    }[];
 
     items: ClassItem[];
   };
+};
+
+export type PainPoint = {
+  title: string;
+  description: string;
+  icon?: string;
+};
+export type ExperienceItem = {
+  title: string;
+  description: string;
+  icon?: string;
+};
+export type ComparisonItem = {
+  label: string;
+  value: string;
+};
+export type CategoryCTA = {
+  title: string;
+  titleAccent?: string;
+  description: string;
+  primaryLabel: string;
+  primaryHref: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+};
+
+export type Step = {
+  n?: string;
+  title: string;
+  description: string;
+  icon?: string;
 };
 
 type StepsSection = BaseSection & {
@@ -181,7 +161,7 @@ type StepsSection = BaseSection & {
   };
 };
 
-type PricingPackage = {
+export type PricingPackage = {
   label: string; // e.g. "5x Pertemuan"
   price: string;
   originalPrice?: string;
@@ -189,7 +169,7 @@ type PricingPackage = {
   note?: string;
 };
 
-type PricingGroup = {
+export type PricingGroup = {
   title: string; // "Exclusive" | "Intensive"
   subtitle?: string; // "Flexible & Personal"
   icon?: string; // 💎 or ⚡
@@ -207,6 +187,8 @@ type PricingSection = BaseSection & {
 
     groups: PricingGroup[];
 
+    bonusTitle?: string;
+    bonusNote?: string;
     bonus?: Bonus[]; // 👈 MOVE BONUS HERE
 
     urgency?: string; // limited slots
@@ -220,6 +202,7 @@ type FAQSection = BaseSection & {
     a: string;
   }[];
 };
+
 type ProgramCTA = {
   title: string;
   titleAccent?: string;
@@ -235,9 +218,17 @@ type ProgramCTA = {
 
   urgency?: string;
 };
+
 type CTASection = BaseSection & {
   type: "cta";
   content: ProgramCTA;
+};
+
+type BenefitImage = {
+  src: string;
+  caption?: string;
+  tag?: string;
+  highlight?: boolean;
 };
 
 type BenefitsSection = BaseSection & {
@@ -248,17 +239,20 @@ type BenefitsSection = BaseSection & {
     icon?: string;
     tagline: string;
     taglineAccent?: string;
+    conclusion?: { tagline: string; taglineAccent?: string };
+    images?: BenefitImage[];
     items: Benefit[];
   };
 };
 
-type TimelineDay = {
-  range: string;
+export type TimelineDay = {
+  startTime: string;
+  endTime?: string;
   title: string;
   highlight?: boolean;
 };
 
-type TimelineWeek = {
+export type TimelineWeek = {
   icon: string;
   week: string;
   title: string;
@@ -266,7 +260,12 @@ type TimelineWeek = {
   days?: TimelineDay[];
 };
 
-type TimelineSection = BaseSection & {
+export type TimelineMetaItem = {
+  title: string;
+  description?: string;
+} & ({ icon: string; image?: never } | { image: string; icon?: never });
+
+export type TimelineSection = BaseSection & {
   type: "timeline";
   content: {
     icon?: string;
@@ -274,7 +273,7 @@ type TimelineSection = BaseSection & {
     taglineAccent?: string;
     title: string;
     subtitle?: string;
-    meta?: Benefit[];
+    meta?: TimelineMetaItem[];
     weeks: TimelineWeek[];
   };
 };
@@ -302,12 +301,14 @@ type GallerySection = BaseSection & {
   type: "gallery";
   content: GalleryContent;
 };
-type Bonus = {
+
+export type Bonus = {
   title: string;
   description?: string;
   highlight?: string;
   icon: string;
 };
+
 type BonusSection = BaseSection & {
   type: "bonus";
   content: {
@@ -317,10 +318,124 @@ type BonusSection = BaseSection & {
   };
 };
 
+export type SocialProof = {
+  quote: string;
+  name?: string;
+  role?: string;
+  meta?: string;
+};
+
 type TestimonialSection = BaseSection & {
   type: "testimonials";
   content: {
     title?: string;
     items: SocialProof[];
   };
+};
+
+type FacilityItem = {
+  title: string;
+  description?: string;
+  icon: string;
+};
+
+type FacilitiesSection = BaseSection & {
+  type: "facilities";
+  content: {
+    title: string;
+    subtitle?: string;
+
+    tagline?: string;
+    taglineAccent?: string;
+
+    visuals: {
+      type: "image" | "icon";
+      src?: string;
+      icon?: string;
+      alt?: string;
+      caption?: string;
+      tag?: string;
+    }[];
+
+    items: FacilityItem[];
+  };
+};
+
+type MentorshipSection = BaseSection & {
+  type: "mentorship";
+  content: {
+    tagline?: string;
+    taglineAccent?: string;
+
+    title: string;
+    subtitle?: string;
+
+    highlight?: string;
+
+    items: {
+      title: string;
+      description: string;
+      icon: string;
+    }[];
+
+    visuals: {
+      type: "icon" | "image";
+      icon?: string;
+      src: string;
+      alt?: string;
+      caption?: string;
+    }[];
+  };
+};
+
+type BatchesSection = BaseSection & {
+  type: "batches";
+  content?: {
+    title?: string;
+    subtitle?: string;
+    tagline?: string;
+    taglineAccent?: string;
+    emptyMessage?: string;
+    variant?: "inline" | "card" | "banner" | "table";
+  };
+};
+
+export type ProgramSection =
+  | HeroSection
+  | WhySection
+  | StepsSection
+  | BenefitsSection
+  | TimelineSection
+  | ClassesSection
+  | GallerySection
+  | PricingSection
+  | BonusSection
+  | FacilitiesSection
+  | FAQSection
+  | MentorshipSection
+  | TestimonialSection
+  | CTASection
+  | BatchesSection;
+
+export type BatchSchedule = {
+  type?: "weekly" | "daily" | "custom";
+
+  label?: string;
+
+  days?: (
+    | "monday"
+    | "tuesday"
+    | "wednesday"
+    | "thursday"
+    | "friday"
+    | "saturday"
+    | "sunday"
+  )[];
+
+  startTime?: string;
+  endTime?: string;
+
+  location?: string;
+
+  note?: string;
 };

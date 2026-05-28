@@ -8,10 +8,12 @@ import {
   FileText,
   Megaphone,
   Settings2,
+  PencilLine,
 } from "lucide-react";
 
 export type ProgramTab =
   | "overview"
+  | "detail"
   | "content"
   | "batches"
   | "packages"
@@ -31,6 +33,11 @@ export const PROGRAM_TAB_REGISTRY: Record<ProgramTab, Tab> = {
     label: "Ringkasan",
     value: "overview",
     icon: <BookOpen />,
+  },
+  detail: {
+    label: "Detail",
+    value: "detail",
+    icon: <PencilLine />,
   },
 
   content: {
@@ -76,40 +83,6 @@ export const PROGRAM_TAB_REGISTRY: Record<ProgramTab, Tab> = {
   },
 };
 
-/* =========================================================
-   LABEL MAP
-========================================================= */
-
-export const TAB_LABELS: Record<ProgramTab, string> = {
-  overview: "Ringkasan",
-  content: "Konten",
-  batches: "Batch",
-  packages: "Paket",
-  enrollments: "Pendaftaran",
-  analytics: "Analitik",
-  marketing: "Marketing",
-  settings: "Pengaturan",
-};
-
-/* =========================================================
-   ICON MAP
-========================================================= */
-
-export const TAB_ICONS: Record<ProgramTab, React.ReactNode> = {
-  overview: <BookOpen />,
-  content: <FileText />,
-  batches: <Layers />,
-  packages: <Package />,
-  enrollments: <Users />,
-  analytics: <BarChart2 />,
-  marketing: <Megaphone />,
-  settings: <Settings2 />,
-};
-
-/* =========================================================
-   DEFAULT TAB
-========================================================= */
-
 export const DEFAULT_TAB: ProgramTab = "overview";
 
 interface ProgramDetailShell {
@@ -132,7 +105,7 @@ export function buildProgramTabs(program?: ProgramDetailShell | null) {
     return [PROGRAM_TAB_REGISTRY.overview, PROGRAM_TAB_REGISTRY.content];
   }
 
-  const tabs: ProgramTab[] = ["overview", "content"];
+  const tabs: ProgramTab[] = ["overview", "detail"];
 
   /*
     Scheduled programs own batches.
@@ -142,7 +115,14 @@ export function buildProgramTabs(program?: ProgramDetailShell | null) {
     tabs.push("batches");
   }
 
-  tabs.push("packages", "enrollments", "analytics", "marketing", "settings");
+  tabs.push(
+    "content",
+    "packages",
+    "enrollments",
+    "analytics",
+    "marketing",
+    "settings",
+  );
 
   return tabs.map((tab) => {
     const config = PROGRAM_TAB_REGISTRY[tab];

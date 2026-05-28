@@ -21,7 +21,6 @@ import {
   X,
   Upload,
   ImageIcon,
-  Circle,
   AlertCircle,
   CircleAlert,
   Loader2,
@@ -36,6 +35,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Icon } from "../Icon";
+import { createPortal } from "react-dom";
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 // Centralised so you change them in one place.
@@ -115,7 +115,7 @@ export function FieldLabel({
     <label
       htmlFor={htmlFor}
       className={cn(
-        "block text-[11px] font-black text-slate-500 uppercase tracking-wider",
+        "block text-[11px] font-bold text-slate-500 uppercase tracking-wide",
         className,
       )}
     >
@@ -330,22 +330,21 @@ export const PasswordInput = forwardRef<
   );
 });
 
-export interface SelectOption {
-  /** Unique identifier for the option */
-  id: string;
-  /** Display label */
+export interface SelectOption<T extends string = string> {
+  id: T;
+
   label: string;
-  /** Optional icon element */
+
   icon?: string;
-  /** Short description shown as tooltip on hover */
+
   shortDesc?: string;
-  /** Optional group/category this option belongs to */
+
   group?: string;
-  /** Whether this option is disabled */
+
   disabled?: boolean;
-  /** Optional color accent (hex) for tag/badge display */
+
   color?: string;
-  /** Any extra metadata you want attached */
+
   meta?: Record<string, unknown>;
 }
 
@@ -806,6 +805,52 @@ function GroupedOptions({
   );
 }
 
+function SelectPortalDropdown({
+  open,
+  triggerRef,
+  children,
+  minWidth = 220,
+}: {
+  open: boolean;
+  triggerRef: React.RefObject<HTMLElement | null>;
+  children: React.ReactNode;
+  minWidth?: number;
+}) {
+  const coords = usePortalCoords(open, triggerRef);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, y: -4, scale: 0.985 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -4, scale: 0.985 }}
+          transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            position: "absolute",
+            top: coords.top,
+            left: coords.left,
+            zIndex: 9999,
+            width: Math.max(coords.width, minWidth),
+          }}
+        >
+          <div
+            className={cn(
+              "overflow-hidden rounded-xl border border-[#dbe7fb]",
+              "bg-white shadow-[0_8px_32px_rgba(10,45,135,0.13),0_2px_8px_rgba(10,45,135,0.07)]",
+            )}
+          >
+            {children}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
+}
+
 export function SelectInput(props: SelectProps) {
   const {
     options,
@@ -832,6 +877,7 @@ export function SelectInput(props: SelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const uid = useId();
   const listboxId = `${uid}-listbox`;
@@ -993,10 +1039,11 @@ export function SelectInput(props: SelectProps) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div ref={containerRef} className={cn("relative", className)}>
+      <div ref={containerRef} className={cn(className)}>
         {/* ── Trigger button ─────────────────────────────────────────── */}
         <button
           id={id}
+          ref={triggerRef}
           type="button"
           disabled={disabled || loading}
           aria-haspopup="listbox"
@@ -1102,7 +1149,7 @@ export function SelectInput(props: SelectProps) {
         </button>
 
         {/* ── Dropdown ──────────────────────────────────────────────── */}
-        <DropdownShell open={open}>
+        <SelectPortalDropdown open={open} triggerRef={triggerRef}>
           {/* Search + bulk actions */}
           <div className="flex items-center gap-2.5 border-b border-[#dbe7fb] bg-[#f4f8ff] px-3 py-2.5">
             {searchable && (
@@ -1202,7 +1249,7 @@ export function SelectInput(props: SelectProps) {
               </button>
             )}
           </div>
-        </DropdownShell>
+        </SelectPortalDropdown>
       </div>
     </MotionConfig>
   );
@@ -1500,6 +1547,7 @@ export function PhoneInput({
   defaultCountry?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const countryBtnRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<CountryCode>(
     () =>
@@ -1569,6 +1617,7 @@ export function PhoneInput({
       {/* Country selector button */}
       <button
         type="button"
+        ref={countryBtnRef}
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -1593,82 +1642,16 @@ export function PhoneInput({
         />
       </button>
 
-      {/* Country dropdown */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="listbox"
-            aria-label="Select country code"
-            initial={{ opacity: 0, y: -4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.13, ease: "easeOut" }}
-            className="absolute left-0 top-full z-50 mt-1.5 w-[300px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70"
-          >
-            <div className="border-b border-slate-100 p-2.5">
-              <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3">
-                <Search
-                  className="h-3.5 w-3.5 text-slate-400"
-                  aria-hidden="true"
-                />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search country…"
-                  aria-label="Search country"
-                  className="h-9 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
-                />
-              </div>
-            </div>
-            <div className="max-h-64 overflow-y-auto p-1.5">
-              {filteredCountries.length === 0 ? (
-                <p className="py-6 text-center text-sm text-slate-400">
-                  No results
-                </p>
-              ) : (
-                filteredCountries.map((c) => {
-                  const isActive =
-                    c.code === selected.code && c.label === selected.label;
-                  return (
-                    <button
-                      key={`${c.code}-${c.label}`}
-                      type="button"
-                      role="option"
-                      aria-selected={isActive}
-                      onClick={() => pickCountry(c)}
-                      className={cn(
-                        "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors duration-100",
-                        isActive ? "bg-[#1a52c8]/8" : "hover:bg-slate-50",
-                      )}
-                    >
-                      <span className="text-base leading-none">{c.flag}</span>
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className={cn(
-                            "truncate text-sm font-semibold",
-                            isActive ? "text-[#1a52c8]" : "text-slate-700",
-                          )}
-                        >
-                          {c.label}
-                        </p>
-                        <p className="text-[11px] text-slate-400">{c.code}</p>
-                      </div>
-                      {isActive && (
-                        <Check
-                          className="h-3.5 w-3.5 text-[#1a52c8] flex-shrink-0"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <PhonePortalDropdown
+        open={open}
+        triggerRef={countryBtnRef}
+        search={search}
+        onSearchChange={setSearch}
+        searchRef={searchRef}
+        filteredCountries={filteredCountries}
+        selected={selected}
+        onPickCountry={pickCountry}
+      />
 
       {/* Phone number input */}
       <div className="flex min-w-0 flex-1 items-center gap-2 px-3">
@@ -1688,6 +1671,116 @@ export function PhoneInput({
         />
       </div>
     </div>
+  );
+}
+
+function PhonePortalDropdown({
+  open,
+  triggerRef,
+  search,
+  onSearchChange,
+  searchRef,
+  filteredCountries,
+  selected,
+  onPickCountry,
+}: {
+  open: boolean;
+  triggerRef: React.RefObject<HTMLElement | null>;
+  search: string;
+  onSearchChange: (v: string) => void;
+  searchRef: React.RefObject<HTMLInputElement | null>;
+  filteredCountries: CountryCode[];
+  selected: CountryCode;
+  onPickCountry: (c: CountryCode) => void;
+}) {
+  const coords = usePortalCoords(open, triggerRef);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          role="listbox"
+          aria-label="Select country code"
+          initial={{ opacity: 0, y: -4, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -4, scale: 0.98 }}
+          transition={{ duration: 0.13, ease: "easeOut" }}
+          style={{
+            position: "absolute",
+            top: coords.top,
+            left: coords.left,
+            zIndex: 9999,
+            width: 300,
+          }}
+          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70"
+        >
+          <div className="border-b border-slate-100 p-2.5">
+            <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3">
+              <Search
+                className="h-3.5 w-3.5 text-slate-400"
+                aria-hidden="true"
+              />
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Search country…"
+                aria-label="Search country"
+                className="h-9 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+          <div className="max-h-64 overflow-y-auto p-1.5">
+            {filteredCountries.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-400">
+                No results
+              </p>
+            ) : (
+              filteredCountries.map((c) => {
+                const isActive =
+                  c.code === selected.code && c.label === selected.label;
+                return (
+                  <button
+                    key={`${c.code}-${c.label}`}
+                    type="button"
+                    role="option"
+                    aria-selected={isActive}
+                    onClick={() => onPickCountry(c)}
+                    className={cn(
+                      "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors duration-100",
+                      isActive ? "bg-[#1a52c8]/8" : "hover:bg-slate-50",
+                    )}
+                  >
+                    <span className="text-base leading-none">{c.flag}</span>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={cn(
+                          "truncate text-sm font-semibold",
+                          isActive ? "text-[#1a52c8]" : "text-slate-700",
+                        )}
+                      >
+                        {c.label}
+                      </p>
+                      <p className="text-[11px] text-slate-400">{c.code}</p>
+                    </div>
+                    {isActive && (
+                      <Check
+                        className="h-3.5 w-3.5 text-[#1a52c8] flex-shrink-0"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
   );
 }
 
@@ -2561,6 +2654,46 @@ function addRecent(name: string): string[] {
   return next;
 }
 
+function IconPortalPanel({
+  open,
+  triggerRef,
+  children,
+}: {
+  open: boolean;
+  triggerRef: React.RefObject<HTMLElement | null>;
+  children: React.ReactNode;
+}) {
+  const coords = usePortalCoords(open, triggerRef);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          role="dialog"
+          aria-label="Icon picker"
+          initial={{ opacity: 0, y: -4, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -4, scale: 0.99 }}
+          transition={{ duration: 0.14, ease: "easeOut" }}
+          style={{
+            position: "absolute",
+            top: coords.top,
+            left: coords.left,
+            zIndex: 9999,
+            width: Math.max(coords.width, 320),
+          }}
+          className="rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 overflow-hidden"
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
+}
+
 export function IconPicker({
   value,
   onChange,
@@ -2581,6 +2714,7 @@ export function IconPicker({
   const [copiedName, setCopiedName] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Load recents on mount (client only)
@@ -2650,10 +2784,11 @@ export function IconPicker({
   const showRecents = !query && category === "All" && recents.length > 0;
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef}>
       {/* Trigger */}
       <button
         type="button"
+        ref={triggerRef}
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="dialog"
@@ -2719,157 +2854,144 @@ export function IconPicker({
         </div>
       </button>
 
-      {/* Panel */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="dialog"
-            aria-label="Icon picker"
-            initial={{ opacity: 0, y: -4, scale: 0.99 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.99 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
-            className="absolute left-0 top-full z-50 mt-1.5 w-full min-w-[320px] rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 overflow-hidden"
-          >
-            {/* Search */}
-            {searchable && (
-              <div className="border-b border-slate-100 bg-slate-50 px-3 py-2.5 flex items-center gap-2.5">
-                <Search
-                  className="w-4 h-4 text-slate-400 flex-shrink-0"
-                  aria-hidden="true"
-                />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setCategory("All");
-                  }}
-                  placeholder="Search icons…"
-                  aria-label="Search icons"
-                  className="flex-1 bg-transparent text-sm outline-none text-slate-700 placeholder:text-slate-400"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery("")}
-                    aria-label="Clear search"
-                    className="text-slate-400 border-slate-200 hover:text-slate-600 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+      <IconPortalPanel open={open} triggerRef={triggerRef}>
+        {/* Search */}
+        {searchable && (
+          <div className="border-b border-slate-100 bg-slate-50 px-3 py-2.5 flex items-center gap-2.5">
+            <Search
+              className="w-4 h-4 text-slate-400 flex-shrink-0"
+              aria-hidden="true"
+            />
+            <input
+              ref={searchRef}
+              type="text"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setCategory("All");
+              }}
+              placeholder="Search icons…"
+              aria-label="Search icons"
+              className="flex-1 bg-transparent text-sm outline-none text-slate-700 placeholder:text-slate-400"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+                className="text-slate-400 border-slate-200 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             )}
+          </div>
+        )}
 
-            {/* Category tabs */}
-            {!query && (
-              <div className="flex gap-1 p-2 border-b border-slate-100 overflow-x-auto scrollbar-hide">
-                {["All", ...Object.keys(ICON_CATEGORIES)].map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setCategory(cat)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors duration-100",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a52c8] focus-visible:ring-offset-1",
-                      category === cat
-                        ? "bg-[#1a52c8]/10 text-[#1a52c8]"
-                        : "text-slate-500 hover:bg-slate-100",
-                    )}
-                  >
-                    {cat}
-                  </button>
+        {/* Category tabs */}
+        {!query && (
+          <div className="flex gap-1 p-2 border-b border-slate-100 overflow-x-auto scrollbar-hide">
+            {["All", ...Object.keys(ICON_CATEGORIES)].map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategory(cat)}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors duration-100",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1a52c8] focus-visible:ring-offset-1",
+                  category === cat
+                    ? "bg-[#1a52c8]/10 text-[#1a52c8]"
+                    : "text-slate-500 hover:bg-slate-100",
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Icon grid */}
+        <div className="max-h-56 overflow-y-auto p-2">
+          {showRecents && (
+            <>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1.5">
+                Recent
+              </p>
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(36px,1fr))] gap-1 mb-3">
+                {recents.map((name) => (
+                  <IconGridCell
+                    key={name}
+                    name={name}
+                    selected={name === value}
+                    onSelect={pickIcon}
+                  />
                 ))}
               </div>
+              <div className="h-px bg-slate-100 mb-2" />
+            </>
+          )}
+
+          {filteredIcons.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-slate-400 gap-2">
+              <Search className="w-7 h-7 opacity-40" aria-hidden="true" />
+              <p className="text-sm">No icons for "{query}"</p>
+            </div>
+          ) : (
+            <div
+              className="grid grid-cols-[repeat(auto-fill,minmax(36px,1fr))] gap-1"
+              role="listbox"
+            >
+              {filteredIcons.map((name) => (
+                <IconGridCell
+                  key={name}
+                  name={name}
+                  selected={name === value}
+                  onSelect={pickIcon}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-slate-100 px-3 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            {value ? (
+              <>
+                <Icon
+                  name={value}
+                  className="w-4 h-4 text-[#1a52c8] flex-shrink-0"
+                />
+                <code className="text-[11px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded font-mono truncate">
+                  {value}
+                </code>
+              </>
+            ) : (
+              <span className="text-[11px] text-slate-400">
+                No icon selected
+              </span>
             )}
-
-            {/* Icon grid */}
-            <div className="max-h-56 overflow-y-auto p-2">
-              {showRecents && (
+          </div>
+          {value && (
+            <button
+              type="button"
+              onClick={copyName}
+              className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-[#1a52c8] transition-colors duration-150 flex-shrink-0"
+            >
+              {copiedName ? (
                 <>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1.5">
-                    Recent
-                  </p>
-                  <div className="grid grid-cols-[repeat(auto-fill,minmax(36px,1fr))] gap-1 mb-3">
-                    {recents.map((name) => (
-                      <IconGridCell
-                        key={name}
-                        name={name}
-                        selected={name === value}
-                        onSelect={pickIcon}
-                      />
-                    ))}
-                  </div>
-                  <div className="h-px bg-slate-100 mb-2" />
+                  <Check
+                    className="w-3 h-3 text-emerald-500"
+                    aria-hidden="true"
+                  />
+                  <span className="text-emerald-500">Copied!</span>
                 </>
-              )}
-
-              {filteredIcons.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 text-slate-400 gap-2">
-                  <Search className="w-7 h-7 opacity-40" aria-hidden="true" />
-                  <p className="text-sm">No icons for "{query}"</p>
-                </div>
               ) : (
-                <div
-                  className="grid grid-cols-[repeat(auto-fill,minmax(36px,1fr))] gap-1"
-                  role="listbox"
-                >
-                  {filteredIcons.map((name) => (
-                    <IconGridCell
-                      key={name}
-                      name={name}
-                      selected={name === value}
-                      onSelect={pickIcon}
-                    />
-                  ))}
-                </div>
+                <>Copy name</>
               )}
-            </div>
-
-            {/* Footer */}
-            <div className="border-t border-slate-100 px-3 py-2 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 min-w-0">
-                {value ? (
-                  <>
-                    <Icon
-                      name={value}
-                      className="w-4 h-4 text-[#1a52c8] flex-shrink-0"
-                    />
-                    <code className="text-[11px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded font-mono truncate">
-                      {value}
-                    </code>
-                  </>
-                ) : (
-                  <span className="text-[11px] text-slate-400">
-                    No icon selected
-                  </span>
-                )}
-              </div>
-              {value && (
-                <button
-                  type="button"
-                  onClick={copyName}
-                  className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-[#1a52c8] transition-colors duration-150 flex-shrink-0"
-                >
-                  {copiedName ? (
-                    <>
-                      <Check
-                        className="w-3 h-3 text-emerald-500"
-                        aria-hidden="true"
-                      />
-                      <span className="text-emerald-500">Copied!</span>
-                    </>
-                  ) : (
-                    <>Copy name</>
-                  )}
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </button>
+          )}
+        </div>
+      </IconPortalPanel>
     </div>
   );
 }
@@ -2903,3 +3025,10 @@ const IconGridCell = memo(function IconGridCell({
     </button>
   );
 });
+
+export type Category = {
+  id: string;
+  slug: string;
+  label: string;
+  icon?: string | null;
+};

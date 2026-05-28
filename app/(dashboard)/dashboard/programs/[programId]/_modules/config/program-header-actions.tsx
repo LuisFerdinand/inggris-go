@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import { ProgramTab } from "./program-detail.config";
-import { PROGRAM_STATUS_META, ProgramStatus } from "@/lib/enums";
+import { PROGRAM_STATUS_META, ProgramStatus } from "@/lib/enums/enums";
 import { cn } from "@/lib/utils";
 import { ProgramStatusBadge } from "../../../_modules/ui/components";
 

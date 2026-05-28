@@ -14,7 +14,7 @@ export function Icon({
   className,
   style,
 }: {
-  name?: string;
+  name?: string | null;
   className?: string;
   style?: React.CSSProperties;
 }) {

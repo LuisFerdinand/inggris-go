@@ -10,7 +10,7 @@ import {
   PROGRAM_LEVEL,
   PROGRAM_SCHEDULE_TYPE,
   PROGRAM_STATUS,
-} from "@/lib/enums";
+} from "@/lib/enums/enums";
 
 import z from "zod";
 import { REGISTRATION_TYPE } from "@/app/db/schema";

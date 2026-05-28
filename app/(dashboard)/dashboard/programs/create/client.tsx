@@ -30,6 +30,7 @@ import {
   Rocket,
   Pencil,
   Tags,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useCallback, useEffect } from "react";
@@ -41,13 +42,14 @@ import {
   StyledInput,
   SelectInput,
   StyledTextarea,
+  Category,
 } from "@/components/Form";
 import {
   PROGRAM_FORMAT_OPTIONS,
   PROGRAM_LEVEL_OPTIONS,
   PROGRAM_STATUS_META,
   PROGRAM_STATUS_OPTIONS,
-} from "@/lib/enums";
+} from "@/lib/enums/enums";
 import DurationInput from "@/components/Form/DurationInput";
 import { PageHeader } from "@/components/PageHeader";
 import { RichTextEditor } from "@/components/rich-text-editor/Editor";
@@ -57,10 +59,10 @@ import { useImageUpload } from "@/components/file-uploader/useImageUpload";
 import toast from "react-hot-toast";
 import { uploadFiles } from "@/lib/uploadthing/client";
 import { ImageUploadField } from "@/components/file-uploader/ImageUploadField";
+import { getToneStyle } from "@/lib/ui/ui.helpers";
 
 type FormValues = ProgramCreateData;
 type SectionId = "basic" | "details" | "media";
-type Category = { id: string; label: string; icon?: string | null };
 
 // ─── Section color tokens ─────────────────────────────────────────────────────
 
@@ -711,7 +713,7 @@ function BasicSection({
         />
       </FormField>
 
-      <Controller
+      {/* <Controller
         name="description"
         control={form.control}
         render={({ field }) => (
@@ -721,6 +723,24 @@ function BasicSection({
             error={errors.description?.message}
           >
             <RichTextEditor field={field}></RichTextEditor>
+          </FormField>
+        )}
+      ></Controller> */}
+      <Controller
+        name="description"
+        control={form.control}
+        render={({ field }) => (
+          <FormField
+            label="Deskripsi Lengkap"
+            required
+            error={errors.description?.message}
+          >
+            <StyledTextarea
+              {...register("description")}
+              rows={4}
+              maxLength={200}
+              placeholder="Satu kalimat menarik yang membuat orang ingin mendaftar…"
+            />{" "}
           </FormField>
         )}
       ></Controller>
@@ -733,9 +753,6 @@ function BasicSection({
           maxLength={200}
           placeholder="Satu kalimat menarik yang membuat orang ingin mendaftar…"
         />
-        <p className="text-xs text-neutral-400 mt-0.5">
-          Maksimal 200 karakter. Ditampilkan di kartu program.
-        </p>
       </FormField>
 
       {/* Category */}
@@ -1292,8 +1309,8 @@ export function PreviewCard({
   const categoryLabel =
     categories.find((c) => c.id === categoryId)?.label ?? null;
   const schedMeta = scheduleType ? SCHEDULE_META[scheduleType] : null;
-  const statusStyle = status ? PROGRAM_STATUS_META[status].ui : null;
-
+  const programStatus = status ? PROGRAM_STATUS_META[status] : null;
+  const statusStyle = getToneStyle(programStatus?.tone);
   const isEmpty = !title && !shortDesc && !categoryId && !format && !level;
 
   return (
@@ -1631,9 +1648,9 @@ const CreateProgramPageClient = () => {
                 </Link>
               </Button>
               <Button className="gap-2 rounded-xl" asChild>
-                <Link href={`/dashboard/programs/${createdId}/edit`}>
-                  <Edit className="size-4" />
-                  Lanjut Edit
+                <Link href={`/dashboard/programs/${createdId}`}>
+                  <Eye className="size-4" />
+                  Lihat Detail
                 </Link>
               </Button>
             </div>

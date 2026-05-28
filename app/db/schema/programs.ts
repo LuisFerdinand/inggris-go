@@ -10,29 +10,27 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
+
 import {
-  PainPoint,
-  Benefit,
-  CategoryCTA,
-  ComparisonItem,
-  ExperienceItem,
-  HeroCTA,
-  SocialProof,
-  Step,
-  Tag,
-  ProgramSection,
-  ProgramBatch,
-  PriceTier,
-} from "@/app/modules/program/program.types";
-import {
-  MaterialType,
+  PROGRAM_BATCH_MODE,
   PROGRAM_BATCH_STATUS,
   PROGRAM_CATEGORY_STATUS,
   PROGRAM_FORMAT,
   PROGRAM_LEVEL,
   PROGRAM_SCHEDULE_TYPE,
   PROGRAM_STATUS,
-} from "@/lib/enums";
+} from "@/lib/enums/enums";
+import {
+  BatchSchedule,
+  Benefit,
+  CategoryCTA,
+  ComparisonItem,
+  ExperienceItem,
+  PainPoint,
+  ProgramSection,
+  SocialProof,
+  Step,
+} from "@/app/modules/program/program.types";
 
 /* =========================================================
    ENUMS
@@ -54,8 +52,8 @@ export const programFormatEnum = pgEnum("program_format", PROGRAM_FORMAT);
 // Actual batch implementation mode
 // Usually mirrors program format
 export const programBatchModeEnum = pgEnum(
-  "program_batch_enum",
-  PROGRAM_FORMAT,
+  "program_batch_mode",
+  PROGRAM_BATCH_MODE,
 );
 
 // Lifecycle status of a batch
@@ -167,7 +165,7 @@ export const programs = pgTable("programs", {
   format: programFormatEnum("format").default("online").notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  publishedAt: timestamp("published_at").defaultNow().notNull(),
+  publishedAt: timestamp("published_at"),
 
   updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
 });
@@ -194,23 +192,22 @@ export const programBatches = pgTable("program_batches", {
     })
     .notNull(),
 
-  // Optional instructor
+  // Optional instructor, if no teacher then use system
   teacherId: text("teacher_id").references(() => user.id, {
     onDelete: "set null",
   }),
 
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
+  description: text("description"),
 
   // Batch lifecycle
   status: programBatchStatusEnum("status").default("draft").notNull(),
 
-  // Controls enrollment availability
-  isOpen: boolean("is_open").default(true).notNull(),
-
   // Batch schedule
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
+  registrationDeadline: timestamp("registration_deadline"),
 
   // Enrollment limits
   capacity: integer("capacity"),
@@ -219,21 +216,24 @@ export const programBatches = pgTable("program_batches", {
   enrolledCount: integer("enrolled_count").default(0).notNull(),
 
   // online / offline / hybrid
-  mode: programBatchModeEnum("mode"),
+  mode: programBatchModeEnum("mode").default("online").notNull(),
 
   // Physical location if offline
   location: text("location"),
 
-  // Example:
-  // ["monday", "wednesday"]
-  meetingDays: jsonb("meeting_days"),
-
-  // Example:
-  // "19:00 - 21:00"
-  meetingTime: text("meeting_time"),
-
-  // Internal/public notes
+  schedules: jsonb("schedules").$type<BatchSchedule[]>(),
+  timezone: text("timezone").default("WIB"),
   notes: text("notes"),
+  brochureUrl: text("brochure_url"),
+  primaryCtaLabel: text("primary_cta_label"),
+
+  primaryCtaHref: text("primary_cta_href"),
+
+  secondaryCtaLabel: text("secondary_cta_label"),
+
+  secondaryCtaHref: text("secondary_cta_href"),
+
+  order: integer("order").default(0).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 
@@ -296,6 +296,7 @@ export const programPackages = pgTable("program_packages", {
   order: integer("order").default(0).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  features: jsonb("features").$type<string[]>(),
 });
 
 /* =========================================================
@@ -365,7 +366,7 @@ export const programCategories = pgTable("program_categories", {
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
 });
 
 /* =========================================================
@@ -379,6 +380,19 @@ export const programCategories = pgTable("program_categories", {
 //
 // One-to-one relationship with program.
 
+export type ProgramTheme = {
+  primary?: string;
+  accent?: string;
+  background?: string;
+
+  foreground?: string;
+
+  gradient?: {
+    from: string;
+    to: string;
+  };
+};
+
 export const programContent = pgTable("program_content", {
   id: text("id").primaryKey(),
 
@@ -389,13 +403,15 @@ export const programContent = pgTable("program_content", {
     .references(() => programs.id, {
       onDelete: "cascade",
     }),
+  theme: jsonb("theme").$type<ProgramTheme>(),
+  isPublished: boolean("is_published").default(false).notNull(),
 
   // Main flexible content builder
   sections: jsonb("sections").$type<ProgramSection[]>(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 
-  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
 });
 
 export const categoryRelations = relations(programCategories, ({ many }) => ({

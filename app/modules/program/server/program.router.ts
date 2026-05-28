@@ -17,6 +17,7 @@ import {
   programScheduleTypeEnum,
   programStatusEnum,
   registrationTypeEnum,
+  user,
 } from "@/app/db/schema";
 import {
   baseProcedure,
@@ -28,7 +29,12 @@ import {
   batchUpdateSchema,
   packageCreateSchema,
   packageUpdateSchema,
+  programBrandingUpdateSchema,
   programCreateSchema,
+  programIdentityUpdateSchema,
+  programMarketingUpdateSchema,
+  programStatusUpdateSchema,
+  programStructureUpdateSchema,
   programUpdateSchema,
 } from "@/lib/zodSchemas";
 import { TRPCError } from "@trpc/server";
@@ -39,6 +45,7 @@ import {
   desc,
   eq,
   ilike,
+  inArray,
   InferSelectModel,
   isNull,
   or,
@@ -49,6 +56,9 @@ import { generateUniqueSlug, getNextOrder } from "./program.slug";
 import { nanoid } from "nanoid";
 import { requireRole } from "@/lib/auth/roles";
 import { RouterOutputs } from "@/lib/trpc/react";
+import { DetailData } from "@/app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/detail";
+import { generateSlug } from "@/lib/utils";
+import { UTApi } from "uploadthing/server";
 
 const CATEGORY_COLS = {
   id: true,
@@ -81,7 +91,7 @@ const BATCH_COLS = {
   endDate: true,
   mode: true,
   location: true,
-  meetingTime: true,
+  schedules: true,
   capacity: true,
   enrolledCount: true,
   programId: true,
@@ -163,6 +173,27 @@ export const programRouter = createTRPCRouter({
       .orderBy(asc(programs.title));
     return result;
   }),
+  getUniqueSlug: protectedProcedure
+    .input(
+      z.object({
+        title: z.string().min(1),
+        // optional for create page
+        excludeId: z.string().optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const slug = await generateUniqueSlug({
+        table: programs,
+        slugColumn: programs.slug,
+        idColumn: programs.id,
+        title: input.title,
+        excludeId: input.excludeId,
+      });
+
+      return {
+        slug,
+      };
+    }),
   getById: baseProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
@@ -275,8 +306,7 @@ export const programRouter = createTRPCRouter({
           category: true,
 
           batches: {
-            where: (batches) =>
-              and(eq(batches.isOpen, true), eq(batches.status, "open")),
+            where: (batches) => eq(batches.status, "open"),
           },
         },
       });
@@ -377,12 +407,7 @@ export const programRouter = createTRPCRouter({
 
       if (input.batchSlug) {
         const found = await db.query.programBatches.findFirst({
-          where: (b) =>
-            and(
-              eq(b.slug, input.batchSlug!),
-              eq(b.isOpen, true),
-              eq(b.status, "open"),
-            ),
+          where: (b) => and(eq(b.slug, input.batchSlug!), eq(b.status, "open")),
 
           columns: BATCH_COLS,
         });
@@ -405,7 +430,7 @@ export const programRouter = createTRPCRouter({
               endDate: found.endDate,
               mode: found.mode,
               location: found.location,
-              meetingTime: found.meetingTime,
+              schedules: found.schedules,
               capacity: found.capacity,
               enrolledCount: found.enrolledCount,
               packages,
@@ -441,10 +466,10 @@ export const programRouter = createTRPCRouter({
       // PROGRAM PACKAGES
       // ─────────────────────────────────────────────────────────────
 
-      let programPackages: PackageItem[] = [];
+      let programPackageItems: PackageItem[] = [];
 
       if (program) {
-        programPackages = await fetchProgramPackages(program.id);
+        programPackageItems = await fetchProgramPackages(program.id);
       }
 
       // ─────────────────────────────────────────────────────────────
@@ -493,7 +518,7 @@ export const programRouter = createTRPCRouter({
 
         program,
 
-        programPackages,
+        programPackages: programPackageItems,
 
         batch,
 
@@ -555,11 +580,7 @@ export const programRouter = createTRPCRouter({
 
       const batches = await db.query.programBatches.findMany({
         where: (b, { eq, and }) =>
-          and(
-            eq(b.programId, input.programId!),
-            eq(b.isOpen, true),
-            eq(b.status, "open"),
-          ),
+          and(eq(b.programId, input.programId!), eq(b.status, "open")),
         orderBy: (b, { asc }) => [asc(b.startDate)],
         columns: BATCH_COLS,
         with: {
@@ -670,6 +691,248 @@ export const programRouter = createTRPCRouter({
 
       return { id, slug };
     }),
+  updateIdentity: protectedProcedure
+    .input(programIdentityUpdateSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { id, slug: clientSlug, title, ...rest } = input;
+
+      // 1. Load existing record
+      const existing = await db.query.programs.findFirst({
+        where: eq(programs.id, id),
+        columns: {
+          id: true,
+          title: true,
+          slug: true,
+          categoryId: true,
+        },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan.",
+        });
+      }
+
+      // 2. Determine the final slug
+      let finalSlug: string;
+
+      const titleChanged = title !== existing.title;
+      const clientChangedSlug = clientSlug !== existing.slug;
+      const autoSlugFromOldTitle = generateSlug(existing.title);
+
+      if (clientChangedSlug) {
+        // User explicitly edited the slug field — honour it but ensure uniqueness
+        finalSlug = await generateUniqueSlug({
+          table: programs,
+          slugColumn: programs.slug,
+          idColumn: programs.id,
+          // Use the client-provided slug as the base so uniqueness check
+          // only appends a counter if truly needed
+          title: clientSlug, // generateUniqueSlug calls generateSlug internally
+          excludeId: id,
+        });
+      } else if (titleChanged && existing.slug === autoSlugFromOldTitle) {
+        // Title changed AND slug was still auto-derived from old title
+        // → regenerate from new title
+        finalSlug = await generateUniqueSlug({
+          table: programs,
+          slugColumn: programs.slug,
+          idColumn: programs.id,
+          title,
+          excludeId: id,
+        });
+      } else {
+        // Title unchanged, or slug was already custom — keep current slug
+        finalSlug = existing.slug;
+      }
+
+      // 3. Persist
+      await db
+        .update(programs)
+        .set({
+          title,
+          slug: finalSlug,
+          shortDesc: rest.shortDesc ?? null,
+          description: rest.description,
+          categoryId: rest.categoryId,
+          updatedAt: new Date(),
+        })
+        .where(eq(programs.id, id));
+
+      return { id, slug: finalSlug };
+    }),
+  updateStructure: protectedProcedure
+    .input(programStructureUpdateSchema)
+    .mutation(async ({ input }) => {
+      const { id, scheduleType, registrationType, format, level, duration } =
+        input;
+
+      // 1. Load the current record
+      const existing = await db.query.programs.findFirst({
+        where: eq(programs.id, id),
+        columns: {
+          id: true,
+          scheduleType: true,
+        },
+        // Pull counts we need for the lock check
+        with: {
+          packages: { columns: { id: true } },
+          // enrollments: { columns: { id: true } },
+        },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan.",
+        });
+      }
+
+      // 2. Schedule-type lock guard
+      // const isLocked =
+      //   (existing.packages?.length ?? 0) > 0 ||
+      //   (existing.enrollments?.length ?? 0) > 0;
+
+      const isLocked = false;
+
+      if (isLocked && scheduleType !== existing.scheduleType) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Tipe jadwal tidak dapat diubah karena program sudah memiliki paket atau pendaftar.",
+        });
+      }
+
+      // 3. Persist
+      await db
+        .update(programs)
+        .set({
+          scheduleType,
+          registrationType,
+          format,
+          level,
+          duration: duration ?? null,
+          updatedAt: new Date(),
+        })
+        .where(eq(programs.id, id));
+
+      return { id };
+    }),
+  updateMarketing: protectedProcedure
+    .input(programMarketingUpdateSchema)
+    .mutation(async ({ input }) => {
+      const { id, badge, highlight, tags } = input;
+
+      const existing = await db.query.programs.findFirst({
+        where: eq(programs.id, id),
+        columns: { id: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan.",
+        });
+      }
+
+      await db
+        .update(programs)
+        .set({
+          badge: badge || null,
+          highlight: highlight || null,
+          tags: tags.length ? tags : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(programs.id, id));
+
+      return { id };
+    }),
+  updateBranding: protectedProcedure
+    .input(programBrandingUpdateSchema)
+    .mutation(async ({ input }) => {
+      const { id, icon, thumbnailUrl } = input;
+
+      const existing = await db.query.programs.findFirst({
+        where: eq(programs.id, id),
+        columns: { id: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan.",
+        });
+      }
+
+      await db
+        .update(programs)
+        .set({
+          icon: icon || null,
+          thumbnailUrl: thumbnailUrl || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(programs.id, id));
+
+      return { id };
+    }),
+  updateStatus: protectedProcedure
+    .input(programStatusUpdateSchema)
+    .mutation(async ({ input }) => {
+      const existing = await db.query.programs.findFirst({
+        where: eq(programs.id, input.id),
+        columns: { id: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan.",
+        });
+      }
+
+      await db
+        .update(programs)
+        .set({
+          status: input.status ?? null,
+          updatedAt: new Date(),
+        })
+        .where(eq(programs.id, input.id));
+
+      return { id: input.id };
+    }),
+  removeThumbnail: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const existing = await db.query.programs.findFirst({
+        where: eq(programs.id, input.id),
+        columns: { id: true, thumbnailKey: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan.",
+        });
+      }
+
+      // Delete from UploadThing only if a key exists
+      if (existing.thumbnailKey) {
+        const utapi = new UTApi();
+        await utapi.deleteFiles(existing.thumbnailKey);
+      }
+
+      await db
+        .update(programs)
+        .set({
+          thumbnailUrl: null,
+          thumbnailKey: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(programs.id, input.id));
+
+      return { id: input.id };
+    }),
 
   deleteProgram: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -710,15 +973,13 @@ export const programRouter = createTRPCRouter({
         title: input.title,
         slug: batchSlug,
         status: input.status,
-        isOpen: input.isOpen,
         startDate: input.startDate ? new Date(input.startDate) : null,
         endDate: input.endDate ? new Date(input.endDate) : null,
         capacity: input.capacity ?? null,
         mode:
           input.mode ?? (program.format === "offline" ? "offline" : "online"),
         location: input.location ?? null,
-        meetingDays: input.meetingDays ?? null,
-        meetingTime: input.meetingTime ?? null,
+        schedules: input.schedules ?? null,
         notes: input.notes ?? null,
         teacherId: input.teacherId ?? null,
       });
@@ -755,13 +1016,34 @@ export const programRouter = createTRPCRouter({
     .input(batchUpdateSchema)
     .mutation(async ({ input }) => {
       const { id, packages, ...data } = input;
+      const { startDate, endDate, registrationDeadline, ...rest } = data;
 
       await db
         .update(programBatches)
         .set({
-          ...data,
-          startDate: data.startDate ? new Date(data.startDate) : undefined,
-          endDate: data.endDate ? new Date(data.endDate) : undefined,
+          ...rest,
+
+          startDate:
+            startDate === undefined
+              ? undefined
+              : startDate === null
+                ? null
+                : new Date(startDate),
+
+          endDate:
+            endDate === undefined
+              ? undefined
+              : endDate === null
+                ? null
+                : new Date(endDate),
+
+          registrationDeadline:
+            registrationDeadline === undefined
+              ? undefined
+              : registrationDeadline === null
+                ? null
+                : new Date(registrationDeadline),
+
           updatedAt: new Date(),
         })
         .where(eq(programBatches.id, id));
@@ -1068,7 +1350,7 @@ export const programRouter = createTRPCRouter({
 
       return rows;
     }),
-  getDetailShell: baseProcedure
+  getDetailShell: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -1162,8 +1444,7 @@ export const programRouter = createTRPCRouter({
         },
       };
     }),
-
-  getOverview: baseProcedure
+  getOverview: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -1179,7 +1460,6 @@ export const programRouter = createTRPCRouter({
           title: true,
           slug: true,
 
-          description: true,
           shortDesc: true,
 
           status: true,
@@ -1199,12 +1479,12 @@ export const programRouter = createTRPCRouter({
           startingOriginalPrice: true,
 
           thumbnailUrl: true,
-          tags: true,
-          categoryId: true,
-          icon: true,
 
-          createdAt: true,
+          tags: true,
+
           publishedAt: true,
+          updatedAt: true,
+          createdAt: true,
         },
 
         with: {
@@ -1224,61 +1504,594 @@ export const programRouter = createTRPCRouter({
         });
       }
 
-      const [batchesResult, packagesResult, contentResult] = await Promise.all([
-        db
-          .select({
-            count: count(),
-          })
-          .from(programBatches)
-          .where(eq(programBatches.programId, input.id)),
+      const [batchesResult, openBatchesResult, packagesResult, contentResult] =
+        await Promise.all([
+          db
+            .select({
+              count: count(),
+            })
+            .from(programBatches)
+            .where(eq(programBatches.programId, input.id)),
 
+          db
+            .select({
+              count: count(),
+            })
+            .from(programBatches)
+            .where(and(eq(programBatches.programId, input.id))),
+
+          db
+            .select({
+              count: count(),
+            })
+            .from(programPackages)
+            .where(eq(programPackages.programId, input.id)),
+
+          db.query.programContent.findFirst({
+            where: eq(programContent.programId, input.id),
+
+            columns: {
+              updatedAt: true,
+              sections: true,
+            },
+          }),
+        ]);
+
+      const batchesCount = batchesResult[0]?.count ?? 0;
+
+      const openBatchesCount = openBatchesResult[0]?.count ?? 0;
+
+      const packagesCount = packagesResult[0]?.count ?? 0;
+
+      const contentSectionsCount = contentResult?.sections?.length ?? 0;
+
+      /* ======================================================
+       HEALTH CHECKS
+    ====================================================== */
+
+      const issues: string[] = [];
+
+      if (!program.thumbnailUrl) {
+        issues.push("Program belum memiliki thumbnail");
+      }
+
+      if (!program.shortDesc) {
+        issues.push("Short description belum diisi");
+      }
+
+      if (packagesCount === 0) {
+        issues.push("Belum memiliki package");
+      }
+
+      if (program.scheduleType === "scheduled" && batchesCount === 0) {
+        issues.push("Program scheduled belum memiliki batch");
+      }
+
+      if (contentSectionsCount === 0) {
+        issues.push("Landing page content belum dibuat");
+      }
+
+      const completionScore = [
+        !!program.thumbnailUrl,
+        !!program.shortDesc,
+        packagesCount > 0,
+        contentSectionsCount > 0,
+        program.scheduleType === "permanent" ? true : batchesCount > 0,
+      ].filter(Boolean).length;
+
+      const setupProgress = Math.round((completionScore / 5) * 100);
+
+      /* ======================================================
+       RETURN
+    ====================================================== */
+
+      return {
+        identity: {
+          id: program.id,
+
+          title: program.title,
+          slug: program.slug,
+
+          shortDesc: program.shortDesc,
+
+          thumbnailUrl: program.thumbnailUrl,
+
+          category: program.category,
+
+          badge: program.badge,
+          highlight: program.highlight,
+
+          status: program.status,
+        },
+
+        publishing: {
+          status: program.status,
+
+          publishedAt: program.publishedAt,
+
+          publicUrl: `/programs/${program.category.slug}/${program.slug}`,
+        },
+
+        metrics: {
+          batchesCount,
+          openBatchesCount,
+
+          packagesCount,
+
+          contentSectionsCount,
+
+          enrollmentsCount: 0,
+
+          startingPrice: program.startingPrice,
+
+          startingOriginalPrice: program.startingOriginalPrice,
+        },
+
+        configuration: {
+          scheduleType: program.scheduleType,
+
+          registrationType: program.registrationType,
+
+          format: program.format,
+
+          level: program.level,
+
+          duration: program.duration,
+        },
+
+        health: {
+          setupProgress,
+
+          issues,
+
+          hasThumbnail: !!program.thumbnailUrl,
+
+          hasContent: contentSectionsCount > 0,
+
+          hasPackages: packagesCount > 0,
+
+          hasBatches: batchesCount > 0,
+        },
+
+        activity: {
+          updatedAt: program.updatedAt,
+
+          contentUpdatedAt: contentResult?.updatedAt ?? null,
+
+          createdAt: program.createdAt,
+        },
+
+        quickActions: {
+          canPublish:
+            packagesCount > 0 &&
+            contentSectionsCount > 0 &&
+            (program.scheduleType === "permanent" ? true : batchesCount > 0),
+
+          canCreateBatch: program.scheduleType === "scheduled",
+
+          canCreatePackage: true,
+
+          canEditContent: true,
+        },
+      };
+    }),
+  getDetail: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ input }): Promise<DetailData> => {
+      const program = await db.query.programs.findFirst({
+        where: eq(programs.id, input.id),
+
+        columns: {
+          id: true,
+
+          // Identity
+          title: true,
+          slug: true,
+
+          description: true,
+          shortDesc: true,
+
+          categoryId: true,
+
+          // Structure
+          scheduleType: true,
+          registrationType: true,
+
+          format: true,
+          level: true,
+
+          duration: true,
+
+          // Marketing
+          badge: true,
+          highlight: true,
+          tags: true,
+
+          // Branding
+          thumbnailUrl: true,
+          thumbnailKey: true,
+          icon: true,
+
+          // Publishing
+          status: true,
+          publishedAt: true,
+
+          updatedAt: true,
+          createdAt: true,
+
+          // Commerce preview
+          startingPrice: true,
+          startingOriginalPrice: true,
+        },
+
+        with: {
+          category: {
+            columns: {
+              id: true,
+              label: true,
+              slug: true,
+              themePrimary: true,
+              icon: true,
+            },
+          },
+        },
+      });
+
+      if (!program) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program not found",
+        });
+      }
+
+      /* ======================================================
+       COUNTS & CAPABILITIES
+    ====================================================== */
+
+      const [packagesResult] = await Promise.all([
         db
           .select({
             count: count(),
           })
           .from(programPackages)
           .where(eq(programPackages.programId, input.id)),
-
-        db.query.programContent.findFirst({
-          where: eq(programContent.programId, input.id),
-
-          columns: {
-            updatedAt: true,
-            sections: true,
-          },
-        }),
       ]);
-
-      const batchesCount = batchesResult[0]?.count ?? 0;
 
       const packagesCount = packagesResult[0]?.count ?? 0;
 
-      const contentSectionsCount = contentResult?.sections?.length ?? 0;
+      // TODO:
+      // Replace with real enrollment query later
+      const enrollmentsCount = 0;
+
+      /* ======================================================
+       RETURN
+    ====================================================== */
 
       return {
-        ...program,
+        id: program.id,
 
-        stats: {
-          batchesCount,
-          packagesCount,
+        // Identity
+        title: program.title,
+        slug: program.slug,
 
-          contentSectionsCount,
+        description: program.description,
+        shortDesc: program.shortDesc,
 
-          // future-ready
-          enrollmentsCount: 0,
+        categoryId: program.categoryId,
+
+        category: {
+          id: program.category.id,
+          label: program.category.label,
+          slug: program.category.slug,
+          themePrimary: program.category.themePrimary,
+          icon: program.category.icon,
         },
 
-        health: {
-          hasBatches: batchesCount > 0,
+        // Structure
+        scheduleType: program.scheduleType,
+        registrationType: program.registrationType,
 
-          hasPackages: packagesCount > 0,
+        format: program.format,
+        level: program.level,
 
-          hasContent: contentSectionsCount > 0,
+        duration: program.duration,
+
+        // Marketing
+        badge: program.badge,
+        highlight: program.highlight,
+
+        tags: program.tags ?? [],
+
+        // Branding
+        thumbnailUrl: program.thumbnailUrl,
+        thumbnailKey: program.thumbnailKey,
+
+        icon: program.icon,
+
+        // Publishing
+        status: program.status,
+
+        publishedAt: program.publishedAt,
+
+        updatedAt: program.updatedAt,
+
+        createdAt: program.createdAt,
+
+        // Commerce
+        startingPrice: program.startingPrice,
+        startingOriginalPrice: program.startingOriginalPrice,
+
+        packagesCount,
+        activePackagesCount: packagesCount,
+
+        // Capabilities
+        hasEnrollments: enrollmentsCount > 0,
+        hasPackages: packagesCount > 0,
+      };
+    }),
+  getBatches: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      /* ======================================================
+       1. PROGRAM CHECK
+    ====================================================== */
+
+      const program = await db.query.programs.findFirst({
+        where: eq(programs.id, input.id),
+
+        columns: {
+          id: true,
+          title: true,
+          scheduleType: true,
+          status: true,
+        },
+      });
+
+      if (!program) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+        });
+      }
+
+      /* ======================================================
+       2. FETCH BATCHES
+    ====================================================== */
+
+      const batches = await db.query.programBatches.findMany({
+        where: eq(programBatches.programId, input.id),
+        orderBy: (batches, { asc }) => [asc(batches.order)],
+
+        columns: {
+          id: true,
+          programId: true,
+          teacherId: true,
+
+          title: true,
+          slug: true,
+          description: true,
+
+          status: true,
+          mode: true,
+
+          startDate: true,
+          endDate: true,
+          registrationDeadline: true,
+
+          capacity: true,
+          enrolledCount: true,
+
+          location: true,
+          timezone: true,
+
+          schedules: true,
+
+          notes: true,
+          brochureUrl: true,
+
+          primaryCtaLabel: true,
+          primaryCtaHref: true,
+
+          secondaryCtaLabel: true,
+          secondaryCtaHref: true,
+
+          order: true,
+
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      /* ======================================================
+       3. FETCH PACKAGES (ALL BATCHES)
+    ====================================================== */
+
+      const batchIds = batches.map((b) => b.id);
+
+      const packages = await db
+        .select()
+        .from(programPackages)
+        .where(
+          and(
+            eq(programPackages.programId, input.id),
+            batchIds.length > 0
+              ? inArray(programPackages.batchId, batchIds)
+              : undefined,
+          ),
+        );
+
+      /* ======================================================
+       4. FETCH TEACHERS (HYDRATION)
+    ====================================================== */
+
+      const teacherIds = Array.from(
+        new Set(batches.map((b) => b.teacherId).filter(Boolean)),
+      ) as string[];
+
+      const teachers =
+        teacherIds.length > 0
+          ? await db.query.user.findMany({
+              where: inArray(user.id, teacherIds),
+
+              columns: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            })
+          : [];
+
+      const teacherMap = new Map(teachers.map((t) => [t.id, t]));
+
+      /* ======================================================
+       5. GROUP PACKAGES BY BATCH
+    ====================================================== */
+
+      const packageMap = new Map<string, typeof packages>();
+
+      for (const pkg of packages) {
+        if (!pkg.batchId) continue;
+
+        if (!packageMap.has(pkg.batchId)) {
+          packageMap.set(pkg.batchId, []);
+        }
+
+        packageMap.get(pkg.batchId)!.push(pkg);
+      }
+
+      /* ======================================================
+       6. BUILD VIEW MODEL
+    ====================================================== */
+
+      const formattedBatches = batches.map((batch) => {
+        const batchPackages = packageMap.get(batch.id) ?? [];
+
+        const teacher = batch.teacherId
+          ? teacherMap.get(batch.teacherId)
+          : null;
+
+        /* ---------------------------
+         UI derived state
+      ---------------------------- */
+
+        const capacity = batch.capacity ?? 0;
+        const enrolled = batch.enrolledCount;
+
+        const occupancyRate = capacity > 0 ? enrolled / capacity : 0;
+
+        const isAlmostFull =
+          capacity > 0 && occupancyRate >= 0.8 && occupancyRate < 1;
+
+        const isFull = capacity > 0 && enrolled >= capacity;
+
+        const isOpen = batch.status === "open";
+        const isOngoing = batch.status === "open";
+
+        const normalizePackage = (pkg: (typeof packages)[number]) => ({
+          id: pkg.id,
+          title: pkg.title,
+          price: pkg.price,
+
+          originalPrice: pkg.originalPrice ?? undefined,
+
+          isDefault: pkg.isDefault,
+          order: pkg.order,
+
+          features: pkg.features ?? [],
+        });
+
+        return {
+          id: batch.id,
+
+          programId: batch.programId,
+
+          title: batch.title,
+          slug: batch.slug,
+          description: batch.description,
+
+          status: batch.status,
+          mode: batch.mode,
+
+          startDate: batch.startDate,
+          endDate: batch.endDate,
+          registrationDeadline: batch.registrationDeadline,
+
+          capacity: batch.capacity,
+          enrolledCount: batch.enrolledCount,
+
+          location: batch.location,
+          timezone: batch.timezone,
+
+          schedules: batch.schedules,
+
+          notes: batch.notes,
+          brochureUrl: batch.brochureUrl,
+
+          primaryCtaLabel: batch.primaryCtaLabel,
+          primaryCtaHref: batch.primaryCtaHref,
+
+          secondaryCtaLabel: batch.secondaryCtaLabel,
+          secondaryCtaHref: batch.secondaryCtaHref,
+
+          order: batch.order,
+
+          teacher: teacher
+            ? {
+                id: teacher.id,
+                name: teacher.name,
+                avatar: teacher.image,
+              }
+            : null,
+
+          packages: batchPackages.map(normalizePackage),
+
+          ui: {
+            isAlmostFull,
+            isFull,
+            isOpen,
+            isOngoing,
+            occupancyRate,
+          },
+
+          createdAt: batch.createdAt,
+          updatedAt: batch.updatedAt,
+        };
+      });
+
+      /* ======================================================
+       7. AGGREGATES
+    ====================================================== */
+
+      const total = batches.length;
+      const open = batches.filter((b) => b.status === "open").length;
+      const ongoing = batches.filter((b) => b.status === "open").length;
+
+      /* ======================================================
+       8. RETURN
+    ====================================================== */
+
+      return {
+        program: {
+          id: program.id,
+          title: program.title,
+          scheduleType: program.scheduleType,
+          status: program.status,
         },
 
-        contentMeta: {
-          updatedAt: contentResult?.updatedAt ?? null,
+        metrics: {
+          totalBatches: total,
+          openBatches: open,
+          ongoingBatches: ongoing,
         },
+
+        batches: formattedBatches,
       };
     }),
 });

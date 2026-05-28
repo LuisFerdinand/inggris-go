@@ -94,17 +94,27 @@ export function createImageUploader({
           await utapi.deleteFiles(metadata.previousFileKey);
         }
 
-        await db
+        console.log("DB write attempt:", {
+          entityId: metadata.entityId,
+          urlColumn,
+          keyColumn,
+          url: file.ufsUrl,
+          key: file.key,
+        });
+
+        const result = await db
           .update(table)
           .set({
-            [urlColumn]: file.url,
+            [urlColumn]: file.ufsUrl,
             [keyColumn]: file.key,
           })
-          .where(eq(table.id, metadata.entityId));
+          .where(eq(table.id, metadata.entityId))
+          .returning({ id: table.id }); // ← add .returning() to verify the row was actually updated
 
+        console.log("DB write result:", result);
         return {
           uploadedBy: metadata.userId,
-          url: file.url,
+          url: file.ufsUrl,
           key: file.key,
         };
       } catch (error) {

@@ -143,7 +143,6 @@ export const orderRouter = createTRPCRouter({
             capacity: number | null;
             enrolledCount: number;
             status: string;
-            isOpen: boolean;
           }
         | undefined;
 
@@ -161,7 +160,6 @@ export const orderRouter = createTRPCRouter({
             capacity: true,
             enrolledCount: true,
             status: true,
-            isOpen: true,
           },
         });
         if (!batchRecord)
@@ -169,7 +167,7 @@ export const orderRouter = createTRPCRouter({
             code: "NOT_FOUND",
             message: "Batch not found",
           });
-        if (!batchRecord.isOpen || batchRecord.status !== "open") {
+        if (batchRecord.status !== "open") {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "This batch is no longer open for registration",

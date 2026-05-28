@@ -1,12 +1,17 @@
 import { z } from "zod";
 import {
+  PROGRAM_FORMAT,
+  PROGRAM_LEVEL,
+  PROGRAM_SCHEDULE_TYPE,
+  PROGRAM_STATUS,
   programBatchModeEnum,
   programBatchStatusEnum,
   programFormatEnum,
   programLevelEnum,
   programScheduleTypeEnum,
   programStatusEnum,
-} from "./enums";
+} from "./enums/enums";
+import { REGISTRATION_TYPE } from "@/app/db/schema";
 
 export function makeResolver<T extends z.ZodType>(schema: T) {
   return async (values: unknown) => {
@@ -105,6 +110,34 @@ export type PackageUpdateData = z.infer<typeof packageUpdateSchema>;
 // Batch schema
 // ─────────────────────────────────────────────────────────────────────────────
 
+const batchScheduleSchema = z.object({
+  type: z.enum(["weekly", "daily", "custom"]).optional(),
+
+  label: z.string().max(100).optional(),
+
+  days: z
+    .array(
+      z.enum([
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+      ]),
+    )
+    .optional(),
+
+  startTime: z.string().max(20).optional(),
+
+  endTime: z.string().max(20).optional(),
+
+  location: z.string().max(300).optional(),
+
+  note: z.string().max(500).optional(),
+});
+
 export const batchCreateSchema = z.object({
   programId: z.string().min(1, requiredMsg("Program")),
 
@@ -115,26 +148,36 @@ export const batchCreateSchema = z.object({
 
   status: programBatchStatusEnum.default("draft"),
 
-  isOpen: z.boolean().default(true),
-
   startDate: z.string().datetime().optional().nullable(),
+
   endDate: z.string().datetime().optional().nullable(),
+
+  registrationDeadline: z.string().datetime().optional().nullable(),
 
   capacity: z.number().int().min(1).optional().nullable(),
 
-  mode: programBatchModeEnum.optional().nullable(),
+  mode: programBatchModeEnum.default("online"),
 
   location: z.string().max(500).optional().nullable(),
 
-  meetingDays: z.array(z.string()).optional().nullable(),
+  schedules: z.array(batchScheduleSchema).default([]),
 
-  meetingTime: z.string().max(100).optional().nullable(),
+  timezone: z.string().max(100).default("WIB"),
 
   notes: z.string().max(1000).optional().nullable(),
 
+  brochureUrl: z.string().url().optional().nullable(),
+
   teacherId: z.string().optional().nullable(),
 
-  // Packages created together with the batch
+  primaryCtaLabel: z.string().max(100).optional().nullable(),
+
+  primaryCtaHref: z.string().max(500).optional().nullable(),
+
+  secondaryCtaLabel: z.string().max(100).optional().nullable(),
+
+  secondaryCtaHref: z.string().max(500).optional().nullable(),
+
   packages: z.array(packageSchema).default([]),
 });
 
@@ -312,3 +355,63 @@ export const enrollmentSchema = z.discriminatedUnion("type", [
 // });
 
 // export type WizardProgramData = z.infer<typeof wizardProgramSchema>;
+
+export const programIdentityUpdateSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(3, "Judul minimal 3 karakter").max(100),
+  slug: z
+    .string()
+    .min(3, "Slug minimal 3 karakter")
+    .max(100)
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Slug hanya boleh huruf kecil, angka, dan tanda hubung",
+    ),
+  shortDesc: z.string().max(200).optional().or(z.literal("")),
+  description: z.string().min(10, "Deskripsi minimal 10 karakter"),
+  categoryId: z.string().min(1, "Kategori wajib diisi"),
+});
+
+export type ProgramIdentityUpdateInput = z.infer<
+  typeof programIdentityUpdateSchema
+>;
+
+export const programStructureUpdateSchema = z.object({
+  id: z.string().min(1),
+  scheduleType: z.enum(PROGRAM_SCHEDULE_TYPE),
+  registrationType: z.enum(REGISTRATION_TYPE),
+  format: z.enum(PROGRAM_FORMAT),
+  level: z.enum(PROGRAM_LEVEL),
+  duration: z.number().int().min(1).nullable().optional(),
+});
+
+export type ProgramStructureUpdateInput = z.infer<
+  typeof programStructureUpdateSchema
+>;
+
+export const programMarketingUpdateSchema = z.object({
+  id: z.string().min(1),
+  badge: z.string().max(30).optional().or(z.literal("")),
+  highlight: z.string().max(80).optional().or(z.literal("")),
+  tags: z.array(z.string().max(30)).max(15),
+});
+
+export const programStatusUpdateSchema = z.object({
+  id: z.string().min(1),
+  status: z.enum(PROGRAM_STATUS),
+});
+export const programBrandingUpdateSchema = z.object({
+  id: z.string().min(1),
+  thumbnailUrl: z.string().nullable().optional(),
+  icon: z.string().nullable().optional(),
+});
+
+export type ProgramMarketingUpdateInput = z.infer<
+  typeof programMarketingUpdateSchema
+>;
+export type ProgramStatusUpdateInput = z.infer<
+  typeof programStatusUpdateSchema
+>;
+export type ProgramBrandingUpdateInput = z.infer<
+  typeof programBrandingUpdateSchema
+>;

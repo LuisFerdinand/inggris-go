@@ -37,7 +37,7 @@ import {
   ProgramLevel,
   ProgramScheduleType,
   ProgramStatus,
-} from "@/lib/enums";
+} from "@/lib/enums/enums";
 import { ProgramThumb, CountBadge, ProgramStatusBadge } from "..";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -337,16 +337,6 @@ export function getProgramColumns(): ColumnDef<FilteredProgram>[] {
                   >
                     <Eye className="size-3.5 text-neutral-400" />
                     Lihat detail
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/dashboard/programs/${id}/edit`}
-                    className="flex items-center gap-2 text-xs cursor-pointer"
-                  >
-                    <Pencil className="size-3.5 text-neutral-400" />
-                    Edit program
                   </Link>
                 </DropdownMenuItem>
 

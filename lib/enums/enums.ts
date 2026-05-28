@@ -1,45 +1,26 @@
-import { SelectOption } from "@/components/Form";
 import z from "zod";
+
+import { createLabelMap, createOptions } from "./enum.helpers";
+import { EnumMetaRecord } from "./enum.types";
+
+/* =========================================================
+   PROGRAM STATUS
+========================================================= */
 
 export const PROGRAM_STATUS = ["draft", "published", "archived"] as const;
 
 export type ProgramStatus = (typeof PROGRAM_STATUS)[number];
+
 export const programStatusEnum = z.enum(PROGRAM_STATUS);
-type StatusMeta = {
-  label: string;
 
-  shortLabel?: string;
-
-  icon: string;
-
-  shortDesc?: string;
-
-  color: string;
-
-  ui: {
-    bg: string;
-    text: string;
-    border: string;
-    dot: string;
-    softBg?: string;
-  };
-};
-
-export const PROGRAM_STATUS_META: Record<ProgramStatus, StatusMeta> = {
+export const PROGRAM_STATUS_META = {
   draft: {
     label: "Draft",
     shortLabel: "Draft",
     icon: "file-edit",
     shortDesc: "Program masih dalam tahap penyusunan",
     color: "#f59e0b",
-
-    ui: {
-      bg: "bg-amber-50",
-      text: "text-amber-700",
-      border: "border-amber-200",
-      dot: "bg-amber-400",
-      softBg: "bg-amber-500/10",
-    },
+    tone: "warning",
   },
 
   published: {
@@ -48,14 +29,7 @@ export const PROGRAM_STATUS_META: Record<ProgramStatus, StatusMeta> = {
     icon: "globe",
     shortDesc: "Program sudah tersedia untuk pengguna",
     color: "#22c55e",
-
-    ui: {
-      bg: "bg-emerald-50",
-      text: "text-emerald-700",
-      border: "border-emerald-200",
-      dot: "bg-emerald-500",
-      softBg: "bg-emerald-500/10",
-    },
+    tone: "success",
   },
 
   archived: {
@@ -64,29 +38,148 @@ export const PROGRAM_STATUS_META: Record<ProgramStatus, StatusMeta> = {
     icon: "archive",
     shortDesc: "Program disimpan dan tidak aktif",
     color: "#64748b",
-
-    ui: {
-      bg: "bg-neutral-100",
-      text: "text-neutral-600",
-      border: "border-neutral-200",
-      dot: "bg-neutral-400",
-      softBg: "bg-neutral-500/10",
-    },
+    tone: "neutral",
   },
-};
-export const PROGRAM_STATUS_OPTIONS: SelectOption[] = PROGRAM_STATUS.map(
-  (status) => ({
-    id: status,
-    label: PROGRAM_STATUS_META[status].label,
-    icon: PROGRAM_STATUS_META[status].icon,
-    shortDesc: PROGRAM_STATUS_META[status].shortDesc,
-    color: PROGRAM_STATUS_META[status].color,
-  }),
+} satisfies EnumMetaRecord<ProgramStatus>;
+
+export const PROGRAM_STATUS_LABEL = createLabelMap(
+  PROGRAM_STATUS,
+  PROGRAM_STATUS_META,
 );
-export const PROGRAM_STATUS_LABEL: Record<ProgramStatus, string> =
-  Object.fromEntries(
-    PROGRAM_STATUS.map((status) => [status, PROGRAM_STATUS_META[status].label]),
-  ) as Record<ProgramStatus, string>;
+
+export const PROGRAM_STATUS_OPTIONS = createOptions(
+  PROGRAM_STATUS,
+  PROGRAM_STATUS_META,
+);
+
+/* =========================================================
+   PROGRAM FORMAT
+========================================================= */
+export const PROGRAM_FORMAT = ["online", "offline", "hybrid"] as const;
+
+export type ProgramFormat = (typeof PROGRAM_FORMAT)[number];
+
+export const programFormatEnum = z.enum(PROGRAM_FORMAT);
+
+export const PROGRAM_FORMAT_META = {
+  online: {
+    label: "Online",
+    icon: "monitor-play",
+    shortDesc: "Program dilakukan sepenuhnya secara daring",
+    color: "#3b82f6",
+    tone: "primary",
+  },
+
+  offline: {
+    label: "Offline",
+    icon: "map-pinned",
+    shortDesc: "Program dilakukan secara tatap muka langsung",
+    color: "#f97316",
+    tone: "warning",
+  },
+
+  hybrid: {
+    label: "Hybrid",
+    icon: "layers-3",
+    shortDesc: "Gabungan pembelajaran online dan offline",
+    color: "#8b5cf6",
+    tone: "info",
+  },
+} satisfies EnumMetaRecord<ProgramFormat>;
+
+export const PROGRAM_FORMAT_LABEL = createLabelMap(
+  PROGRAM_FORMAT,
+  PROGRAM_FORMAT_META,
+);
+
+export const PROGRAM_FORMAT_OPTIONS = createOptions(
+  PROGRAM_FORMAT,
+  PROGRAM_FORMAT_META,
+);
+
+/* =========================================================
+   PROGRAM LEVEL
+========================================================= */
+
+export const PROGRAM_LEVEL = ["beginner", "intermediate", "advanced"] as const;
+
+export type ProgramLevel = (typeof PROGRAM_LEVEL)[number];
+
+export const programLevelEnum = z.enum(PROGRAM_LEVEL);
+
+export const PROGRAM_LEVEL_META = {
+  beginner: {
+    label: "Pemula",
+    icon: "sparkles",
+    shortDesc: "Cocok untuk peserta baru",
+    color: "#22c55e",
+    tone: "success",
+  },
+
+  intermediate: {
+    label: "Menengah",
+    icon: "trending-up",
+    shortDesc: "Untuk peserta dengan dasar cukup",
+    color: "#f59e0b",
+    tone: "warning",
+  },
+
+  advanced: {
+    label: "Lanjutan",
+    icon: "graduation-cap",
+    shortDesc: "Untuk peserta tingkat tinggi",
+    color: "#ef4444",
+    tone: "danger",
+  },
+} satisfies EnumMetaRecord<ProgramLevel>;
+
+export const PROGRAM_LEVEL_LABEL = createLabelMap(
+  PROGRAM_LEVEL,
+  PROGRAM_LEVEL_META,
+);
+
+export const PROGRAM_LEVEL_OPTIONS = createOptions(
+  PROGRAM_LEVEL,
+  PROGRAM_LEVEL_META,
+);
+
+/* =========================================================
+   PROGRAM SCHEDULE TYPE
+========================================================= */
+
+export const PROGRAM_SCHEDULE_TYPE = ["permanent", "scheduled"] as const;
+
+export type ProgramScheduleType = (typeof PROGRAM_SCHEDULE_TYPE)[number];
+
+export const programScheduleTypeEnum = z.enum(PROGRAM_SCHEDULE_TYPE);
+
+export const PROGRAM_SCHEDULE_TYPE_META = {
+  permanent: {
+    label: "Permanent",
+    icon: "repeat",
+    shortDesc: "Peserta dapat mendaftar kapan saja tanpa batch tertentu",
+    color: "#3b82f6",
+    tone: "primary",
+  },
+
+  scheduled: {
+    label: "Scheduled",
+    icon: "calendar-clock",
+    shortDesc: "Program menggunakan batch dengan periode belajar tertentu",
+    color: "#22c55e",
+    tone: "success",
+  },
+} satisfies EnumMetaRecord<ProgramScheduleType>;
+
+export const PROGRAM_SCHEDULE_TYPE_LABEL = createLabelMap(
+  PROGRAM_SCHEDULE_TYPE,
+  PROGRAM_SCHEDULE_TYPE_META,
+);
+
+export const PROGRAM_SCHEDULE_TYPE_OPTIONS = createOptions(
+  PROGRAM_SCHEDULE_TYPE,
+  PROGRAM_SCHEDULE_TYPE_META,
+);
 
 export const PROGRAM_CATEGORY_STATUS = [
   "draft",
@@ -107,6 +200,7 @@ export const PROGRAM_CATEGORY_STATUS_LABEL: Record<
 export const PROGRAM_BATCH_STATUS = [
   "draft",
   "open",
+  "ongoing",
   "full",
   "closed",
   "completed",
@@ -116,42 +210,11 @@ export const programBatchStatusEnum = z.enum(PROGRAM_BATCH_STATUS);
 export const PROGRAM_BATCH_STATUS_LABEL: Record<ProgramBatchStatus, string> = {
   draft: "Draft",
   open: "Terbuka",
+  ongoing: "Berlangsung",
   full: "Penuh",
   closed: "Ditutup",
   completed: "Selesai",
 };
-
-export const PROGRAM_FORMAT = ["online", "offline", "hybrid"] as const;
-export type ProgramFormat = (typeof PROGRAM_FORMAT)[number];
-export const programFormatEnum = z.enum(PROGRAM_FORMAT);
-export const PROGRAM_FORMAT_LABEL: Record<ProgramFormat, string> = {
-  online: "Online",
-  offline: "Offline",
-  hybrid: "Hybrid",
-};
-export const PROGRAM_FORMAT_OPTIONS: SelectOption[] = [
-  {
-    id: "online",
-    label: "Online",
-    icon: "monitor-play",
-    shortDesc: "Program dilakukan sepenuhnya secara daring",
-    color: "#3b82f6",
-  },
-  {
-    id: "offline",
-    label: "Offline",
-    icon: "map-pinned",
-    shortDesc: "Program dilakukan secara tatap muka langsung",
-    color: "#f97316",
-  },
-  {
-    id: "hybrid",
-    label: "Hybrid",
-    icon: "layers-3",
-    shortDesc: "Gabungan pembelajaran online dan offline",
-    color: "#8b5cf6",
-  },
-];
 
 export const PRICING_MODE = ["free", "single", "tiers"] as const;
 export type PricingMode = (typeof PRICING_MODE)[number];
@@ -215,38 +278,6 @@ export const PROGRAM_BATCH_MODE_LABEL: Record<ProgramBatchMode, string> = {
   hybrid: "Hybrid",
 };
 
-export const PROGRAM_LEVEL = ["beginner", "intermediate", "advanced"] as const;
-export type ProgramLevel = (typeof PROGRAM_LEVEL)[number];
-export const programLevelEnum = z.enum(PROGRAM_LEVEL);
-export const PROGRAM_LEVEL_LABEL: Record<ProgramLevel, string> = {
-  beginner: "Pemula",
-  intermediate: "Menengah",
-  advanced: "Lanjutan",
-};
-export const PROGRAM_LEVEL_OPTIONS: SelectOption[] = [
-  {
-    id: "beginner",
-    label: "Pemula",
-    icon: "sparkles",
-    shortDesc: "Cocok untuk peserta yang baru mulai belajar",
-    color: "#22c55e",
-  },
-  {
-    id: "intermediate",
-    label: "Menengah",
-    icon: "trending-up",
-    shortDesc: "Untuk peserta dengan pemahaman dasar yang cukup",
-    color: "#f59e0b",
-  },
-  {
-    id: "advanced",
-    label: "Lanjutan",
-    icon: "graduation-cap",
-    shortDesc: "Untuk peserta dengan kemampuan tingkat tinggi",
-    color: "#ef4444",
-  },
-];
-
 export const MATERIAL_TYPE = [
   "brochure",
   "guidebook",
@@ -265,12 +296,3 @@ export const MATERIAL_TYPE_LABEL: Record<MaterialType, string> = {
   rundown: "Rundown Acara",
   other: "Lainnya",
 };
-
-export const PROGRAM_SCHEDULE_TYPE = ["permanent", "scheduled"] as const;
-export type ProgramScheduleType = (typeof PROGRAM_SCHEDULE_TYPE)[number];
-export const programScheduleTypeEnum = z.enum(PROGRAM_SCHEDULE_TYPE);
-export const PROGRAM_SCHEDULE_TYPE_LABEL: Record<ProgramScheduleType, string> =
-  {
-    permanent: "Brosur",
-    scheduled: "",
-  };

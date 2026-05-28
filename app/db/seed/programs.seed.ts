@@ -27,12 +27,17 @@ import { db } from "@/app/db/db";
 import {
   programBatches,
   programCategories,
+  programContent,
   programPackages,
   programs,
+  ProgramTheme,
 } from "../schema/programs";
 import { excludedColumns, generateId, generateSlug } from "@/lib/utils";
 import { CATEGORIES } from "@/app/(home)/programs/[categorySlug]/data";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { PROGRAM_CONTENT_DATA } from "./data/program-content.data";
+import { ProgramSection } from "@/app/modules/program/program.types";
+import { buildWhatsAppUrl } from "@/lib/config";
 
 // ─── Infer types ──────────────────────────────────────────────────────────────
 
@@ -141,6 +146,7 @@ const PROGRAM_DATA: RawProgram[] = [
       "Fokus membangun kepercayaan diri, kosakata, dan kemampuan komunikasi sehari-hari lewat games, lagu, dan storytelling. " +
       "10 sesi Zoom, maksimal 6 anak per kelas, diajar oleh tutor terlatih yang berpengalaman dengan anak-anak.",
     format: "online",
+
     level: "beginner",
     status: "published",
     registrationType: "online",
@@ -269,50 +275,122 @@ const BATCH_DATA: RawBatch[] = [
   {
     programTitle: "Daily Conversation",
     slugSuffix: "mei-2026",
+
     title: "Daily Conversation — Mei 2026",
+    description: "Program speaking online intensif via Zoom.",
+
     mode: "online",
     status: "open",
-    isOpen: true,
+
     startDate: new Date("2026-05-05T19:00:00+07:00"),
     endDate: new Date("2026-05-22T21:00:00+07:00"),
+    registrationDeadline: new Date("2026-05-03T23:59:59+07:00"),
+
     capacity: 8,
     enrolledCount: 3,
-    meetingDays: ["Mon", "Wed", "Fri"],
-    meetingTime: "19:00 – 21:00 WIB",
+
+    schedules: [
+      {
+        days: ["monday", "wednesday", "friday"],
+        startTime: "19:00",
+        endTime: "21:00",
+      },
+    ],
+
+    timezone: "WIB",
+
     notes: "Sesi via Zoom. Link dikirim H-1 setelah konfirmasi pembayaran.",
+
+    primaryCtaLabel: "Daftar Sekarang",
+    primaryCtaHref: "https://forms.gle/example",
+
+    secondaryCtaLabel: "Konsultasi",
+    secondaryCtaHref: buildWhatsAppUrl({
+      title: "Daily Conversation Mei 2026",
+    }),
+
+    order: 1,
   },
   {
     programTitle: "Daily Conversation",
     slugSuffix: "juni-2026",
+
     title: "Daily Conversation — Juni 2026",
+    description: "Program speaking online intensif via Zoom.",
+
     mode: "online",
     status: "open",
-    isOpen: true,
+
     startDate: new Date("2026-06-02T19:00:00+07:00"),
     endDate: new Date("2026-06-20T21:00:00+07:00"),
+    registrationDeadline: new Date("2026-05-30T23:59:59+07:00"),
+
     capacity: 8,
     enrolledCount: 0,
-    meetingDays: ["Mon", "Wed", "Fri"],
-    meetingTime: "19:00 – 21:00 WIB",
+
+    schedules: [
+      {
+        days: ["monday", "wednesday", "friday"],
+        startTime: "19:00",
+        endTime: "21:00",
+      },
+    ],
+
+    timezone: "WIB",
+
     notes: "Pendaftaran dibuka mulai 10 Mei 2026.",
+
+    primaryCtaLabel: "Daftar Sekarang",
+    primaryCtaHref: "https://forms.gle/example",
+
+    secondaryCtaLabel: "Konsultasi",
+    secondaryCtaHref: buildWhatsAppUrl({
+      title: "Daily Conversation Juni 2026",
+    }),
+
+    order: 2,
   },
 
   // ── English for Kids ────────────────────────────────────────────────────────
   {
     programTitle: "English for Kids",
     slugSuffix: "mei-2026",
+
     title: "English for Kids — Mei 2026",
+
     mode: "online",
     status: "open",
-    isOpen: true,
+
     startDate: new Date("2026-05-10T09:00:00+07:00"),
     endDate: new Date("2026-05-28T10:30:00+07:00"),
+
+    registrationDeadline: new Date("2026-05-07T23:59:59+07:00"),
+
     capacity: 6,
     enrolledCount: 2,
-    meetingDays: ["Sat", "Sun"],
-    meetingTime: "09:00 – 10:30 WIB",
+
+    schedules: [
+      {
+        days: ["saturday", "sunday"],
+        startTime: "09:00",
+        endTime: "10:30",
+      },
+    ],
+
+    timezone: "WIB",
+
     notes:
       "Cocok untuk anak usia 6–12 tahun. Orang tua dipersilakan mendampingi sesi pertama.",
+
+    primaryCtaLabel: "Daftar",
+    primaryCtaHref: "https://forms.gle/example",
+
+    secondaryCtaLabel: "Konsultasi",
+    secondaryCtaHref: buildWhatsAppUrl({
+      title: "English for Kids Mei 2026",
+    }),
+
+    order: 1,
   },
   {
     programTitle: "English for Kids",
@@ -320,46 +398,163 @@ const BATCH_DATA: RawBatch[] = [
     title: "English for Kids — Juni 2026",
     mode: "online",
     status: "open",
-    isOpen: true,
     startDate: new Date("2026-06-07T09:00:00+07:00"),
     endDate: new Date("2026-06-29T10:30:00+07:00"),
+    registrationDeadline: new Date("2026-06-15T23:59:59+07:00"),
+
     capacity: 6,
     enrolledCount: 0,
-    meetingDays: ["Sat", "Sun"],
-    meetingTime: "09:00 – 10:30 WIB",
+    schedules: [
+      {
+        days: ["saturday", "sunday"],
+        startTime: "09:00",
+        endTime: "10:30",
+      },
+    ],
+    timezone: "WIB",
+
+    notes:
+      "Cocok untuk anak usia 6–12 tahun. Orang tua dipersilakan mendampingi sesi pertama.",
+
+    primaryCtaLabel: "Daftar",
+    primaryCtaHref: "https://forms.gle/example",
+
+    secondaryCtaLabel: "Konsultasi",
+    secondaryCtaHref: buildWhatsAppUrl({
+      title: "English for Kids Juni 2026",
+    }),
   },
 
   // ── VIP English for Kids ────────────────────────────────────────────────────
   {
     programTitle: "VIP English for Kids",
     slugSuffix: "jun-2026-b1",
+
     title: "VIP Camp — Juni 2026 Batch 1",
+
     mode: "offline",
     status: "open",
-    isOpen: true,
+
     startDate: new Date("2026-06-21"),
     endDate: new Date("2026-06-27"),
+
+    registrationDeadline: new Date("2026-06-15T23:59:59+07:00"),
+
     location: "Kampung Inggris Pare, Kediri, Jawa Timur",
+
     capacity: 30,
     enrolledCount: 12,
-    meetingTime: "Senin – Minggu, 07:00 – 21:00 WIB",
+
+    schedules: [
+      {
+        days: [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ],
+        startTime: "07:00",
+        endTime: "21:00",
+      },
+    ],
+
+    timezone: "WIB",
+
+    brochureUrl: "/pdf/brochure/vip-kids/vip-kids-june-july-2026.pdf",
+
     notes:
       "Termasuk akomodasi asrama putra/putri. Brosur tersedia di halaman program.",
+
+    primaryCtaLabel: "Daftar",
+    primaryCtaHref: "https://forms.gle/zGnAkSHjbKLcTVoe8",
+
+    secondaryCtaLabel: "Konsultasi",
+    secondaryCtaHref: buildWhatsAppUrl({
+      title: "VIP Kids English Camp",
+      duration: "21 – 27 Juni 2026",
+      intent: "consultation",
+      message: `
+Halo Inggris Go! 👋
+
+Saya tertarik dengan program *VIP Kids English Camp Batch 1*.
+
+- Jadwal: 21 – 27 Juni 2026
+
+Saya ingin konsultasi terlebih dahulu sebelum mendaftar.
+
+Mohon dibantu ya 😊
+`,
+    }),
+
+    order: 1,
   },
+
   {
     programTitle: "VIP English for Kids",
     slugSuffix: "jun-2026-b2",
+
     title: "VIP Camp — Juni 2026 Batch 2",
+
     mode: "offline",
     status: "open",
-    isOpen: true,
+
     startDate: new Date("2026-06-28"),
     endDate: new Date("2026-07-04"),
+
+    registrationDeadline: new Date("2026-06-22T23:59:59+07:00"),
+
     location: "Kampung Inggris Pare, Kediri, Jawa Timur",
+
     capacity: 30,
     enrolledCount: 7,
-    meetingTime: "Senin – Minggu, 07:00 – 21:00 WIB",
+
+    schedules: [
+      {
+        days: [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ],
+        startTime: "07:00",
+        endTime: "21:00",
+      },
+    ],
+
+    timezone: "WIB",
+
+    brochureUrl: "/pdf/brochure/vip-kids/vip-kids-june-july-2026.pdf",
+
     notes: "Termasuk akomodasi asrama putra/putri.",
+
+    primaryCtaLabel: "Daftar",
+    primaryCtaHref: "https://forms.gle/zGnAkSHjbKLcTVoe8",
+
+    secondaryCtaLabel: "Konsultasi",
+    secondaryCtaHref: buildWhatsAppUrl({
+      title: "VIP Kids English Camp",
+      duration: "28 Juni - 4 Juli 2026",
+      intent: "consultation",
+      message: `
+Halo Inggris Go! 👋
+
+Saya tertarik dengan program *VIP Kids English Camp Batch 2*.
+
+- Jadwal: 28 Juni - 4 Juli 2026
+
+Saya ingin konsultasi terlebih dahulu sebelum mendaftar.
+
+Mohon dibantu ya 😊
+`,
+    }),
+
+    order: 2,
   },
   {
     programTitle: "VIP English for Kids",
@@ -367,30 +562,50 @@ const BATCH_DATA: RawBatch[] = [
     title: "VIP Camp 2 Weeks — Juli 2026 Batch 1",
     mode: "offline",
     status: "open",
-    isOpen: true,
     startDate: new Date("2026-07-05"),
     endDate: new Date("2026-07-18"),
+    registrationDeadline: new Date("2026-07-01T23:59:59+07:00"),
     location: "Kampung Inggris Pare, Kediri, Jawa Timur",
     capacity: 25,
     enrolledCount: 4,
-    meetingTime: "Senin – Minggu, 07:00 – 21:00 WIB",
+    schedules: [
+      {
+        days: [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ],
+        startTime: "07:00",
+        endTime: "21:00",
+      },
+    ],
+    timezone: "WIB",
+    brochureUrl: "/pdf/brochure/vip-kids/vip-kids-june-july-2026.pdf",
     notes:
       "Paket 2 minggu untuk immersion lebih dalam. Termasuk akomodasi & aktivitas akhir pekan.",
-  },
-  {
-    programTitle: "VIP English for Kids",
-    slugSuffix: "aug-2026-b1",
-    title: "VIP Camp — Agustus 2026 Batch 1",
-    mode: "offline",
-    status: "open",
-    isOpen: true,
-    startDate: new Date("2026-08-10"),
-    endDate: new Date("2026-08-16"),
-    location: "Kampung Inggris Pare, Kediri, Jawa Timur",
-    capacity: 30,
-    enrolledCount: 0,
-    meetingTime: "Senin – Minggu, 07:00 – 21:00 WIB",
-    notes: "Batch liburan Agustus. Pendaftaran dibuka mulai 1 Juli 2026.",
+    primaryCtaLabel: "Daftar",
+    primaryCtaHref: "https://forms.gle/zGnAkSHjbKLcTVoe8",
+    secondaryCtaLabel: "Konsultasi",
+    secondaryCtaHref: buildWhatsAppUrl({
+      title: "VIP Kids English Camp",
+      duration: "21 Juni – 4 Juli 2026",
+      intent: "consultation",
+      message: `
+Halo Inggris Go! 👋
+
+Saya tertarik dengan program *VIP Kids English Camp 2 Weeks*.
+
+- Jadwal: 21 Juni – 4 Juli 2026
+
+Saya ingin konsultasi terlebih dahulu sebelum mendaftar.
+
+Mohon dibantu ya 😊
+`,
+    }),
   },
 ];
 
@@ -669,38 +884,6 @@ const PACKAGE_DATA: RawPackage[] = [
     order: 2,
   },
 
-  // Aug B1
-  {
-    programTitle: "VIP English for Kids",
-    batchSlugSuffix: "aug-2026-b1",
-    title: "Regular Room",
-    description: "Kamar asrama standar, max 4 anak per kamar.",
-    price: 1_975_000,
-    originalPrice: 2_300_000,
-    isDefault: true,
-    order: 0,
-  },
-  {
-    programTitle: "VIP English for Kids",
-    batchSlugSuffix: "aug-2026-b1",
-    title: "VIP Room",
-    description: "Kamar semi-privat max 2 anak, AC.",
-    price: 2_475_000,
-    originalPrice: 2_800_000,
-    isDefault: false,
-    order: 1,
-  },
-  {
-    programTitle: "VIP English for Kids",
-    batchSlugSuffix: "aug-2026-b1",
-    title: "Private Room",
-    description: "Kamar privat 1 anak, AC, kamar mandi dalam.",
-    price: 2_975_000,
-    originalPrice: 3_300_000,
-    isDefault: false,
-    order: 2,
-  },
-
   // ─────────────────────────────────────────────────────────────────────────────
   // Kelas Rombongan — permanent, custom-quote placeholder
   // price: 0 → UI should render "Hubungi Kami" instead of a price
@@ -820,7 +1003,9 @@ export async function seedPrograms() {
     id: generateId("prog"),
     slug: sl(p.title),
     categoryId: catId(p.categorySlug),
-    startingPrice: null, // derived after packages are seeded
+
+    startingPrice: null,
+
     startingOriginalPrice: null,
   }));
 
@@ -858,34 +1043,49 @@ export async function seedPrograms() {
 
 export async function seedProgramBatches() {
   console.log("3. Seeding Program Batches…");
+
   await db.delete(programBatches);
 
   const programList = await db.select().from(programs);
+
   const progMap = new Map(
     programList.map((p) => [
       p.slug,
-      { id: p.id, scheduleType: p.scheduleType },
+      {
+        id: p.id,
+        scheduleType: p.scheduleType,
+      },
     ]),
   );
 
   function getProgram(title: string) {
     const prog = progMap.get(sl(title));
-    if (!prog) throw new Error(`Program not found for batch: "${title}"`);
+
+    if (!prog) {
+      throw new Error(`Program not found for batch: "${title}"`);
+    }
+
     if (prog.scheduleType !== "scheduled") {
       throw new Error(
         `Program "${title}" is "permanent" — it cannot have batches. ` +
           `Change its scheduleType to "scheduled" or remove the batch.`,
       );
     }
+
     return prog.id;
   }
 
   const data: BatchInsert[] = BATCH_DATA.map(
-    ({ programTitle, slugSuffix, ...b }) => ({
-      ...b,
+    ({ programTitle, slugSuffix, ...batch }, index) => ({
+      ...batch,
+
       id: generateId("prog-batch"),
+
       slug: sl(`${programTitle}-${slugSuffix}`),
+
       programId: getProgram(programTitle),
+
+      order: batch.order ?? index,
     }),
   );
 
@@ -894,23 +1094,37 @@ export async function seedProgramBatches() {
     .values(data)
     .onConflictDoUpdate({
       target: programBatches.slug,
+
       set: {
-        ...excludedColumns([
-          "program_id",
-          "teacher_id",
-          "title",
-          "start_date",
-          "end_date",
-          "capacity",
-          "enrolled_count",
-          "mode",
-          "location",
-          "meeting_days",
-          "meeting_time",
-          "status",
-          "is_open",
-          "notes",
-        ]),
+        title: sql`excluded.title`,
+        description: sql`excluded.description`,
+
+        status: sql`excluded.status`,
+
+        startDate: sql`excluded.start_date`,
+        endDate: sql`excluded.end_date`,
+        registrationDeadline: sql`excluded.registration_deadline`,
+
+        capacity: sql`excluded.capacity`,
+        enrolledCount: sql`excluded.enrolled_count`,
+
+        mode: sql`excluded.mode`,
+        location: sql`excluded.location`,
+
+        schedules: sql`excluded.schedules`,
+        timezone: sql`excluded.timezone`,
+
+        notes: sql`excluded.notes`,
+        brochureUrl: sql`excluded.brochure_url`,
+
+        primaryCtaLabel: sql`excluded.primary_cta_label`,
+        primaryCtaHref: sql`excluded.primary_cta_href`,
+
+        secondaryCtaLabel: sql`excluded.secondary_cta_label`,
+        secondaryCtaHref: sql`excluded.secondary_cta_href`,
+
+        order: sql`excluded.order`,
+
         updatedAt: new Date(),
       },
     });
@@ -1030,6 +1244,70 @@ export async function syncProgramStartingPrices() {
   console.log("   ✓ startingPrice synced for all programs");
 }
 
+export async function seedProgramContent() {
+  console.log("6. Seeding Program Content…");
+
+  await db.delete(programContent);
+
+  const existingPrograms = await db.query.programs.findMany({
+    columns: {
+      id: true,
+      slug: true,
+    },
+  });
+
+  const programMap = new Map(existingPrograms.map((p) => [p.slug, p.id]));
+
+  const data = Object.values(PROGRAM_CONTENT_DATA)
+    .map((detail) => {
+      const programId = programMap.get(detail.programSlug);
+
+      if (!programId) {
+        console.warn(
+          `⚠ Program not found for content slug: "${detail.programSlug}"`,
+        );
+
+        return null;
+      }
+
+      return {
+        id: generateId("pc"),
+        programId,
+        theme: detail.theme,
+        sections: detail.sections,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        id: string;
+        programId: string;
+        theme: ProgramTheme;
+        sections: ProgramSection[];
+      } => item !== null,
+    );
+
+  if (!data.length) {
+    console.warn("⚠ No program content to insert");
+    return;
+  }
+
+  await db
+    .insert(programContent)
+    .values(data)
+    .onConflictDoUpdate({
+      target: programContent.programId,
+      set: {
+        theme: sql`excluded.theme`,
+        sections: sql`excluded.sections`,
+        updatedAt: new Date(),
+      },
+    });
+
+  console.log(`   ✓ ${data.length} program contents inserted`);
+}
+
 // ─── Main entry point ─────────────────────────────────────────────────────────
 
 export async function seedAllPrograms() {
@@ -1038,5 +1316,6 @@ export async function seedAllPrograms() {
   await seedProgramBatches();
   await seedProgramPackages();
   await syncProgramStartingPrices();
+  await seedProgramContent();
   console.log("\n✅ All program data seeded successfully.");
 }

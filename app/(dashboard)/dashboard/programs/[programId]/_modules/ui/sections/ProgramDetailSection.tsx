@@ -4,6 +4,8 @@ import React, { Suspense } from "react";
 import { ProgramTab } from "../../config/program-detail.config";
 import { trpc } from "@/lib/trpc/client";
 import OverviewTab from "../../tabs/OverviewTab";
+import DetailTab from "../../tabs/DetailTab";
+import BatchesTab from "../../tabs/BatchesTab";
 
 /* ─────────────────────────────────────────────────────────────
    TAB COMPONENT STUBS
@@ -12,9 +14,8 @@ import OverviewTab from "../../tabs/OverviewTab";
      const OverviewTab = lazy(() => import("../tabs/OverviewTab"))
 ───────────────────────────────────────────────────────────── */
 
-function BatchesTab({ programId }: { programId: string }) {
-  return <TabPlaceholder label="Batches" programId={programId} />;
-}
+
+
 function PackagesTab({ programId }: { programId: string }) {
   return <TabPlaceholder label="Packages" programId={programId} />;
 }
@@ -49,6 +50,7 @@ const TAB_COMPONENTS: Record<
   React.ComponentType<TabComponentProps>
 > = {
   overview: OverviewTab,
+  detail: DetailTab,
   batches: BatchesTab,
   packages: PackagesTab,
   enrollments: EnrollmentsTab,

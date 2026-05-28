@@ -99,3 +99,45 @@ export function parseAge(usia: string): number | null {
   const match = usia.match(/\d+/);
   return match ? Number(match[0]) : null;
 }
+
+const MINUTE = 1;
+const HOUR = 60;
+const DAY = 60 * 24;
+const WEEK = DAY * 7;
+const MONTH = DAY * 30;
+
+export function formatDuration(minutes?: number | null) {
+  if (!minutes || minutes <= 0) return null;
+
+  const units = [
+    { label: "bulan", value: MONTH },
+    { label: "minggu", value: WEEK },
+    { label: "hari", value: DAY },
+    { label: "jam", value: HOUR },
+    { label: "menit", value: MINUTE },
+  ];
+
+  let remaining = minutes;
+  const parts: string[] = [];
+
+  for (const unit of units) {
+    const amount = Math.floor(remaining / unit.value);
+
+    if (amount > 0) {
+      parts.push(`${amount} ${unit.label}${amount > 1 ? "" : ""}`);
+
+      remaining %= unit.value;
+    }
+
+    /*
+      Prevent overly long strings.
+      Example:
+      1 month 2 weeks 3 days 4 hours 12 minutes
+      becomes:
+      1 month 2 weeks
+    */
+    if (parts.length >= 2) break;
+  }
+
+  return parts.join(" ");
+}

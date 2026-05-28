@@ -86,6 +86,7 @@ import {
 import { LeftPanel } from "./LeftPanel";
 import toast from "react-hot-toast";
 import { makeResolver } from "@/lib/zodSchemas";
+import { BatchSchedule } from "@/app/modules/program/program.types";
 
 /* =========================================================
    TYPES
@@ -128,13 +129,18 @@ export type BatchSnap = {
   id: string;
   slug: string;
   title: string;
+
   startDate: Date | null;
   endDate: Date | null;
+
   mode: string | null;
   location: string | null;
-  meetingTime: string | null;
+
+  schedules: BatchSchedule[] | null;
+
   capacity: number | null;
   enrolledCount: number;
+
   packages: PackageItem[];
 };
 
@@ -164,7 +170,7 @@ export type BatchListItem = {
   enrolledCount: number;
   mode: string | null;
   location: string | null;
-  meetingTime: string | null;
+  schedules: BatchSchedule[] | null;
   packages: PackageItem[];
 };
 
@@ -1070,19 +1076,42 @@ function BatchCard({
   const selectedPkg =
     batch.packages.find((p) => p.id === selectedPackageId) ?? null;
 
+  const scheduleText = batch.schedules
+    ?.map((schedule) => {
+      const days = schedule.days?.length
+        ? schedule.days
+            .map((d) => d.charAt(0).toUpperCase() + d.slice(1, 3))
+            .join(", ")
+        : null;
+
+      const time =
+        schedule.startTime && schedule.endTime
+          ? `${schedule.startTime} – ${schedule.endTime}`
+          : schedule.startTime;
+
+      return [days, time].filter(Boolean).join(" • ");
+    })
+    .filter(Boolean)
+    .join(" | ");
+
   const metaItems = [
     batch.startDate && {
       icon: <Calendar className="w-3 h-3 text-[#1a52c8]" />,
-      text: `${formatDate(batch.startDate)}${batch.endDate ? ` – ${formatDate(batch.endDate)}` : ""}`,
+      text: `${formatDate(batch.startDate)}${
+        batch.endDate ? ` – ${formatDate(batch.endDate)}` : ""
+      }`,
     },
-    batch.meetingTime && {
+
+    scheduleText && {
       icon: <Clock className="w-3 h-3 text-[#1a52c8]" />,
-      text: batch.meetingTime,
+      text: scheduleText,
     },
+
     batch.location && {
       icon: <MapPin className="w-3 h-3 text-[#1a52c8]" />,
       text: batch.location,
     },
+
     batch.mode && {
       icon: <Users className="w-3 h-3 text-[#1a52c8]" />,
       text: batch.mode.charAt(0).toUpperCase() + batch.mode.slice(1),
@@ -3142,7 +3171,7 @@ export default function ProgramRegisterPageClient({
       endDate: batch.endDate,
       mode: batch.mode,
       location: batch.location,
-      meetingTime: batch.meetingTime,
+      schedules: batch.schedules,
       capacity: batch.capacity,
       enrolledCount: batch.enrolledCount,
       packages: batch.packages,

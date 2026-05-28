@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { BatchSchedule } from "@/app/modules/program/program.types";
 
 // ─── Types (derived from router output) ──────────────────────────────────────
 
@@ -50,15 +51,13 @@ type Batch = {
   id: string;
   title: string;
   status: string;
-  isOpen: boolean;
   startDate?: string | null;
   endDate?: string | null;
   capacity?: number | null;
   enrolledCount: number;
   mode?: string | null;
   location?: string | null;
-  meetingDays?: string[] | null;
-  meetingTime?: string | null;
+  schedules?: BatchSchedule[] | null;
   notes?: string | null;
   packages: Package[]; // batch-specific packages
 };
@@ -103,6 +102,28 @@ const FORMAT_ICONS: Record<string, React.ReactNode> = {
 
 // ─── Batch Selector ───────────────────────────────────────────────────────────
 
+function formatSchedules(schedules?: BatchSchedule[] | null) {
+  if (!schedules?.length) return null;
+
+  return schedules
+    .map((schedule) => {
+      const days = schedule.days?.length
+        ? schedule.days
+            .map((d) => d.charAt(0).toUpperCase() + d.slice(1, 3))
+            .join(", ")
+        : null;
+
+      const time =
+        schedule.startTime && schedule.endTime
+          ? `${schedule.startTime} – ${schedule.endTime}`
+          : schedule.startTime;
+
+      return [days, time].filter(Boolean).join(" • ");
+    })
+    .filter(Boolean)
+    .join(" | ");
+}
+
 function BatchSelector({
   batches,
   selectedId,
@@ -123,13 +144,16 @@ function BatchSelector({
         {batches.map((batch) => {
           const isFull =
             batch.capacity != null && batch.enrolledCount >= batch.capacity;
+          const isOpen = batch.status === "open";
           const isSelected = selectedId === batch.id;
+
+          const scheduleText = formatSchedules(batch.schedules);
 
           return (
             <button
               key={batch.id}
               type="button"
-              disabled={!batch.isOpen || isFull}
+              disabled={!isOpen || isFull}
               onClick={() => onSelect(isSelected ? null : batch.id)}
               className={cn(
                 "w-full flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all duration-150",
@@ -167,10 +191,10 @@ function BatchSelector({
                       })}
                     </span>
                   )}
-                  {batch.meetingTime && (
+                  {scheduleText && (
                     <span className="flex items-center gap-1 text-xs text-neutral-500">
                       <Clock className="size-3" />
-                      {batch.meetingTime}
+                      {scheduleText}
                     </span>
                   )}
                   {batch.location && (
@@ -614,12 +638,12 @@ export default function ProgramDetailPage() {
                       <span
                         className={cn(
                           "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                          batch.isOpen
+                          batch.status === "open"
                             ? "bg-emerald-100 text-emerald-700"
                             : "bg-neutral-100 text-neutral-500",
                         )}
                       >
-                        {batch.isOpen ? "Open" : "Closed"}
+                        {batch.status === "open" ? "Open" : "Closed"}
                       </span>
                     </div>
                   </div>

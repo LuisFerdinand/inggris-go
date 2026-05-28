@@ -1,71 +1,107 @@
+import { Icon } from "@/components/Icon";
 import { Badge } from "@/components/ui/badge";
-import { PROGRAM_STATUS_META, ProgramStatus } from "@/lib/enums";
+import { EnumMeta } from "@/lib/enums/enum.types";
+
+import { PROGRAM_STATUS_META, ProgramStatus } from "@/lib/enums/enums";
+
+import { getToneStyle } from "@/lib/ui/ui.helpers";
+import { SIZE_STYLES } from "@/lib/ui/ui.index";
+
 import { cn } from "@/lib/utils";
 
-type ProgramStatusBadgeProps = {
-  status: ProgramStatus;
+type MetaBadgeProps = {
+  meta: EnumMeta;
 
   size?: "sm" | "md";
 
   shortLabel?: boolean;
 
-  showDot?: boolean;
+  showIcon?: boolean;
+
+  tooltip?: boolean;
 
   className?: string;
 };
 
-export function ProgramStatusBadge({
-  status,
+export function MetaBadge({
+  meta,
   size = "sm",
   shortLabel = false,
-  showDot = true,
+  showIcon = true,
+
+  tooltip = true,
   className,
-}: ProgramStatusBadgeProps) {
-  const meta = PROGRAM_STATUS_META[status];
+}: MetaBadgeProps) {
+  const tone = getToneStyle(meta.tone);
+
+  const styles = SIZE_STYLES[size];
 
   return (
     <Badge
       variant="outline"
+      title={tooltip ? meta.shortDesc : undefined}
       className={cn(
-        "inline-flex items-center rounded-full border font-medium",
+        "inline-flex items-center rounded-full border font-medium shadow-none transition-colors",
 
-        size === "sm" && "gap-1.5 px-2 py-0.5 text-[11px]",
+        tone.bg,
+        tone.text,
+        tone.border,
 
-        size === "md" && "gap-2 px-2.5 py-1 text-xs",
-
-        meta.ui.bg,
-        meta.ui.text,
-        meta.ui.border,
+        styles.root,
 
         className,
       )}
     >
-      {showDot && (
-        <span
-          className={cn(
-            "rounded-full shrink-0",
-
-            size === "sm" ? "size-1.5" : "size-2",
-
-            meta.ui.dot,
-          )}
-          aria-hidden="true"
+      {showIcon && meta.icon && (
+        <Icon
+          name={meta.icon}
+          className={cn("shrink-0 opacity-80", styles.icon)}
         />
       )}
 
-      <span>{shortLabel ? (meta.shortLabel ?? meta.label) : meta.label}</span>
+      <span className="truncate">
+        {shortLabel ? (meta.shortLabel ?? meta.label) : meta.label}
+      </span>
     </Badge>
   );
 }
 
-export function CountBadge({ count }: { count: number }) {
+type ProgramStatusBadgeProps = {
+  status: ProgramStatus;
+} & Omit<React.ComponentProps<typeof MetaBadge>, "meta">;
+
+export function ProgramStatusBadge({
+  status,
+  ...props
+}: ProgramStatusBadgeProps) {
+  return <MetaBadge meta={PROGRAM_STATUS_META[status]} {...props} />;
+}
+
+type CountBadgeProps = {
+  count: number;
+
+  tone?: keyof typeof import("@/lib/ui/ui.index").TONE_STYLES;
+
+  className?: string;
+};
+
+export function CountBadge({
+  count,
+  tone = count > 0 ? "primary" : "neutral",
+  className,
+}: CountBadgeProps) {
+  const styles = getToneStyle(tone);
+
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center min-w-[22px] h-5 rounded-full px-1.5 text-[11px] font-medium border",
-        count > 0
-          ? "bg-blue-50 border-blue-200 text-blue-700"
-          : "bg-neutral-100 border-neutral-200 text-neutral-400",
+        "inline-flex h-5 min-w-[22px] items-center justify-center rounded-full border px-1.5 text-[11px] font-medium",
+
+        styles.bg,
+        styles.border,
+        styles.text,
+
+        className,
       )}
     >
       {count}
@@ -73,17 +109,28 @@ export function CountBadge({ count }: { count: number }) {
   );
 }
 
+type ProgramThumbProps = {
+  thumbnail?: string | null;
+
+  title: string;
+
+  tone?: "primary" | "success" | "warning" | "danger" | "info" | "neutral";
+
+  className?: string;
+};
+
 export function ProgramThumb({
   thumbnail,
   title,
-}: {
-  thumbnail?: string | null;
-  title: string;
-}) {
+  tone = "primary",
+  className,
+}: ProgramThumbProps) {
+  const styles = getToneStyle(tone);
+
   const initials = title
     .split(" ")
     .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
+    .map((word) => word[0]?.toUpperCase() ?? "")
     .join("");
 
   if (thumbnail) {
@@ -91,12 +138,29 @@ export function ProgramThumb({
       <img
         src={thumbnail}
         alt={title}
-        className="size-9 rounded-lg object-cover border border-neutral-200 shrink-0"
+        className={cn(
+          "size-9 shrink-0 rounded-lg border object-cover",
+
+          styles.border,
+
+          className,
+        )}
       />
     );
   }
+
   return (
-    <div className="size-9 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-100 flex items-center justify-center shrink-0 text-[11px] font-semibold text-blue-700 select-none">
+    <div
+      className={cn(
+        "flex size-9 shrink-0 select-none items-center justify-center rounded-lg border text-[11px] font-semibold",
+
+        styles.bg,
+        styles.border,
+        styles.text,
+
+        className,
+      )}
+    >
       {initials}
     </div>
   );

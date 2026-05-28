@@ -310,7 +310,7 @@ function UserNav() {
   if (!session) {
     return (
       <Link
-        href="/sign-in"
+        href="/auth"
         className={cn(
           "flex items-center gap-1.5 rounded-lg px-3 h-8",
           "text-xs font-medium text-muted-foreground",

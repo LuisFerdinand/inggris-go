@@ -108,7 +108,6 @@ export const ProgramDetailView = ({ programId }: ProgramDetailViewProps) => {
     return (
       <div className="flex flex-col gap-y-5 pt-2.5">
         <PageNavSkeleton sticky tabCount={8} />
-        {/* optional content skeleton */}
       </div>
     );
   }
