@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/detail/BrandingSection.tsx
 "use client";
 
 import { useState } from "react";

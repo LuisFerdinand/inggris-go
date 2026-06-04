@@ -1,14 +1,17 @@
-"use client";
+// lib/uploadthing/client.ts
 import {
+  generateReactHelpers,
   generateUploadButton,
   generateUploadDropzone,
-  generateUploader,
-  generateReactHelpers,
 } from "@uploadthing/react";
-import { OurFileRouter } from "./router";
 
-export const UploadButton = generateUploadButton<OurFileRouter>();
-export const UploadDropzone = generateUploadDropzone<OurFileRouter>();
-export const Uploader = generateUploader<OurFileRouter>();
+import type { UploadRouter } from "./core";
+
+// `uploadFiles` is the imperative helper BrandingSection uses:
+//   await uploadFiles("programThumbnailUploader", { files, input: { programId } })
+// It resolves to an array; res[0].serverData is whatever onUploadComplete returned.
 export const { useUploadThing, uploadFiles } =
-  generateReactHelpers<OurFileRouter>();
+  generateReactHelpers<UploadRouter>();
+
+export const UploadButton = generateUploadButton<UploadRouter>();
+export const UploadDropzone = generateUploadDropzone<UploadRouter>();

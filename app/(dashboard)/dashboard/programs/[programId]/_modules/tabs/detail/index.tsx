@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/detail/index.tsx
 "use client";
 
 import React, { useState } from "react";

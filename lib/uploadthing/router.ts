@@ -1,21 +1,8 @@
-import type { FileRouter } from "uploadthing/next";
+// app/api/uploadthing/route.ts
+import { createRouteHandler } from "uploadthing/next";
 
-import { programs } from "@/app/db/schema";
+import { uploadRouter } from "@/lib/uploadthing/core";
 
-import { createImageUploader } from "./factories/create-image-uploader";
-
-export const ourFileRouter = {
-  programThumbnailUploader: createImageUploader({
-    table: programs,
-    idField: "programId",
-    keyColumn: "thumbnailKey",
-
-    urlColumn: "thumbnailUrl",
-
-    allowedRoles: ["admin", "super_admin"],
-
-    maxFileSize: "4MB",
-  }),
-} satisfies FileRouter;
-
-export type OurFileRouter = typeof ourFileRouter;
+export const { GET, POST } = createRouteHandler({
+  router: uploadRouter,
+});

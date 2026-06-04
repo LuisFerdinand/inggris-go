@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/detail/StructureSection.tsx
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useId } from "react";

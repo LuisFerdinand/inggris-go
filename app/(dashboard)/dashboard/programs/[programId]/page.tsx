@@ -1,17 +1,11 @@
-import { HydrateClient } from "@/lib/trpc/server";
+// app/(dashboard)/dashboard/programs/[programId]/page.tsx
 import { ProgramDetailView } from "./_modules/ui/views/ProgramDetailView";
 
-
-export const dynamic = "force-dynamic";
-
-interface Props {
-  params: { programId: string };
-}
-export default async function ProgramDetail({ params }: Props) {
+export default async function ProgramDetailPage({
+  params,
+}: {
+  params: Promise<{ programId: string }>;
+}) {
   const { programId } = await params;
-  return (
-    <HydrateClient>
-      <ProgramDetailView programId={programId}></ProgramDetailView>
-    </HydrateClient>
-  );
+  return <ProgramDetailView programId={programId} />;
 }

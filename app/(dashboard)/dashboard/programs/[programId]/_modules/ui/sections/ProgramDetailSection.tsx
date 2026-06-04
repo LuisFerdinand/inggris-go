@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/[programId]/_modules/ui/sections/ProgramDetailSection.tsx
 "use client";
 
 import React, { Suspense } from "react";

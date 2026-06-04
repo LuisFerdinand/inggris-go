@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/detail/MarketingSection.tsx
 "use client";
 
 import { useState, useRef, KeyboardEvent } from "react";

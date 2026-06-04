@@ -4,16 +4,19 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
-import Footer from "@/components/Footer";
-import { cn } from "@/lib/utils";
-
 import { Toaster } from "react-hot-toast";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
+import { AuthProvider } from "@/components/AuthProvider";
+import Footer from "@/components/Footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { TRPCProvider } from "@/lib/trpc/client";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { AuthProvider } from "@/components/AuthProvider";
+import { cn } from "@/lib/utils";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Inggris Go — Belajar Bahasa Inggris Tanpa Takut Salah",
@@ -33,8 +36,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="id" className={cn("h-full", "font-sans", geist.variable)}>
-      <body className="font-body h-full antialiased">
+    <html
+      lang="id"
+      suppressHydrationWarning
+      className={cn("h-full font-sans", geist.variable)}
+    >
+      <body suppressHydrationWarning className="font-body h-full antialiased">
         <AuthProvider>
           <TRPCProvider>
             <NuqsAdapter>
@@ -56,7 +63,6 @@ export default function RootLayout({
                         boxShadow:
                           "0 10px 30px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06)",
                       },
-
                       success: {
                         iconTheme: {
                           primary: "#1a52c8",
@@ -68,7 +74,6 @@ export default function RootLayout({
                           border: "1px solid #d7e5ff",
                         },
                       },
-
                       error: {
                         iconTheme: {
                           primary: "#dc2626",
@@ -80,7 +85,6 @@ export default function RootLayout({
                           border: "1px solid #ffd5d5",
                         },
                       },
-
                       loading: {
                         iconTheme: {
                           primary: "#1a52c8",

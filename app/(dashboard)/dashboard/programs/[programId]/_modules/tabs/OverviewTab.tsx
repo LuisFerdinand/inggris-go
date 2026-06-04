@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/OverviewTab.tsx
 "use client";
 
 import { trpc } from "@/lib/trpc/client";

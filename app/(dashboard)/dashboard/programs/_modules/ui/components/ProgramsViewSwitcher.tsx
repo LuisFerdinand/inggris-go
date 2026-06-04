@@ -1,65 +1,14 @@
+// app/(dashboard)/dashboard/programs/_modules/ui/components/ProgramsViewSwitcher.tsx
 "use client";
 
-import { parseAsStringLiteral, useQueryState } from "nuqs";
-import { LayoutList, Kanban, Calendar } from "lucide-react";
+import { useMemo } from "react";
 import { getProgramColumns } from "./Table/ProgramColumns";
 import { trpc } from "@/lib/trpc/client";
 import { ProgramDataTable } from "./Table/ProgramDataTable";
 import { useProgramFilters } from "../../hooks/use-program-filters";
-import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { FilteredProgram } from "@/app/modules/program/server/program.router";
-
-// ─── View types ───────────────────────────────────────────────────────────────
-
-const VIEW_OPTIONS = ["table", "kanban", "calendar"] as const;
-type ProgramView = (typeof VIEW_OPTIONS)[number];
-
-const VIEW_CONFIG: {
-  value: ProgramView;
-  label: string;
-  Icon: React.FC<{ className?: string }>;
-}[] = [
-  { value: "table", label: "Tabel", Icon: LayoutList },
-  { value: "kanban", label: "Kanban", Icon: Kanban },
-  { value: "calendar", label: "Kalender", Icon: Calendar },
-];
-
-// ─── View tab bar ─────────────────────────────────────────────────────────────
-
-function ViewTabBar({
-  active,
-  onChange,
-}: {
-  active: ProgramView;
-  onChange: (v: ProgramView) => void;
-}) {
-  return (
-    <div
-      className="inline-flex items-center gap-0.5 rounded-lg border border-neutral-200 bg-neutral-50 p-0.5"
-      role="tablist"
-    >
-      {VIEW_CONFIG.map(({ value, label, Icon }) => (
-        <button
-          key={value}
-          type="button"
-          role="tab"
-          aria-selected={active === value}
-          onClick={() => onChange(value)}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-all duration-150 select-none",
-            active === value
-              ? "bg-white border border-neutral-200 text-neutral-800 shadow-sm"
-              : "text-neutral-500 hover:text-neutral-700",
-          )}
-        >
-          <Icon className="size-3.5 shrink-0" />
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import type { ProgramFilterInput } from "@/app/modules/program/program.schema";
 
 // ─── Summary strip ────────────────────────────────────────────────────────────
 
@@ -114,9 +63,7 @@ function SummaryStrip({ data }: { data: FilteredProgram[] }) {
           key={s.label}
           className={cn(
             "relative flex flex-col justify-between px-5 py-4 gap-3",
-            // dividers between columns
             i < stats.length - 1 && "sm:border-r border-neutral-100",
-            // mobile: right border on col 1, bottom border on row 1
             i % 2 === 0 && "border-r border-neutral-100 sm:border-r-0",
             i < 2 && "border-b border-neutral-100 sm:border-b-0",
           )}
@@ -163,67 +110,38 @@ function SummaryStrip({ data }: { data: FilteredProgram[] }) {
   );
 }
 
-// ─── Coming soon placeholder ──────────────────────────────────────────────────
-
-function ComingSoon({ view }: { view: ProgramView }) {
-  const Icon = VIEW_CONFIG.find((v) => v.value === view)?.Icon ?? Kanban;
-  const label = VIEW_CONFIG.find((v) => v.value === view)?.label ?? view;
-  return (
-    <div className="flex flex-col items-center justify-center gap-2.5 py-20 text-neutral-400">
-      <div className="size-10 rounded-full bg-neutral-100 flex items-center justify-center">
-        <Icon className="size-5 opacity-40" />
-      </div>
-      <p className="text-sm font-medium text-neutral-500">
-        Tampilan {label} segera hadir
-      </p>
-      <p className="text-xs opacity-60">Kami sedang mengerjakan fitur ini</p>
-    </div>
-  );
-}
-
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export function ProgramsViewSwitcher() {
-  const [view, setView] = useQueryState(
-    "view",
-    parseAsStringLiteral(VIEW_OPTIONS).withDefault("table"),
-  );
-
   const [filters] = useProgramFilters();
   const columns = useMemo(() => getProgramColumns(), []);
 
-  const { data: programs = [], isLoading } = trpc.programs.getFiltered.useQuery(
-    {
-      status: filters.status ?? undefined,
-      categoryId: filters.categoryId ?? undefined,
-      format: filters.format ?? undefined,
-      level: filters.level ?? undefined,
-      registrationType: filters.registrationType ?? undefined,
-      scheduleType: filters.scheduleType ?? undefined,
-      searchQuery: filters.searchQuery ?? undefined,
-    },
-    { enabled: view === "table" },
-  );
+  // nuqs gives us `string | null`; the schema narrows + `.catch(undefined)`
+  // drops anything invalid server-side, so this cast is safe.
+  const queryInput: ProgramFilterInput = {
+    status: filters.status ?? undefined,
+    categoryId: filters.categoryId ?? undefined,
+    format: filters.format ?? undefined,
+    level: filters.level ?? undefined,
+    registrationType: filters.registrationType ?? undefined,
+    scheduleType: filters.scheduleType ?? undefined,
+    searchQuery: filters.searchQuery ?? undefined,
+  } as ProgramFilterInput;
+
+  const { data: programs = [], isLoading } =
+    trpc.programs.getFiltered.useQuery(queryInput);
 
   return (
     <div className="flex flex-col rounded-xl border border-neutral-200 bg-white overflow-hidden shadow-sm w-full">
-      {/* ── Top header: view tabs only ── */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100">
-        <ViewTabBar active={view as ProgramView} onChange={(v) => setView(v)} />
-      </div>
+      {/* Summary strip */}
+      <SummaryStrip data={programs} />
 
-      {/* ── Summary strip — visible for table view ── */}
-      {view === "table" && <SummaryStrip data={programs} />}
-
-      {/* ── Content ── */}
-      {view === "table" && (
-        <ProgramDataTable
-          columns={columns}
-          data={programs}
-          isLoading={isLoading}
-        />
-      )}
-      {view !== "table" && <ComingSoon view={view as ProgramView} />}
+      {/* Table */}
+      <ProgramDataTable
+        columns={columns}
+        data={programs}
+        isLoading={isLoading}
+      />
     </div>
   );
 }
