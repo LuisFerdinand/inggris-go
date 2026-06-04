@@ -1,8 +1,11 @@
+// app/db/seed/users.ts
+import bcrypt from "bcryptjs";
+import { sql } from "drizzle-orm";
+
 import { db } from "@/app/db/db";
 import { user } from "../schema/auth-schema";
 import { role, userRole } from "../schema/roles";
 import { generateId } from "@/lib/utils";
-import { sql } from "drizzle-orm";
 
 type UserInsert = typeof user.$inferInsert;
 
@@ -11,44 +14,39 @@ const ROLES = [
     name: "guest",
     description: "Guest user",
   },
-
   {
     name: "user",
     description: "Regular user",
   },
-
   {
     name: "teacher",
     description: "Teacher",
   },
-
   {
     name: "author",
     description: "Content author",
   },
-
   {
     name: "admin",
     description: "Administrator",
   },
-
   {
     name: "super_admin",
     description: "Super Administrator",
   },
 ] as const;
 
+const SUPER_ADMIN_EMAIL =
+  process.env.SEED_SUPER_ADMIN_EMAIL ?? "ferdinandluis88@gmail.com";
+
+const SUPER_ADMIN_PASSWORD =
+  process.env.SEED_SUPER_ADMIN_PASSWORD ?? "LuisSuperAdmin123!";
+
 const USERS = [
   {
-    name: "Vincent",
-    email: "konvincent373@gmail.com",
-
-    roles: ["super_admin"],
-  },
-  {
     name: "Luis",
-    email: "ferdinandluis88@gmail.com",
-
+    email: SUPER_ADMIN_EMAIL,
+    password: SUPER_ADMIN_PASSWORD,
     roles: ["super_admin"],
   },
 ] as const;
@@ -61,7 +59,6 @@ export async function seedRoles() {
     .values(
       ROLES.map((r) => ({
         id: generateId("role"),
-
         name: r.name,
         description: r.description,
       })),
@@ -72,23 +69,25 @@ export async function seedRoles() {
 export async function seedUsers() {
   console.log("Seeding Users...");
 
-  const data: UserInsert[] = USERS.map((u) => ({
-    id: generateId("user"),
-
-    name: u.name,
-    email: u.email,
-
-    emailVerified: true,
-  }));
+  const data: UserInsert[] = await Promise.all(
+    USERS.map(async (u) => ({
+      id: generateId("user"),
+      name: u.name,
+      email: u.email.toLowerCase(),
+      passwordHash: await bcrypt.hash(u.password, 12),
+      emailVerified: true,
+    })),
+  );
 
   await db
     .insert(user)
     .values(data)
     .onConflictDoUpdate({
       target: user.email,
-
       set: {
         name: sql`excluded.name`,
+        passwordHash: sql`excluded.password_hash`,
+        emailVerified: sql`excluded.email_verified`,
         updatedAt: new Date(),
       },
     });
@@ -106,7 +105,7 @@ export async function seedUserRoles() {
   const roleMap = new Map(roles.map((r) => [r.name, r.id]));
 
   const data = USERS.flatMap((u) => {
-    const userId = userMap.get(u.email);
+    const userId = userMap.get(u.email.toLowerCase());
 
     if (!userId) {
       throw new Error(`User not found: ${u.email}`);
@@ -121,7 +120,6 @@ export async function seedUserRoles() {
 
       return {
         id: generateId("user-role"),
-
         userId,
         roleId,
       };
@@ -129,4 +127,10 @@ export async function seedUserRoles() {
   });
 
   await db.insert(userRole).values(data).onConflictDoNothing();
+}
+
+export async function seedAuth() {
+  await seedRoles();
+  await seedUsers();
+  await seedUserRoles();
 }

@@ -1,12 +1,13 @@
+// components/UserNav.tsx
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
   ChevronDown,
-  ChevronRight,
   Eye,
   EyeOff,
   LayoutDashboard,
@@ -16,17 +17,37 @@ import {
   Mail,
   Settings,
   Sparkles,
+  UserRound,
   X,
 } from "lucide-react";
-import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { authClient } from "@/lib/auth/client";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
+
 import { BRAND } from "@/constants/brand";
-import { AuthForm } from "./AuthForm";
-import { useSignOut } from "@/hooks/use-sign-out";
+import { Button } from "./ui/button";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const SPRING = { type: "spring", damping: 28, stiffness: 240 } as const;
+
+type AuthTab = "login" | "signup";
+
+type AuthUser = {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  role?: string | null;
+};
+
+type AuthModalPortalProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  defaultTab?: AuthTab;
+};
+
+type UserNavProps = {
+  onOpenAuthModal: () => void;
+};
 
 export const NAV_MENU_ITEMS = [
   {
@@ -58,32 +79,23 @@ export const NAV_MENU_ITEMS = [
   },
 ] as const;
 
-type MenuItem = {
-  label: string;
-  shortLabel?: string;
-  href: string | null;
-  icon: React.ElementType;
-  desc?: string;
-  danger?: boolean;
-};
+function getInitials(name?: string | null): string {
+  if (!name) return "U";
 
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  image?: string | null;
-}
-
-type AuthTab = "login" | "signup";
-type AuthStep = "idle" | "magic-sent" | "loading" | "error";
-
-function getInitials(name: string): string {
-  return name
+  const initials = name
+    .trim()
     .split(" ")
+    .filter(Boolean)
     .slice(0, 2)
-    .map((w) => w[0])
+    .map((word) => word[0])
     .join("")
     .toUpperCase();
+
+  return initials || "U";
+}
+
+function canOpenDashboard(role?: string | null) {
+  return role === "admin" || role === "super_admin";
 }
 
 export function UserAvatar({
@@ -101,7 +113,7 @@ export function UserAvatar({
     return (
       <Image
         src={user.image}
-        alt={user.name}
+        alt={user.name ?? "User"}
         width={size}
         height={size}
         className={`rounded-full object-cover ${className}`}
@@ -126,508 +138,174 @@ export function UserAvatar({
   );
 }
 
-function GoogleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
-      <path
-        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-        fill="#4285F4"
-      />
-      <path
-        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-        fill="#34A853"
-      />
-      <path
-        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-        fill="#FBBC05"
-      />
-      <path
-        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-        fill="#EA4335"
-      />
-    </svg>
-  );
-}
+export function UserNav({ onOpenAuthModal }: UserNavProps) {
+  const { data: session, status } = useSession();
 
-interface AuthModalProps {
-  onClose: () => void;
-  defaultTab?: AuthTab;
-}
-interface AuthModalProps {
-  onClose: () => void;
-  defaultTab?: AuthTab;
-}
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-function AuthModal({ onClose, defaultTab = "login" }: AuthModalProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
+  const loading = status === "loading";
+  const user = session?.user as AuthUser | undefined;
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", handler);
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handler);
-      document.body.style.overflow = "";
-    };
-  }, [onClose]);
-
-  return (
-    <motion.div
-      ref={overlayRef}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[2000] flex items-start justify-center p-4 overflow-y-auto"
-      style={{ background: "rgba(6,15,46,0.65)", backdropFilter: "blur(12px)" }}
-      onClick={(e) => e.target === overlayRef.current && onClose()}
-      role="dialog"
-      aria-modal="true"
-      aria-label={defaultTab === "login" ? "Masuk ke akun" : "Buat akun baru"}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 32, scale: 0.94 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 16, scale: 0.97 }}
-        transition={SPRING}
-        className="relative w-full max-w-[440px] rounded-3xl overflow-hidden max-h-[90vh] flex flex-col"
-        style={{
-          background: "var(--surface)",
-          boxShadow:
-            "0 40px 100px rgba(6,15,46,0.4), 0 8px 24px rgba(6,15,46,0.15)",
-          border: "1px solid var(--border-soft)",
-        }}
-      >
-        <ModalHeader onClose={onClose} defaultTab={defaultTab} />
-        <div className="px-7 py-6 overflow-y-auto">
-          <AuthForm
-            variant="modal"
-            defaultTab={defaultTab}
-            onSuccess={onClose}
-            onClose={onClose}
-          />
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function ModalHeader({
-  onClose,
-  defaultTab,
-}: {
-  onClose: () => void;
-  defaultTab: AuthTab;
-}) {
-  return (
-    <div
-      className="relative px-7 pt-8 pb-6 overflow-hidden min-h-[140px]"
-      style={{
-        background:
-          "linear-gradient(135deg, var(--blue-abyss) 0%, var(--blue-navy) 100%)",
-      }}
-    >
-      {/* Subtle dot grid */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-          opacity: 0.6,
-        }}
-      />
-      {/* Gold accent line */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[2px]"
-        style={{
-          background:
-            "linear-gradient(90deg, transparent 0%, #f7b500 30%, #ffc107 70%, transparent 100%)",
-          opacity: 0.6,
-        }}
-      />
-      {/* Glow orb */}
-      <div
-        className="absolute -top-16 -right-16 w-56 h-56 rounded-full pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(247,181,0,0.12), transparent 65%)",
-        }}
-      />
-
-      <div className="relative">
-        {/* Top row */}
-        <div className="flex items-center justify-between mb-2">
-          <div
-            className="px-2.5 py-1 rounded-full flex items-center gap-1.5"
-            style={{
-              background: "rgba(247,181,0,0.15)",
-              border: "1px solid rgba(247,181,0,0.25)",
-            }}
-          >
-            <Image
-              src={"/logo.png"}
-              alt="Logo"
-              width={50}
-              height={50}
-              className="w-3 h-3"
-              style={{ color: "var(--gold-vivid)" }}
-            />
-            <span
-              className="font-display font-bold"
-              style={{
-                fontSize: "0.5625rem",
-                color: "var(--gold-vivid)",
-                letterSpacing: "0.1em",
-              }}
-            >
-              INGGRIS GO
-            </span>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-150"
-            style={{ background: "rgba(255,255,255,0.08)" }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background =
-                "rgba(255,255,255,0.16)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background =
-                "rgba(255,255,255,0.08)";
-            }}
-            aria-label="Tutup"
-          >
-            <X className="w-3.5 h-3.5 text-white" />
-          </button>
-        </div>
-
-        <h2
-          className="font-display font-bold text-white mb-2 whitespace-pre-line"
-          style={{
-            fontSize: "1.5rem",
-            lineHeight: "1.2",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {defaultTab === "login"
-            ? "Selamat datang"
-            : "Mulai perjalanan\nbahasa Inggrismu 🚀"}
-        </h2>
-        <p
-          style={{
-            fontSize: "0.8125rem",
-            color: "rgba(255,255,255,0.45)",
-            lineHeight: "1.5",
-          }}
-        >
-          {defaultTab === "login"
-            ? "Masuk untuk melanjutkan belajar."
-            : "Daftar gratis, akses program terbaik."}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function UserDropdown({
-  user,
-  onClose,
-  onSignOut,
-  isSigningOut,
-}: {
-  user: AuthUser;
-  onClose: () => void;
-  onSignOut: () => void;
-  isSigningOut: boolean;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.96 }}
-      transition={{ duration: 0.2, ease: EASE }}
-      className="absolute top-[calc(100%+14px)] right-0 z-50"
-      style={{ width: "280px" }}
-      role="menu"
-    >
-      {/* Arrow */}
-      <div className="absolute -top-[7px] right-[20px] pointer-events-none z-10">
-        <svg width="14" height="7" viewBox="0 0 14 7" fill="none">
-          <path
-            d="M0 7L7 0L14 7"
-            fill="white"
-            stroke="rgba(10,45,135,0.08)"
-            strokeWidth="1"
-          />
-        </svg>
-      </div>
-
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{
-          background: "white",
-          border: "1px solid rgba(10,45,135,0.09)",
-          boxShadow:
-            "0 24px 70px rgba(10,45,135,0.18), 0 4px 16px rgba(10,45,135,0.06)",
-        }}
-      >
-        {/* Identity header */}
-        <div
-          className="relative px-4 py-4 overflow-hidden"
-          style={{
-            background: "linear-gradient(140deg, #060f2e 0%, #0a2d87 100%)",
-          }}
-        >
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.04]"
-            style={{
-              backgroundImage:
-                "radial-gradient(circle, white 1px, transparent 1px)",
-              backgroundSize: "14px 14px",
-            }}
-          />
-          {/* Gold shimmer */}
-          <div
-            className="absolute bottom-0 left-0 right-0 h-[1.5px] pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, rgba(247,181,0,0.5), transparent)",
-            }}
-          />
-          <div
-            className="absolute -top-8 -right-8 w-28 h-28 rounded-full pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(247,181,0,0.14), transparent 65%)",
-            }}
-          />
-
-          <div className="relative flex items-center gap-3">
-            <div className="relative flex-shrink-0">
-              <UserAvatar user={user} size={40} />
-              <div
-                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px]"
-                style={{ background: "#22C55E", borderColor: "#060f2e" }}
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p
-                className="font-bold text-white truncate"
-                style={{ fontSize: "0.9rem", letterSpacing: "-0.01em" }}
-              >
-                {user.name}
-              </p>
-              <p
-                className="truncate"
-                style={{
-                  fontSize: "0.6875rem",
-                  color: "rgba(255,255,255,0.45)",
-                }}
-              >
-                {user.email}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Nav items */}
-        <div className="p-2 space-y-0.5">
-          {NAV_MENU_ITEMS.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <motion.div
-                key={item.href}
-                initial={{ opacity: 0, x: -6 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  delay: 0.04 * i + 0.05,
-                  duration: 0.18,
-                  ease: EASE,
-                }}
-                role="menuitem"
-              >
-                <Link
-                  href={item.href}
-                  onClick={onClose}
-                  className="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150"
-                  style={{
-                    textDecoration: "none",
-                    border: "1px solid transparent",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background =
-                      "#F8FAFF";
-                    (e.currentTarget as HTMLElement).style.border =
-                      "1px solid rgba(26,82,200,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.background =
-                      "transparent";
-                    (e.currentTarget as HTMLElement).style.border =
-                      "1px solid transparent";
-                  }}
-                >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150"
-                    style={{ background: item.bg }}
-                  >
-                    <Icon
-                      className="w-3.5 h-3.5"
-                      style={{ color: item.color }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="font-semibold"
-                      style={{ fontSize: "0.8125rem", color: "#0a2d87" }}
-                    >
-                      {item.label}
-                    </p>
-                    <p style={{ fontSize: "0.625rem", color: "#94A3B8" }}>
-                      {item.desc}
-                    </p>
-                  </div>
-                  <ChevronRight
-                    className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-150"
-                    style={{ color: BRAND.blue }}
-                  />
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Divider + Sign out */}
-        <div className="px-2 pb-2">
-          <div
-            style={{
-              borderTop: "1px solid rgba(10,45,135,0.07)",
-              paddingTop: 6,
-            }}
-          >
-            <button
-              onClick={onSignOut}
-              disabled={isSigningOut}
-              className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 disabled:opacity-60 cursor-pointer"
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background = "#FFF5F5";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "transparent";
-              }}
-              role="menuitem"
-            >
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-150"
-                style={{ background: "rgba(239,68,68,0.07)" }}
-              >
-                {isSigningOut ? (
-                  <Loader2
-                    className="w-3.5 h-3.5 animate-spin"
-                    style={{ color: "#EF4444" }}
-                  />
-                ) : (
-                  <LogOut
-                    className="w-3.5 h-3.5"
-                    style={{ color: "#EF4444" }}
-                  />
-                )}
-              </div>
-              <span
-                className="font-semibold group-hover:text-red-600 transition-colors duration-150"
-                style={{ fontSize: "0.8125rem", color: "#64748B" }}
-              >
-                {isSigningOut ? "Keluar..." : "Keluar"}
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-export function UserNav({ onOpenAuthModal }: { onOpenAuthModal: () => void }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const { data: session, isPending } = authClient.useSession();
-
-  const { signOut, isSigningOut } = useSignOut();
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        setDropdownOpen(false);
+    const handler = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handler);
+
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  if (isPending) {
-    return <div className="w-20 h-9 rounded-xl bg-white/10 animate-pulse" />;
+  if (loading) {
+    return (
+      <Button variant="brand-outline" size="sm" disabled>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading
+      </Button>
+    );
   }
 
-  if (!session?.user) {
-    return <SignInButton onOpen={onOpenAuthModal} />;
+  if (!user) {
+    return (
+      <Button
+        variant="brand"
+        size="sm"
+        onClick={onOpenAuthModal}
+        className="font-semibold"
+      >
+        <LogIn className="mr-2 h-4 w-4" />
+        Login
+      </Button>
+    );
   }
-
-  const user = session.user as AuthUser;
 
   return (
-    <div ref={dropdownRef} className="relative">
-      {/* Trigger */}
+    <div ref={rootRef} className="relative">
       <button
-        onClick={() => setDropdownOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-xl pl-1.5 pr-3 py-1.5 transition-all duration-200 cursor-pointer select-none"
-        style={{
-          background: dropdownOpen
-            ? "linear-gradient(135deg, #060f2e 0%, #0a2d87 100%)"
-            : "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
-          border: dropdownOpen
-            ? "1.5px solid rgba(247,181,0,0.35)"
-            : "1.5px solid rgba(255,255,255,0.08)",
-          boxShadow: dropdownOpen
-            ? "0 6px 20px rgba(10,45,135,0.35), 0 0 0 3px rgba(247,181,0,0.08)"
-            : "0 2px 10px rgba(10,45,135,0.2)",
-        }}
-        aria-haspopup="true"
-        aria-expanded={dropdownOpen}
-        aria-label="User menu"
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2 transition hover:bg-[var(--surface-soft)]"
+        aria-haspopup="menu"
+        aria-expanded={open}
       >
-        <UserAvatar user={user} size={28} />
-        <span
-          className="font-semibold hidden xl:block max-w-[100px] truncate text-white"
-          style={{ fontSize: "0.8125rem" }}
-        >
-          {user.name.split(" ")[0]}
-        </span>
-        <motion.span
-          animate={{ rotate: dropdownOpen ? 180 : 0 }}
-          transition={{ duration: 0.22, ease: EASE }}
-          className="inline-flex"
-        >
-          <ChevronDown
-            className="w-3.5 h-3.5"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-          />
-        </motion.span>
+        <UserAvatar user={user} size={32} />
+
+        <div className="hidden xl:block min-w-0 text-left">
+          <p className="max-w-[120px] truncate text-sm font-bold leading-none text-[var(--blue-navy)]">
+            {user.name ?? "User"}
+          </p>
+
+          <p className="mt-1 max-w-[120px] truncate text-xs text-muted-foreground">
+            {user.role ?? "user"}
+          </p>
+        </div>
+
+        <ChevronDown
+          className={[
+            "h-4 w-4 text-muted-foreground transition-transform",
+            open ? "rotate-180" : "",
+          ].join(" ")}
+        />
       </button>
 
       <AnimatePresence>
-        {dropdownOpen && (
-          <UserDropdown
-            user={user}
-            onClose={() => setDropdownOpen(false)}
-            onSignOut={signOut}
-            isSigningOut={isSigningOut}
-          />
+        {open && (
+          <motion.div
+            role="menu"
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: EASE }}
+            className="absolute right-0 top-[calc(100%+12px)] z-[1200] w-80 overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] shadow-[0_24px_60px_rgba(15,23,42,0.18)]"
+          >
+            <div className="relative overflow-hidden px-4 py-4">
+              <div
+                className="absolute inset-0 opacity-[0.06]"
+                style={{
+                  background:
+                    "radial-gradient(circle at 20% 20%, var(--gold-vivid), transparent 38%), radial-gradient(circle at 85% 15%, var(--blue-navy), transparent 35%)",
+                }}
+              />
+
+              <div className="relative flex items-center gap-3">
+                <UserAvatar user={user} size={46} />
+
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-[var(--blue-navy)]">
+                    {user.name ?? "User"}
+                  </p>
+
+                  <p className="truncate text-xs text-muted-foreground">
+                    {user.email}
+                  </p>
+
+                  <p className="mt-1 inline-flex rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--blue-navy)]">
+                    {user.role ?? "user"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-[var(--border)] p-2">
+              {NAV_MENU_ITEMS.map((item) => {
+                if (
+                  item.href === "/dashboard" &&
+                  !canOpenDashboard(user.role)
+                ) {
+                  return null;
+                }
+
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    role="menuitem"
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 rounded-2xl px-3 py-2.5 transition hover:bg-[var(--surface-soft)]"
+                  >
+                    <span
+                      className="flex h-9 w-9 items-center justify-center rounded-xl"
+                      style={{ color: item.color, background: item.bg }}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold text-[var(--blue-navy)]">
+                        {item.label}
+                      </span>
+
+                      <span className="block text-xs text-muted-foreground">
+                        {item.desc}
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="border-t border-[var(--border)] p-2">
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setOpen(false);
+                  signOut({ callbackUrl: "/" });
+                }}
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  <LogOut className="h-4 w-4" />
+                </span>
+                Logout
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -641,236 +319,93 @@ export function MobileUserSection({
   onClose: () => void;
   onOpenAuthModal: () => void;
 }) {
-  const router = useRouter();
-  const [expanded, setExpanded] = useState(true);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, status } = useSession();
 
-  const handleSignOut = useCallback(async () => {
-    setIsSigningOut(true);
-    try {
-      await authClient.signOut();
-      onClose();
-      router.push("/");
-      router.refresh();
-    } finally {
-      setIsSigningOut(false);
-    }
-  }, [onClose, router]);
+  const user = session?.user as AuthUser | undefined;
+  const loading = status === "loading";
 
-  if (isPending) {
+  if (loading) {
     return (
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ border: "1.5px solid rgba(10,45,135,0.08)" }}
-      >
-        <div
-          className="flex items-center gap-3 px-3.5 py-3"
-          style={{
-            background: "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
-          }}
-        >
-          <div className="w-8 h-8 rounded-full bg-white/10 animate-pulse flex-shrink-0" />
-          <div className="flex-1 space-y-1.5">
-            <div className="h-2.5 bg-white/10 rounded-full animate-pulse w-24" />
-            <div className="h-2 bg-white/10 rounded-full animate-pulse w-36" />
-          </div>
+      <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface-soft)] px-4 py-3">
+        <div className="flex items-center gap-3 text-sm font-semibold text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading akun...
         </div>
       </div>
     );
   }
 
-  if (!session?.user) {
+  if (!user) {
     return (
-      <button
+      <Button
+        variant="brand"
+        size="brand-full"
+        className="py-3"
         onClick={() => {
           onClose();
           onOpenAuthModal();
         }}
-        className="w-full flex items-center justify-center gap-2.5 font-bold rounded-2xl py-3.5 transition-all duration-150 active:scale-[0.98] cursor-pointer"
-        style={{
-          fontSize: "0.875rem",
-          color: "white",
-          background: "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
-          boxShadow:
-            "0 4px 20px rgba(10,45,135,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
-          border: "1.5px solid rgba(247,181,0,0.2)",
-        }}
       >
-        <LogIn className="w-4 h-4 text-white" />
-        Masuk / Daftar Akun
-      </button>
+        <LogIn className="size-5" />
+        Login / Register
+      </Button>
     );
   }
 
-  const user = session.user as AuthUser;
-
   return (
-    <div
-      className="rounded-2xl overflow-hidden transition-all duration-200"
-      style={{
-        border: expanded
-          ? "1.5px solid rgba(26,82,200,0.2)"
-          : "1.5px solid rgba(10,45,135,0.09)",
-        boxShadow: expanded ? "0 4px 24px rgba(10,45,135,0.1)" : "none",
-      }}
-    >
-      {/* Header row */}
-      <button
-        onClick={() => setExpanded((o) => !o)}
-        className="relative w-full flex items-center gap-2.5 px-3.5 py-3 overflow-hidden cursor-pointer"
-        style={{
-          background: "linear-gradient(140deg, #060f2e 0%, #0a2d87 100%)",
-        }}
-        aria-expanded={expanded}
-      >
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle, white 1px, transparent 1px)",
-            backgroundSize: "14px 14px",
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[1.5px] pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(247,181,0,0.45), transparent)",
-            display: expanded ? "block" : "none",
-          }}
-        />
+    <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3">
+      <div className="mb-3 flex items-center gap-3">
+        <UserAvatar user={user} size={42} />
 
-        <div className="relative flex-shrink-0">
-          <UserAvatar user={user} size={32} />
-          <div
-            className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px]"
-            style={{ background: "#22C55E", borderColor: "#060f2e" }}
-          />
-        </div>
-
-        <div className="flex-1 min-w-0 text-left">
-          <p
-            className="font-bold text-white truncate leading-tight"
-            style={{ fontSize: "0.8125rem" }}
-          >
-            {user.name}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-[var(--blue-navy)]">
+            {user.name ?? "User"}
           </p>
-          <p
-            className="truncate"
-            style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.45)" }}
-          >
+
+          <p className="truncate text-xs text-muted-foreground">
             {user.email}
           </p>
         </div>
+      </div>
 
-        <motion.span
-          animate={{ rotate: expanded ? 180 : 0 }}
-          transition={{ duration: 0.22, ease: EASE }}
-          style={{ color: "rgba(255,255,255,0.4)" }}
+      <div className="grid grid-cols-2 gap-2">
+        <Link
+          href="/dashboard/programs"
+          onClick={onClose}
+          className="rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-center text-xs font-bold text-[var(--blue-navy)]"
         >
-          <ChevronDown className="w-3.5 h-3.5" />
-        </motion.span>
-      </button>
+          Program
+        </Link>
 
-      {/* Expandable grid */}
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.24, ease: EASE }}
-            style={{ overflow: "hidden", background: "white" }}
+        {canOpenDashboard(user.role) ? (
+          <Link
+            href="/dashboard"
+            onClick={onClose}
+            className="rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-center text-xs font-bold text-[var(--blue-navy)]"
           >
-            <div className="grid grid-cols-3 px-2 pt-3 pb-1 gap-2">
-              {NAV_MENU_ITEMS.map((item, i) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={onClose}
-                    className="flex flex-col items-center gap-1.5 px-1 py-2.5 rounded-xl transition-all duration-150 active:scale-95"
-                    style={{
-                      textDecoration: "none",
-                      border: "1px solid rgba(10,45,135,0.07)",
-                      background: "rgba(248,250,252,0.8)",
-                    }}
-                  >
-                    <motion.div
-                      initial={{ scale: 0.7, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{
-                        delay: 0.04 * i,
-                        duration: 0.2,
-                        ease: EASE,
-                      }}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center"
-                      style={{
-                        background: item.bg,
-                        border: `1px solid ${item.color}18`,
-                      }}
-                    >
-                      <Icon
-                        className="w-3.5 h-3.5"
-                        style={{ color: item.color }}
-                      />
-                    </motion.div>
-                    <motion.span
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.04 * i + 0.06, duration: 0.18 }}
-                      className="font-semibold text-center leading-tight"
-                      style={{ fontSize: "0.5625rem", color: "#475569" }}
-                    >
-                      {item.shortLabel}
-                    </motion.span>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div
-              className="px-2 pb-3 pt-2"
-              style={{
-                borderTop: "1px solid rgba(10,45,135,0.07)",
-                margin: "0 8px",
-              }}
-            >
-              <button
-                onClick={handleSignOut}
-                disabled={isSigningOut}
-                className="group w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-150 hover:bg-red-50 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
-                style={{ border: "1px solid rgba(239,68,68,0.08)" }}
-              >
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(239,68,68,0.07)" }}
-                >
-                  {isSigningOut ? (
-                    <Loader2
-                      className="w-3.5 h-3.5 animate-spin"
-                      style={{ color: "#EF4444" }}
-                    />
-                  ) : (
-                    <LogOut
-                      className="w-3.5 h-3.5"
-                      style={{ color: "#EF4444" }}
-                    />
-                  )}
-                </div>
-                <span
-                  className="font-semibold group-hover:text-red-600 transition-colors duration-150"
-                  style={{ fontSize: "0.8125rem", color: "#EF4444" }}
-                >
-                  {isSigningOut ? "Keluar..." : "Keluar dari akun"}
-                </span>
-              </button>
-            </div>
-          </motion.div>
+            Dashboard
+          </Link>
+        ) : (
+          <Link
+            href="/dashboard/settings"
+            onClick={onClose}
+            className="rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-center text-xs font-bold text-[var(--blue-navy)]"
+          >
+            Pengaturan
+          </Link>
         )}
-      </AnimatePresence>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          onClose();
+          signOut({ callbackUrl: "/" });
+        }}
+        className="mt-2 w-full rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600"
+      >
+        Logout
+      </button>
     </div>
   );
 }
@@ -878,46 +413,440 @@ export function MobileUserSection({
 export function AuthModalPortal({
   isOpen,
   onClose,
-  defaultTab,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  defaultTab?: AuthTab;
-}) {
+  defaultTab = "login",
+}: AuthModalPortalProps) {
   return (
     <AnimatePresence>
-      {isOpen && <AuthModal onClose={onClose} defaultTab={defaultTab} />}
+      {isOpen && <AuthModal onClose={onClose} defaultTab={defaultTab} isOpen={false} />}
     </AnimatePresence>
   );
 }
 
-function SignInButton({ onOpen }: { onOpen: () => void }) {
-  const [hovered, setHovered] = useState(false);
+function AuthModal({ onClose, defaultTab = "login" }: AuthModalPortalProps) {
+  const [tab, setTab] = useState<AuthTab>(defaultTab);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setTab(defaultTab);
+  }, [defaultTab, open]);
+
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handler);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
 
   return (
-    <button
-      onClick={onOpen}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative inline-flex items-center gap-2 font-semibold rounded-xl px-4 py-2 overflow-hidden transition-all duration-200 cursor-pointer"
+    <motion.div
+      ref={overlayRef}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[2000] flex items-start justify-center overflow-y-auto p-4"
       style={{
-        fontSize: "0.8125rem",
-        color: "white",
-        background: "linear-gradient(135deg, #0a2d87 0%, #1a52c8 100%)",
-        border: "1.5px solid rgba(255,255,255,0.1)",
-        boxShadow: hovered
-          ? "0 8px 24px rgba(10,45,135,0.35), inset 0 0 0 1px rgba(247,181,0,0.2)"
-          : "0 2px 10px rgba(10,45,135,0.22)",
-        transform: hovered ? "translateY(-1px)" : "translateY(0)",
+        background: "rgba(6,15,46,0.65)",
+        backdropFilter: "blur(12px)",
+      }}
+      onClick={(event) => {
+        if (event.target === overlayRef.current) onClose();
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={tab === "login" ? "Masuk ke akun" : "Buat akun baru"}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 32, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.97 }}
+        transition={SPRING}
+        className="relative flex max-h-[90vh] w-full max-w-[440px] flex-col overflow-hidden rounded-3xl"
+        style={{
+          background: "var(--surface)",
+          boxShadow:
+            "0 40px 100px rgba(6,15,46,0.4), 0 8px 24px rgba(6,15,46,0.15)",
+          border: "1px solid var(--border-soft)",
+        }}
+      >
+        <ModalHeader onClose={onClose} tab={tab} />
+
+        <div className="px-7 py-6 overflow-y-auto">
+          <div className="mb-5 grid grid-cols-2 rounded-2xl bg-[var(--surface-soft)] p-1">
+            <button
+              type="button"
+              onClick={() => setTab("login")}
+              className={[
+                "rounded-xl px-4 py-2 text-sm font-bold transition",
+                tab === "login"
+                  ? "bg-white text-[var(--blue-navy)] shadow-sm"
+                  : "text-muted-foreground",
+              ].join(" ")}
+            >
+              Login
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTab("signup")}
+              className={[
+                "rounded-xl px-4 py-2 text-sm font-bold transition",
+                tab === "signup"
+                  ? "bg-white text-[var(--blue-navy)] shadow-sm"
+                  : "text-muted-foreground",
+              ].join(" ")}
+            >
+              Register
+            </button>
+          </div>
+
+          {tab === "login" ? (
+            <LoginForm onSuccess={onClose} />
+          ) : (
+            <RegisterForm
+              onSuccess={() => {
+                setTab("login");
+              }}
+            />
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function ModalHeader({
+  onClose,
+  tab,
+}: {
+  onClose: () => void;
+  tab: AuthTab;
+}) {
+  return (
+    <div
+      className="relative min-h-[140px] overflow-hidden px-7 pb-6 pt-8"
+      style={{
+        background:
+          "linear-gradient(135deg, var(--blue-abyss) 0%, var(--blue-navy) 100%)",
       }}
     >
-      <span>Masuk</span>
-      <motion.span
-        animate={{ x: hovered ? 2 : 0 }}
-        transition={{ duration: 0.18 }}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+          opacity: 0.6,
+        }}
+      />
+
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute right-4 top-4 z-10 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+        aria-label="Close auth modal"
       >
-        <ChevronRight className="w-3.5 h-3.5 opacity-70" />
-      </motion.span>
-    </button>
+        <X className="h-5 w-5" />
+      </button>
+
+      <div className="relative z-10">
+        <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white ring-1 ring-white/20">
+          <Sparkles className="h-5 w-5" />
+        </div>
+
+        <h2 className="text-2xl font-bold text-white">
+          {tab === "login" ? "Login Akun" : "Buat Akun Baru"}
+        </h2>
+
+        <p className="mt-1 text-sm text-white/70">
+          {tab === "login"
+            ? "Masuk menggunakan email dan password."
+            : "Daftar akun baru untuk mulai belajar."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function LoginForm({ onSuccess }: { onSuccess: () => void }) {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [error, setError] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    setLoading(false);
+
+    if (result?.error) {
+      setError("Email atau password salah.");
+      return;
+    }
+
+    onSuccess();
+    router.refresh();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      <AuthField
+        label="Email"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        placeholder="you@example.com"
+        icon={Mail}
+      />
+
+      <PasswordField
+        label="Password"
+        value={password}
+        onChange={setPassword}
+        showPassword={showPassword}
+        onToggle={() => setShowPassword((value) => !value)}
+      />
+
+      <Button
+        type="submit"
+        variant="brand"
+        className="w-full py-3"
+        disabled={loading}
+      >
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Login
+      </Button>
+    </form>
+  );
+}
+
+function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
+  const [name, setName] = useState("");
+
+  const [email, setEmail] = useState("");
+
+  const [password, setPassword] = useState("");
+
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [error, setError] = useState("");
+
+  const [success, setSuccess] = useState("");
+
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setError("");
+    setSuccess("");
+
+    if (password !== confirmPassword) {
+      setError("Password dan konfirmasi password tidak sama.");
+      return;
+    }
+
+    setLoading(true);
+
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json().catch(() => null);
+
+    setLoading(false);
+
+    if (!response.ok) {
+      setError(data?.error ?? "Gagal membuat akun.");
+      return;
+    }
+
+    setName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+
+    setSuccess("Akun berhasil dibuat. Silakan login.");
+
+    window.setTimeout(() => {
+      onSuccess();
+    }, 650);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {success}
+        </div>
+      )}
+
+      <AuthField
+        label="Nama"
+        type="text"
+        value={name}
+        onChange={setName}
+        placeholder="Nama kamu"
+        icon={UserRound}
+      />
+
+      <AuthField
+        label="Email"
+        type="email"
+        value={email}
+        onChange={setEmail}
+        placeholder="you@example.com"
+        icon={Mail}
+      />
+
+      <PasswordField
+        label="Password"
+        value={password}
+        onChange={setPassword}
+        showPassword={showPassword}
+        onToggle={() => setShowPassword((value) => !value)}
+      />
+
+      <PasswordField
+        label="Konfirmasi Password"
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        showPassword={showPassword}
+        onToggle={() => setShowPassword((value) => !value)}
+      />
+
+      <Button
+        type="submit"
+        variant="brand"
+        className="w-full py-3"
+        disabled={loading}
+      >
+        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Register
+      </Button>
+    </form>
+  );
+}
+
+function AuthField({
+  label,
+  type,
+  value,
+  onChange,
+  placeholder,
+  icon: Icon,
+}: {
+  label: string;
+  type: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  icon: React.ElementType;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-bold text-[var(--blue-navy)]">
+        {label}
+      </span>
+
+      <div className="relative">
+        <Icon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+        <input
+          required
+          type={type}
+          value={value}
+          placeholder={placeholder}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full rounded-2xl border border-[var(--border)] bg-white py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-muted-foreground focus:border-[var(--gold-dark)] focus:ring-4 focus:ring-[var(--gold-vivid)]/15"
+        />
+      </div>
+    </label>
+  );
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  showPassword,
+  onToggle,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  showPassword: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-sm font-bold text-[var(--blue-navy)]">
+        {label}
+      </span>
+
+      <div className="relative">
+        <input
+          required
+          type={showPassword ? "text" : "password"}
+          value={value}
+          placeholder="Minimal 6 karakter"
+          onChange={(event) => onChange(event.target.value)}
+          className="w-full rounded-2xl border border-[var(--border)] bg-white py-3 pl-4 pr-12 text-sm outline-none transition placeholder:text-muted-foreground focus:border-[var(--gold-dark)] focus:ring-4 focus:ring-[var(--gold-vivid)]/15"
+        />
+
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition hover:text-[var(--blue-navy)]"
+          aria-label={showPassword ? "Hide password" : "Show password"}
+        >
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </label>
   );
 }

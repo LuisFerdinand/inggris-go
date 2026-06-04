@@ -1,3 +1,4 @@
+// app/modules/program/program.types.ts
 type ProgramSectionType =
   | "hero"
   | "why"

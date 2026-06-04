@@ -1,5 +1,5 @@
+// lib/trpc/server.tsx
 import "server-only";
-import { headers } from "next/headers";
 import { createHydrationHelpers } from "@trpc/react-query/rsc";
 import { cache } from "react";
 
@@ -9,11 +9,7 @@ import { type AppRouter, appRouter } from "./routers/_app";
 
 export const getQueryClient = cache(makeQueryClient);
 
-const caller = createCallerFactory(appRouter)(async () =>
-  createTRPCContext({
-    headers: await headers(),
-  }),
-);
+const caller = createCallerFactory(appRouter)(() => createTRPCContext());
 
 export const { trpc, HydrateClient } = createHydrationHelpers<AppRouter>(
   caller,

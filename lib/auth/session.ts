@@ -1,10 +1,6 @@
-import { headers } from "next/headers";
+// lib/auth/session.ts
 import { auth } from "@/lib/auth";
 
 export async function getServerSession() {
-  const requestHeaders = await headers();
-
-  return auth.api.getSession({
-    headers: requestHeaders,
-  });
+  return auth();
 }

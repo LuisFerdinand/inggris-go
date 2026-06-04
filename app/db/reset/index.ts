@@ -1,38 +1,37 @@
-import "dotenv/config";
+// app/db/reset/index.ts
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 
-import { db } from "@/app/db/db";
 import { sql } from "drizzle-orm";
+import { db } from "@/app/db/db";
 
 async function main() {
   console.log("🧹 Resetting database...");
 
-  // Disable FK temporarily (Postgres)
-  await db.execute(sql`SET session_replication_role = 'replica';`);
+  /**
+   * Neon does not allow:
+   * SET session_replication_role = 'replica';
+   *
+   * So the cleanest reset is to drop and recreate the public schema.
+   */
+  await db.execute(sql`DROP SCHEMA IF EXISTS public CASCADE;`);
+  await db.execute(sql`CREATE SCHEMA public;`);
 
-  await db.execute(sql`
-    TRUNCATE TABLE
-      programs,
-      program_categories,
-      program_content,
-      batch,
-      post,
-      post_category,
-      tag,
-      post_tag,
-      post_like,
-      post_save,
-      post_view
-    RESTART IDENTITY CASCADE;
-  `);
+  /**
+   * Restore default permissions for public schema.
+   * This helps avoid permission weirdness after recreating the schema.
+   */
+  await db.execute(sql`GRANT ALL ON SCHEMA public TO public;`);
 
-  // Enable FK back
-  await db.execute(sql`SET session_replication_role = 'origin';`);
-
-  console.log("✅ Database cleaned");
-  process.exit(0);
+  console.log("✅ Database reset complete.");
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .catch((error) => {
+    console.error("❌ Database reset failed:");
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(() => {
+    process.exit(0);
+  });

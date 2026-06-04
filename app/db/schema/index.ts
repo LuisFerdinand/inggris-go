@@ -1,3 +1,4 @@
+// app/db/schema/index.ts
 export * from "./programs";
 export * from "./auth-schema";
 export * from "./roles";

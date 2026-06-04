@@ -1,19 +1,17 @@
-import { auth } from "@/lib/auth";
-import { eq } from "drizzle-orm";
-import { cache } from "react";
+// lib/trpc/init.ts
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { db } from "@/app/db/db";
-import { role, userRole, user } from "@/app/db/schema";
 
-export const createTRPCContext = async (opts?: { headers?: Headers }) => {
-  const session = await auth.api.getSession({
-    headers: opts?.headers ?? new Headers(),
-  });
+import { auth } from "@/lib/auth";
+
+export const createTRPCContext = async () => {
+  // NextAuth's `auth()` reads the session from cookies/headers itself.
+  // No headers argument and no `.api.getSession` (that was Better Auth).
+  const session = await auth();
 
   return {
     session,
-    authUserId: session?.user.id ?? null,
+    authUserId: session?.user?.id ?? null,
   };
 };
 
@@ -26,29 +24,23 @@ const t = initTRPC.context<Context>().create({
 export const createTRPCRouter = t.router;
 export const createCallerFactory = t.createCallerFactory;
 export const baseProcedure = t.procedure;
+
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-  if (!ctx.authUserId) {
+  if (!ctx.session?.user?.id) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const [authUser] = await db
-    .select()
-    .from(user)
-    .where(eq(user.id, ctx.authUserId))
-    .limit(1);
+  const { id, role } = ctx.session.user;
 
-  if (!authUser) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "User not found" });
-  }
-
-  const roleRows = await db
-    .select({ role: role.name })
-    .from(userRole)
-    .innerJoin(role, eq(role.id, userRole.roleId))
-    .where(eq(userRole.userId, authUser.id));
-
-  const roles = roleRows.map((r) => r.role);
   return next({
-    ctx: { ...ctx, auth: { userId: authUser.id, user: authUser, roles } },
+    ctx: {
+      ...ctx,
+      auth: {
+        userId: id,
+        // role lives in the JWT (set in your session callback),
+        // so no extra DB query needed
+        role: role ?? "user",
+      },
+    },
   });
 });

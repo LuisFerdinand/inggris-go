@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/_modules/ui/components/ProgramFilters.tsx
 "use client";
 
 import { useProgramFilters } from "../../hooks/use-program-filters";

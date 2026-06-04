@@ -36,9 +36,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { authClient } from "@/lib/auth/client";
 import { BRAND } from "@/constants/brand";
-import { useSignOut } from "@/hooks/use-sign-out";
+import { signOut, useSession } from "next-auth/react";
 
 /* ─── Constants ─────────────────────────────────────────────── */
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -206,14 +205,33 @@ function DropdownRow({
 /* ─── Main: DashboardNavUser ─────────────────────────────────── */
 export function DashboardNavUser() {
   const { isMobile, state } = useSidebar();
-  const { data: session, isPending } = authClient.useSession();
 
-  const { signOut, isSigningOut } = useSignOut();
+  const { data: session, status } = useSession();
+
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const isCollapsed = state === "collapsed" && !isMobile;
+  const isPending = status === "loading";
 
   if (isPending) {
     return null;
+  }
+
+  if (!session?.user) {
+    return null;
+  }
+
+  const user = session.user;
+
+  const avatarSrc =
+    user.image ?? `https://avatar.vercel.sh/${user.email || "User"}`;
+
+  async function handleSignOut() {
+    setIsSigningOut(true);
+
+    await signOut({
+      callbackUrl: "/",
+    });
   }
 
   return (
@@ -229,56 +247,48 @@ export function DashboardNavUser() {
                 border: "1px solid transparent",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.background =
-                  "rgba(10,45,135,0.06)";
-                (e.currentTarget as HTMLElement).style.border =
-                  "1px solid rgba(10,45,135,0.08)";
+                e.currentTarget.style.background = "rgba(10,45,135,0.06)";
+                e.currentTarget.style.border = "1px solid rgba(10,45,135,0.08)";
               }}
               onMouseLeave={(e) => {
-                if (!(e.currentTarget as HTMLElement).dataset.state) {
-                  (e.currentTarget as HTMLElement).style.background =
-                    "transparent";
-                  (e.currentTarget as HTMLElement).style.border =
-                    "1px solid transparent";
+                if (!e.currentTarget.dataset.state) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.border = "1px solid transparent";
                 }
               }}
             >
-              {/* When collapsed: just avatar */}
               {isCollapsed ? (
                 <DashboardAvatar
-                  src={
-                    session?.user.image ??
-                    `https://avatar.vercel.sh/${session?.user.email || "User"}`
-                  }
-                  name={session?.user.name || "User"}
+                  src={avatarSrc}
+                  name={user.name || "User"}
                   size={28}
                 />
               ) : (
                 <>
                   <DashboardAvatar
-                    src={
-                      session?.user.image ??
-                      `https://avatar.vercel.sh/${session?.user.email || "User"}`
-                    }
-                    name={session?.user.name || "User"}
+                    src={avatarSrc}
+                    name={user.name || "User"}
                     size={34}
                   />
+
                   <div className="grid flex-1 text-left text-sm leading-tight min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span
                         className="truncate font-semibold"
                         style={{ fontSize: "0.8125rem", color: "#0f172a" }}
                       >
-                        {session?.user.name}
+                        {user.name ?? "User"}
                       </span>
                     </div>
+
                     <span
                       className="truncate"
                       style={{ fontSize: "0.6875rem", color: "#64748B" }}
                     >
-                      {session?.user.email}
+                      {user.email}
                     </span>
                   </div>
+
                   <ChevronDown className="ml-auto size-3.5 opacity-40 shrink-0" />
                 </>
               )}
@@ -298,7 +308,6 @@ export function DashboardNavUser() {
               background: "white",
             }}
           >
-            {/* Identity header */}
             <DropdownMenuLabel className="p-0 font-normal">
               <div
                 className="relative px-4 py-4 overflow-hidden"
@@ -307,7 +316,6 @@ export function DashboardNavUser() {
                     "linear-gradient(140deg, #060f2e 0%, #0a2d87 60%, #1a52c8 100%)",
                 }}
               >
-                {/* Dot grid */}
                 <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
@@ -316,7 +324,7 @@ export function DashboardNavUser() {
                     backgroundSize: "14px 14px",
                   }}
                 />
-                {/* Gold shimmer line */}
+
                 <div
                   className="absolute bottom-0 left-0 right-0 h-[1.5px] pointer-events-none"
                   style={{
@@ -324,7 +332,7 @@ export function DashboardNavUser() {
                       "linear-gradient(90deg, transparent, rgba(247,181,0,0.55), transparent)",
                   }}
                 />
-                {/* Glow */}
+
                 <div
                   className="absolute -top-10 -right-10 w-32 h-32 pointer-events-none"
                   style={{
@@ -335,13 +343,11 @@ export function DashboardNavUser() {
 
                 <div className="relative flex items-center gap-3">
                   <DashboardAvatar
-                    src={
-                      session?.user.image ??
-                      `https://avatar.vercel.sh/${session?.user.email || "User"}`
-                    }
-                    name={session?.user.name || "User"}
+                    src={avatarSrc}
+                    name={user.name || "User"}
                     size={42}
                   />
+
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <p
@@ -351,9 +357,10 @@ export function DashboardNavUser() {
                           letterSpacing: "-0.01em",
                         }}
                       >
-                        {session?.user.name}
+                        {user.name ?? "User"}
                       </p>
                     </div>
+
                     <p
                       className="truncate"
                       style={{
@@ -361,14 +368,13 @@ export function DashboardNavUser() {
                         color: "rgba(255,255,255,0.45)",
                       }}
                     >
-                      {session?.user.email}
+                      {user.email}
                     </p>
                   </div>
                 </div>
               </div>
             </DropdownMenuLabel>
 
-            {/* Account items */}
             <DropdownMenuGroup className="px-2 py-1 space-y-0.5">
               {[
                 {
@@ -413,6 +419,7 @@ export function DashboardNavUser() {
                           style={{ color: "#64748B" }}
                         />
                       </div>
+
                       <div className="flex-1 min-w-0">
                         <p
                           className="font-semibold leading-tight"
@@ -420,6 +427,7 @@ export function DashboardNavUser() {
                         >
                           {label}
                         </p>
+
                         <p style={{ fontSize: "0.625rem", color: "#94A3B8" }}>
                           {desc}
                         </p>
@@ -450,6 +458,7 @@ export function DashboardNavUser() {
                         style={{ color: "#64748B" }}
                       />
                     </div>
+
                     <p
                       className="font-semibold"
                       style={{ fontSize: "0.8125rem", color: "#0f172a" }}
@@ -465,10 +474,9 @@ export function DashboardNavUser() {
               style={{ margin: "4px 0", background: "rgba(10,45,135,0.07)" }}
             />
 
-            {/* Sign out */}
             <div className="px-2 pb-2">
               <DropdownMenuItem
-                onClick={signOut}
+                onClick={handleSignOut}
                 disabled={isSigningOut}
                 className="cursor-pointer rounded-xl px-3 py-2 transition-all duration-150 focus:bg-red-50 group"
                 style={{ outline: "none" }}
@@ -490,6 +498,7 @@ export function DashboardNavUser() {
                       />
                     )}
                   </div>
+
                   <p
                     className="font-semibold group-hover:text-red-600 transition-colors duration-150"
                     style={{ fontSize: "0.8125rem", color: "#EF4444" }}

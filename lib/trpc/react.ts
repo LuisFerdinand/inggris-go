@@ -1,3 +1,4 @@
+// lib/trpc/react.ts
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "./routers/_app";
 

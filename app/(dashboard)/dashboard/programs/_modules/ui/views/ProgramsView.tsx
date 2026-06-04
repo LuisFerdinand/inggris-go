@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/_modules/ui/views/ProgramsView.tsx
 "use client";
 
 import { BookOpen } from "lucide-react";

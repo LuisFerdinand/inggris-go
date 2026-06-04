@@ -1,3 +1,4 @@
+// components/MobileDrawer.tsx
 "use client";
 
 import {
@@ -11,7 +12,6 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { authClient } from "@/lib/auth/client";
 import { MobileUserSection } from "./UserNav";
 import { WhatsAppIcon } from "./ui/WAButton";
 import { Button } from "./ui/button";
@@ -639,7 +639,6 @@ export function MobileDrawer({
   onOpenAuthModal: () => void;
 }) {
   const [progOpen, setProgOpen] = useState(allProgramHrefs.includes(pathname));
-  const { data: session } = authClient.useSession();
 
   const regularLinks = navLinks.filter((l) => l.label !== "Program Kami");
   const beforePrograms = regularLinks.slice(0, 2);

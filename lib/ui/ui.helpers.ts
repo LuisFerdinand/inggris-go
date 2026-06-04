@@ -1,3 +1,4 @@
+// lib/ui/ui.helpers.ts
 import { TONE_STYLES } from "@/lib/ui/ui.index";
 import { EnumTone } from "../enums/enum.types";
 

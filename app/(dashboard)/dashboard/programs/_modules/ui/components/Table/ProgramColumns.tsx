@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/_modules/ui/components/Table/ProgramColumns.tsx
 "use client";
 
 import { ColumnDef, Column } from "@tanstack/react-table";

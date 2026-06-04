@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/_modules/ui/components/Table/ProgramDataTable.tsx
 "use client";
 
 import {

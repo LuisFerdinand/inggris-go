@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/_modules/ui/components/Table/ProgramTableSkeleton.tsx
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,

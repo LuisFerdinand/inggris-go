@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/_modules/ui/components/index.tsx
 import { Icon } from "@/components/Icon";
 import { Badge } from "@/components/ui/badge";
 import { EnumMeta } from "@/lib/enums/enum.types";

@@ -1,41 +1,23 @@
-import {
-  parseAsInteger,
-  parseAsString,
-  parseAsStringEnum,
-  useQueryStates,
-} from "nuqs";
+// app/(dashboard)/dashboard/programs/_modules/hooks/use-program-filters.ts
+"use client";
 
-import {
-  PROGRAM_FORMAT,
-  PROGRAM_LEVEL,
-  PROGRAM_SCHEDULE_TYPE,
-  PROGRAM_STATUS,
-} from "@/lib/enums/enums";
+import { parseAsString, useQueryStates } from "nuqs";
 
-import z from "zod";
-import { REGISTRATION_TYPE } from "@/app/db/schema";
-
-export const useProgramFilters = () => {
-  return useQueryStates({
-    /* Search */
-    searchQuery: parseAsString.withDefault(""),
-
-    /* Filters */
-    status: parseAsStringEnum(z.enum(PROGRAM_STATUS).options),
-
-    categoryId: parseAsString,
-
-    format: parseAsStringEnum(z.enum(PROGRAM_FORMAT).options),
-
-    level: parseAsStringEnum(z.enum(PROGRAM_LEVEL).options),
-
-    scheduleType: parseAsStringEnum(z.enum(PROGRAM_SCHEDULE_TYPE).options),
-
-    registrationType: parseAsStringEnum(z.enum(REGISTRATION_TYPE).options),
-
-    /* Pagination */
-    page: parseAsInteger.withDefault(1),
-
-    limit: parseAsInteger.withDefault(10),
-  });
-};
+/**
+ * URL-synced filter state for the programs dashboard.
+ * Each value is `string | null`. Setting `null` clears it from the URL.
+ */
+export function useProgramFilters() {
+  return useQueryStates(
+    {
+      status: parseAsString,
+      categoryId: parseAsString,
+      format: parseAsString,
+      level: parseAsString,
+      scheduleType: parseAsString,
+      registrationType: parseAsString,
+      searchQuery: parseAsString,
+    },
+    { clearOnDefault: true },
+  );
+}

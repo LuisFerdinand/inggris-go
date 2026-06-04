@@ -1,9 +1,9 @@
+// app/db/schema/roles.ts
 import { relations } from "drizzle-orm";
 import {
   pgTable,
   text,
   timestamp,
-  boolean,
   index,
   pgEnum,
   unique,
@@ -18,12 +18,16 @@ export const ROLES = [
   "admin",
   "super_admin",
 ] as const;
+
 export type Role = (typeof ROLES)[number];
+
 export const userRoleEnum = pgEnum("role", ROLES);
 
 export const role = pgTable("roles", {
   id: text("id").primaryKey(),
+
   name: userRoleEnum("name").notNull().unique(),
+
   description: text("description"),
 });
 
@@ -64,6 +68,7 @@ export const userRoleRelations = relations(userRole, ({ one }) => ({
     fields: [userRole.userId],
     references: [user.id],
   }),
+
   role: one(role, {
     fields: [userRole.roleId],
     references: [role.id],

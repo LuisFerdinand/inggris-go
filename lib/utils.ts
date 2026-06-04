@@ -81,12 +81,13 @@ export function generateId(prefix?: string) {
   return prefix ? `${prefix}_${id}` : id;
 }
 
-export function generateSlug(title: string) {
-  return slugify(title, {
-    lower: true,
-    strict: true,
-    trim: true,
-  });
+export function generateSlug(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 }
 
 export function excludedColumns(columns: string[]) {
@@ -141,3 +142,4 @@ export function formatDuration(minutes?: number | null) {
 
   return parts.join(" ");
 }
+

@@ -1,3 +1,5 @@
+// lib/ui/ui.index.ts
+
 export type ToneStyle = {
   bg: string;
   text: string;
