@@ -7,6 +7,7 @@ import {
   gt,
   gte,
   ilike,
+  inArray,
   lt,
   lte,
   ne,
@@ -20,14 +21,9 @@ import { generateSlug } from "@/lib/utils";
 type GenerateUniqueSlugOptions = {
   table: AnyPgTable;
   slugColumn: AnyPgColumn;
-
-  // usually table.id
   idColumn?: AnyPgColumn;
-
   title: string;
-
   excludeId?: string;
-
   where?: SQL;
 };
 
@@ -43,26 +39,17 @@ export async function generateUniqueSlug({
 
   const conditions: SQL[] = [ilike(slugColumn, `${baseSlug}%`)];
 
-  if (where) {
-    conditions.push(where);
-  }
-
-  if (excludeId && idColumn) {
-    conditions.push(ne(idColumn, excludeId));
-  }
+  if (where) conditions.push(where);
+  if (excludeId && idColumn) conditions.push(ne(idColumn, excludeId));
 
   const existing = await db
-    .select({
-      slug: slugColumn,
-    })
+    .select({ slug: slugColumn })
     .from(table)
     .where(and(...conditions));
 
-  const existingSlugs = new Set(existing.map((item) => item.slug));
+  const existingSlugs = new Set(existing.map((item) => String(item.slug)));
 
-  if (!existingSlugs.has(baseSlug)) {
-    return baseSlug;
-  }
+  if (!existingSlugs.has(baseSlug)) return baseSlug;
 
   let counter = 1;
   let slug = `${baseSlug}-${counter}`;
@@ -78,10 +65,12 @@ export async function generateUniqueSlug({
 type ScopedOptions = {
   where?: SQL;
 };
+
 type GetNextOrderOptions = ScopedOptions & {
   table: AnyPgTable;
   orderColumn: AnyPgColumn;
 };
+
 type NormalizeOrdersOptions = ScopedOptions & {
   table: AnyPgTable;
   idColumn: AnyPgColumn;
@@ -90,60 +79,58 @@ type NormalizeOrdersOptions = ScopedOptions & {
 
 type MoveOrderOptions = ScopedOptions & {
   table: AnyPgTable;
-
   idColumn: AnyPgColumn;
-
   orderColumn: AnyPgColumn;
-
   itemId: string;
-
   fromOrder: number;
-
   toOrder: number;
 };
 
-type SwapOrderOptions = {
+type SwapOrderOptions = ScopedOptions & {
   table: AnyPgTable;
-
   idColumn: AnyPgColumn;
-
   orderColumn: AnyPgColumn;
-
   firstId: string;
-
   secondId: string;
 };
+
+function setColumnValue(column: AnyPgColumn, value: unknown) {
+  return {
+    [column.name]: value,
+  };
+}
 
 export async function getNextOrder({
   table,
   orderColumn,
   where,
 }: GetNextOrderOptions) {
-  const lastItem = await db
-    .select({
-      order: orderColumn,
-    })
+  const query = db
+    .select({ order: orderColumn })
     .from(table)
-    .where(where)
     .orderBy(desc(orderColumn))
     .limit(1);
 
+  const lastItem = where ? await query.where(where) : await query;
+
   return ((lastItem[0]?.order as number | undefined) ?? -1) + 1;
 }
+
 export async function normalizeOrders({
   table,
   idColumn,
   orderColumn,
   where,
 }: NormalizeOrdersOptions) {
-  const items = await db
+  const query = db
     .select({
       id: idColumn,
       order: orderColumn,
     })
     .from(table)
-    .where(where)
     .orderBy(asc(orderColumn));
+
+  const items = where ? await query.where(where) : await query;
 
   await db.transaction(async (tx) => {
     for (let index = 0; index < items.length; index++) {
@@ -152,14 +139,13 @@ export async function normalizeOrders({
       if (item.order !== index) {
         await tx
           .update(table)
-          .set({
-            [orderColumn.name]: index,
-          })
+          .set(setColumnValue(orderColumn, index))
           .where(eq(idColumn, item.id));
       }
     }
   });
 }
+
 export async function moveOrder({
   table,
   idColumn,
@@ -169,21 +155,16 @@ export async function moveOrder({
   toOrder,
   where,
 }: MoveOrderOptions) {
-  if (fromOrder === toOrder) {
-    return;
-  }
+  if (fromOrder === toOrder) return;
 
   await db.transaction(async (tx) => {
-    // Moving DOWN
     if (fromOrder < toOrder) {
       const conditions: SQL[] = [
         gt(orderColumn, fromOrder),
         lte(orderColumn, toOrder),
       ];
 
-      if (where) {
-        conditions.push(where);
-      }
+      if (where) conditions.push(where);
 
       const affectedItems = await tx
         .select({
@@ -196,23 +177,16 @@ export async function moveOrder({
       for (const item of affectedItems) {
         await tx
           .update(table)
-          .set({
-            [orderColumn.name]: (item.order as number) - 1,
-          })
+          .set(setColumnValue(orderColumn, Number(item.order) - 1))
           .where(eq(idColumn, item.id));
       }
-    }
-
-    // Moving UP
-    else {
+    } else {
       const conditions: SQL[] = [
         gte(orderColumn, toOrder),
         lt(orderColumn, fromOrder),
       ];
 
-      if (where) {
-        conditions.push(where);
-      }
+      if (where) conditions.push(where);
 
       const affectedItems = await tx
         .select({
@@ -225,26 +199,17 @@ export async function moveOrder({
       for (const item of affectedItems) {
         await tx
           .update(table)
-          .set({
-            [orderColumn.name]: (item.order as number) + 1,
-          })
+          .set(setColumnValue(orderColumn, Number(item.order) + 1))
           .where(eq(idColumn, item.id));
       }
     }
 
-    // Update moved item
     await tx
       .update(table)
-      .set({
-        [orderColumn.name]: toOrder,
-      })
+      .set(setColumnValue(orderColumn, toOrder))
       .where(eq(idColumn, itemId));
   });
 }
-
-/* =========================================================
-   SWAP ORDERS
-========================================================= */
 
 export async function swapOrders({
   table,
@@ -252,14 +217,20 @@ export async function swapOrders({
   orderColumn,
   firstId,
   secondId,
+  where,
 }: SwapOrderOptions) {
+  if (firstId === secondId) return;
+
+  const conditions: SQL[] = [inArray(idColumn, [firstId, secondId])];
+  if (where) conditions.push(where);
+
   const items = await db
     .select({
       id: idColumn,
       order: orderColumn,
     })
     .from(table)
-    .where(and(eq(idColumn, firstId)));
+    .where(and(...conditions));
 
   const firstItem = items.find((x) => x.id === firstId);
   const secondItem = items.find((x) => x.id === secondId);
@@ -271,16 +242,12 @@ export async function swapOrders({
   await db.transaction(async (tx) => {
     await tx
       .update(table)
-      .set({
-        [orderColumn.name]: secondItem.order,
-      })
+      .set(setColumnValue(orderColumn, secondItem.order))
       .where(eq(idColumn, firstId));
 
     await tx
       .update(table)
-      .set({
-        [orderColumn.name]: firstItem.order,
-      })
+      .set(setColumnValue(orderColumn, firstItem.order))
       .where(eq(idColumn, secondId));
   });
 }

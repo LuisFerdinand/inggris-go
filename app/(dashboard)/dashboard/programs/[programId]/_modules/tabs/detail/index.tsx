@@ -6,62 +6,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, X, Check, Loader2, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { DetailData as ProgramDetailData } from "@/app/modules/program/server/program.router";
 
 /* ─────────────────────────────────────────────────────────────
    TYPES — DetailData shape from getDetail query
    (Mirror your actual tRPC return shape here)
 ───────────────────────────────────────────────────────────── */
 
-export interface DetailCategory {
-  id: string;
-  label: string;
-  slug: string;
-  themePrimary: string;
-  icon: string | null;
-}
-
-export interface DetailData {
-  id: string;
-  title: string;
-  slug: string;
-  description: string;
-  shortDesc: string | null;
-  categoryId: string;
-  category: DetailCategory;
-
-  // Structure
-  scheduleType: "permanent" | "scheduled";
-  registrationType: "online" | "offline";
-  format: "online" | "offline" | "hybrid";
-  level: "beginner" | "intermediate" | "advanced";
-  duration: number | null;
-
-  // Marketing
-  badge: string | null;
-  highlight: string | null;
-  tags: string[] | null;
-
-  // Branding
-  thumbnailUrl: string | null;
-  thumbnailKey: string | null;
-  icon: string | null;
-
-  // Publishing
-  status: "draft" | "published" | "archived";
-  publishedAt: Date | null;
-  updatedAt: Date | null;
-  createdAt: Date;
-
-  // Commerce (read-only)
-  startingPrice: number | null;
-  startingOriginalPrice: number | null;
-  packagesCount: number;
-  activePackagesCount: number;
-
-  // Capabilities
-  hasEnrollments: boolean;
-  hasPackages: boolean;
-}
+export type DetailData = ProgramDetailData;
+export type DetailCategory = DetailData["category"];
 
 /* ─────────────────────────────────────────────────────────────
    LABEL MAPS

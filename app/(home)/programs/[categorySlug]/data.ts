@@ -1,3 +1,4 @@
+// app/[categorySlug]/data.ts
 import { SOCIAL_PROOF } from "@/constants";
 import { buildWhatsAppUrl } from "@/lib/config";
 

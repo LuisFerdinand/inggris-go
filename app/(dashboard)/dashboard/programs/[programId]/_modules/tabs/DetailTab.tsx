@@ -1,17 +1,29 @@
-// app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/detail/index.tsx
+// app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/DetailTab.tsx
 "use client";
+
+import { motion } from "framer-motion";
 
 import { trpc } from "@/lib/trpc/client";
 import { TabSkeleton } from "../ui/sections/ProgramDetailSection";
-import { motion } from "framer-motion";
+
 import {
   CommercePreviewSection,
   PublishingSection,
 } from "./detail/CommercePreviewSection";
-import { IdentitySection } from "./detail/IdentitySection";
-import { StructureSection } from "./detail/StructureSection";
-import { MarketingSection } from "./detail/MarketingSection";
 import { BrandingSection } from "./detail/BrandingSection";
+import { IdentitySection } from "./detail/IdentitySection";
+import { MarketingSection } from "./detail/MarketingSection";
+import { StructureSection } from "./detail/StructureSection";
+
+import type { DetailData as ProgramDetailData } from "@/app/modules/program/server/program.router";
+
+/* ─────────────────────────────────────────────────────────────
+   TYPES — inferred from the tRPC getDetail procedure so this can
+   never drift from the actual API response again.
+───────────────────────────────────────────────────────────── */
+
+export type DetailData = ProgramDetailData;
+export type DetailCategory = DetailData["category"];
 
 /* ─────────────────────────────────────────────────────────────
    ANIMATION VARIANTS
@@ -55,7 +67,7 @@ export default function DetailTab({ programId }: DetailTabProps) {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-4 max-w-4xl"
+      className="flex max-w-4xl flex-col gap-4"
     >
       {/* 1 — Identity */}
       <motion.div variants={itemVariants}>

@@ -1,5 +1,7 @@
+// components/PageHeader.tsx
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   Breadcrumb,
@@ -15,6 +17,7 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
@@ -30,8 +33,10 @@ function useScrolled(threshold = 2): boolean {
 
   useEffect(() => {
     const handle = () => setScrolled(window.scrollY > threshold);
+
     window.addEventListener("scroll", handle, { passive: true });
     handle();
+
     return () => window.removeEventListener("scroll", handle);
   }, [threshold]);
 
@@ -72,9 +77,23 @@ export function PageNav({ children, sticky, className }: PageNavProps) {
   const scrolled = useScrolled();
   const [hasTabs, setHasTabs] = useState(false);
 
+  const value = useMemo(
+    () => ({
+      scrolled,
+      hasTabs,
+      setHasTabs,
+    }),
+    [scrolled, hasTabs],
+  );
+
   return (
-    <PageNavContext.Provider value={{ scrolled, hasTabs, setHasTabs }}>
-      <div className={cn(sticky && ["sticky z-40", "top-10"], className)}>
+    <PageNavContext.Provider value={value}>
+      <div
+        className={cn(
+          sticky && ["sticky z-40", "top-10"],
+          className,
+        )}
+      >
         {children}
       </div>
     </PageNavContext.Provider>
@@ -91,46 +110,101 @@ export type Crumb = {
   icon?: ReactNode;
 };
 
+export type TitleBadgeVariant =
+  | "default"
+  | "secondary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "outline";
+
 export type TitleBadge = {
   label: string;
   icon?: ReactNode;
-  /** Defaults to a neutral/blue pill. Pass className to override. */
+  variant?: TitleBadgeVariant;
   className?: string;
 };
 
+type BadgeLike =
+  | string
+  | TitleBadge
+  | {
+      label: string;
+      variant?: TitleBadgeVariant;
+      icon?: ReactNode;
+      className?: string;
+    };
+
 interface PageHeaderProps {
-  /** Static breadcrumb trail */
   breadcrumbs: Crumb[];
-  /** Page title */
   title: string;
-  /** Subtitle — hidden on scroll */
   description?: string;
-  /**
-   * Dynamic final breadcrumb that mirrors the active tab.
-   * Appended after `breadcrumbs`.
-   */
   activeTabCrumb?: Crumb;
-  /**
-   * Optional back button rendered to the left of the title block.
-   * Pass an href string for a link, or an onClick handler for a button.
-   */
   backButton?:
     | { href: string; onClick?: never }
     | { onClick: () => void; href?: never };
+
   /**
-   * Optional badge rendered inline after the title text.
-   * Good for status labels like "Draft", "Langkah pertama", etc.
+   * Preferred prop.
    */
   titleBadge?: TitleBadge;
-  /** Slot for CTA buttons — always visible */
-  actions?: ReactNode;
+
   /**
-   * Show a bottom border when NOT scrolled.
-   * When scrolled (without tabs), the border is always shown regardless.
-   * Defaults to false — border is situational.
+   * Compatibility prop, so code using `badge="Draft"` or
+   * `badge={{ label, variant }}` still works.
    */
+  badge?: BadgeLike;
+
+  actions?: ReactNode;
   borderBottom?: boolean;
   className?: string;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════════ */
+
+function normalizeBadge(
+  titleBadge?: TitleBadge,
+  badge?: BadgeLike,
+): TitleBadge | null {
+  if (titleBadge) return titleBadge;
+  if (!badge) return null;
+
+  if (typeof badge === "string") {
+    return { label: badge, variant: "default" };
+  }
+
+  return {
+    label: badge.label,
+    icon: badge.icon,
+    variant: badge.variant ?? "default",
+    className: badge.className,
+  };
+}
+
+function badgeClassName(variant: TitleBadgeVariant = "default") {
+  switch (variant) {
+    case "success":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    case "warning":
+      return "border-amber-200 bg-amber-50 text-amber-700";
+    case "danger":
+      return "border-red-200 bg-red-50 text-red-700";
+    case "secondary":
+      return "border-neutral-200 bg-neutral-50 text-neutral-600";
+    case "outline":
+      return "border-[var(--border-soft)] bg-white text-[var(--text-muted)]";
+    case "default":
+    default:
+      return "border-blue-100 bg-blue-50 text-blue-700";
+  }
+}
+
+function truncateClass(index: number, isLast: boolean) {
+  if (isLast) return "max-w-[180px] sm:max-w-[260px]";
+  if (index === 0) return "max-w-[100px] sm:max-w-[140px]";
+  return "max-w-[120px] sm:max-w-[180px]";
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -144,6 +218,7 @@ export function PageHeader({
   activeTabCrumb,
   backButton,
   titleBadge,
+  badge,
   actions,
   borderBottom = true,
   className,
@@ -151,19 +226,14 @@ export function PageHeader({
   const { scrolled, hasTabs } = usePageNav();
 
   const isCompact = scrolled;
-  /*
-    Border priority (highest → lowest):
-    1. Scrolled without tabs → always show border (scroll wins)
-    2. Scrolled with tabs   → never show border (tabs own the separator)
-    3. Not scrolled         → respect `borderBottom` prop
-  */
   const showBottomBorder = scrolled ? !hasTabs : borderBottom;
 
   const allCrumbs: Crumb[] = activeTabCrumb
     ? [...breadcrumbs, activeTabCrumb]
     : breadcrumbs;
 
-  /* Back button element — shared between compact and expanded */
+  const normalizedBadge = normalizeBadge(titleBadge, badge);
+
   const BackBtn = backButton ? (
     <Button
       {...(backButton.href
@@ -171,12 +241,12 @@ export function PageHeader({
         : { onClick: backButton.onClick })}
       variant="outline"
       size="icon"
-      className="size-9 shrink-0 rounded-lg mt-0.5"
+      className="mt-0.5 size-9 shrink-0 rounded-lg"
     >
       {backButton.href ? (
-        <a href={backButton.href}>
+        <Link href={backButton.href} aria-label="Kembali">
           <ArrowLeft className="size-4" />
-        </a>
+        </Link>
       ) : (
         <ArrowLeft className="size-4" />
       )}
@@ -196,31 +266,27 @@ export function PageHeader({
         className,
       )}
     >
-      {/* ── Breadcrumb ─────────────────────────────────────── */}
       <Breadcrumb
         className={cn(
           "transition-[margin] duration-200",
           isCompact ? "mb-1.5" : "mb-3",
-          /* Indent breadcrumb when back button is present so it aligns
-             with the title text rather than the button edge. */
-          backButton && "pl-[calc(2.25rem+1rem)]", // size-9 + gap-4
+          backButton && "pl-[calc(2.25rem+1rem)]",
         )}
       >
-        <BreadcrumbList className="flex items-center flex-nowrap gap-0.5 overflow-hidden">
-          {allCrumbs.map((crumb, i) => {
-            const isLast = i === allCrumbs.length - 1;
+        <BreadcrumbList className="flex flex-nowrap items-center gap-0.5 overflow-hidden">
+          {allCrumbs.map((crumb, index) => {
+            const isLast = index === allCrumbs.length - 1;
 
             return (
-              <React.Fragment key={i}>
+              <React.Fragment key={`${crumb.label}-${index}`}>
                 <BreadcrumbItem className="min-w-0">
                   {isLast ? (
                     <BreadcrumbPage
                       className={cn(
-                        "flex items-center gap-1.5 min-w-0",
-                        "text-[11px] font-semibold tracking-wide",
-                        "text-foreground/80",
-                        "bg-slate-100 rounded-md px-2 py-0.5",
-                        "truncate max-w-[180px]",
+                        "flex min-w-0 items-center gap-1.5",
+                        "rounded-md bg-slate-100 px-2 py-0.5",
+                        "text-[11px] font-semibold tracking-wide text-foreground/80",
+                        truncateClass(index, isLast),
                       )}
                     >
                       {crumb.icon && (
@@ -232,29 +298,28 @@ export function PageHeader({
                     </BreadcrumbPage>
                   ) : (
                     <BreadcrumbLink
-                      href={crumb.href ?? "#"}
+                      asChild
                       className={cn(
-                        "flex items-center gap-1.5 min-w-0",
-                        "text-[11px] font-medium",
-                        "text-muted-foreground/70",
-                        "hover:text-foreground",
-                        "transition-colors duration-150",
-                        "no-underline",
-                        "truncate max-w-[120px]",
+                        "flex min-w-0 items-center gap-1.5",
+                        "text-[11px] font-medium text-muted-foreground/70",
+                        "no-underline transition-colors duration-150 hover:text-foreground",
+                        truncateClass(index, isLast),
                       )}
                     >
-                      {crumb.icon && (
-                        <span className="shrink-0 [&>svg]:size-3">
-                          {crumb.icon}
-                        </span>
-                      )}
-                      <span className="truncate">{crumb.label}</span>
+                      <Link href={crumb.href ?? "#"}>
+                        {crumb.icon && (
+                          <span className="shrink-0 [&>svg]:size-3">
+                            {crumb.icon}
+                          </span>
+                        )}
+                        <span className="truncate">{crumb.label}</span>
+                      </Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
 
                 {!isLast && (
-                  <BreadcrumbSeparator className="shrink-0 text-muted-foreground/25 [&>svg]:size-3 mx-0.5">
+                  <BreadcrumbSeparator className="mx-0.5 shrink-0 text-muted-foreground/25 [&>svg]:size-3">
                     <ChevronRight />
                   </BreadcrumbSeparator>
                 )}
@@ -264,23 +329,19 @@ export function PageHeader({
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* ── Title row ──────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4 min-w-0">
-        {/* Optional back button */}
+      <div className="flex min-w-0 items-start justify-between gap-4">
         {BackBtn}
 
-        {/* Left: title + description */}
         <div className="min-w-0 flex-1">
-          {/* Title + inline badge */}
           <div
             className={cn(
-              "flex items-center gap-2",
+              "flex min-w-0 items-center gap-2",
               isCompact ? "mb-0" : "mb-0.5",
             )}
           >
             <h1
               className={cn(
-                "font-bold text-neutral-800 leading-none truncate",
+                "truncate font-bold leading-none text-neutral-800",
                 "transition-[font-size,line-height] duration-200 ease-out",
                 isCompact ? "text-base" : "text-lg",
               )}
@@ -288,30 +349,29 @@ export function PageHeader({
               {title}
             </h1>
 
-            {titleBadge && (
+            {normalizedBadge && (
               <span
                 className={cn(
-                  "hidden sm:inline-flex items-center gap-1",
-                  "rounded-full px-2.5 py-0.5",
+                  "hidden items-center gap-1 rounded-full border px-2.5 py-0.5 sm:inline-flex",
                   "text-xs font-semibold",
                   "transition-[opacity,transform] duration-200",
                   isCompact
-                    ? "opacity-0 scale-95 pointer-events-none"
-                    : "opacity-100 scale-100",
-                  // default blue pill — override via titleBadge.className
-                  "bg-blue-50 border border-blue-100 text-blue-600",
-                  titleBadge.className,
+                    ? "pointer-events-none scale-95 opacity-0"
+                    : "scale-100 opacity-100",
+                  badgeClassName(normalizedBadge.variant),
+                  normalizedBadge.className,
                 )}
               >
-                {titleBadge.icon && (
-                  <span className="[&>svg]:size-3">{titleBadge.icon}</span>
+                {normalizedBadge.icon && (
+                  <span className="[&>svg]:size-3">
+                    {normalizedBadge.icon}
+                  </span>
                 )}
-                {titleBadge.label}
+                {normalizedBadge.label}
               </span>
             )}
           </div>
 
-          {/* Description */}
           {description && (
             <div
               className={cn(
@@ -322,7 +382,7 @@ export function PageHeader({
               )}
             >
               <div className="overflow-hidden">
-                <p className="text-sm text-neutral-400 leading-snug line-clamp-1 mt-1">
+                <p className="mt-1 line-clamp-1 text-sm leading-snug text-neutral-400">
                   {description}
                 </p>
               </div>
@@ -330,7 +390,6 @@ export function PageHeader({
           )}
         </div>
 
-        {/* Right: actions — always visible */}
         {actions && (
           <div className="flex shrink-0 items-center gap-2">{actions}</div>
         )}
@@ -339,40 +398,38 @@ export function PageHeader({
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   SKELETONS
+═══════════════════════════════════════════════════════════════ */
+
 export function PageHeaderSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "bg-white px-4 lg:px-6 pt-5 pb-4",
+        "bg-white px-4 pt-5 pb-4 lg:px-6",
         "border-b border-transparent",
         className,
       )}
     >
-      {/* Breadcrumb row — 3 crumbs + 2 separators */}
-      <div className="flex items-center gap-1.5 mb-3">
+      <div className="mb-3 flex items-center gap-1.5">
         <Skeleton className="h-5 w-20 rounded-md" />
-        <Skeleton className="h-3 w-3 rounded-full" />
+        <Skeleton className="size-3 rounded-full" />
         <Skeleton className="h-5 w-24 rounded-md" />
-        <Skeleton className="h-3 w-3 rounded-full" />
+        <Skeleton className="size-3 rounded-full" />
         <Skeleton className="h-5 w-28 rounded-md" />
-        <Skeleton className="h-3 w-3 rounded-full" />
-        <Skeleton className="h-5 w-20 rounded-md" />
       </div>
 
-      {/* Title row */}
       <div className="flex items-start justify-between gap-4">
-        {/* Left: title + description */}
-        <div className="flex-1 min-w-0 space-y-2">
+        <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-center gap-2">
-            <Skeleton className="h-6 w-48 rounded-md" /> {/* title */}
-            <Skeleton className="h-5 w-14 rounded-full" /> {/* badge */}
+            <Skeleton className="h-6 w-48 rounded-md" />
+            <Skeleton className="h-5 w-14 rounded-full" />
           </div>
-          <Skeleton className="h-4 w-72 rounded-md" /> {/* description */}
+          <Skeleton className="h-4 w-72 rounded-md" />
         </div>
 
-        {/* Right: actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Skeleton className="h-9 w-9 rounded-lg" />
+        <div className="flex shrink-0 items-center gap-2">
+          <Skeleton className="size-9 rounded-lg" />
           <Skeleton className="h-9 w-28 rounded-lg" />
         </div>
       </div>

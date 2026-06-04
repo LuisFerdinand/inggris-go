@@ -6,18 +6,29 @@ import { useRef } from "react";
 import {
   LayoutDashboard,
   FileText,
+  LayoutTemplate,
   ShoppingBag,
   Users,
   BookOpen,
+  Loader2,
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+import { trpc } from "@/lib/trpc/client";
 import { PageNav, PageHeader } from "@/components/PageHeader";
 
 import OverviewTab from "../../tabs/OverviewTab";
 import DetailTab from "../../tabs/DetailTab";
+import ContentTab from "../../tabs/ContentTab";
 import CommerceTab from "../../tabs/CommerceTab";
 
-const TAB_OPTIONS = ["overview", "detail", "commerce", "enrollments"] as const;
+const TAB_OPTIONS = [
+  "overview",
+  "detail",
+  "content",
+  "commerce",
+  "enrollments",
+] as const;
 type ProgramTab = (typeof TAB_OPTIONS)[number];
 
 const TAB_CONFIG: {
@@ -27,9 +38,14 @@ const TAB_CONFIG: {
 }[] = [
   { value: "overview", label: "Ringkasan", Icon: LayoutDashboard },
   { value: "detail", label: "Detail", Icon: FileText },
+  { value: "content", label: "Konten", Icon: LayoutTemplate },
   { value: "commerce", label: "Batch & Paket", Icon: ShoppingBag },
   { value: "enrollments", label: "Pendaftar", Icon: Users },
 ];
+
+function getTabLabel(tab: ProgramTab) {
+  return TAB_CONFIG.find((item) => item.value === tab)?.label ?? "Ringkasan";
+}
 
 function TabBar({
   active,
@@ -62,6 +78,7 @@ function TabBar({
           >
             <Icon className="size-3.5 shrink-0" />
             {label}
+
             {isActive && (
               <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-blue-gradient" />
             )}
@@ -74,13 +91,9 @@ function TabBar({
 
 interface ProgramDetailViewProps {
   programId: string;
-  title?: string;
 }
 
-export function ProgramDetailView({
-  programId,
-  title = "Program",
-}: ProgramDetailViewProps) {
+export function ProgramDetailView({ programId }: ProgramDetailViewProps) {
   const [tab, setTab] = useQueryState(
     "tab",
     parseAsStringLiteral(TAB_OPTIONS).withDefault("overview"),
@@ -89,17 +102,71 @@ export function ProgramDetailView({
   const overviewInfoRef = useRef<{ startEditing: () => void } | null>(null);
   const active = tab as ProgramTab;
 
+  const headerQuery = trpc.programs.getHeader.useQuery(
+    { id: programId },
+    {
+      staleTime: 60_000,
+      placeholderData: (prev) => prev,
+    },
+  );
+
+  const program = headerQuery.data;
+
+  const title = program?.title ?? "Memuat program...";
+  const categoryLabel = program?.category?.label;
+
   return (
     <div className="flex flex-col gap-y-4 pt-2.5">
       <PageNav sticky>
         <PageHeader
           breadcrumbs={[
             { label: "Dashboard", href: "/dashboard" },
-            { label: "Program", href: "/dashboard/programs", icon: <BookOpen /> },
-            { label: title },
+            {
+              label: "Program",
+              href: "/dashboard/programs",
+              icon: <BookOpen />,
+            },
+            {
+              label: title,
+            },
           ]}
+          activeTabCrumb={{
+            label: getTabLabel(active),
+          }}
           title={title}
-          description="Kelola identitas, konten, batch, paket, dan pendaftaran program."
+          description={
+            program
+              ? [
+                  categoryLabel,
+                  program.format,
+                  program.level,
+                  program.registrationType,
+                ]
+                  .filter(Boolean)
+                  .join(" • ")
+              : "Mengambil detail program..."
+          }
+          badge={
+            program?.status
+              ? {
+                  label: program.status,
+                  variant:
+                    program.status === "published"
+                      ? "success"
+                      : program.status === "draft"
+                        ? "secondary"
+                        : "outline",
+                }
+              : undefined
+          }
+          actions={
+            headerQuery.isFetching ? (
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-soft)] bg-white px-3 py-1.5 text-xs font-medium text-[var(--text-faint)]">
+                <Loader2 className="size-3.5 animate-spin" />
+                Sync
+              </div>
+            ) : null
+          }
         />
       </PageNav>
 
@@ -113,6 +180,8 @@ export function ProgramDetailView({
         )}
 
         {active === "detail" && <DetailTab programId={programId} />}
+
+        {active === "content" && <ContentTab programId={programId} />}
 
         {active === "commerce" && <CommerceTab programId={programId} />}
 

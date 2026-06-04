@@ -1,8 +1,12 @@
 // app/modules/program/batch.schema.ts
 import { z } from "zod";
-import { PROGRAM_BATCH_MODE, PROGRAM_BATCH_STATUS } from "@/lib/enums/enums";
 
-const emptyToNull = (value: unknown) => (value === "" ? null : value);
+import {
+  PROGRAM_BATCH_MODE,
+  PROGRAM_BATCH_STATUS,
+} from "@/lib/enums/enums";
+
+const emptyToNull = (v: unknown) => (v === "" ? null : v);
 
 const scheduleSchema = z.object({
   type: z.enum(["weekly", "daily", "custom"]).optional(),
@@ -46,13 +50,26 @@ export const batchInsertSchema = z.object({
 
   capacity: z.preprocess(
     emptyToNull,
-    z.coerce.number().int().positive("Kapasitas harus lebih dari 0").nullable().optional(),
+    z.coerce.number().int().positive().nullable().optional(),
   ),
 
   location: z.preprocess(emptyToNull, z.string().nullable().optional()),
   timezone: z.string().default("WIB"),
   notes: z.preprocess(emptyToNull, z.string().nullable().optional()),
-  schedules: z.array(scheduleSchema).optional().default([]),
+
+  schedules: z.array(scheduleSchema).optional(),
+
+  // Missing fields from your component ProgramBatch data.
+  brochureUrl: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  brochureLabel: z.preprocess(emptyToNull, z.string().nullable().optional()),
+
+  primaryCtaLabel: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  primaryCtaHref: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  primaryCtaIcon: z.preprocess(emptyToNull, z.string().nullable().optional()),
+
+  secondaryCtaLabel: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  secondaryCtaHref: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  secondaryCtaIcon: z.preprocess(emptyToNull, z.string().nullable().optional()),
 });
 
 export const batchUpdateSchema = batchInsertSchema
