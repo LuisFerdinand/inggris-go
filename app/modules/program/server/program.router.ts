@@ -434,6 +434,20 @@ function createDefaultSection(sectionId: string, sectionType: string) {
         },
       };
 
+    case "batches":
+      return {
+        ...base,
+        content: {
+          variant: "card",
+          tagline: "Pilih Batch",
+          taglineAccent: "Terdekat",
+          title: "Batch Tersedia",
+          subtitle: "",
+          emptyMessage:
+            "Saat ini belum ada batch tersedia. Hubungi admin untuk info berikutnya.",
+        },
+      };
+
     default:
       return {
         ...base,

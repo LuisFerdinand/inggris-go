@@ -67,14 +67,93 @@ export const allProgramHrefs = [
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+/* ─── DB menu types (shape of trpc.publicPrograms.menu output) ──── */
+type MenuProgram = {
+  slug: string;
+  title: string;
+  icon: string | null;
+  badge: string | null;
+  href: string;
+};
+export type MenuCategory = {
+  slug: string;
+  label: string;
+  shortLabel: string | null;
+  icon: string | null;
+  themePrimary: string;
+  tagline: string | null;
+  description: string | null;
+  href: string;
+  programs: MenuProgram[];
+};
+
+type LeadProg = (typeof leadPrograms)[0];
+type RightCol = (typeof rightColumns)[0];
+
+/**
+ * Build the dropdown's left (lead) + right (accordions) structures.
+ * Uses live DB data when present; otherwise falls back to the static
+ * data.ts derivations so the menu still renders while loading / empty.
+ */
+export function buildDropdownData(menu: MenuCategory[]): {
+  leadHref: string;
+  leadTheme: ReturnType<typeof generateTheme>;
+  leadPrograms: LeadProg[];
+  rightColumns: RightCol[];
+} {
+  if (!menu || menu.length === 0) {
+    return {
+      leadHref: leadCategory.href,
+      leadTheme,
+      leadPrograms,
+      rightColumns,
+    };
+  }
+
+  // Featured/left panel = the "lead" category, else the first one.
+  const leadSrc = menu.find((c) => c.slug === "lead") ?? menu[0];
+  const others = menu.filter((c) => c !== leadSrc);
+
+  return {
+    leadHref: leadSrc.href,
+    leadTheme: generateTheme(leadSrc.themePrimary),
+    leadPrograms: leadSrc.programs.map((p) => ({
+      id: p.slug,
+      title: p.title,
+      href: p.href,
+      desc: "",
+      icon: getIcon(p.icon ?? undefined),
+      badge: p.badge ?? undefined,
+    })),
+    rightColumns: others.map((cat) => ({
+      id: cat.slug,
+      label: cat.label,
+      shortLabel: cat.shortLabel ?? cat.label,
+      href: cat.href,
+      description: cat.tagline ?? "",
+      icon: getIcon(cat.icon ?? undefined),
+      theme: generateTheme(cat.themePrimary),
+      defaultOpen: false,
+      items: cat.programs.map((p) => ({
+        label: p.title,
+        href: p.href,
+        desc: "",
+        badge: p.badge ?? undefined,
+      })),
+    })),
+  };
+}
+
 /* ══════════════════════════════════════════════════════════════
  * LeadProgramCard — themed from lead category's primary color
  * ══════════════════════════════════════════════════════════════ */
 function LeadProgramCard({
   prog,
+  theme,
   onClose,
 }: {
   prog: (typeof leadPrograms)[0];
+  theme: ReturnType<typeof generateTheme>;
   onClose: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
@@ -88,9 +167,9 @@ function LeadProgramCard({
       onMouseLeave={() => setHovered(false)}
       className="group block rounded-xl overflow-hidden transition-all duration-200"
       style={{
-        background: hovered ? leadTheme.soft : "rgba(255,255,255,0.6)",
-        border: `1px solid ${hovered ? leadTheme.border : "rgba(15,35,64,0.06)"}`,
-        boxShadow: hovered ? `0 4px 20px ${leadTheme.soft}` : "none",
+        background: hovered ? theme.soft : "rgba(255,255,255,0.6)",
+        border: `1px solid ${hovered ? theme.border : "rgba(15,35,64,0.06)"}`,
+        boxShadow: hovered ? `0 4px 20px ${theme.soft}` : "none",
         textDecoration: "none",
         padding: "10px 12px",
       }}
@@ -104,11 +183,11 @@ function LeadProgramCard({
           transition={{ duration: 0.2, ease: EASE }}
           className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
           style={{
-            background: hovered ? leadTheme.softStrong : leadTheme.soft,
-            border: `1px solid ${leadTheme.border}`,
+            background: hovered ? theme.softStrong : theme.soft,
+            border: `1px solid ${theme.border}`,
           }}
         >
-          <Icon className="w-3.5 h-3.5" style={{ color: leadTheme.primary }} />
+          <Icon className="w-3.5 h-3.5" style={{ color: theme.primary }} />
         </motion.div>
 
         <div className="flex-1 min-w-0">
@@ -117,26 +196,11 @@ function LeadProgramCard({
               className="font-semibold leading-tight truncate transition-colors duration-150"
               style={{
                 fontSize: "0.8125rem",
-                color: hovered ? leadTheme.primary : "#0F2340",
+                color: hovered ? theme.primary : "#0F2340",
               }}
             >
               {prog.title}
             </span>
-            {/* {prog.badge && (
-              <span
-                className="flex-shrink-0 px-1.5 py-0.5 rounded-full font-bold"
-                style={{
-                  fontSize: "0.5rem",
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  background: leadTheme.soft,
-                  color: leadTheme.primary,
-                  border: `1px solid ${leadTheme.border}`,
-                }}
-              >
-                {prog.badge}
-              </span>
-            )} */}
           </div>
         </div>
 
@@ -147,25 +211,10 @@ function LeadProgramCard({
         >
           <ChevronRight
             className="w-3.5 h-3.5"
-            style={{ color: leadTheme.primary }}
+            style={{ color: theme.primary }}
           />
         </motion.span>
       </div>
-
-      {/* Desc */}
-      {/* {prog.desc && (
-        <p
-          className="mt-1.5 leading-snug transition-colors duration-150"
-          style={{
-            fontSize: "0.6875rem",
-            color: hovered ? "rgba(15,35,64,0.55)" : "#94A3B8",
-            lineHeight: "1.45",
-            paddingLeft: "2.25rem", // align with title
-          }}
-        >
-          {prog.desc}
-        </p>
-      )} */}
 
       {/* Bottom CTA strip */}
       <motion.div
@@ -181,18 +230,18 @@ function LeadProgramCard({
         <div
           className="flex items-center justify-between px-2.5 py-1.5 rounded-lg"
           style={{
-            background: leadTheme.primary,
+            background: theme.primary,
           }}
         >
           <span
             className="font-bold"
-            style={{ fontSize: "0.6875rem", color: leadTheme.text }}
+            style={{ fontSize: "0.6875rem", color: theme.text }}
           >
             Mulai Sekarang
           </span>
           <ChevronRight
             className="w-3 h-3"
-            style={{ color: leadTheme.text, opacity: 0.8 }}
+            style={{ color: theme.text, opacity: 0.8 }}
           />
         </div>
       </motion.div>
@@ -243,21 +292,6 @@ function NavItem({
           >
             {item.label}
           </span>
-          {/* {item.badge && (
-            <span
-              className="flex-shrink-0 px-1.5 py-0.5 rounded-full font-bold"
-              style={{
-                fontSize: "0.5rem",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-                background: theme.soft,
-                color: theme.primary,
-                border: `1px solid ${theme.border}`,
-              }}
-            >
-              {item.badge}
-            </span>
-          )} */}
         </div>
         {item.desc && (
           <span
@@ -485,7 +519,20 @@ function CategoryGroup({
 /* ══════════════════════════════════════════════════════════════
  * ProgramsDropdown — root
  * ══════════════════════════════════════════════════════════════ */
-export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
+export function ProgramsDropdown({
+  categories,
+  onClose,
+}: {
+  categories: MenuCategory[];
+  onClose: () => void;
+}) {
+  const {
+    leadHref,
+    leadTheme: lTheme,
+    leadPrograms: lPrograms,
+    rightColumns: rCols,
+  } = buildDropdownData(categories);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -523,33 +570,33 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
           <div
             className="col-span-2 flex flex-col"
             style={{
-              background: leadTheme.soft,
-              borderRight: `0.5px solid ${leadTheme.border}`,
+              background: lTheme.soft,
+              borderRight: `0.5px solid ${lTheme.border}`,
             }}
           >
             {/* Panel header */}
             <div
               className="flex items-center gap-2 px-4 pt-4 pb-3"
-              style={{ borderBottom: `1px solid ${leadTheme.border}` }}
+              style={{ borderBottom: `1px solid ${lTheme.border}` }}
             >
               <div
                 className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: leadTheme.primary }}
+                style={{ background: lTheme.primary }}
               />
               <p
                 className="font-bold uppercase tracking-[0.1em]"
-                style={{ fontSize: "0.5625rem", color: leadTheme.primary }}
+                style={{ fontSize: "0.5625rem", color: lTheme.primary }}
               >
                 Mulai dari Sini
               </p>
               {/* Category page link */}
               <Link
-                href={leadCategory.href}
+                href={leadHref}
                 onClick={onClose}
                 className="ml-auto flex items-center gap-0.5 font-semibold transition-all duration-150 hover:opacity-70"
                 style={{
                   fontSize: "0.5625rem",
-                  color: leadTheme.primary,
+                  color: lTheme.primary,
                   textDecoration: "none",
                   letterSpacing: "0.04em",
                 }}
@@ -563,32 +610,15 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
 
             {/* Program cards */}
             <div className="p-3 space-y-1.5 flex-1">
-              {leadPrograms.map((prog) => (
-                <LeadProgramCard key={prog.id} prog={prog} onClose={onClose} />
+              {lPrograms.map((prog) => (
+                <LeadProgramCard
+                  key={prog.id}
+                  prog={prog}
+                  theme={lTheme}
+                  onClose={onClose}
+                />
               ))}
             </div>
-
-            {/* Lead panel footer: price hint */}
-            {/* <div
-              className="px-4 py-3 flex items-center gap-2"
-              style={{ borderTop: `1px solid ${leadTheme.border}` }}
-            >
-              <div
-                className="w-1.5 h-5 rounded-full flex-shrink-0"
-                style={{ background: leadTheme.primary, opacity: 0.35 }}
-              />
-              <p
-                style={{
-                  fontSize: "0.625rem",
-                  color: "rgba(15,35,64,0.4)",
-                  lineHeight: "1.45",
-                }}
-              >
-                Mulai dari{" "}
-                <strong style={{ color: leadTheme.primary }}>Rp 49.000</strong>{" "}
-                — cocok untuk pemula
-              </p>
-            </div> */}
           </div>
 
           {/* ── RIGHT: Category accordions ────────────────────── */}
@@ -609,7 +639,7 @@ export function ProgramsDropdown({ onClose }: { onClose: () => void }) {
 
             {/* Accordion groups */}
             <div className="p-3 space-y-2 flex-1">
-              {rightColumns.map((col) => (
+              {rCols.map((col) => (
                 <CategoryGroup key={col.id} col={col} onClose={onClose} />
               ))}
             </div>

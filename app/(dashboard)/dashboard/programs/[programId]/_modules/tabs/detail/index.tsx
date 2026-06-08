@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pencil, X, Check, Loader2, ChevronRight } from "lucide-react";
+import { Pencil, X, Check, Loader2, ChevronRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DetailData as ProgramDetailData } from "@/app/modules/program/server/program.router";
@@ -70,9 +70,9 @@ export const STATUS_META: Record<
 };
 
 export const LEVEL_COLORS: Record<string, string> = {
-  beginner: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  intermediate: "bg-amber-50 text-amber-700 border-amber-200",
-  advanced: "bg-red-50 text-red-700 border-red-200",
+  beginner: "bg-neutral-50 text-neutral-700 border-neutral-200",
+  intermediate: "bg-neutral-50 text-neutral-700 border-neutral-200",
+  advanced: "bg-neutral-50 text-neutral-700 border-neutral-200",
 };
 
 /* ─────────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ export function formatDateShort(
 }
 
 /* ─────────────────────────────────────────────────────────────
-   SECTION WRAPPER — the shared card shell for every section
+   SECTION WRAPPER — accordion shell shared by Detail + Content
 ───────────────────────────────────────────────────────────── */
 
 interface SectionCardProps {
@@ -129,6 +129,7 @@ interface SectionCardProps {
   onCancel: () => void;
   children: React.ReactNode;
   readOnly?: boolean;
+  defaultOpen?: boolean;
 }
 
 export function SectionCard({
@@ -144,106 +145,171 @@ export function SectionCard({
   onCancel,
   children,
   readOnly = false,
+  defaultOpen = false,
 }: SectionCardProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const showBody = isOpen || isEditing;
+
+  function toggleOpen() {
+    if (isEditing) return;
+    setIsOpen((open) => !open);
+  }
+
+  function handleEdit(e: React.MouseEvent) {
+    e.stopPropagation();
+    setIsOpen(true);
+    onEdit();
+  }
+
+  function handleSave(e: React.MouseEvent) {
+    e.stopPropagation();
+    setIsOpen(true);
+    onSave();
+  }
+
+  function handleCancel(e: React.MouseEvent) {
+    e.stopPropagation();
+    onCancel();
+  }
+
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-neutral-100 bg-neutral-50/40">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="size-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
-            <span className="text-neutral-500">{icon}</span>
+    <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+      {/* Accordion header */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={toggleOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleOpen();
+          }
+        }}
+        className={cn(
+          "flex cursor-pointer items-start justify-between gap-4 border-b border-neutral-100 px-5 py-4 transition-colors",
+          showBody ? "bg-neutral-50/60" : "bg-white hover:bg-neutral-50/70",
+        )}
+      >
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="mt-0.5 flex size-8 flex-shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 shadow-sm">
+            {icon}
           </div>
+
           <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-[13px] font-bold text-neutral-800 tracking-tight">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-[13px] font-bold tracking-tight text-neutral-800">
                 {title}
               </h3>
+
               {readOnly && (
-                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 bg-neutral-100 text-neutral-400 rounded-full border border-neutral-200">
+                <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
                   Read only
                 </span>
               )}
+
               {isEditing && isDirty && (
                 <motion.span
-                  initial={{ opacity: 0, scale: 0.85 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="text-[10px] font-semibold bg-amber-50 border border-amber-200 text-amber-600 rounded-full px-2 py-0.5"
+                  className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
                 >
                   Belum disimpan
                 </motion.span>
               )}
             </div>
-            <p className="text-[12px] text-neutral-400 mt-0.5 leading-relaxed">
+
+            <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-400">
               {description}
             </p>
           </div>
         </div>
 
-        {/* Actions */}
-        {!readOnly && (
-          <div className="flex-shrink-0 self-start">
-            <AnimatePresence mode="wait">
-              {isEditing ? (
-                <motion.div
-                  key="edit-btns"
-                  initial={{ opacity: 0, x: 6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 6 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex items-center gap-1.5"
-                >
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onCancel}
-                    disabled={isSubmitting}
-                    className="h-7 px-2.5 text-[11px] font-medium text-neutral-500 hover:text-neutral-700"
+        <div className="flex flex-shrink-0 items-center gap-2 self-start">
+          {!readOnly && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <AnimatePresence mode="wait">
+                {isEditing ? (
+                  <motion.div
+                    key="edit-btns"
+                    initial={{ opacity: 0, x: 6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 6 }}
+                    transition={{ duration: 0.15 }}
+                    className="flex items-center gap-1.5"
                   >
-                    <X className="size-3 mr-1" />
-                    Batal
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={onSave}
-                    disabled={isSubmitting || !isDirty}
-                    className="h-7 px-3 text-[11px] font-semibold gap-1 rounded-lg"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCancel}
+                      disabled={isSubmitting}
+                      className="h-7 px-2.5 text-[11px] font-medium text-neutral-500 hover:text-neutral-800"
+                    >
+                      <X className="mr-1 size-3" />
+                      Batal
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      onClick={handleSave}
+                      disabled={isSubmitting || !isDirty}
+                      className="h-7 gap-1 rounded-lg px-3 text-[11px] font-semibold"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Check className="size-3" />
+                      )}
+                      Simpan
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="read-btn"
+                    initial={{ opacity: 0, x: -4 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -4 }}
+                    transition={{ duration: 0.15 }}
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="size-3 animate-spin" />
-                    ) : (
-                      <Check className="size-3" />
-                    )}
-                    Simpan
-                  </Button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="read-btn"
-                  initial={{ opacity: 0, x: -4 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -4 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={onEdit}
-                    disabled={!canEdit}
-                    className="h-7 px-2.5 text-[11px] font-medium rounded-lg gap-1.5 border-neutral-200 text-neutral-600 hover:text-neutral-900 hover:border-neutral-300"
-                  >
-                    <Pencil className="size-3" />
-                    Edit
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleEdit}
+                      disabled={!canEdit}
+                      className="h-7 gap-1.5 rounded-lg border-neutral-200 px-2.5 text-[11px] font-medium text-neutral-600 hover:border-neutral-300 hover:text-neutral-900"
+                    >
+                      <Pencil className="size-3" />
+                      Edit
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          <ChevronDown
+            className={cn(
+              "mt-1 size-4 text-neutral-400 transition-transform duration-200",
+              showBody && "rotate-180",
+            )}
+          />
+        </div>
       </div>
 
-      {/* Body */}
-      <div className="p-6">{children}</div>
-    </div>
+      <AnimatePresence initial={false}>
+        {showBody && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="p-5 sm:p-6">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
   );
 }
 
@@ -364,7 +430,7 @@ export const inputCls = cn(
   "w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5",
   "text-[13px] text-neutral-800 placeholder:text-neutral-300",
   "outline-none transition-all duration-150",
-  "focus:border-blue-400 focus:ring-2 focus:ring-blue-100",
+  "focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100",
   "disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400",
 );
 
@@ -495,7 +561,7 @@ export function InfoNotice({
   variant?: "info" | "warn" | "success";
 }) {
   const styles = {
-    info: "bg-blue-50 border-blue-100 text-blue-700",
+    info: "bg-neutral-50 border-neutral-200 text-neutral-700",
     warn: "bg-amber-50 border-amber-100 text-amber-700",
     success: "bg-emerald-50 border-emerald-100 text-emerald-700",
   };

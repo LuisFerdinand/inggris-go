@@ -114,7 +114,7 @@ function TagInput({ value, onChange }: TagInputProps) {
         className={cn(
           "min-h-[48px] flex flex-wrap items-center gap-1.5 px-2.5 py-2 rounded-xl border bg-white transition-all duration-150 cursor-text",
           focused
-            ? "border-blue-400 shadow-[0_0_0_3px_rgba(59,130,246,0.1)]"
+            ? "border-neutral-400 shadow-[0_0_0_3px_rgba(59,130,246,0.1)]"
             : "border-neutral-200 hover:border-neutral-300",
         )}
       >
@@ -127,7 +127,7 @@ function TagInput({ value, onChange }: TagInputProps) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.75 }}
               transition={{ duration: 0.13, ease: "easeOut" }}
-              className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-violet-50 border border-violet-200 text-[11px] font-semibold text-violet-700 select-none"
+              className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-neutral-50 border border-neutral-200 text-[11px] font-semibold text-neutral-700 select-none"
             >
               <Hash className="size-2.5 opacity-60" />
               {tag}
@@ -137,7 +137,7 @@ function TagInput({ value, onChange }: TagInputProps) {
                   e.stopPropagation();
                   removeTag(tag);
                 }}
-                className="ml-0.5 size-4 flex items-center justify-center rounded-full hover:bg-violet-200 transition-colors"
+                className="ml-0.5 size-4 flex items-center justify-center rounded-full hover:bg-neutral-200 transition-colors"
               >
                 <X className="size-2.5" />
               </button>
@@ -184,7 +184,7 @@ function TagInput({ value, onChange }: TagInputProps) {
                   key={s}
                   type="button"
                   onClick={() => addTag(s)}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-50 hover:bg-violet-50 hover:border-violet-200 hover:text-violet-700 text-[11px] text-neutral-500 font-medium transition-colors duration-100"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-50 hover:bg-neutral-50 hover:border-neutral-200 hover:text-neutral-700 text-[11px] text-neutral-500 font-medium transition-colors duration-100"
                 >
                   <Hash className="size-2.5" />
                   {s}
@@ -258,7 +258,7 @@ function ReadMode({ data }: { data: DetailData }) {
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 pl-2 pr-2.5 py-0.5 rounded-full bg-violet-50 border border-violet-200 text-[11px] font-semibold text-violet-700"
+                className="inline-flex items-center gap-1 pl-2 pr-2.5 py-0.5 rounded-full bg-neutral-50 border border-neutral-200 text-[11px] font-semibold text-neutral-700"
               >
                 <Hash className="size-2.5 opacity-60" />
                 {tag}

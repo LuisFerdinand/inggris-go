@@ -1,0 +1,1 @@
+// app/(dashboard)/dashboard/programs/categories/_modules/ui/views/CategoriesView.tsx

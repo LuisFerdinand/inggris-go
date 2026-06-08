@@ -1,3 +1,4 @@
+// app/api/contact/route.ts
 import {
   buildAdminEmail,
   buildAutoReplyEmail,
@@ -5,7 +6,7 @@ import {
   ContactBody,
 } from "@/app/server/api/email/contact";
 import { NextRequest, NextResponse } from "next/server";
-import { resend } from "@/lib/resend";
+import { getResend } from "@/lib/resend";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "support@inggrisgo.com";
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "noreply@inggrisgo.com";
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
         { status: 422 },
       );
     }
+
+    // Create the Resend client at request time (not module load — keeps build safe).
+    const resend = getResend();
 
     const data = body as ContactBody;
     const categoryLabel = data.category

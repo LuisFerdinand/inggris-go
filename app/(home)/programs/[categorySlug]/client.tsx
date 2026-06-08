@@ -1,3 +1,4 @@
+// app/(home)/programs/[categorySlug]/client.tsx
 "use client";
 
 import { useMemo, useRef, useState, useEffect, useCallback } from "react";

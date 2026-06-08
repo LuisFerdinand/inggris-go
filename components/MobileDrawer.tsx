@@ -2,11 +2,11 @@
 "use client";
 
 import {
-  leadPrograms,
-  rightColumns,
+  buildDropdownData,
+  rightColumns, // kept for the `typeof rightColumns` type alias below
   allProgramHrefs,
+  type MenuCategory,
 } from "./ProgramsDropdown";
-import { leadCategory } from "./ProgramsDropdown";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -22,8 +22,7 @@ export { allProgramHrefs };
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// Derived once — mirrors ProgramsDropdown
-const leadTheme = generateTheme(leadCategory.theme.primary);
+type DropdownData = ReturnType<typeof buildDropdownData>;
 
 // ─── MobileNavRow ─────────────────────────────────────────────────────────────
 
@@ -101,28 +100,6 @@ function MobileNavRow({
   );
 }
 
-function SectionLabel({
-  children,
-  color = "#94A3B8",
-}: {
-  children: React.ReactNode;
-  color?: string;
-}) {
-  return (
-    <p
-      className="font-bold uppercase tracking-[0.14em] px-4"
-      style={{
-        fontSize: "0.5625rem",
-        color,
-        paddingTop: "0.5rem",
-        paddingBottom: "0.5rem",
-      }}
-    >
-      {children}
-    </p>
-  );
-}
-
 // ─── MobileCategoryGroup ──────────────────────────────────────────────────────
 
 function MobileCategoryGroup({
@@ -147,7 +124,7 @@ function MobileCategoryGroup({
       className=""
     >
       <div
-        className="rounded-xl overflow-hidden transition-all duration-200 PL"
+        className="rounded-xl overflow-hidden transition-all duration-200"
         style={{
           border: `1px solid ${open ? theme.border : "rgba(15,35,64,0.07)"}`,
           boxShadow: open ? `0 2px 12px ${theme.soft}` : "none",
@@ -321,21 +298,6 @@ function MobileCategoryGroup({
                         >
                           {item.label}
                         </span>
-                        {/* {item.badge && (
-                          <span
-                            className="flex-shrink-0 font-bold px-1.5 py-0.5 rounded-full"
-                            style={{
-                              fontSize: "0.5rem",
-                              letterSpacing: "0.05em",
-                              textTransform: "uppercase",
-                              background: theme.soft,
-                              color: theme.primary,
-                              border: `1px solid ${theme.border}`,
-                            }}
-                          >
-                            {item.badge}
-                          </span>
-                        )} */}
                       </div>
                       {item.desc && (
                         <span
@@ -403,10 +365,14 @@ function MobileCategoryGroup({
 function MobileProgramPanel({
   pathname,
   onClose,
+  data,
 }: {
   pathname: string;
   onClose: () => void;
+  data: DropdownData;
 }) {
+  const { leadHref, leadTheme, leadPrograms, rightColumns: rCols } = data;
+
   return (
     <div className="pb-3 pl-4">
       {/* ══ Lead programs ══════════════════════════════════════ */}
@@ -435,7 +401,7 @@ function MobileProgramPanel({
             </p>
           </div>
           <Link
-            href={leadCategory.href}
+            href={leadHref}
             onClick={onClose}
             className="flex items-center gap-0.5 font-semibold transition-opacity duration-150 hover:opacity-70"
             style={{
@@ -510,34 +476,7 @@ function MobileProgramPanel({
                       >
                         {prog.title}
                       </p>
-                      {/* {prog.badge && (
-                        <span
-                          className="font-bold px-1.5 py-0.5 rounded-full"
-                          style={{
-                            fontSize: "0.5rem",
-                            letterSpacing: "0.06em",
-                            textTransform: "uppercase",
-                            background: "white",
-                            color: leadTheme.primary,
-                            border: `1px solid ${leadTheme.border}`,
-                          }}
-                        >
-                          {prog.badge}
-                        </span>
-                      )} */}
                     </div>
-                    {/* {prog.desc && (
-                      <p
-                        className="mt-0.5 leading-tight"
-                        style={{
-                          fontSize: "0.6875rem",
-                          color: "#94A3B8",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        {prog.desc}
-                      </p>
-                    )} */}
                   </div>
 
                   <ChevronRight
@@ -553,28 +492,6 @@ function MobileProgramPanel({
             );
           })}
         </div>
-
-        {/* Price hint footer */}
-        {/* <div
-          className="flex items-center gap-2 px-3 py-2"
-          style={{ borderTop: `1px solid ${leadTheme.border}` }}
-        >
-          <div
-            className="w-1 h-4 rounded-full flex-shrink-0"
-            style={{ background: leadTheme.primary, opacity: 0.3 }}
-          />
-          <p
-            style={{
-              fontSize: "0.625rem",
-              color: "rgba(15,35,64,0.4)",
-              lineHeight: "1.45",
-            }}
-          >
-            Mulai dari{" "}
-            <strong style={{ color: leadTheme.primary }}>Rp 49.000</strong> —
-            cocok untuk pemula
-          </p>
-        </div> */}
       </div>
 
       {/* ══ All programs (category accordions) ════════════════ */}
@@ -589,7 +506,7 @@ function MobileProgramPanel({
       </div>
 
       <div className="px-4 space-y-2">
-        {rightColumns.map((col, ci) => (
+        {rCols.map((col, ci) => (
           <MobileCategoryGroup
             key={col.id}
             col={col}
@@ -630,15 +547,24 @@ function MobileProgramPanel({
 export function MobileDrawer({
   pathname,
   navLinks,
+  categories,
   onClose,
   onOpenAuthModal,
 }: {
   pathname: string;
   navLinks: readonly { href: string; label: string }[];
+  categories: MenuCategory[];
   onClose: () => void;
   onOpenAuthModal: () => void;
 }) {
-  const [progOpen, setProgOpen] = useState(allProgramHrefs.includes(pathname));
+  // Build once from the DB menu (with static fallback) — same source as desktop.
+  const data = buildDropdownData(categories);
+  const programHrefs = [
+    ...data.leadPrograms.map((p) => p.href),
+    ...data.rightColumns.flatMap((c) => c.items.map((i) => i.href)),
+  ];
+
+  const [progOpen, setProgOpen] = useState(programHrefs.includes(pathname));
 
   const regularLinks = navLinks.filter((l) => l.label !== "Program Kami");
   const beforePrograms = regularLinks.slice(0, 2);
@@ -734,7 +660,11 @@ export function MobileDrawer({
                 transition={{ duration: 0.28, ease: EASE }}
                 style={{ overflow: "hidden" }}
               >
-                <MobileProgramPanel pathname={pathname} onClose={onClose} />
+                <MobileProgramPanel
+                  pathname={pathname}
+                  onClose={onClose}
+                  data={data}
+                />
               </motion.div>
             )}
           </AnimatePresence>

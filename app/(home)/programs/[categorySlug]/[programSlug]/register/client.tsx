@@ -34,7 +34,7 @@ import { AppRouter } from "@/lib/trpc/routers/_app";
 import { parseAge } from "@/lib/utils";
 
 type RouterOutput = inferRouterOutputs<AppRouter>;
-type ProgramPageData = RouterOutput["programs"]["getProgramPage"];
+type ProgramPageData = RouterOutput["programs"];
 
 interface FormData {
   batch: string;

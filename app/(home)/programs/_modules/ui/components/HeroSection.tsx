@@ -1,3 +1,4 @@
+// app/(home)/programs/_modules/ui/components/HeroSection.tsx
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   CATEGORIES,

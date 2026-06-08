@@ -173,7 +173,7 @@ function ReadMode({ data }: { data: DetailData }) {
               href={publicUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-medium text-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-medium text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700 transition-colors"
             >
               <ExternalLink className="size-3.5" />
               Buka
@@ -272,7 +272,7 @@ function SlugPreviewBar({
           href={publicUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center size-7 rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-blue-600 transition-colors"
+          className="inline-flex items-center justify-center size-7 rounded-lg text-neutral-500 hover:bg-neutral-100 hover:text-neutral-600 transition-colors"
           title="Buka di tab baru"
         >
           <ExternalLink className="size-3.5" />
@@ -432,7 +432,7 @@ function EditMode({
         error={errors.slug?.message}
         required
       >
-        <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden shadow-sm transition-all duration-200 focus-within:border-blue-300 focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.08)]">
+        <div className="rounded-2xl border border-neutral-200 bg-white overflow-hidden shadow-sm transition-all duration-200 focus-within:border-neutral-300 focus-within:shadow-[0_0_0_3px_rgba(59,130,246,0.08)]">
           {/* Preview bar */}
           <SlugPreviewBar
             categorySlug={displayCategorySlug}
@@ -456,7 +456,7 @@ function EditMode({
               >
                 <div className="p-3 space-y-3">
                   {/* Input row */}
-                  <div className="flex items-stretch rounded-xl border border-neutral-200 overflow-hidden focus-within:border-blue-400 focus-within:ring-3 focus-within:ring-blue-100 transition-all duration-200 bg-white">
+                  <div className="flex items-stretch rounded-xl border border-neutral-200 overflow-hidden focus-within:border-neutral-400 focus-within:ring-3 focus-within:ring-neutral-100 transition-all duration-200 bg-white">
                     <span className="px-3 py-2.5 text-[12px] font-mono text-neutral-400 bg-neutral-50 border-r border-neutral-200 whitespace-nowrap flex-shrink-0 flex items-center">
                       /programs/{displayCategorySlug}/
                     </span>
@@ -487,7 +487,7 @@ function EditMode({
                           type="button"
                           onClick={handleRegenerateSlug}
                           title="Buat ulang dari judul"
-                          className="inline-flex items-center gap-1 text-[11px] text-violet-600 hover:text-violet-800 font-medium transition-colors"
+                          className="inline-flex items-center gap-1 text-[11px] text-neutral-600 hover:text-neutral-800 font-medium transition-colors"
                         >
                           <Sparkles className="size-3" />
                           Auto

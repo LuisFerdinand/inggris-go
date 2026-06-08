@@ -157,7 +157,7 @@ function SectionHeader({
   return (
     <div className="flex items-start justify-between gap-4 border-b border-[var(--border-soft)] bg-neutral-50/40 px-5 py-4">
       <div className="flex min-w-0 items-start gap-3">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-white text-[var(--blue)] shadow-sm">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-white text-neutral-500 shadow-sm">
           {icon}
         </div>
 
@@ -300,7 +300,7 @@ export function ProgramSectionsSection({
               Sync
             </div>
           ) : (
-            <div className="hidden items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 sm:inline-flex">
+            <div className="hidden items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-semibold text-neutral-700 sm:inline-flex">
               <Sparkles className="size-3.5" />
               {activeCount} aktif
             </div>
@@ -309,14 +309,14 @@ export function ProgramSectionsSection({
       />
 
       <div className="space-y-3 p-5">
-        <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50/60 px-4 py-3">
           <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-blue-600" />
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-neutral-600" />
             <div>
-              <p className="text-xs font-semibold text-blue-800">
+              <p className="text-xs font-semibold text-neutral-800">
                 Missing section bisa dibuat langsung dari sini.
               </p>
-              <p className="mt-0.5 text-[11px] leading-relaxed text-blue-700/80">
+              <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-600">
                 Jika section belum ada di database, klik “Tambahkan & Aktifkan”.
                 Sistem akan membuat template kosong yang nanti bisa kamu isi atau edit.
               </p>
@@ -330,7 +330,7 @@ export function ProgramSectionsSection({
           </div>
         ) : !hasContentDocument ? (
           <div className="rounded-2xl border border-dashed border-[var(--border-soft)] bg-neutral-50/60 px-4 py-8 text-center">
-            <div className="mx-auto flex size-11 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-white text-[var(--blue)] shadow-sm">
+            <div className="mx-auto flex size-11 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-white text-neutral-500 shadow-sm">
               <Layers3 className="size-5" />
             </div>
 
@@ -345,7 +345,7 @@ export function ProgramSectionsSection({
               type="button"
               disabled={isPending}
               onClick={() => ensureMutation.mutate({ programId })}
-              className="mt-4 h-9 rounded-xl bg-blue-gradient px-4 text-xs font-semibold text-white shadow-glow-blue-btn"
+              className="mt-4 h-9 rounded-xl bg-neutral-900 px-4 text-xs font-semibold text-white shadow-sm"
             >
               {ensureMutation.isPending ? (
                 <Loader2 className="mr-1.5 size-3.5 animate-spin" />
@@ -377,7 +377,7 @@ export function ProgramSectionsSection({
                       className={cn(
                         "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl border text-xs font-bold",
                         created
-                          ? "border-blue-100 bg-blue-50 text-blue-700"
+                          ? "border-neutral-200 bg-neutral-50 text-neutral-700"
                           : "border-[var(--border-soft)] bg-white text-[var(--text-faint)]",
                       )}
                     >

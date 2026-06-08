@@ -1,6 +1,7 @@
+// hooks/use-sign-out.ts
 "use client";
 
-import { authClient } from "@/lib/auth/client";
+import { signOut as nextAuthSignOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useCallback } from "react";
 import toast from "react-hot-toast";
@@ -15,11 +16,8 @@ export function useSignOut() {
     setIsSigningOut(true);
 
     try {
-      const res = await authClient.signOut();
-
-      if (res?.error) {
-        throw new Error(res.error.message || "Sign out failed");
-      }
+      // redirect: false lets us drive navigation ourselves + show the toast
+      await nextAuthSignOut({ redirect: false });
 
       toast.success("Signed out successfully");
       router.push("/");
@@ -32,8 +30,5 @@ export function useSignOut() {
     }
   }, [isSigningOut, router]);
 
-  return {
-    signOut,
-    isSigningOut,
-  };
+  return { signOut, isSigningOut };
 }

@@ -1,6 +1,8 @@
-import { ProgramSection } from "@/app/modules/program/program.types";
+import {
+  ProgramSection,
+  ProgramTheme,
+} from "@/app/modules/program/program.types";
 import { buildWhatsAppUrl } from "@/lib/config";
-import { ProgramTheme } from "../../schema";
 import { generateSlug } from "@/lib/utils";
 import { SOCIAL_PROOF } from "@/constants";
 

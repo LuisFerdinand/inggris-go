@@ -1,3 +1,4 @@
+// app/(dashboard)/dashboard/programs/create/client.tsx
 "use client";
 
 import { SiteHeader } from "@/components/sidebar/site-header";
@@ -60,6 +61,7 @@ import toast from "react-hot-toast";
 import { uploadFiles } from "@/lib/uploadthing/client";
 import { ImageUploadField } from "@/components/file-uploader/ImageUploadField";
 import { getToneStyle } from "@/lib/ui/ui.helpers";
+import { ContentCreateSection } from "./ContentCreateSection";
 
 type FormValues = ProgramCreateData;
 type SectionId = "basic" | "details" | "media";
@@ -1463,7 +1465,7 @@ const CreateProgramPageClient = () => {
   const utils = trpc.useUtils();
   const { data: categories = [], isLoading: isLoadingCategories } =
     trpc.programs.getCategories.useQuery();
-  const createProgram = trpc.programs.createProgram.useMutation();
+  const createProgram = trpc.programs.create.useMutation();
 
   const [activeSection, setActiveSection] = useState<SectionId>("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1477,6 +1479,15 @@ const CreateProgramPageClient = () => {
     new Set(["basic"]),
   );
   const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  const activateSection = trpc.programs.activateContentSection.useMutation();
+
+  // Landing-page sections to create on submit. Sensible starter set — admin can
+  // toggle any of them, and manage everything later in the Content tab.
+  const [selectedContent, setSelectedContent] = useState<Set<string>>(
+    new Set(["hero", "why", "benefits", "pricing", "faq", "cta"]),
+  );
+
 
   const form = useForm<ProgramCreateData>({
     resolver: makeResolver(programCreateSchema) as any,
@@ -1573,6 +1584,15 @@ const CreateProgramPageClient = () => {
           throw new Error("Failed to upload thumbnail");
         }
       }
+
+      for (const type of selectedContent) {
+        await activateSection.mutateAsync({
+          programId: program.id,
+          sectionId: type,
+          sectionType: type,
+        });
+      }
+      
       utils.programs.getFiltered.invalidate();
       toast.success("Program created successfully", { id: toastId });
 
@@ -1775,6 +1795,12 @@ const CreateProgramPageClient = () => {
                     )}
                   </SectionCard>
                 ))}
+
+                {/* 04 — Landing page content */}
+                <ContentCreateSection
+                  value={selectedContent}
+                  onChange={setSelectedContent}
+                />
 
                 {/* Reminder banner above submit on mobile */}
                 <div className="lg:hidden">

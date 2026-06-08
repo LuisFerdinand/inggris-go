@@ -1,3 +1,4 @@
+// app/(home)/contact/page.tsx
 "use client";
 
 import React, {

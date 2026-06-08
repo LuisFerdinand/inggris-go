@@ -1,3 +1,4 @@
+// app/(home)/programs/page.tsx
 import { HydrateClient } from "@/lib/trpc/server";
 import React from "react";
 import ProgramsView from "./_modules/ui/views/ProgramsView";

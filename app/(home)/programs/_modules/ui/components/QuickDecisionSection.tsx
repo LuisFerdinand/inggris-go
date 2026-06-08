@@ -1,3 +1,4 @@
+// app/(home)/programs/_modules/ui/components/QuickDecisionSection.tsx
 import { useMemo, useState } from "react";
 import { CATEGORIES } from "../../../[categorySlug]/data";
 import { EASE, Reveal } from "../views/ProgramsView";

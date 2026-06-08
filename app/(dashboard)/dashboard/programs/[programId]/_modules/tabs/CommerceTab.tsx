@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
   CircleDollarSign,
   Edit3,
   Info,
@@ -27,13 +28,7 @@ import { cn } from "@/lib/utils";
 
 import { BatchForm } from "../ui/components/Batch/BatchForm";
 import { PackageForm } from "../ui/components/Package/PackageForm";
-import {
-  DetailData,
-  InfoNotice,
-  MetaPill,
-  ReadField,
-  SectionCard,
-} from "./detail";
+import { DetailData, InfoNotice, MetaPill, ReadField } from "./detail";
 
 type DrawerState =
   | { kind: "batch"; mode: "create"; id?: never }
@@ -57,8 +52,6 @@ const itemVariants = {
     transition: { duration: 0.38, ease: [0.16, 1, 0.3, 1] as const },
   },
 };
-
-function noop() {}
 
 function formatIDR(value: number | null | undefined) {
   if (value == null) return "Gratis";
@@ -98,15 +91,211 @@ function DetailButton({
       onClick={onClick}
       className={cn(
         "h-7 rounded-lg px-2.5 text-[11px] font-semibold gap-1.5",
-        variant === "primary" && "bg-neutral-900 text-white hover:bg-neutral-800",
+        variant === "primary" &&
+          "bg-slate-900 text-white hover:bg-slate-800",
         variant === "outline" &&
-          "border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:text-neutral-900",
+          "border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900",
         variant === "danger" &&
           "border-red-100 bg-white text-red-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600",
       )}
     >
       {children}
     </Button>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   STATS OVERVIEW — read-only summary dashboard (distinct surface)
+───────────────────────────────────────────────────────────── */
+
+function StatTile({
+  icon,
+  accent,
+  label,
+  value,
+  unit,
+  sub,
+}: {
+  icon: React.ReactNode;
+  accent: string; // tailwind classes for the icon chip: "bg-... text-..."
+  label: string;
+  value: string;
+  unit?: string;
+  sub?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm">
+      <div
+        className={cn(
+          "flex size-10 shrink-0 items-center justify-center rounded-xl",
+          accent,
+        )}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] font-bold uppercase tracking-[0.7px] text-slate-400">
+          {label}
+        </p>
+        <p className="mt-0.5 flex items-baseline gap-1 text-[15px] font-bold leading-none text-slate-800">
+          <span className="truncate">{value}</span>
+          {unit && (
+            <span className="text-[11px] font-semibold text-slate-400">
+              {unit}
+            </span>
+          )}
+        </p>
+        {sub && <div className="mt-1">{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+function StatsOverview({
+  data,
+  isScheduled,
+  totalPackages,
+  totalBatches,
+}: {
+  data: DetailData;
+  isScheduled: boolean;
+  totalPackages: number;
+  totalBatches: number;
+}) {
+  const hasDiscount =
+    data.startingOriginalPrice &&
+    data.startingPrice &&
+    data.startingOriginalPrice > data.startingPrice;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 shadow-sm">
+      {/* Status strip */}
+      <div className="flex flex-wrap items-center gap-2 px-5 pt-5">
+        <MetaPill className="border-slate-200 bg-white text-slate-700">
+          {isScheduled ? (
+            <CalendarClock className="size-3" />
+          ) : (
+            <Repeat className="size-3" />
+          )}
+          {isScheduled ? "Scheduled Program" : "Permanent Program"}
+        </MetaPill>
+
+        {data.hasPackages ? (
+          <MetaPill className="border-emerald-200 bg-emerald-50 text-emerald-700">
+            <CheckCircle2 className="size-3" />
+            Paket tersedia
+          </MetaPill>
+        ) : (
+          <MetaPill className="border-amber-200 bg-amber-50 text-amber-700">
+            <Info className="size-3" />
+            Belum ada paket
+          </MetaPill>
+        )}
+      </div>
+
+      {/* Metric tiles */}
+      <div className="grid gap-3 px-5 py-4 sm:grid-cols-3">
+        <StatTile
+          icon={<CircleDollarSign className="size-5" />}
+          accent="border border-indigo-100 bg-indigo-50 text-indigo-600"
+          label="Harga Mulai"
+          value={formatIDR(data.startingPrice)}
+          sub={
+            hasDiscount ? (
+              <span className="text-[11px] text-slate-300 line-through">
+                {formatIDR(data.startingOriginalPrice)}
+              </span>
+            ) : undefined
+          }
+        />
+        <StatTile
+          icon={<Package className="size-5" />}
+          accent="border border-indigo-100 bg-indigo-50 text-indigo-600"
+          label="Total Paket"
+          value={String(totalPackages)}
+          unit="paket"
+        />
+        <StatTile
+          icon={
+            isScheduled ? (
+              <Layers className="size-5" />
+            ) : (
+              <Repeat className="size-5" />
+            )
+          }
+          accent="border border-indigo-100 bg-indigo-50 text-indigo-600"
+          label={isScheduled ? "Total Batch" : "Tipe Setup"}
+          value={isScheduled ? String(totalBatches) : "Direct"}
+          unit={isScheduled ? "batch" : undefined}
+        />
+      </div>
+
+      {/* Snapshot note */}
+      <div className="px-5 pb-5">
+        <InfoNotice icon={<Info className="size-3.5" />}>
+          Data order/enrollment mengambil snapshot program, batch, dan package
+          saat transaksi dibuat. Perubahan harga atau judul ke depannya tidak
+          merusak riwayat transaksi lama.
+        </InfoNotice>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MANAGEMENT SECTION — the working CRUD area (toolbar + list)
+───────────────────────────────────────────────────────────── */
+
+function ManagementSection({
+  icon,
+  title,
+  description,
+  count,
+  countLabel,
+  addLabel,
+  onAdd,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  count: number;
+  countLabel: string;
+  addLabel: string;
+  onAdd: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-sm">
+      {/* Toolbar header — clearly an action area */}
+      <div className="flex items-center justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 text-white shadow-sm">
+            {icon}
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-[13px] font-bold tracking-tight text-slate-800">
+                {title}
+              </h3>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold tabular-nums text-slate-500">
+                {count} {countLabel}
+              </span>
+            </div>
+            <p className="mt-0.5 text-[12px] leading-relaxed text-slate-400">
+              {description}
+            </p>
+          </div>
+        </div>
+
+        <DetailButton onClick={onAdd}>
+          <Plus className="size-3" />
+          {addLabel}
+        </DetailButton>
+      </div>
+
+      <div className="p-5">{children}</div>
+    </div>
   );
 }
 
@@ -146,18 +335,18 @@ function Drawer({
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 360, damping: 36 }}
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col overflow-hidden border-l border-neutral-200 bg-white shadow-2xl sm:rounded-l-2xl"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl sm:rounded-l-2xl"
           >
-            <div className="flex items-start justify-between gap-4 border-b border-neutral-100 bg-neutral-50/40 px-6 py-4">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/40 px-6 py-4">
               <div className="flex min-w-0 items-start gap-3">
-                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500 shadow-sm">
+                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm">
                   {icon}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-[13px] font-bold tracking-tight text-neutral-800">
+                  <h2 className="text-[13px] font-bold tracking-tight text-slate-800">
                     {title}
                   </h2>
-                  <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-400">
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-slate-400">
                     {description}
                   </p>
                 </div>
@@ -166,7 +355,7 @@ function Drawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-400 shadow-sm transition hover:text-neutral-700"
+                className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:text-slate-700"
               >
                 <X className="size-3.5" />
               </button>
@@ -192,77 +381,15 @@ function EmptyState({
   action: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/60 px-5 py-10 text-center">
-      <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl border border-neutral-200 bg-white text-neutral-400 shadow-sm">
+    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-5 py-10 text-center">
+      <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 shadow-sm">
         {icon}
       </div>
-      <p className="text-[13px] font-bold text-neutral-800">{title}</p>
-      <p className="mx-auto mt-1 max-w-md text-[12px] leading-relaxed text-neutral-400">
+      <p className="text-[13px] font-bold text-slate-800">{title}</p>
+      <p className="mx-auto mt-1 max-w-md text-[12px] leading-relaxed text-slate-400">
         {description}
       </p>
       <div className="mt-4">{action}</div>
-    </div>
-  );
-}
-
-function StatGrid({
-  data,
-  isScheduled,
-  totalPackages,
-  totalBatches,
-}: {
-  data: DetailData;
-  isScheduled: boolean;
-  totalPackages: number;
-  totalBatches: number;
-}) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <ReadField label="Harga Mulai">
-        <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-            <CircleDollarSign className="size-4" />
-          </div>
-          <div>
-            <p className="text-[13px] font-bold text-neutral-800">
-              {formatIDR(data.startingPrice)}
-            </p>
-            {data.startingOriginalPrice &&
-              data.startingPrice &&
-              data.startingOriginalPrice > data.startingPrice && (
-                <p className="text-[11px] text-neutral-300 line-through">
-                  {formatIDR(data.startingOriginalPrice)}
-                </p>
-              )}
-          </div>
-        </div>
-      </ReadField>
-
-      <ReadField label="Total Paket">
-        <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">
-            <Package className="size-4" />
-          </div>
-          <span className="text-[13px] font-bold text-neutral-800">
-            {totalPackages} paket
-          </span>
-        </div>
-      </ReadField>
-
-      <ReadField label={isScheduled ? "Total Batch" : "Tipe Setup"}>
-        <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">
-            {isScheduled ? (
-              <Layers className="size-4" />
-            ) : (
-              <Repeat className="size-4" />
-            )}
-          </div>
-          <span className="text-[13px] font-bold text-neutral-800">
-            {isScheduled ? `${totalBatches} batch` : "Direct package"}
-          </span>
-        </div>
-      </ReadField>
     </div>
   );
 }
@@ -279,11 +406,11 @@ function PackageCard({
   deleting?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm transition-colors hover:bg-neutral-50/40">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:bg-slate-50/40">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="truncate text-[13px] font-bold text-neutral-800">
+            <h4 className="truncate text-[13px] font-bold text-slate-800">
               {pkg.title}
             </h4>
             {pkg.isDefault && (
@@ -295,11 +422,11 @@ function PackageCard({
           </div>
 
           {pkg.description ? (
-            <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-neutral-400">
+            <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-slate-400">
               {pkg.description}
             </p>
           ) : (
-            <p className="mt-1 text-[12px] italic text-neutral-300">
+            <p className="mt-1 text-[12px] italic text-slate-300">
               Belum ada deskripsi
             </p>
           )}
@@ -309,7 +436,7 @@ function PackageCard({
           <button
             type="button"
             onClick={onEdit}
-            className="flex size-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-white hover:text-neutral-700 hover:shadow-sm"
+            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white hover:text-slate-700 hover:shadow-sm"
           >
             <Edit3 className="size-3.5" />
           </button>
@@ -317,7 +444,7 @@ function PackageCard({
             type="button"
             onClick={onDelete}
             disabled={deleting}
-            className="flex size-8 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
           >
             {deleting ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -331,11 +458,11 @@ function PackageCard({
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <ReadField label="Harga">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-bold text-neutral-800">
+            <span className="font-bold text-slate-800">
               {formatIDR(pkg.price)}
             </span>
             {pkg.originalPrice && pkg.originalPrice > pkg.price && (
-              <span className="text-[11px] text-neutral-300 line-through">
+              <span className="text-[11px] text-slate-300 line-through">
                 {formatIDR(pkg.originalPrice)}
               </span>
             )}
@@ -343,7 +470,7 @@ function PackageCard({
         </ReadField>
 
         <ReadField label="Fitur">
-          <span className="text-neutral-800">
+          <span className="text-slate-800">
             {pkg.features?.length ?? 0} fitur
           </span>
         </ReadField>
@@ -361,6 +488,7 @@ function BatchCard({
   onDeletePackage,
   deletingBatch,
   deletingPackage,
+  defaultOpen = true,
 }: {
   batch: any;
   onEditBatch: () => void;
@@ -370,36 +498,59 @@ function BatchCard({
   onDeletePackage: (pkg: any) => void;
   deletingBatch?: boolean;
   deletingPackage?: boolean;
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
+
   const capacity = batch.capacity
     ? `${batch.enrolledCount}/${batch.capacity}`
     : `${batch.enrolledCount ?? 0}`;
 
-  return (
-    <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-      <div className="border-b border-neutral-100 bg-neutral-50/40 px-5 py-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-[13px] font-bold text-neutral-800">
-                {batch.title}
-              </h3>
-              <MetaPill>
-                <span className="size-1.5 rounded-full bg-neutral-400" />
-                {batch.status}
-              </MetaPill>
-            </div>
+  const packageCount = batch.packages?.length ?? 0;
 
-            {batch.description ? (
-              <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-neutral-400">
-                {batch.description}
-              </p>
-            ) : (
-              <p className="mt-1 text-[12px] italic text-neutral-300">
-                Belum ada deskripsi batch
-              </p>
-            )}
-          </div>
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-sm">
+      <div className="border-b border-slate-100 bg-slate-50/40 px-5 py-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          {/* Clickable title area = accordion toggle */}
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            className="flex min-w-0 flex-1 items-start gap-2.5 text-left"
+          >
+            <ChevronDown
+              className={cn(
+                "mt-0.5 size-4 shrink-0 text-slate-400 transition-transform",
+                open && "rotate-180",
+              )}
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-[13px] font-bold text-slate-800">
+                  {batch.title}
+                </h3>
+                <MetaPill>
+                  <span className="size-1.5 rounded-full bg-slate-400" />
+                  {batch.status}
+                </MetaPill>
+                <MetaPill>
+                  <Package className="size-3" />
+                  {packageCount} paket
+                </MetaPill>
+              </div>
+
+              {batch.description ? (
+                <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-slate-400">
+                  {batch.description}
+                </p>
+              ) : (
+                <p className="mt-1 text-[12px] italic text-slate-300">
+                  Belum ada deskripsi batch
+                </p>
+              )}
+            </div>
+          </button>
 
           <div className="flex shrink-0 flex-wrap items-center gap-1.5">
             <DetailButton variant="outline" onClick={onEditBatch}>
@@ -424,16 +575,17 @@ function BatchCard({
           </div>
         </div>
 
+        {/* Meta row stays visible even when collapsed */}
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <ReadField label="Tanggal">
             <span className="inline-flex items-center gap-1.5">
-              <CalendarClock className="size-3.5 text-neutral-400" />
+              <CalendarClock className="size-3.5 text-slate-400" />
               {formatDate(batch.startDate)} - {formatDate(batch.endDate)}
             </span>
           </ReadField>
           <ReadField label="Peserta">
             <span className="inline-flex items-center gap-1.5">
-              <Users className="size-3.5 text-neutral-400" />
+              <Users className="size-3.5 text-slate-400" />
               {capacity}
             </span>
           </ReadField>
@@ -443,33 +595,45 @@ function BatchCard({
         </div>
       </div>
 
-      <div className="p-5">
-        {batch.packages?.length ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {batch.packages.map((pkg: any) => (
-              <PackageCard
-                key={pkg.id}
-                pkg={pkg}
-                deleting={deletingPackage}
-                onEdit={() => onEditPackage(pkg)}
-                onDelete={() => onDeletePackage(pkg)}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            icon={<Package className="size-4" />}
-            title="Belum ada paket di batch ini"
-            description="Tambahkan paket harga agar peserta bisa mendaftar ke batch ini."
-            action={
-              <DetailButton onClick={onAddPackage}>
-                <Plus className="size-3" />
-                Tambah Paket
-              </DetailButton>
-            }
-          />
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="p-5">
+              {packageCount ? (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {batch.packages.map((pkg: any) => (
+                    <PackageCard
+                      key={pkg.id}
+                      pkg={pkg}
+                      deleting={deletingPackage}
+                      onEdit={() => onEditPackage(pkg)}
+                      onDelete={() => onDeletePackage(pkg)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<Package className="size-4" />}
+                  title="Belum ada paket di batch ini"
+                  description="Tambahkan paket harga agar peserta bisa mendaftar ke batch ini."
+                  action={
+                    <DetailButton onClick={onAddPackage}>
+                      <Plus className="size-3" />
+                      Tambah Paket
+                    </DetailButton>
+                  }
+                />
+              )}
+            </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -616,7 +780,7 @@ export default function CommerceTab({ programId }: { programId: string }) {
 
   if (isLoading && !data) {
     return (
-      <div className="flex max-w-4xl items-center justify-center rounded-2xl border border-neutral-200 bg-white py-24 text-neutral-400 shadow-sm">
+      <div className="flex max-w-5xl items-center justify-center rounded-2xl border border-slate-200 bg-white py-24 text-slate-400 shadow-sm">
         <Loader2 className="size-5 animate-spin" />
       </div>
     );
@@ -629,82 +793,21 @@ export default function CommerceTab({ programId }: { programId: string }) {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex max-w-4xl flex-col gap-4"
+      className="flex max-w-5xl flex-col gap-4"
     >
+      {/* Read-only summary dashboard */}
       <motion.div variants={itemVariants}>
-        <SectionCard
-          icon={<Package className="size-4" />}
-          title="Batch & Paket"
-          description={
-            isScheduled
-              ? "Kelola cohort, jadwal, kapasitas, dan paket harga dalam satu tempat."
-              : "Kelola opsi harga langsung tanpa batch karena program berjalan permanen."
-          }
-          readOnly
-          isEditing={false}
-          onEdit={noop}
-          onSave={noop}
-          onCancel={noop}
-        >
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex flex-wrap items-center gap-2">
-                <MetaPill>
-                  {isScheduled ? (
-                    <CalendarClock className="size-3" />
-                  ) : (
-                    <Repeat className="size-3" />
-                  )}
-                  {isScheduled ? "Scheduled Program" : "Permanent Program"}
-                </MetaPill>
-
-                {data.hasPackages ? (
-                  <MetaPill className="border-emerald-200 bg-emerald-50 text-emerald-700">
-                    <CheckCircle2 className="size-3" />
-                    Paket tersedia
-                  </MetaPill>
-                ) : (
-                  <MetaPill className="border-amber-200 bg-amber-50 text-amber-700">
-                    <Info className="size-3" />
-                    Belum ada paket
-                  </MetaPill>
-                )}
-              </div>
-
-              <DetailButton
-                onClick={() =>
-                  isScheduled
-                    ? setDrawer({ kind: "batch", mode: "create" })
-                    : setDrawer({
-                        kind: "package",
-                        mode: "create",
-                        batchId: null,
-                      })
-                }
-              >
-                <Plus className="size-3" />
-                {isScheduled ? "Batch Baru" : "Paket Baru"}
-              </DetailButton>
-            </div>
-
-            <StatGrid
-              data={data}
-              isScheduled={isScheduled}
-              totalPackages={packagesQuery.data?.length ?? 0}
-              totalBatches={batchesQuery.data?.length ?? 0}
-            />
-
-            <InfoNotice icon={<Info className="size-3.5" />}>
-              Data order/enrollment mengambil snapshot program, batch, dan
-              package saat transaksi dibuat. Perubahan harga atau judul ke
-              depannya tidak merusak riwayat transaksi lama.
-            </InfoNotice>
-          </div>
-        </SectionCard>
+        <StatsOverview
+          data={data}
+          isScheduled={isScheduled}
+          totalPackages={packagesQuery.data?.length ?? 0}
+          totalBatches={batchesQuery.data?.length ?? 0}
+        />
       </motion.div>
 
+      {/* Working CRUD area */}
       <motion.div variants={itemVariants}>
-        <SectionCard
+        <ManagementSection
           icon={
             isScheduled ? (
               <Layers className="size-4" />
@@ -718,19 +821,27 @@ export default function CommerceTab({ programId }: { programId: string }) {
               ? "Setiap batch bisa memiliki paket harga sendiri."
               : "Paket langsung berada di bawah program ini."
           }
-          readOnly
-          isEditing={false}
-          onEdit={noop}
-          onSave={noop}
-          onCancel={noop}
+          count={
+            isScheduled
+              ? (batchesQuery.data?.length ?? 0)
+              : directPackages.length
+          }
+          countLabel={isScheduled ? "batch" : "paket"}
+          addLabel={isScheduled ? "Batch Baru" : "Paket Baru"}
+          onAdd={() =>
+            isScheduled
+              ? setDrawer({ kind: "batch", mode: "create" })
+              : setDrawer({ kind: "package", mode: "create", batchId: null })
+          }
         >
           {isScheduled ? (
             batchesQuery.data?.length ? (
               <div className="flex flex-col gap-4">
-                {batchesQuery.data.map((batch: any) => (
+                {batchesQuery.data.map((batch: any, i: number) => (
                   <BatchCard
                     key={batch.id}
                     batch={batch}
+                    defaultOpen={i === 0}
                     deletingBatch={removeBatch.isPending}
                     deletingPackage={removePackage.isPending}
                     onEditBatch={() =>
@@ -779,9 +890,7 @@ export default function CommerceTab({ programId }: { programId: string }) {
                 description="Untuk scheduled program, peserta memilih batch terlebih dahulu sebelum memilih paket harga."
                 action={
                   <DetailButton
-                    onClick={() =>
-                      setDrawer({ kind: "batch", mode: "create" })
-                    }
+                    onClick={() => setDrawer({ kind: "batch", mode: "create" })}
                   >
                     <Plus className="size-3" />
                     Buat Batch Pertama
@@ -820,11 +929,7 @@ export default function CommerceTab({ programId }: { programId: string }) {
               action={
                 <DetailButton
                   onClick={() =>
-                    setDrawer({
-                      kind: "package",
-                      mode: "create",
-                      batchId: null,
-                    })
+                    setDrawer({ kind: "package", mode: "create", batchId: null })
                   }
                 >
                   <Plus className="size-3" />
@@ -833,7 +938,7 @@ export default function CommerceTab({ programId }: { programId: string }) {
               }
             />
           )}
-        </SectionCard>
+        </ManagementSection>
       </motion.div>
 
       <Drawer

@@ -1,7 +1,12 @@
-import { getProgramDetail } from "@/lib/utils";
+// app/(home)/programs/[categorySlug]/[programSlug]/page.tsx
 import { redirect } from "next/navigation";
+
+import { getProgramDetail } from "@/lib/utils";
 import { CATEGORIES } from "../data";
 import ProgramDetailPageClient from "./client";
+import { getPublicCaller, dbDetailToProgramDetail } from "../_adapters";
+
+export const dynamic = "force-dynamic";
 
 export default async function ProgramDetailPage({
   params,
@@ -10,11 +15,29 @@ export default async function ProgramDetailPage({
 }) {
   const { categorySlug, programSlug } = await params;
 
-  const meta = CATEGORIES[categorySlug];
-  if (!meta) return redirect("/programs");
+  let details: ReturnType<typeof dbDetailToProgramDetail> | null = null;
 
-  const program = getProgramDetail(programSlug);
-  if (!program) return redirect(`/programs/${categorySlug}`);
+  // 1) Try the backend.
+  try {
+    const caller = await getPublicCaller();
+    const dbDetail = await caller.publicPrograms.programDetailBySlug({
+      slug: programSlug,
+    });
+    if (dbDetail) details = dbDetailToProgramDetail(dbDetail);
+  } catch {
+    // ignore → fall back to static
+  }
 
-  return <ProgramDetailPageClient details={program} />;
+  // 2) Static fallback.
+  if (!details) {
+    const meta = CATEGORIES[categorySlug];
+    if (!meta) return redirect("/programs");
+
+    const staticProgram = getProgramDetail(programSlug);
+    if (!staticProgram) return redirect(`/programs/${categorySlug}`);
+
+    details = staticProgram;
+  }
+
+  return <ProgramDetailPageClient details={details} />;
 }

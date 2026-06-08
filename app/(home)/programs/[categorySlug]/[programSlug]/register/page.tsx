@@ -1,21 +1,16 @@
-import { notFound, redirect } from "next/navigation";
-import ProgramRegisterPageClient from "./client";
-import { trpc } from "@/lib/trpc/server";
+// app/(home)/programs/[categorySlug]/[programSlug]/register/page.tsx
+import RegisterClient from "./RegisterClient";
 
-export default async function ProgramRegisterPage({
+export const dynamic = "force-dynamic";
+
+export default async function RegisterPage({
   params,
 }: {
   params: Promise<{ categorySlug: string; programSlug: string }>;
 }) {
   const { categorySlug, programSlug } = await params;
-  const data = await trpc.programs.getProgramPage({
-    categorySlug,
-    programSlug,
-  });
 
-  if (!data) {
-    notFound();
-  }
-
-  return <ProgramRegisterPageClient program={data} />;
+  return (
+    <RegisterClient categorySlug={categorySlug} programSlug={programSlug} />
+  );
 }

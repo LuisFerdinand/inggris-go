@@ -109,48 +109,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "Program",
       icon: BookOpen,
+      url: routes.programs.root,
 
       isActive:
-        isActive(pathname, routes.programs.root) ||
-        isActive(pathname, routes.programs.categories),
-
-      items: [
-        {
-          title: "Semua Program",
-          url: routes.programs.root,
-
-          isActive:
-            pathname === routes.programs.root ||
-            (pathname.startsWith(routes.programs.root + "/") &&
-              !pathname.startsWith(routes.programs.categories)),
-        },
-
-        {
-          title: "Kategori Program",
-          url: routes.programs.categories,
-
-          isActive: isActive(pathname, routes.programs.categories),
-        },
-      ],
+        pathname === routes.programs.root ||
+        (pathname.startsWith(routes.programs.root + "/") &&
+          !pathname.startsWith(routes.programs.categories)),
     },
 
     {
-      title: "Batch & Jadwal",
-      icon: CalendarRange,
+      title: "Kategori Program",
+      url: routes.programs.categories,
 
-      isActive: isActive(pathname, routes.programs.batches),
-
-      url: routes.programs.batches,
+      isActive: isActive(pathname, routes.programs.categories),
     },
 
-    {
-      title: "Paket Harga",
-      icon: Package,
-
-      isActive: isActive(pathname, routes.programs.packages),
-
-      url: routes.programs.packages,
-    },
   ];
 
   // =========================================================

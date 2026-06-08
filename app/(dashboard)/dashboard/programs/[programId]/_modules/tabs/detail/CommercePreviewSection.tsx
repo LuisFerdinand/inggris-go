@@ -448,10 +448,10 @@ export function CommercePreviewSection({
 
   const metrics = [
     {
-      icon: <Package className="size-4 text-blue-500" />,
+      icon: <Package className="size-4 text-neutral-500" />,
       label: "Total Paket",
       value: String(data.packagesCount ?? 0),
-      bg: "bg-blue-50 border-blue-100",
+      bg: "bg-neutral-50 border-neutral-200",
     },
     {
       icon: <CheckCircle2 className="size-4 text-emerald-500" />,
@@ -460,11 +460,11 @@ export function CommercePreviewSection({
       bg: "bg-emerald-50 border-emerald-100",
     },
     {
-      icon: <Tag className="size-4 text-violet-500" />,
+      icon: <Tag className="size-4 text-neutral-500" />,
       label: "Harga Mulai",
       value: price ?? "—",
       sub: hasDiscount ? originalPrice : null,
-      bg: "bg-violet-50 border-violet-100",
+      bg: "bg-neutral-50 border-neutral-200",
       large: true,
     },
     {

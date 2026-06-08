@@ -65,7 +65,7 @@ export default function OverviewTab({
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex flex-col gap-4"
+      className="flex max-w-5xl flex-col gap-4"
     >
       {/* HERO */}
       <motion.div variants={itemVariants}>

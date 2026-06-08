@@ -30,13 +30,15 @@ import {
   programContent,
   programPackages,
   programs,
-  ProgramTheme,
 } from "../schema/programs";
 import { excludedColumns, generateId, generateSlug } from "@/lib/utils";
 import { CATEGORIES } from "@/app/(home)/programs/[categorySlug]/data";
 import { eq, sql } from "drizzle-orm";
 import { PROGRAM_CONTENT_DATA } from "./data/program-content.data";
-import { ProgramSection } from "@/app/modules/program/program.types";
+import {
+  ProgramSection,
+  ProgramTheme,
+} from "@/app/modules/program/program.types";
 import { buildWhatsAppUrl } from "@/lib/config";
 
 // ─── Infer types ──────────────────────────────────────────────────────────────

@@ -1,29 +1,19 @@
 import { eq } from "drizzle-orm";
-
 import { UploadThingError, UTApi } from "uploadthing/server";
-
 import { z } from "zod";
 
 import { db } from "@/app/db/db";
-
 import type { Role } from "@/app/db/schema";
-
-import { requireRole } from "@/lib/auth/roles";
-
-import { getUploadthingAuth } from "../auth";
+import { auth } from "@/lib/auth";
 
 import { f } from "../core";
 
 type CreateImageUploaderOptions = {
   table: any;
   idField: string;
-
   keyColumn: string;
-
   urlColumn: string;
-
   allowedRoles: Role[];
-
   maxFileSize?: string;
 };
 
@@ -47,22 +37,19 @@ export function createImageUploader({
         [idField]: z.string(),
       }),
     )
+    .middleware(async ({ input }) => {
+      // NextAuth: auth() reads the session from the request automatically.
+      const session = await auth();
+      const userId = session?.user?.id;
 
-    .middleware(async ({ req, input }) => {
-      const authData = await getUploadthingAuth(req);
+      if (!userId) {
+        throw new UploadThingError("Unauthorized");
+      }
 
-      const userId = authData?.user.id;
+      const userRole = (session.user.role ?? "user") as Role;
 
-      const roles = authData?.roles ?? [];
-
-      try {
-        requireRole({
-          userId,
-          roles,
-          allowedRoles,
-        });
-      } catch (error: any) {
-        throw new UploadThingError(error.message);
+      if (!allowedRoles.includes(userRole)) {
+        throw new UploadThingError("Forbidden");
       }
 
       const entityId = (input as any)[idField];
@@ -80,12 +67,11 @@ export function createImageUploader({
 
       return {
         userId,
-        roles,
+        roles: [userRole],
         entityId,
         previousFileKey: record.key,
       };
     })
-
     .onUploadComplete(async ({ metadata, file }) => {
       const utapi = new UTApi();
 
@@ -94,14 +80,6 @@ export function createImageUploader({
           await utapi.deleteFiles(metadata.previousFileKey);
         }
 
-        console.log("DB write attempt:", {
-          entityId: metadata.entityId,
-          urlColumn,
-          keyColumn,
-          url: file.ufsUrl,
-          key: file.key,
-        });
-
         const result = await db
           .update(table)
           .set({
@@ -109,9 +87,10 @@ export function createImageUploader({
             [keyColumn]: file.key,
           })
           .where(eq(table.id, metadata.entityId))
-          .returning({ id: table.id }); // ← add .returning() to verify the row was actually updated
+          .returning({ id: table.id });
 
         console.log("DB write result:", result);
+
         return {
           uploadedBy: metadata.userId,
           url: file.ufsUrl,
@@ -119,7 +98,6 @@ export function createImageUploader({
         };
       } catch (error) {
         await utapi.deleteFiles(file.key);
-
         throw new UploadThingError("Failed to save uploaded file");
       }
     });

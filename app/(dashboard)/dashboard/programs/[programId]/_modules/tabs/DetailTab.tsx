@@ -67,7 +67,7 @@ export default function DetailTab({ programId }: DetailTabProps) {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="flex max-w-4xl flex-col gap-4"
+      className="flex max-w-5xl flex-col gap-3"
     >
       {/* 1 — Identity */}
       <motion.div variants={itemVariants}>

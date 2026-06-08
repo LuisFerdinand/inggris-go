@@ -7,7 +7,7 @@ import { db } from "@/app/db/db";
 import { programs } from "@/app/db/schema";
 import { auth } from "@/lib/auth";
 
-const f = createUploadthing();
+export const f = createUploadthing();
 
 export const uploadRouter = {
   // Program thumbnail. onUploadComplete writes url + key back to the program

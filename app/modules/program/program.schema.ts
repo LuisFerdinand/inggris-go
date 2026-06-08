@@ -37,8 +37,10 @@ export const programInsertSchema = z.object({
   title: z.string().min(3, "Judul minimal 3 karakter"),
   slug: z
     .string()
-    .min(1, "Slug wajib diisi")
-    .regex(/^[a-z0-9-]+$/, "Hanya huruf kecil, angka, dan tanda hubung"),
+    .min(3)
+    .max(100)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional(),
 
   description: z.string().min(1, "Deskripsi wajib diisi"),
   shortDesc: z.preprocess(emptyToNull, z.string().nullable().optional()),

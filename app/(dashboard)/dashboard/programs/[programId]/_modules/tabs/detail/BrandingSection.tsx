@@ -94,7 +94,7 @@ function ReadMode({ data }: { data: DetailData }) {
         <ReadField label="Icon Program" empty={!data.icon}>
           {data.icon ? (
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-neutral-50 text-neutral-600">
                 <Icon name={data.icon} className="size-5" />
               </div>
               <div className="flex flex-col">
@@ -186,8 +186,8 @@ function EditMode({
               render={({ field }) => (
                 <div className="space-y-3">
                   {/* Preview */}
-                  <div className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-gradient-to-br from-neutral-50 to-white p-4">
-                    <div className="flex size-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-inner">
+                  <div className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-gradient-to-br from-white to-white p-4">
+                    <div className="flex size-14 items-center justify-center rounded-2xl bg-neutral-50 text-neutral-600 shadow-inner">
                       <Icon name={field.value} className="size-7" />
                     </div>
                     <div className="min-w-0 flex-1">

@@ -1,3 +1,4 @@
+// app/(home)/programs/[categorySlug]/[programSlug]/client.tsx
 "use client";
 
 import React, {

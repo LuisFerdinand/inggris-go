@@ -1,7 +1,8 @@
-import React from "react";
+// app/(dashboard)/dashboard/programs/categories/page.tsx
+import { CategoriesView } from "./_modules/CategoriesView";
 
-const page = () => {
-  return <div>page</div>;
-};
+export const dynamic = "force-dynamic";
 
-export default page;
+export default function CategoriesPage() {
+  return <CategoriesView />;
+}

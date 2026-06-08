@@ -1,3 +1,4 @@
+// app/(home)/programs/_modules/ui/views/ProgramsView.tsx
 "use client";
 
 import { useRef, useState, useEffect, useCallback, useMemo, act } from "react";

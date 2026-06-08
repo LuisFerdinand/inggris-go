@@ -224,7 +224,7 @@ function DurationInput({
               ? "border-red-400 shadow-[0_0_0_4px_rgba(239,68,68,0.08)]"
               : "border-red-300"
             : focused
-              ? "border-blue-400 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]"
+              ? "border-neutral-400 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]"
               : "border-neutral-200 hover:border-neutral-300",
           disabled && "pointer-events-none opacity-50",
         )}
@@ -471,13 +471,13 @@ function ScheduleNotice({ scheduleType }: { scheduleType: string }) {
       className={cn(
         "flex items-start gap-2.5 rounded-xl border px-3 py-2.5 text-[12px] leading-relaxed",
         isScheduled
-          ? "bg-blue-50 border-blue-200 text-blue-800"
+          ? "bg-neutral-50 border-neutral-200 text-neutral-800"
           : "bg-emerald-50 border-emerald-200 text-emerald-800",
       )}
     >
       <div className="mt-0.5 flex-shrink-0">
         {isScheduled ? (
-          <CalendarClock className="size-3.5 text-blue-500" />
+          <CalendarClock className="size-3.5 text-neutral-500" />
         ) : (
           <CheckCircle2 className="size-3.5 text-emerald-500" />
         )}

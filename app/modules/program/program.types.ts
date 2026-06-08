@@ -175,6 +175,7 @@ export const PROGRAM_SECTION_TYPES = [
   "benefits",
   "timeline",
   "gallery",
+  "batches",        // ← add
   "pricing",
   "bonus",
   "faq",
@@ -459,6 +460,7 @@ export type ProgramSection =
   | BenefitsSection
   | TimelineSection
   | GallerySection
+  | BatchesSection
   | ClassesSection
   | PricingSection
   | BonusSection
@@ -520,3 +522,14 @@ export type ProgramDetail = {
 export function isSectionVisible(section: Pick<ProgramSection, "visible">) {
   return section.visible !== false;
 }
+
+export type BatchesContent = {
+  variant?: "card" | "list";
+  tagline: string;
+  taglineAccent?: string;
+  title: string;
+  subtitle?: string;
+  emptyMessage?: string;
+};
+
+export type BatchesSection = BaseSection<"batches", BatchesContent>;

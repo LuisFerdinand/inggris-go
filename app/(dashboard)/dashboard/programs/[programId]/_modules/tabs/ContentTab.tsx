@@ -1,13 +1,14 @@
 // app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/ContentTab.tsx
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQueryState } from "nuqs";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
+  ChevronDown,
   Eye,
   EyeOff,
   Globe,
@@ -62,6 +63,16 @@ export default function ContentTab({ programId }: ContentTabProps) {
 
   // Shares the `?tab=` param with ProgramDetailView so we can switch tabs.
   const [, setActiveTab] = useQueryState("tab");
+
+  // Accordion: which section ids are expanded (collapsed by default).
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+
+  const toggleOpen = (id: string) =>
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
   const contentQuery = trpc.programs.getContent.useQuery(
     { programId },
@@ -135,7 +146,7 @@ export default function ContentTab({ programId }: ContentTabProps) {
   /* ── Loading ─────────────────────────────────────────── */
   if (contentQuery.isLoading && !contentQuery.data) {
     return (
-      <div className="flex max-w-4xl items-center justify-center py-24 text-neutral-400">
+      <div className="flex max-w-5xl items-center justify-center py-24 text-slate-400">
         <Loader2 className="size-5 animate-spin" />
       </div>
     );
@@ -144,15 +155,15 @@ export default function ContentTab({ programId }: ContentTabProps) {
   /* ── Empty (no content document yet) ─────────────────── */
   if (!hasDoc) {
     return (
-      <div className="max-w-4xl">
-        <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/60 px-6 py-14 text-center">
-          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-blue-600 shadow-sm">
+      <div className="max-w-5xl">
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-6 py-14 text-center">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-indigo-600 shadow-sm">
             <Layers3 className="size-5" />
           </div>
-          <h3 className="mt-4 text-sm font-bold text-neutral-800">
+          <h3 className="mt-4 text-sm font-bold text-slate-800">
             Landing page belum dibuat
           </h3>
-          <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-neutral-500">
+          <p className="mx-auto mt-1 max-w-md text-[13px] leading-relaxed text-slate-500">
             Buat dokumen landing page terlebih dahulu, lalu tambahkan dan isi
             section seperti Hero, Pricing, FAQ, dan CTA.
           </p>
@@ -175,31 +186,31 @@ export default function ContentTab({ programId }: ContentTabProps) {
 
   /* ── Main ────────────────────────────────────────────── */
   return (
-    <div className="flex max-w-4xl flex-col gap-4">
+    <div className="flex max-w-5xl flex-col gap-4">
       {/* Header / publish bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 px-5 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <div className="flex size-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-blue-600 shadow-sm">
+          <div className="flex size-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-indigo-600 shadow-sm">
             <Layers3 className="size-4" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-neutral-800">
+            <h2 className="text-sm font-bold text-slate-800">
               Konten Landing Page
             </h2>
-            <p className="mt-0.5 text-[12px] text-neutral-400">
+            <p className="mt-0.5 text-[12px] text-slate-400">
               {sections.length} section · {activeCount} aktif
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2">
           <Globe
             className={cn(
               "size-4",
-              isPublished ? "text-emerald-500" : "text-neutral-400",
+              isPublished ? "text-emerald-500" : "text-slate-400",
             )}
           />
-          <span className="text-[12px] font-semibold text-neutral-600">
+          <span className="text-[12px] font-semibold text-slate-600">
             {isPublished ? "Dipublikasikan" : "Draft"}
           </span>
           <Switch
@@ -214,8 +225,8 @@ export default function ContentTab({ programId }: ContentTabProps) {
 
       {/* Add section picker */}
       {available.length > 0 && (
-        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.7px] text-neutral-400">
+        <div className="rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-sm">
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.7px] text-slate-400">
             Tambah Section
           </p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -233,20 +244,20 @@ export default function ContentTab({ programId }: ContentTabProps) {
                       sectionType: m.type,
                     })
                   }
-                  className="flex items-center gap-3 rounded-xl border border-dashed border-neutral-200 bg-neutral-50/40 px-3 py-2.5 text-left transition-colors hover:border-blue-300 hover:bg-blue-50/50 disabled:opacity-50"
+                  className="flex items-center gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50/40 px-3 py-2.5 text-left transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 disabled:opacity-50"
                 >
-                  <div className="flex size-8 flex-shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-500">
+                  <div className="flex size-8 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500">
                     <Icon className="size-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-bold text-neutral-700">
+                    <p className="text-[12px] font-bold text-slate-700">
                       {m.label}
                     </p>
-                    <p className="truncate text-[11px] text-neutral-400">
+                    <p className="truncate text-[11px] text-slate-400">
                       {m.description}
                     </p>
                   </div>
-                  <Plus className="size-4 flex-shrink-0 text-neutral-300" />
+                  <Plus className="size-4 flex-shrink-0 text-slate-300" />
                 </button>
               );
             })}
@@ -256,7 +267,7 @@ export default function ContentTab({ programId }: ContentTabProps) {
 
       {/* Section list */}
       {sections.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-neutral-200 bg-neutral-50/40 px-6 py-12 text-center text-[13px] text-neutral-400">
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/40 px-6 py-12 text-center text-[13px] text-slate-400">
           Belum ada section. Tambahkan section dari daftar di atas.
         </div>
       ) : (
@@ -264,6 +275,8 @@ export default function ContentTab({ programId }: ContentTabProps) {
           {sections.map((section, index) => {
             const meta = getSectionMeta(section.type);
             const active = section.visible !== false;
+            const isOpen = openIds.has(section.id);
+            const SectionIcon = meta.icon;
 
             return (
               <motion.div
@@ -276,18 +289,52 @@ export default function ContentTab({ programId }: ContentTabProps) {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col gap-2"
               >
-                {/* Control strip */}
-                <div className="flex items-center justify-between gap-2 px-1">
-                  <div className="flex items-center gap-2">
-                    <span className="flex size-6 items-center justify-center rounded-lg bg-neutral-100 text-[10px] font-bold text-neutral-500">
+                {/* Accordion header row */}
+                <div
+                  className={cn(
+                    "flex items-center justify-between gap-2 rounded-2xl border bg-white px-3 py-2.5 shadow-sm transition-colors",
+                    isOpen ? "border-slate-300" : "border-slate-200",
+                    !active && "opacity-70",
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleOpen(section.id)}
+                    className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "size-4 flex-shrink-0 text-slate-400 transition-transform",
+                        isOpen && "rotate-180",
+                      )}
+                    />
+                    <span className="flex size-6 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[10px] font-bold text-slate-500">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-neutral-400">
+                    <span className="flex size-7 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500">
+                      <SectionIcon className="size-3.5" />
+                    </span>
+                    <span className="truncate text-[13px] font-bold text-slate-800">
                       {meta.label}
                     </span>
-                  </div>
+                    <span
+                      className={cn(
+                        "hidden flex-shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold sm:inline-flex",
+                        active
+                          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          : "border-slate-200 bg-slate-50 text-slate-400",
+                      )}
+                    >
+                      {active ? (
+                        <Eye className="size-3" />
+                      ) : (
+                        <EyeOff className="size-3" />
+                      )}
+                      {active ? "Aktif" : "Nonaktif"}
+                    </span>
+                  </button>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex flex-shrink-0 items-center gap-1.5">
                     <CtrlBtn
                       disabled={index === 0 || isBusy}
                       title="Naikkan"
@@ -328,7 +375,7 @@ export default function ContentTab({ programId }: ContentTabProps) {
                       className={cn(
                         active
                           ? "text-emerald-600 hover:bg-emerald-50"
-                          : "text-neutral-400 hover:bg-neutral-50",
+                          : "text-slate-400 hover:bg-slate-50",
                       )}
                     >
                       {active ? (
@@ -357,20 +404,33 @@ export default function ContentTab({ programId }: ContentTabProps) {
                   </div>
                 </div>
 
-                <div className={cn(!active && "opacity-60")}>
-                  {COMMERCE_MANAGED_TYPES.has(section.type) ? (
-                    <CommerceRedirectCard
-                      label={meta.label}
-                      onGo={() => setActiveTab("commerce")}
-                    />
-                  ) : (
-                    <SectionEditorCard
-                      programId={programId}
-                      section={section}
-                      allSections={sections}
-                    />
+                {/* Accordion body */}
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className={cn(!active && "opacity-60")}>
+                        {COMMERCE_MANAGED_TYPES.has(section.type) ? (
+                          <CommerceRedirectCard
+                            label={meta.label}
+                            onGo={() => setActiveTab("commerce")}
+                          />
+                        ) : (
+                          <SectionEditorCard
+                            programId={programId}
+                            section={section}
+                            allSections={sections}
+                          />
+                        )}
+                      </div>
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
               </motion.div>
             );
           })}
@@ -392,17 +452,17 @@ function CommerceRedirectCard({
   onGo: () => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex size-9 flex-shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600">
             <ShoppingBag className="size-4" />
           </div>
           <div>
-            <h3 className="text-[13px] font-bold text-neutral-800">
+            <h3 className="text-[13px] font-bold text-slate-800">
               {label} dikelola di Batch & Paket
             </h3>
-            <p className="mt-0.5 max-w-md text-[12px] leading-relaxed text-neutral-400">
+            <p className="mt-0.5 max-w-md text-[12px] leading-relaxed text-slate-400">
               Harga dan paket diambil langsung dari data Batch & Paket agar tidak
               ada duplikasi. Section ini tetap bisa kamu atur urutan dan
               tampil/sembunyikannya di sini.
@@ -449,10 +509,10 @@ function CtrlBtn({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex size-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-400 transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+        "flex size-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition-colors disabled:cursor-not-allowed disabled:opacity-40",
         danger
           ? "hover:border-red-200 hover:bg-red-50 hover:text-red-500"
-          : "hover:border-neutral-300 hover:text-neutral-600",
+          : "hover:border-slate-300 hover:text-slate-600",
         className,
       )}
     >

@@ -187,13 +187,13 @@ export default function Footer() {
               >
                 <div
                   className="
-    w-11 h-11 rounded-2xl flex items-center justify-center
-    bg-white/5 backdrop-blur-sm
-    border border-white/10
-    transition-all duration-300
-    group-hover:scale-105
-    group-hover:bg-white/10
-  "
+                    w-11 h-11 rounded-2xl flex items-center justify-center
+                    bg-white/5 backdrop-blur-sm
+                    border border-white/10
+                    transition-all duration-300
+                    group-hover:scale-105
+                    group-hover:bg-white/10
+                  "
                 >
                   <Image
                     src="/logo.png"
@@ -387,7 +387,7 @@ export default function Footer() {
                   Lokasi Kami
                 </p>
                 <a
-                  href="https://maps.app.goo.gl/gD93KnZpFX1BYbha8"
+                  href="https://maps.app.goo.gl/Hibvyj6gYGjSTkHE6"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[10px] transition-colors flex items-center gap-1"

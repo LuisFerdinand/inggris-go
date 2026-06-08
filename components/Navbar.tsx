@@ -14,6 +14,7 @@ import { ProgramsDropdown } from "./ProgramsDropdown";
 import { MobileDrawer } from "./MobileDrawer";
 import { UserNav, AuthModalPortal } from "./UserNav";
 import { Button } from "./ui/button";
+import { trpc } from "@/lib/trpc/client";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -30,6 +31,10 @@ export default function Navbar() {
 
   const isProgramActive = pathname.startsWith("/programs");
   const regularLinks = navLinks.filter((link) => link.label !== "Program Kami");
+
+  const { data: menu } = trpc.publicPrograms.menu.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // categories rarely change; cache 5 min
+  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -149,7 +154,10 @@ export default function Navbar() {
 
                 <AnimatePresence>
                   {programsOpen && (
-                    <ProgramsDropdown onClose={() => setProgramsOpen(false)} />
+                    <ProgramsDropdown
+                      categories={menu ?? []}
+                      onClose={() => setProgramsOpen(false)}
+                    />
                   )}
                 </AnimatePresence>
               </div>
@@ -259,6 +267,7 @@ export default function Navbar() {
           <MobileDrawer
             pathname={pathname}
             navLinks={navLinks}
+            categories={menu ?? []}
             onClose={() => setMobileOpen(false)}
             onOpenAuthModal={() => {
               setMobileOpen(false);
