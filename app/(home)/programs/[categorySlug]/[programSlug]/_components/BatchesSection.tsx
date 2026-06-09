@@ -1,3 +1,4 @@
+// app/(home)/programs/[categorySlug]/[programSlug]/_components/BatchesSection.tsx
 // ─────────────────────────────────────────────────────────────────────────────
 // BatchBanner.tsx — Enhanced sticky announcement banner
 // ─────────────────────────────────────────────────────────────────────────────
@@ -9,35 +10,8 @@ const EASE = [0.25, 0.1, 0.25, 1] as const;
 
 // ─── Type ────────────────────────────────────────────────────────────────────
 
-export type ProgramBatch = {
-  id: string;
-  label: string;
-  startDate?: string;
-  endDate?: string;
-  schedule?: string;
-  note?: string;
-  status: "open" | "full" | "coming_soon" | "closed";
-  isOpen: boolean;
-  capacity?: number;
-  enrolled?: number;
-  brochure?: {
-    url: string;
-    label?: string;
-  };
-  primaryCtaLabel?: string;
-  primaryCtaHref?: string;
-  primaryCtaIcon?: string;
-  secondaryCtaLabel?: string;
-  secondaryCtaHref?: string;
-  secondaryCtaIcon?: string;
-};
-
-export type Theme = {
-  primary: string;
-  strong?: string;
-  soft?: string;
-  border?: string;
-};
+import type { ProgramBatch } from "../../data";
+import type { Theme } from "@/lib/utils";
 
 // ─── BatchBanner ─────────────────────────────────────────────────────────────
 

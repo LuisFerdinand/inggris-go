@@ -42,11 +42,23 @@ const SUPER_ADMIN_EMAIL =
 const SUPER_ADMIN_PASSWORD =
   process.env.SEED_SUPER_ADMIN_PASSWORD ?? "LuisSuperAdmin123!";
 
+const NINA_SUPER_ADMIN_EMAIL =
+  process.env.SEED_NINA_SUPER_ADMIN_EMAIL ?? "inggrisgo.nina@gmail.com";
+
+const NINA_SUPER_ADMIN_PASSWORD =
+  process.env.SEED_NINA_SUPER_ADMIN_PASSWORD ?? SUPER_ADMIN_PASSWORD;
+
 const USERS = [
   {
     name: "Luis",
     email: SUPER_ADMIN_EMAIL,
     password: SUPER_ADMIN_PASSWORD,
+    roles: ["super_admin"],
+  },
+  {
+    name: "Nina",
+    email: NINA_SUPER_ADMIN_EMAIL,
+    password: NINA_SUPER_ADMIN_PASSWORD,
     roles: ["super_admin"],
   },
 ] as const;
@@ -97,11 +109,9 @@ export async function seedUserRoles() {
   console.log("Seeding User Roles...");
 
   const users = await db.select().from(user);
-
   const roles = await db.select().from(role);
 
   const userMap = new Map(users.map((u) => [u.email, u.id]));
-
   const roleMap = new Map(roles.map((r) => [r.name, r.id]));
 
   const data = USERS.flatMap((u) => {

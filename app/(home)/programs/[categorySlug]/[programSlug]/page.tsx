@@ -1,6 +1,5 @@
 // app/(home)/programs/[categorySlug]/[programSlug]/page.tsx
 import { redirect } from "next/navigation";
-
 import { getProgramDetail } from "@/lib/utils";
 import { CATEGORIES } from "../data";
 import ProgramDetailPageClient from "./client";
@@ -17,25 +16,29 @@ export default async function ProgramDetailPage({
 
   let details: ReturnType<typeof dbDetailToProgramDetail> | null = null;
 
-  // 1) Try the backend.
   try {
-    const caller = await getPublicCaller();
+    const caller = await getPublicCaller(); // auth()/context errors isolate here
     const dbDetail = await caller.publicPrograms.programDetailBySlug({
       slug: programSlug,
     });
+
+    console.log("[programDetail]", {
+      slug: programSlug,
+      found: !!dbDetail,
+      sectionCount: dbDetail?.sections?.length ?? 0,
+      hasContentRow: dbDetail ? dbDetail.theme !== null : false,
+    });
+
     if (dbDetail) details = dbDetailToProgramDetail(dbDetail);
-  } catch {
-    // ignore → fall back to static
+  } catch (err) {
+    console.error("[programDetail] DB path threw, using static:", err);
   }
 
-  // 2) Static fallback.
   if (!details) {
     const meta = CATEGORIES[categorySlug];
     if (!meta) return redirect("/programs");
-
     const staticProgram = getProgramDetail(programSlug);
     if (!staticProgram) return redirect(`/programs/${categorySlug}`);
-
     details = staticProgram;
   }
 

@@ -15,6 +15,7 @@ import {
   HelpCircle,
   MousePointerClick,
   Layers3,
+  Boxes,
 } from "lucide-react";
 
 export interface SectionMeta {
@@ -39,6 +40,7 @@ export const SECTION_META: SectionMeta[] = [
   { type: "facilities", label: "Facilities", description: "Fasilitas program (cocok untuk offline/camp).", icon: Building2 },
   { type: "mentorship", label: "Mentorship", description: "Pendampingan, tutor, atau pembimbing program.", icon: HeartHandshake },
   { type: "pricing", label: "Pricing", description: "Harga, paket, bonus, dan urgency program.", icon: Tags },
+  { type: "batches", label: "Batch & Jadwal", description: "Daftar batch program. Datanya dikelola di tab Batch & Paket.", icon: Boxes },
   { type: "testimonials", label: "Testimonials", description: "Testimoni peserta, alumni, atau orang tua.", icon: Quote },
   { type: "faq", label: "FAQ", description: "Pertanyaan umum tentang program.", icon: HelpCircle },
   { type: "cta", label: "CTA", description: "Section penutup untuk mengarahkan pendaftaran.", icon: MousePointerClick },

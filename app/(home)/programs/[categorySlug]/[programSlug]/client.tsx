@@ -16,7 +16,7 @@ import {
   useTransform,
   useMotionValue,
 } from "framer-motion";
-import { HeroContent, ProgramDetail, ProgramSection } from "../data";
+import { HeroContent, ProgramDetail, ProgramSection, ProgramBatch } from "../data";
 import { cn, generateTheme, type Theme } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import Image from "next/image";
@@ -3326,9 +3326,13 @@ export function GallerySection({
 function SectionRenderer({
   section,
   theme,
+  batches,
+  ctaHref,
 }: {
   section: ProgramSection;
   theme: Theme;
+  batches?: ProgramBatch[];
+  ctaHref: string;
 }) {
   if (section.visible === false) return null;
 
@@ -3337,49 +3341,32 @@ function SectionRenderer({
       return <HeroSection content={section.content} theme={theme} />;
     case "gallery":
       return <GallerySection content={section.content} theme={theme} />;
-
     case "why":
-      return (
-        <WhySection
-          content={section.content}
-          theme={theme}
-          id={`why-${section.id}`}
-        />
-      );
-
+      return <WhySection content={section.content} theme={theme} id={`why-${section.id}`} />;
     case "benefits":
-      return (
-        <BenefitsSection
-          content={section.content}
-          theme={theme}
-          id={section.id}
-        />
-      );
-
+      return <BenefitsSection content={section.content} theme={theme} id={section.id} />;
     case "steps":
       return <StepsSection content={section.content} theme={theme} />;
-
     case "timeline":
       return <TimelineSection content={section.content} theme={theme} />;
     case "facilities":
       return <FacilitiesSection content={section.content} theme={theme} />;
     case "mentorship":
       return <MentorshipSection content={section.content} theme={theme} />;
-
     case "classes":
       return <ClassesSection content={section.content} theme={theme} />;
-
     case "pricing":
       return <PricingSection content={section.content} theme={theme} />;
-
     case "testimonials":
       return <TestimonialsSection content={section.content} theme={theme} />;
-
     case "faq":
       return <FAQSection content={section.content} theme={theme} />;
-
     case "cta":
       return <CTASection content={section.content} theme={theme} />;
+
+    case "batches":
+      if (!batches || batches.length === 0) return null;
+      return <BatchesSection batches={batches} theme={theme} ctaHref={ctaHref} />;
 
     default:
       return null;
@@ -3403,6 +3390,13 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
 
   /* Inject --batch-banner-height CSS variable for layout offsets */
   useBatchBannerHeight(hasBanner);
+
+  console.log("batch render gate", {
+    hasBatch: details.hasBatch,
+    count: details.batches?.length,
+    statuses: details.batches?.map((b) => ({ s: b.status, open: b.isOpen })),
+    hasBatchesSection: details.sections.some((s) => s.type === "batches"),
+  });
 
   /* Build nav items from section types */
   const NAV_LABELS: Partial<Record<string, string>> = {
@@ -3475,43 +3469,33 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
       />
 
       <main className="relative w-full overflow-x-hidden">
-        {/* Fixed batch banner — rendered outside section flow */}
+        {/* Fixed batch banner — global, stays outside section flow */}
         {hasBanner && details.batches && details.batches.length > 0 && (
           <BatchBanner batches={details.batches} theme={theme} />
         )}
 
-        {/* Batch section (if program has batches) */}
-        {details.hasBatch && details.batches && details.batches.length > 0 && (
-          <>
-            {details.sections.map((section) => {
-              if (section.type === "hero") {
-                return (
-                  <React.Fragment key={section.id}>
-                    <SectionRenderer section={section} theme={theme} />
-                    <BatchesSection
-                      batches={details.batches!}
-                      theme={theme}
-                      ctaHref={ctaHref}
-                    />
-                  </React.Fragment>
-                );
-              }
-              return (
-                <SectionRenderer
-                  key={section.id}
-                  section={section}
-                  theme={theme}
-                />
-              );
-            })}
-          </>
-        )}
+        {details.sections.map((section) => (
+          <SectionRenderer
+            key={section.id}
+            section={section}
+            theme={theme}
+            batches={details.batches}
+            ctaHref={ctaHref}
+          />
+        ))}
 
-        {/* Non-batch programs render sections directly */}
-        {!details.hasBatch &&
-          details.sections.map((section) => (
-            <SectionRenderer key={section.id} section={section} theme={theme} />
-          ))}
+        {/* Fallback: program has batches but no "batches" section placed in the CMS.
+            Keeps your existing static programs (daily-conversation, vip-kids, etc.)
+            working until you add a batches section to their sections array. */}
+        {details.hasBatch &&
+          details.batches?.length &&
+          !details.sections.some((s) => s.type === "batches") && (
+            <BatchesSection
+              batches={details.batches}
+              theme={theme}
+              ctaHref={ctaHref}
+            />
+          )}
       </main>
     </>
   );

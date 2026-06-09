@@ -137,7 +137,7 @@ function dbBatchToProgramBatch(b: any): ProgramBatch {
     endDate: b.endDate ? new Date(b.endDate).toISOString() : undefined,
     note: b.notes ?? undefined,
     status,
-    isOpen: b.status === "open",
+    isOpen: b.status === "open" || b.status === "ongoing",
     capacity: b.capacity ?? undefined,
     enrolled: b.enrolledCount ?? undefined,
     brochure: b.brochureUrl

@@ -115,6 +115,21 @@ export type CategoryMeta = {
   };
 };
 
+// ── BATCHES ──
+export type BatchesContent = {
+  variant?: "card" | "list";
+  tagline: string;
+  taglineAccent?: string;
+  title: string;
+  subtitle?: string;
+  emptyMessage?: string;
+};
+
+type BatchesSection = BaseSection & {
+  type: "batches";
+  content: BatchesContent;
+};
+
 export const CATEGORIES: Record<string, CategoryMeta> = {
   lead: {
     key: "lead",
@@ -656,6 +671,7 @@ type ProgramSectionType =
   | "benefits"
   | "timeline"
   | "gallery"
+  | "batches" 
   | "pricing"
   | "faq"
   | "testimonials"
@@ -984,6 +1000,7 @@ export type ProgramSection =
   | TimelineSection
   | ClassesSection
   | GallerySection
+  | BatchesSection 
   | PricingSection
   | BonusSection
   | FacilitiesSection

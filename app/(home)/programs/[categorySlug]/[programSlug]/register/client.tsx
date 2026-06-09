@@ -1,3 +1,4 @@
+// app/(home)/programs/[categorySlug]/[programSlug]/register/client.tsx
 "use client";
 
 import React, { useState, useCallback, useRef } from "react";
