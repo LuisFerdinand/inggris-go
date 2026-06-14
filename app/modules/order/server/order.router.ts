@@ -1,401 +1,421 @@
 // app/modules/order/server/order.router.ts
-import { z } from "zod";
-import { baseProcedure, createTRPCRouter } from "@/lib/trpc/init"; // adjust path
 
-import { and, eq, isNull } from "drizzle-orm";
-import { nanoid } from "nanoid";
+import { z } from "zod";
+import { and, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import bcrypt from "bcryptjs";
+
+import { createTRPCRouter, baseProcedure } from "@/lib/trpc/init";
+import { auth } from "@/lib/auth";
+
+import { db } from "@/app/db/db";
 import {
-  EnrollmentData,
-  enrollments,
+  programs,
   programBatches,
   programPackages,
-  programs,
-} from "@/app/db/schema";
-import { db } from "@/app/db/db";
-import { TRPCError } from "@trpc/server";
+} from "@/app/db/schema/programs";
+import { enrollments, payments } from "@/app/db/schema/orders";
+import { user } from "@/app/db/schema/auth-schema";
+import { role, userRole } from "@/app/db/schema/roles";
 
-// ─── Shared sub-schemas ───────────────────────────────────────────────────────
+const DEFAULT_REGISTERED_ROLE_NAME = "user" as const;
+const REGISTRABLE_BATCH_STATUSES = new Set(["open", "ongoing"]);
 
-const onlineInputSchema = z.object({
-  type: z.literal("online"),
-  programId: z.string().min(1),
-  batchId: z.string().optional(),
-  fullName: z.string().min(2),
-  whatsapp: z.string().min(9),
-  email: z.string().email().optional().or(z.literal("")),
-  age: z.coerce.number().min(1).max(120).optional(),
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function genId(prefix: string) {
+  return `${prefix}_${crypto.randomUUID()}`;
+}
+
+function genInvoiceNumber() {
+  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+
+  return `INV-${stamp}-${rand}`;
+}
+
+function isBatchAtCapacity(batch: typeof programBatches.$inferSelect) {
+  if (batch.capacity == null) return false;
+
+  const enrolledCount = batch.enrolledCount ?? 0;
+  return enrolledCount >= batch.capacity;
+}
+
+async function getOrCreateDefaultUserRole() {
+  const existingRole = await db.query.role.findFirst({
+    where: eq(role.name, DEFAULT_REGISTERED_ROLE_NAME),
+  });
+
+  if (existingRole) return existingRole;
+
+  const inserted = await db
+    .insert(role)
+    .values({
+      id: genId("role"),
+      name: DEFAULT_REGISTERED_ROLE_NAME,
+      description: "Default registered user",
+    })
+    .returning();
+
+  const createdRole = inserted[0];
+
+  if (!createdRole) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Gagal membuat role default user.",
+    });
+  }
+
+  return createdRole;
+}
+
+const registerOnlineInput = z.object({
+  programId: z.string().trim().min(1),
+  packageId: z.string().trim().min(1),
+  batchId: z.string().trim().min(1).optional(),
+
+  fullName: z.string().trim().min(2, "Nama minimal 2 karakter"),
+  whatsapp: z.string().trim().min(6, "Nomor WhatsApp tidak valid"),
+  email: z.string().trim().email("Email tidak valid"),
+  age: z.coerce.number().int().positive().optional(),
+
+  password: z
+    .preprocess((value) => {
+      if (typeof value !== "string") return undefined;
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    }, z.string().min(6, "Password minimal 6 karakter").optional())
+    .optional(),
 });
-
-const offlineInputSchema = z.object({
-  type: z.literal("offline"),
-  programId: z.string().min(1),
-  batchId: z.string().min(1),
-  nama: z.string().min(2),
-  panggilan: z.string().min(1),
-  jenisKelamin: z.enum(["L", "P"]),
-  tempatLahir: z.string().min(2),
-  tanggalLahir: z.string().min(1),
-  usia: z.coerce.number().min(1),
-  kelas: z.string().min(1),
-  sekolah: z.string().min(2),
-  kotaAsal: z.string().min(2),
-  namaOrtu: z.string().min(2),
-  hpOrtu: z.string().min(9),
-  hpAnak: z.string().optional().or(z.literal("")),
-  email: z.string().email().optional().or(z.literal("")),
-  alumni: z.enum(["yes", "no"]),
-  sumberInfo: z.string().min(1),
-  alergi: z.enum(["yes", "no"]),
-  detailAlergi: z.string().optional(),
-  catatan: z.string().optional(),
-  harapan: z.string().min(5),
-  ukuranKaos: z.string().min(1),
-  // fotoAnak is uploaded separately via /api/upload — pass back the URL here
-  fotoAnak: z.string().url().optional(),
-});
-
-const registerInputSchema = z.discriminatedUnion("type", [
-  onlineInputSchema,
-  offlineInputSchema,
-]);
-
-// ─── Procedure ────────────────────────────────────────────────────────────────
 
 export const orderRouter = createTRPCRouter({
-  registerProgram: baseProcedure
-    .input(
-      z.discriminatedUnion("type", [
-        // Online
-        z.object({
-          type: z.literal("online"),
-          programId: z.string().min(1),
-          batchId: z.string().optional(),
-          packageId: z.string().min(1),
-          fullName: z.string().min(2),
-          whatsapp: z.string().min(9),
-          email: z.string().email().optional().or(z.literal("")),
-          age: z.coerce.number().min(1).max(120).optional(),
-        }),
-        // Offline
-        z.object({
-          type: z.literal("offline"),
-          programId: z.string().min(1),
-          batchId: z.string().min(1),
-          packageId: z.string().optional(),
-          nama: z.string().min(2),
-          panggilan: z.string().min(1),
-          jenisKelamin: z.enum(["L", "P"]),
-          tempatLahir: z.string().min(2),
-          tanggalLahir: z.string().min(1),
-          usia: z.coerce.number().min(1),
-          kelas: z.string().min(1),
-          sekolah: z.string().min(2),
-          kotaAsal: z.string().min(2),
-          namaOrtu: z.string().min(2),
-          hpOrtu: z.string().min(9),
-          hpAnak: z.string().optional().or(z.literal("")),
-          email: z.string().email().optional().or(z.literal("")),
-          alumni: z.enum(["yes", "no"]),
-          sumberInfo: z.string().min(1),
-          alergi: z.enum(["yes", "no"]),
-          detailAlergi: z.string().optional(),
-          catatan: z.string().optional(),
-          harapan: z.string().min(5),
-          ukuranKaos: z.string().min(1),
-          fotoAnak: z.string().url().optional(),
-        }),
-      ]),
-    )
+  registerOnline: baseProcedure
+    .input(registerOnlineInput)
     .mutation(async ({ input }) => {
-      // ── 1. Fetch program ─────────────────────────────────────────────────
-      const program = await db.query.programs.findFirst({
-        where: eq(programs.id, input.programId),
-        columns: {
-          id: true,
-          title: true,
-          slug: true,
-          registrationType: true,
-          scheduleType: true,
-        },
-      });
-      if (!program) throw new Error("Program not found");
-      if (program.registrationType !== input.type) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Registration type mismatch: program is "${program.registrationType}" but payload says "${input.type}"`,
-        });
-      }
+      const session = await auth();
 
-      // ── 2. Fetch batch ───────────────────────────────────────────────────
-      const batchId =
-        input.type === "offline"
-          ? input.batchId
-          : (input as { batchId?: string }).batchId;
-
-      let batchRecord:
+      const sessionUser = session?.user as
         | {
-            id: string;
-            title: string;
-            slug: string;
-            startDate: Date | null;
-            endDate: Date | null;
-            mode: string | null;
-            location: string | null;
-            capacity: number | null;
-            enrolledCount: number;
-            status: string;
+            id?: string;
+            name?: string | null;
+            email?: string | null;
           }
         | undefined;
 
-      if (batchId) {
-        batchRecord = await db.query.programBatches.findFirst({
-          where: eq(programBatches.id, batchId),
-          columns: {
-            id: true,
-            title: true,
-            slug: true,
-            startDate: true,
-            endDate: true,
-            mode: true,
-            location: true,
-            capacity: true,
-            enrolledCount: true,
-            status: true,
-          },
-        });
-        if (!batchRecord)
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Batch not found",
-          });
-        if (batchRecord.status !== "open") {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "This batch is no longer open for registration",
-          });
-        }
-        if (
-          batchRecord.capacity != null &&
-          batchRecord.enrolledCount >= batchRecord.capacity
-        ) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "This batch is full",
-          });
-        }
-      }
+      const sessionUserId = sessionUser?.id;
 
-      // ── 3. Fetch selected package (price now lives here) ─────────────────
+      const email = normalizeEmail(input.email);
+      const fullName = input.fullName.trim();
+      const whatsapp = input.whatsapp.trim();
 
-      const packageId = input.packageId;
-
-      if (!packageId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Package is required",
-        });
-      }
-      let packageWhereCondition;
-
-      if (program.scheduleType === "permanent") {
-        // Permanent:
-        // package belongs directly to program
-        // batchId must be null
-
-        if (batchId) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Permanent program cannot use batch",
-          });
-        }
-
-        packageWhereCondition = and(
-          eq(programPackages.id, packageId),
-          eq(programPackages.programId, program.id),
-          isNull(programPackages.batchId),
-        );
-      } else {
-        // Scheduled:
-        // package must belong to selected batch
-
-        if (!batchId) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Batch is required",
-          });
-        }
-
-        packageWhereCondition = and(
-          eq(programPackages.id, packageId),
-          eq(programPackages.programId, program.id),
-          eq(programPackages.batchId, batchId),
-        );
-      }
-
-      const packageRecord = await db.query.programPackages.findFirst({
-        where: packageWhereCondition,
-        columns: {
-          id: true,
-          title: true,
-          slug: true,
-          description: true,
-          price: true,
-          originalPrice: true,
-          isDefault: true,
-        },
+      const program = await db.query.programs.findFirst({
+        where: and(
+          eq(programs.id, input.programId),
+          eq(programs.status, "published"),
+        ),
       });
 
-      if (!packageRecord) {
+      if (!program) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Package not found",
+          message: "Program tidak ditemukan atau belum dipublikasikan.",
         });
       }
-      const resolvedPackageId = packageRecord.id;
 
-      // ── 4. Build OrderData ───────────────────────────────────────────────
-      let orderData: EnrollmentData;
+      const isScheduled = program.scheduleType === "scheduled";
 
-      if (input.type === "online") {
-        orderData = {
-          type: "online",
+      const pkg = await db.query.programPackages.findFirst({
+        where: and(
+          eq(programPackages.id, input.packageId),
+          eq(programPackages.programId, program.id),
+        ),
+      });
 
-          programId: input.programId,
-
-          batchId: input.batchId,
-
-          packageId: resolvedPackageId,
-
-          fullName: input.fullName,
-          whatsapp: input.whatsapp,
-          email: input.email || undefined,
-          age: input.age,
-        };
-      } else {
-        orderData = {
-          type: "offline",
-
-          programId: input.programId,
-
-          packageId: resolvedPackageId,
-          packageLabel: packageRecord.title,
-
-          batchId: input.batchId,
-          batchLabel: batchRecord?.title ?? "",
-
-          nama: input.nama,
-          panggilan: input.panggilan,
-          jenisKelamin: input.jenisKelamin,
-          tempatLahir: input.tempatLahir,
-          tanggalLahir: input.tanggalLahir,
-          usia: input.usia,
-          kelas: input.kelas,
-          sekolah: input.sekolah,
-          kotaAsal: input.kotaAsal,
-          namaOrtu: input.namaOrtu,
-          hpOrtu: input.hpOrtu,
-          hpAnak: input.hpAnak || undefined,
-          email: input.email || undefined,
-          alumni: input.alumni,
-          sumberInfo: input.sumberInfo,
-          alergi: input.alergi,
-          detailAlergi: input.detailAlergi,
-          catatan: input.catatan,
-          harapan: input.harapan,
-          ukuranKaos: input.ukuranKaos,
-        };
+      if (!pkg) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Paket tidak ditemukan untuk program ini.",
+        });
       }
 
-      // ── 5. Insert order ──────────────────────────────────────────────────
-      const orderId = nanoid(12);
-      const customerName =
-        input.type === "online" ? input.fullName : input.namaOrtu;
-      const phone = input.type === "online" ? input.whatsapp : input.hpOrtu;
-      const email =
-        input.type === "online" ? input.email || null : input.email || null;
-      const childName = input.type === "offline" ? input.nama : null;
-      const age =
-        input.type === "online" ? (input.age ?? null) : (input.usia ?? null);
+      let batch: typeof programBatches.$inferSelect | undefined;
+
+      if (isScheduled) {
+        if (!input.batchId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Silakan pilih batch terlebih dahulu.",
+          });
+        }
+
+        batch = await db.query.programBatches.findFirst({
+          where: and(
+            eq(programBatches.id, input.batchId),
+            eq(programBatches.programId, program.id),
+          ),
+        });
+
+        if (!batch) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Batch tidak ditemukan untuk program ini.",
+          });
+        }
+
+        if (!REGISTRABLE_BATCH_STATUSES.has(batch.status)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Batch ini belum dibuka atau sudah ditutup.",
+          });
+        }
+
+        if (isBatchAtCapacity(batch)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Kuota batch ini sudah penuh.",
+          });
+        }
+
+        if (pkg.batchId && pkg.batchId !== batch.id) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Paket tidak tersedia untuk batch yang dipilih.",
+          });
+        }
+      } else {
+        if (input.batchId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Program ini tidak menggunakan batch.",
+          });
+        }
+
+        if (pkg.batchId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Paket ini hanya tersedia untuk batch tertentu.",
+          });
+        }
+      }
+
+      const subtotal = pkg.price;
+      const discount = 0;
+      const finalPrice = Math.max(subtotal - discount, 0);
+      const invoiceNumber = genInvoiceNumber();
+
+      const defaultUserRole = await getOrCreateDefaultUserRole();
+
+      let account: typeof user.$inferSelect | undefined;
+
+      if (sessionUserId) {
+        account = await db.query.user.findFirst({
+          where: eq(user.id, sessionUserId),
+        });
+
+        if (!account) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Sesi login tidak valid. Silakan login ulang.",
+          });
+        }
+      } else {
+        account = await db.query.user.findFirst({
+          where: eq(user.email, email),
+        });
+
+        if (account) {
+          if (!input.password) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "Email sudah terdaftar. Silakan login terlebih dahulu atau masukkan password akun tersebut.",
+            });
+          }
+
+          if (!account.passwordHash) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "Akun ini tidak memiliki password login. Silakan login dengan metode sebelumnya.",
+            });
+          }
+
+          const passwordValid = await bcrypt.compare(
+            input.password,
+            account.passwordHash,
+          );
+
+          if (!passwordValid) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message:
+                "Password salah untuk email ini. Silakan login terlebih dahulu.",
+            });
+          }
+        } else {
+          if (!input.password) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "Password wajib diisi untuk membuat akun baru.",
+            });
+          }
+
+          const passwordHash = await bcrypt.hash(input.password, 10);
+          const userId = genId("user");
+
+          const inserted = await db
+            .insert(user)
+            .values({
+              id: userId,
+              name: fullName,
+              email,
+              passwordHash,
+              emailVerified: false,
+              phone: whatsapp,
+              age: input.age ?? null,
+            })
+            .returning();
+
+          account = inserted[0];
+
+          if (!account) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Gagal membuat akun user.",
+            });
+          }
+        }
+      }
+
+      const existingUserRole = await db.query.userRole.findFirst({
+        where: and(
+          eq(userRole.userId, account.id),
+          eq(userRole.roleId, defaultUserRole.id),
+        ),
+      });
+
+      if (!existingUserRole) {
+        await db.insert(userRole).values({
+          id: genId("urole"),
+          userId: account.id,
+          roleId: defaultUserRole.id,
+        });
+      }
+
+      // Save latest registration contact data to user profile.
+      await db
+        .update(user)
+        .set({
+          name: fullName,
+          phone: whatsapp,
+          age: input.age ?? null,
+        })
+        .where(eq(user.id, account.id));
+
+      const enrollmentEmail = account.email ?? email;
+      const enrollmentId = genId("enr");
 
       await db.insert(enrollments).values({
-        id: orderId,
-        programId: input.programId,
-        batchId: batchId ?? null,
-        packageId: resolvedPackageId,
-        scheduleType: program.scheduleType,
-        subtotalPrice: packageRecord.originalPrice ?? packageRecord.price,
+        id: enrollmentId,
+        programId: program.id,
+        batchId: batch?.id ?? null,
+        packageId: pkg.id,
+        userId: account.id,
 
-        finalPrice: packageRecord.price,
-        discountAmount: Math.max(
-          (packageRecord.originalPrice ?? packageRecord.price) -
-            packageRecord.price,
-          0,
-        ),
+        scheduleType: program.scheduleType,
+        type: "online",
+
         programSnapshot: {
           id: program.id,
           title: program.title,
           slug: program.slug,
-        },
-        batchSnapshot: batchRecord
-          ? {
-              id: batchRecord.id,
-              title: batchRecord.title,
-              slug: batchRecord.slug,
-              startDate: batchRecord.startDate?.toISOString(),
-              endDate: batchRecord.endDate?.toISOString(),
-              mode: batchRecord.mode ?? undefined,
-              location: batchRecord.location ?? undefined,
-            }
-          : null,
-        packageSnapshot: {
-          id: packageRecord.id,
-          title: packageRecord.title,
-          slug: packageRecord.slug ?? undefined,
-          description: packageRecord.description ?? undefined,
-          price: packageRecord.price,
-          originalPrice: packageRecord.originalPrice ?? null,
-          isDefault: packageRecord.isDefault,
+          format: program.format ?? undefined,
+          level: program.level ?? undefined,
+          thumbnail: program.thumbnailUrl ?? undefined,
         },
 
-        type: input.type,
-        customerName,
-        phone,
-        email,
-        childName,
-        age,
-        data: orderData,
-        attachments:
-          input.type === "offline" && input.fotoAnak
-            ? { foto: input.fotoAnak }
-            : undefined,
-        source: "web",
+        batchSnapshot: batch
+          ? {
+              id: batch.id,
+              title: batch.title,
+              slug: batch.slug ?? undefined,
+              startDate: batch.startDate?.toISOString(),
+              endDate: batch.endDate?.toISOString(),
+              mode: batch.mode ?? undefined,
+              location: batch.location ?? undefined,
+            }
+          : null,
+
+        packageSnapshot: {
+          id: pkg.id,
+          title: pkg.title,
+          slug: pkg.slug ?? undefined,
+          description: pkg.description ?? undefined,
+          price: pkg.price,
+          originalPrice: pkg.originalPrice ?? null,
+          isDefault: pkg.isDefault,
+        },
+
+        customerName: fullName,
+        phone: whatsapp,
+        email: enrollmentEmail,
+        age: input.age ?? null,
+
+        data: {
+          type: "online",
+          programId: program.id,
+          batchId: batch?.id,
+          packageId: pkg.id,
+          fullName,
+          whatsapp,
+          email: enrollmentEmail,
+          age: input.age,
+        },
+
+        discountAmount: discount,
+        subtotalPrice: subtotal,
+        finalPrice,
         status: "pending_payment",
       });
 
+      const paymentId = genId("pay");
+
+      await db.insert(payments).values({
+        id: paymentId,
+        enrollmentId,
+        provider: "doku",
+        invoiceNumber,
+        amount: finalPrice,
+        currency: "IDR",
+        status: "pending",
+      });
+
+      const { createDokuInvoice } = await import("@/lib/payments/doku");
+
+      const doku = await createDokuInvoice({
+        invoiceNumber,
+        amount: finalPrice,
+        customer: {
+          name: fullName,
+          email: enrollmentEmail,
+          phone: whatsapp,
+        },
+      });
+
+      await db
+        .update(payments)
+        .set({
+          dokuInvoiceId: doku.dokuInvoiceId,
+          paymentUrl: doku.paymentUrl,
+        })
+        .where(eq(payments.id, paymentId));
+
       return {
-        orderId,
-
-        programTitle: program.title,
-
-        batchTitle: batchRecord?.title ?? null,
-        batchStartDate: batchRecord?.startDate?.toISOString() ?? null,
-        batchLocation: batchRecord?.location ?? null,
-
-        price: packageRecord.price,
-        originalPrice: packageRecord.originalPrice ?? null,
-
-        packageTitle: packageRecord.title,
-
-        customerName,
-        phone,
-
-        type: input.type,
-
-        scheduleType: program.scheduleType,
+        enrollmentId,
+        invoiceNumber,
+        paymentUrl: doku.paymentUrl,
       };
     }),
-  getAll: baseProcedure.query(async () => {
-    const data = await db.select().from(enrollments);
-    return data;
-  }),
 });

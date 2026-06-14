@@ -6,16 +6,9 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   BookOpen,
-  FolderKanban,
-  Layers3,
-  Package,
-  CalendarRange,
   ShoppingCart,
   CreditCard,
   Users,
-  FileText,
-  Tags,
-  FolderTree,
   Newspaper,
   Settings2,
   BarChart3,
@@ -69,11 +62,9 @@ export const routes = {
 
   blog: {
     root: "/dashboard/blog",
-    create: "/dashboard/blog/create",
+    create: "/dashboard/blog/new",
 
-    categories: "/dashboard/blog/categories",
-    tags: "/dashboard/blog/tags",
-    playlists: "/dashboard/blog/playlists",
+    comments: "/dashboard/blog/comments",
   },
 
   settings: {
@@ -123,7 +114,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       isActive: isActive(pathname, routes.programs.categories),
     },
-
   ];
 
   // =========================================================
@@ -137,8 +127,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       isActive:
         isActive(pathname, routes.blog.root) ||
-        isActive(pathname, routes.blog.categories) ||
-        isActive(pathname, routes.blog.tags),
+        isActive(pathname, routes.blog.comments),
 
       items: [
         {
@@ -148,22 +137,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           isActive:
             pathname === routes.blog.root ||
             (pathname.startsWith(routes.blog.root + "/") &&
-              !pathname.startsWith(routes.blog.categories) &&
-              !pathname.startsWith(routes.blog.tags)),
+              !pathname.startsWith(routes.blog.comments)),
         },
 
         {
-          title: "Kategori",
-          url: routes.blog.categories,
+          title: "Komentar",
+          url: routes.blog.comments,
 
-          isActive: isActive(pathname, routes.blog.categories),
-        },
-
-        {
-          title: "Tag",
-          url: routes.blog.tags,
-
-          isActive: isActive(pathname, routes.blog.tags),
+          isActive: isActive(pathname, routes.blog.comments),
         },
       ],
     },

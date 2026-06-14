@@ -1,3 +1,4 @@
+// app/db/schema/orders.ts
 import {
   pgTable,
   text,
@@ -76,6 +77,14 @@ export type OnlineEnrollmentData = {
   email?: string;
 
   age?: number;
+
+  /* -----------------------------------------
+     Session / Account Context
+  ----------------------------------------- */
+
+  registeredWithSession?: boolean;
+
+  registeredUserId?: string;
 };
 
 // ---------------------------------------------------------

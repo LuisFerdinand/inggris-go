@@ -1,3 +1,4 @@
+// lib/auth/roles.ts
 import { Role } from "@/app/db/schema";
 import { TRPCError } from "@trpc/server";
 

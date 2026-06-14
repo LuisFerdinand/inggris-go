@@ -3328,45 +3328,87 @@ function SectionRenderer({
   theme,
   batches,
   ctaHref,
+  registerHref,
+  mode,
+  packages,
 }: {
   section: ProgramSection;
   theme: Theme;
   batches?: ProgramBatch[];
   ctaHref: string;
+  registerHref: string;
+  mode: "scheduled" | "permanent";
+  packages?: ProgramDetail["packages"];
 }) {
   if (section.visible === false) return null;
 
   switch (section.type) {
     case "hero":
       return <HeroSection content={section.content} theme={theme} />;
+
     case "gallery":
       return <GallerySection content={section.content} theme={theme} />;
+
     case "why":
-      return <WhySection content={section.content} theme={theme} id={`why-${section.id}`} />;
+      return (
+        <WhySection
+          content={section.content}
+          theme={theme}
+          id={`why-${section.id}`}
+        />
+      );
+
     case "benefits":
-      return <BenefitsSection content={section.content} theme={theme} id={section.id} />;
+      return (
+        <BenefitsSection
+          content={section.content}
+          theme={theme}
+          id={section.id}
+        />
+      );
+
     case "steps":
       return <StepsSection content={section.content} theme={theme} />;
+
     case "timeline":
       return <TimelineSection content={section.content} theme={theme} />;
+
     case "facilities":
       return <FacilitiesSection content={section.content} theme={theme} />;
+
     case "mentorship":
       return <MentorshipSection content={section.content} theme={theme} />;
+
     case "classes":
       return <ClassesSection content={section.content} theme={theme} />;
+
     case "pricing":
       return <PricingSection content={section.content} theme={theme} />;
+
     case "testimonials":
       return <TestimonialsSection content={section.content} theme={theme} />;
+
     case "faq":
       return <FAQSection content={section.content} theme={theme} />;
+
     case "cta":
       return <CTASection content={section.content} theme={theme} />;
 
     case "batches":
-      if (!batches || batches.length === 0) return null;
-      return <BatchesSection batches={batches} theme={theme} ctaHref={ctaHref} />;
+      if (mode === "scheduled" && (!batches || batches.length === 0)) {
+        return null;
+      }
+
+      return (
+        <BatchesSection
+          batches={batches ?? []}
+          theme={theme}
+          ctaHref={ctaHref}
+          registerHref={registerHref}
+          mode={mode}
+          packages={packages ?? []}
+        />
+      );
 
     default:
       return null;
@@ -3381,6 +3423,12 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
     () => generateTheme(details.theme?.primary ?? "#1a52c8"),
     [details.theme?.primary],
   );
+
+  const batchMode: "scheduled" | "permanent" = details.hasBatch
+    ? "scheduled"
+    : "permanent";
+
+  const registerHref = `/registrasi/${details.slug}`;
 
   const hasBanner = !!(
     details.hasBatch &&
@@ -3471,7 +3519,11 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
       <main className="relative w-full overflow-x-hidden">
         {/* Fixed batch banner — global, stays outside section flow */}
         {hasBanner && details.batches && details.batches.length > 0 && (
-          <BatchBanner batches={details.batches} theme={theme} />
+          <BatchBanner
+            batches={details.batches}
+            theme={theme}
+            registerHref={registerHref}
+          />
         )}
 
         {details.sections.map((section) => (
@@ -3481,6 +3533,9 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
             theme={theme}
             batches={details.batches}
             ctaHref={ctaHref}
+            registerHref={registerHref}
+            mode={batchMode}
+            packages={details.packages}
           />
         ))}
 
@@ -3494,6 +3549,9 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
               batches={details.batches}
               theme={theme}
               ctaHref={ctaHref}
+              registerHref={registerHref}
+              mode={batchMode}
+              packages={details.packages}
             />
           )}
       </main>

@@ -1,105 +1,181 @@
 // app/(home)/programs/[categorySlug]/[programSlug]/_components/BatchesSection.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// BatchBanner.tsx — Enhanced sticky announcement banner
-// ─────────────────────────────────────────────────────────────────────────────
+//
+// Exports (both used by client.tsx):
+//   • BatchBanner    → fixed top announcement strip (height feeds --batch-banner-height)
+//   • BatchesSection → in-page section with two modes:
+//        mode="scheduled" → batch cards; highlights DATE, DAY COUNT, PRICE
+//        mode="permanent" → price-highlighted PACKAGE cards
+//
+// Data this needs (see notes at bottom of the file you were given):
+//   ProgramBatch  → add optional  price?: string;  originalPrice?: string;
+//   BatchesSection→ new optional prop  packages?: PricingPackage[]  (for permanent)
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import type { ProgramBatch, PricingPackage } from "../../data";
+import type { Theme } from "@/lib/utils";
 
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
-// ─── Type ────────────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────────────────────── */
 
-import type { ProgramBatch } from "../../data";
-import type { Theme } from "@/lib/utils";
+function formatDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
 
-// ─── BatchBanner ─────────────────────────────────────────────────────────────
+const STATUS_CONFIG: Record<
+  ProgramBatch["status"],
+  { label: string; dot: string; bg: string; border: string; text: string }
+> = {
+  open: { label: "Pendaftaran Dibuka", dot: "#16a34a", bg: "rgba(22,163,74,0.1)", border: "rgba(22,163,74,0.28)", text: "#15803d" },
+  coming_soon: { label: "Segera Dibuka", dot: "#d97706", bg: "rgba(217,119,6,0.1)", border: "rgba(217,119,6,0.28)", text: "#b45309" },
+  full: { label: "Kuota Penuh", dot: "#dc2626", bg: "rgba(220,38,38,0.08)", border: "rgba(220,38,38,0.22)", text: "#b91c1c" },
+  closed: { label: "Ditutup", dot: "#94a3b8", bg: "rgba(148,163,184,0.12)", border: "rgba(148,163,184,0.25)", text: "#64748b" },
+};
+
+const DISABLED_LABEL: Record<ProgramBatch["status"], string> = {
+  open: "Daftar",
+  coming_soon: "Segera Dibuka",
+  full: "Kuota Penuh",
+  closed: "Ditutup",
+};
+
+function CalendarIcon({ color, className }: { color: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className ?? "w-4 h-4"} fill="none">
+      <rect x="1.5" y="3" width="13" height="11" rx="2" stroke={color} strokeWidth={1.4} />
+      <path d="M5 1.5v3M11 1.5v3M1.5 7.5h13" stroke={color} strokeWidth={1.4} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ArrowIcon({ color, className }: { color: string; className?: string }) {
+  return (
+    <svg viewBox="0 0 14 14" className={className ?? "w-3.5 h-3.5"} fill="none">
+      <path d="M2.5 7h9M7.5 3.5l3.5 3.5-3.5 3.5" stroke={color} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CtaIcon({ name, color, className }: { name?: string; color: string; className?: string }) {
+  const props = { viewBox: "0 0 16 16", className: className ?? "w-3.5 h-3.5", fill: "none" };
+  switch (name) {
+    case "message-circle":
+      return (
+        <svg {...props}>
+          <path d="M14 7.5A6 6 0 0 1 2.5 11L2 14l3.5-.5A6 6 0 1 1 14 7.5z" stroke={color} strokeWidth={1.4} strokeLinejoin="round" />
+        </svg>
+      );
+    case "external-link":
+      return (
+        <svg {...props}>
+          <path d="M7 3H3v10h10V9M10 2h4v4M8 8l5.5-5.5" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "arrow-right":
+    default:
+      return <ArrowIcon color={color} className={props.className} />;
+  }
+}
+
+function withQueryParams(
+  href: string,
+  params: Record<string, string | undefined>,
+) {
+  const [withoutHash, hash] = href.split("#");
+  const [pathname, existingQuery] = withoutHash.split("?");
+
+  const search = new URLSearchParams(existingQuery ?? "");
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value) search.set(key, value);
+  }
+
+  const query = search.toString();
+
+  return `${pathname}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
+}
+
+function isExternalHref(href: string) {
+  return /^https?:\/\//i.test(href);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BatchBanner — fixed top strip (height feeds --batch-banner-height)
+   Hooks run unconditionally before the early return (Rules of Hooks).
+───────────────────────────────────────────────────────────── */
 
 export function BatchBanner({
   batches,
   theme,
+  registerHref,
 }: {
   batches: ProgramBatch[];
   theme: Theme;
+  registerHref?: string;
 }) {
-  const open = batches.filter((b) => b.isOpen);
-  if (open.length === 0) return null;
-
-  // If multiple open batches, cycle through them
+  const open = useMemo(() => batches.filter((b) => b.isOpen), [batches]);
   const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
     if (open.length <= 1) return;
-    const t = setInterval(() => {
-      setActiveIdx((i) => (i + 1) % open.length);
-    }, 4000);
+    const t = setInterval(
+      () => setActiveIdx((i) => (i + 1) % open.length),
+      4000,
+    );
     return () => clearInterval(t);
   }, [open.length]);
 
-  const batch = open[activeIdx];
-  const pct =
-    batch.capacity && batch.enrolled
-      ? Math.round((batch.enrolled / batch.capacity) * 100)
-      : null;
-  const spotsLeft =
-    batch.capacity && batch.enrolled ? batch.capacity - batch.enrolled : null;
+  if (open.length === 0) return null;
 
-  const ctaHref = batch.primaryCtaHref ?? "#pricing";
-  const ctaLabel = batch.primaryCtaLabel ?? "Daftar Sekarang";
+  const batch = open[activeIdx] ?? open[0];
+  const spotsLeft =
+    batch.capacity && batch.enrolled != null
+      ? batch.capacity - batch.enrolled
+      : null;
+
+  const ctaHref = registerHref
+    ? withQueryParams(registerHref, { batchId: batch.id })
+    : batch.primaryCtaHref ?? "#batches";
+
+  const ctaLabel = registerHref
+    ? "Daftar Online"
+    : batch.primaryCtaLabel ?? "Daftar Sekarang";
 
   return (
     <motion.div
       initial={{ y: -56, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.55, ease: EASE }}
+      transition={{ duration: 0.5, ease: EASE }}
       className="fixed left-0 right-0 z-50 w-full"
       style={{
         top: "var(--navbar-height, 56px)",
-        background: `linear-gradient(90deg, ${theme.primary} 0%, ${theme.strong ?? theme.primary} 100%)`,
         height: "var(--batch-banner-height, 48px)",
+        background: `linear-gradient(90deg, ${theme.primary} 0%, ${theme.strong} 100%)`,
       }}
     >
-      {/* subtle shimmer line */}
-      <div
-        className="absolute inset-0 pointer-events-none overflow-hidden"
-        style={{ mixBlendMode: "screen" }}
-      >
-        <motion.div
-          className="absolute top-0 bottom-0 w-32"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)",
-          }}
-          animate={{ x: ["-200%", "800%"] }}
-          transition={{
-            duration: 3.5,
-            repeat: Infinity,
-            ease: "linear",
-            repeatDelay: 2,
-          }}
-        />
-      </div>
-
       <div className="h-full max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-8">
-        {/* LEFT: pulse + cycling batch info */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          {/* live dot */}
-          <div className="relative flex-shrink-0">
+          <span className="relative flex-shrink-0 block w-2 h-2">
             <motion.span
-              className="w-2 h-2 rounded-full block"
+              className="absolute inset-0 rounded-full"
               style={{ background: "#4ade80" }}
               animate={{ opacity: [1, 0.25, 1] }}
               transition={{ duration: 1.8, repeat: Infinity }}
             />
-            <motion.span
-              className="absolute inset-0 rounded-full"
-              style={{ background: "#4ade80" }}
-              animate={{ scale: [1, 2.5], opacity: [0.5, 0] }}
-              transition={{ duration: 1.8, repeat: Infinity }}
-            />
-          </div>
+          </span>
 
-          {/* cycling content */}
           <AnimatePresence mode="wait">
             <motion.div
               key={batch.id}
@@ -125,50 +201,24 @@ export function BatchBanner({
                 </span>
               )}
 
-              {/* urgency pill: spots left */}
-              {spotsLeft !== null && spotsLeft <= 10 && (
-                <motion.span
-                  initial={{ scale: 0.85, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 flex-shrink-0"
-                  style={{
-                    fontSize: "0.6875rem",
-                    color: "white",
-                    fontWeight: 700,
-                  }}
-                >
-                  <span>⚡</span>
-                  <span>{spotsLeft} kursi tersisa</span>
-                </motion.span>
-              )}
-
-              {/* capacity bar (md+) */}
-              {pct !== null && spotsLeft === null && (
+              {spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 10 && (
                 <span
-                  className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 flex-shrink-0"
-                  style={{ fontSize: "0.625rem", color: "white" }}
+                  className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-white/20 flex-shrink-0 text-white font-display font-bold"
+                  style={{ fontSize: "0.6875rem" }}
                 >
-                  <span>
-                    {batch.enrolled}/{batch.capacity} terisi
-                  </span>
-                  <div className="w-14 h-1 rounded-full bg-white/30 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-white transition-all duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
+                  {spotsLeft} kursi tersisa
                 </span>
               )}
             </motion.div>
           </AnimatePresence>
 
-          {/* batch indicator dots (if multiple) */}
           {open.length > 1 && (
             <div className="hidden sm:flex items-center gap-1 flex-shrink-0 ml-1">
               {open.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveIdx(i)}
+                  aria-label={`Batch ${i + 1}`}
                   className="rounded-full transition-all duration-300"
                   style={{
                     width: i === activeIdx ? "14px" : "5px",
@@ -182,18 +232,14 @@ export function BatchBanner({
           )}
         </div>
 
-        {/* RIGHT: CTA(s) */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {/* Brochure icon button */}
           {batch.brochure && (
-            <motion.a
+            <a
               href={batch.brochure.url}
               target="_blank"
               rel="noopener noreferrer"
               title={batch.brochure.label ?? "Lihat Brosur"}
               className="hidden sm:flex items-center justify-center w-8 h-8 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors"
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.95 }}
             >
               <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
                 <path
@@ -209,13 +255,14 @@ export function BatchBanner({
                   strokeLinecap="round"
                 />
               </svg>
-            </motion.a>
+            </a>
           )}
 
-          {/* Primary CTA */}
           <motion.a
             href={ctaHref}
-            className="font-display font-bold px-4 py-1.5 rounded-lg bg-white flex-shrink-0 flex items-center gap-1.5"
+            target={isExternalHref(ctaHref) ? "_blank" : undefined}
+            rel={isExternalHref(ctaHref) ? "noopener noreferrer" : undefined}
+            className="font-display font-bold px-4 py-1.5 rounded-lg bg-white flex items-center gap-1.5"
             style={{
               fontSize: "0.75rem",
               color: theme.primary,
@@ -224,16 +271,8 @@ export function BatchBanner({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.96 }}
           >
-            <span>{ctaLabel}</span>
-            <svg viewBox="0 0 12 12" className="w-3 h-3" fill="none">
-              <path
-                d="M2 6h8M6.5 2.5L10 6l-3.5 3.5"
-                stroke={theme.primary}
-                strokeWidth={1.6}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            {ctaLabel}
+            <ArrowIcon color={theme.primary} className="w-3 h-3" />
           </motion.a>
         </div>
       </div>
@@ -241,817 +280,528 @@ export function BatchBanner({
   );
 }
 
-// ─── BatchesSection ───────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────
+   SHARED SECTION HEADER
+───────────────────────────────────────────────────────────── */
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  } catch {
-    return iso;
-  }
-}
-
-const STATUS_CONFIG = {
-  open: {
-    label: "Buka",
-    dot: "#4ade80",
-    bg: "rgba(74,222,128,0.1)",
-    border: "rgba(74,222,128,0.3)",
-    text: "#16a34a",
-  },
-  coming_soon: {
-    label: "Segera",
-    dot: "#f59e0b",
-    bg: "rgba(245,158,11,0.1)",
-    border: "rgba(245,158,11,0.3)",
-    text: "#d97706",
-  },
-  full: {
-    label: "Penuh",
-    dot: "#ef4444",
-    bg: "rgba(239,68,68,0.08)",
-    border: "rgba(239,68,68,0.2)",
-    text: "#dc2626",
-  },
-  closed: {
-    label: "Ditutup",
-    dot: "#94a3b8",
-    bg: "rgba(148,163,184,0.1)",
-    border: "rgba(148,163,184,0.25)",
-    text: "#64748b",
-  },
-};
-
-// Icon map for primaryCtaIcon / secondaryCtaIcon strings
-function CtaIcon({
-  name,
-  className,
-  color,
-}: {
-  name?: string;
-  className?: string;
-  color?: string;
-}) {
-  if (!name) return null;
-  const stroke = color ?? "currentColor";
-  const props = {
-    viewBox: "0 0 16 16",
-    className: className ?? "w-3.5 h-3.5",
-    fill: "none",
-  };
-
-  switch (name) {
-    case "arrow-right":
-      return (
-        <svg {...props}>
-          <path
-            d="M3 8h10M9 4l4 4-4 4"
-            stroke={stroke}
-            strokeWidth={1.6}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    case "message-circle":
-      return (
-        <svg {...props}>
-          <path
-            d="M14 7.5A6 6 0 0 1 2.5 11L2 14l3.5-.5A6 6 0 1 1 14 7.5z"
-            stroke={stroke}
-            strokeWidth={1.4}
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    case "external-link":
-      return (
-        <svg {...props}>
-          <path
-            d="M7 3H3v10h10V9M10 2h4v4M8 8l5.5-5.5"
-            stroke={stroke}
-            strokeWidth={1.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
-// PDF/brochure icon button with tooltip
-function BrochureButton({
-  brochure,
+function SectionHeader({
   theme,
+  eyebrow,
+  title,
+  titleAccent,
+  subtitle,
 }: {
-  brochure: NonNullable<ProgramBatch["brochure"]>;
   theme: Theme;
+  eyebrow: string;
+  title: string;
+  titleAccent: string;
+  subtitle: string;
 }) {
-  const [tip, setTip] = useState(false);
   return (
-    <div className="relative">
-      <motion.a
-        href={brochure.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        onMouseEnter={() => setTip(true)}
-        onMouseLeave={() => setTip(false)}
-        onFocus={() => setTip(true)}
-        onBlur={() => setTip(false)}
-        className="flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
-        style={{
-          background: "var(--bg-soft, rgba(0,0,0,0.04))",
-          border: "1.5px solid var(--border-soft, rgba(0,0,0,0.08))",
-          color: theme.primary,
-        }}
-        whileHover={{ scale: 1.08, backgroundColor: `${theme.primary}18` }}
-        whileTap={{ scale: 0.95 }}
-        aria-label={brochure.label ?? "Lihat Brosur (PDF)"}
+    <div className="flex flex-col items-center text-center mb-12">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5"
+        style={{ background: theme.soft, border: `1px solid ${theme.border}` }}
       >
-        <svg viewBox="0 0 18 18" className="w-4 h-4" fill="none">
-          <rect
-            x="2.5"
-            y="1.5"
-            width="10"
-            height="15"
-            rx="1.5"
-            stroke={theme.primary}
-            strokeWidth={1.4}
-          />
-          <path
-            d="M12.5 1.5l3 3v12H15"
-            stroke={theme.primary}
-            strokeWidth={1.4}
-            strokeLinejoin="round"
-          />
-          <path
-            d="M5.5 7h5M5.5 10h5M5.5 13h3"
-            stroke={theme.primary}
-            strokeWidth={1.3}
-            strokeLinecap="round"
-          />
-          <path
-            d="M9.5 1.5v3h3"
-            stroke={theme.primary}
-            strokeWidth={1.3}
-            strokeLinejoin="round"
-          />
-        </svg>
-      </motion.a>
+        <CalendarIcon color={theme.primary} className="w-3.5 h-3.5" />
+        <span className="font-display font-bold" style={{ fontSize: "0.75rem", color: theme.primary, letterSpacing: "0.04em" }}>
+          {eyebrow}
+        </span>
+      </motion.div>
 
-      <AnimatePresence>
-        {tip && (
-          <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none z-20"
-          >
-            <div
-              className="px-2.5 py-1.5 rounded-lg whitespace-nowrap font-display font-semibold shadow-lg"
-              style={{
-                fontSize: "0.6875rem",
-                background: "var(--blue-navy, #0f172a)",
-                color: "white",
-              }}
-            >
-              {brochure.label ?? "Lihat Brosur"}
-            </div>
-            <div
-              className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0"
-              style={{
-                borderLeft: "5px solid transparent",
-                borderRight: "5px solid transparent",
-                borderTop: "5px solid var(--blue-navy, #0f172a)",
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <motion.h2
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.07 }}
+        className="font-display font-extrabold mb-4"
+        style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", color: "var(--blue-navy)", lineHeight: 1.15 }}
+      >
+        {title} <span style={{ color: theme.primary }}>{titleAccent}</span>
+      </motion.h2>
+
+      <motion.p
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.13 }}
+        style={{ fontSize: "0.9375rem", color: "var(--text-muted)", maxWidth: "460px", lineHeight: "1.75" }}
+      >
+        {subtitle}
+      </motion.p>
     </div>
   );
 }
 
+/* ─────────────────────────────────────────────────────────────
+   SCHEDULED — batch card (highlights DATE · DAY COUNT · PRICE)
+───────────────────────────────────────────────────────────── */
+
+function BatchCard({
+  batch,
+  theme,
+  fallbackCtaHref,
+  registerHref,
+  index,
+}: {
+  batch: ProgramBatch;
+  theme: Theme;
+  fallbackCtaHref: string;
+  registerHref?: string;
+  index: number;
+}) {
+  const cfg = STATUS_CONFIG[batch.status] ?? STATUS_CONFIG.closed;
+
+  const hasCapacity = Boolean(batch.capacity && batch.enrolled != null);
+  const spotsLeft = hasCapacity ? Math.max(batch.capacity! - batch.enrolled!, 0) : null;
+  const pct = hasCapacity ? Math.min(Math.round((batch.enrolled! / batch.capacity!) * 100), 100) : null;
+  const almostFull = pct !== null && pct >= 80;
+
+  const hasDates = Boolean(batch.startDate || batch.endDate);
+  const dateText = hasDates
+    ? batch.startDate && batch.endDate
+      ? `${formatDate(batch.startDate)} – ${formatDate(batch.endDate)}`
+      : batch.startDate
+        ? `Mulai ${formatDate(batch.startDate)}`
+        : `Sampai ${formatDate(batch.endDate!)}`
+    : (batch.schedule ?? "Jadwal menyusul");
+  const scheduleSub = hasDates ? batch.schedule : undefined;
+
+  const durationDays =
+    batch.startDate && batch.endDate
+      ? Math.round(
+          (new Date(batch.endDate).getTime() - new Date(batch.startDate).getTime()) / (1000 * 60 * 60 * 24),
+        ) + 1
+      : null;
+
+  const primaryHref = registerHref
+  ? withQueryParams(registerHref, { batchId: batch.id })
+  : batch.primaryCtaHref ?? fallbackCtaHref;
+
+  const primaryLabel = registerHref
+    ? "Daftar Online"
+    : batch.primaryCtaLabel ?? "Daftar Batch Ini";
+
+  const primaryIcon = registerHref
+    ? "arrow-right"
+    : batch.primaryCtaIcon ?? "arrow-right";
+    
+  const hasSecondary = Boolean(batch.secondaryCtaLabel && batch.secondaryCtaHref);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: index * 0.08, ease: EASE }}
+      whileHover={batch.isOpen ? { y: -4 } : undefined}
+      className="flex flex-col rounded-3xl overflow-hidden h-full"
+      style={{
+        background: "var(--surface)",
+        border: `1.5px solid ${batch.isOpen ? theme.border : "var(--border-soft)"}`,
+        boxShadow: batch.isOpen ? `0 8px 32px -12px ${theme.primary}33` : "0 1px 6px rgba(0,0,0,0.04)",
+        opacity: batch.status === "closed" ? 0.6 : 1,
+        transition: "box-shadow 0.3s ease, transform 0.3s ease",
+      }}
+    >
+      {/* Status + name */}
+      <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid var(--border-soft)" }}>
+        <span
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-display font-bold"
+          style={{ fontSize: "0.625rem", letterSpacing: "0.04em", background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.text }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full" style={{ background: cfg.dot }} />
+          {cfg.label}
+        </span>
+        <p className="mt-3 font-display font-extrabold leading-tight" style={{ fontSize: "1.1875rem", color: "var(--blue-navy)" }}>
+          {batch.label}
+        </p>
+      </div>
+
+      <div className="px-6 py-5 flex flex-col flex-1 gap-4">
+        {/* DATE + DAY COUNT — highlighted tile */}
+        <div
+          className="flex items-center gap-3 rounded-2xl px-4 py-3"
+          style={{
+            background: batch.isOpen ? `${theme.primary}0c` : "var(--bg-soft, rgba(0,0,0,0.03))",
+            border: `1px solid ${batch.isOpen ? `${theme.primary}22` : "var(--border-soft)"}`,
+          }}
+        >
+          <div
+            className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ background: batch.isOpen ? `${theme.primary}18` : "var(--border-soft)" }}
+          >
+            <CalendarIcon color={batch.isOpen ? theme.primary : "var(--text-faint)"} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-display font-bold leading-tight" style={{ fontSize: "0.9375rem", color: "var(--blue-navy)" }}>
+              {dateText}
+            </p>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-faint)" }}>
+              {scheduleSub ?? "Jadwal pelaksanaan"}
+            </p>
+          </div>
+          {durationDays !== null && (
+            <span
+              className="flex-shrink-0 font-display font-extrabold text-center leading-none px-2.5 py-1.5 rounded-xl"
+              style={{ background: batch.isOpen ? theme.primary : "var(--text-faint)", color: "white" }}
+            >
+              <span style={{ fontSize: "0.9375rem", display: "block" }}>{durationDays}</span>
+              <span style={{ fontSize: "0.5625rem", opacity: 0.85, letterSpacing: "0.06em" }}>HARI</span>
+            </span>
+          )}
+        </div>
+
+        {/* PRICE — highlighted */}
+        {batch.price && (
+          <div className="flex items-end justify-between gap-2">
+            <div>
+              <p style={{ fontSize: "0.6875rem", color: "var(--text-faint)", marginBottom: "1px" }}>Biaya program</p>
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-extrabold leading-none" style={{ fontSize: "1.5rem", color: theme.primary, letterSpacing: "-0.02em" }}>
+                  {batch.price}
+                </span>
+                {batch.originalPrice && (
+                  <span style={{ fontSize: "0.875rem", color: "var(--text-faint)", textDecoration: "line-through" }}>
+                    {batch.originalPrice}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Capacity — calm line */}
+        {pct !== null && (
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span style={{ fontSize: "0.75rem", color: "var(--text-faint)" }}>
+                {spotsLeft === 0 ? "Kuota penuh" : `${spotsLeft} kursi tersisa`}
+              </span>
+              <span className="font-display font-bold" style={{ fontSize: "0.75rem", color: almostFull ? "#dc2626" : "var(--text-faint)" }}>
+                {pct}% terisi
+              </span>
+            </div>
+            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border-soft)" }}>
+              <motion.div
+                className="h-full rounded-full"
+                initial={{ width: 0 }}
+                whileInView={{ width: `${pct}%` }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, ease: EASE }}
+                style={{ background: almostFull ? "#ef4444" : theme.primary }}
+              />
+            </div>
+          </div>
+        )}
+
+        {batch.note && (
+          <p className="rounded-xl px-3 py-2 font-display font-semibold" style={{ fontSize: "0.75rem", color: theme.primary, background: theme.soft }}>
+            {batch.note}
+          </p>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Actions */}
+        {batch.isOpen ? (
+          <div className="flex flex-col gap-2">
+            <motion.a
+              href={primaryHref}
+              target={primaryHref.startsWith("http") ? "_blank" : undefined}
+              rel={primaryHref.startsWith("http") ? "noopener noreferrer" : undefined}
+              className="flex items-center justify-center gap-2 py-3 rounded-2xl font-display font-bold text-white"
+              style={{ fontSize: "0.875rem", background: theme.primary, boxShadow: `0 4px 16px ${theme.primary}33`, textDecoration: "none" }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {primaryLabel}
+              <CtaIcon name={primaryIcon} color="white" />
+            </motion.a>
+
+            {hasSecondary && (
+              <motion.a
+                href={batch.secondaryCtaHref}
+                target={batch.secondaryCtaHref!.startsWith("http") ? "_blank" : undefined}
+                rel={batch.secondaryCtaHref!.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="flex items-center justify-center gap-2 py-3 rounded-2xl font-display font-semibold"
+                style={{ fontSize: "0.8125rem", color: theme.primary, background: `${theme.primary}10`, border: `1.5px solid ${theme.primary}28`, textDecoration: "none" }}
+                whileHover={{ scale: 1.02, backgroundColor: `${theme.primary}1c` }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <CtaIcon name={batch.secondaryCtaIcon} color={theme.primary} />
+                {batch.secondaryCtaLabel}
+              </motion.a>
+            )}
+
+            {batch.brochure && (
+              <a
+                href={batch.brochure.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center font-display font-semibold pt-0.5"
+                style={{ fontSize: "0.75rem", color: "var(--text-faint)", textDecoration: "none" }}
+              >
+                {batch.brochure.label ?? "Lihat brosur (PDF)"}
+              </a>
+            )}
+          </div>
+        ) : (
+          <div
+            className="flex items-center justify-center py-3 rounded-2xl font-display font-semibold"
+            style={{ fontSize: "0.875rem", background: "var(--border-soft)", color: "var(--text-faint)" }}
+          >
+            {DISABLED_LABEL[batch.status]}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PERMANENT — price-highlighted PACKAGE card
+───────────────────────────────────────────────────────────── */
+
+function PackageCard({
+  pkg,
+  theme,
+  ctaHref,
+  index,
+  registerHref,
+}: {
+  pkg: PricingPackage;
+  theme: Theme;
+  ctaHref: string;
+  index: number;
+  registerHref?: string
+}) {
+  const featured = Boolean(pkg.highlight);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: index * 0.08, ease: EASE }}
+      whileHover={{ y: -4 }}
+      className="relative flex flex-col rounded-3xl overflow-hidden h-full"
+      style={{
+        background: "var(--surface)",
+        border: `1.5px solid ${featured ? theme.primary : theme.border}`,
+        boxShadow: featured ? `0 12px 40px -12px ${theme.primary}40` : `0 8px 28px -14px ${theme.primary}22`,
+        transition: "box-shadow 0.3s ease, transform 0.3s ease",
+      }}
+    >
+      {featured && (
+        <div
+          className="text-center py-1.5 font-display font-bold text-white"
+          style={{ fontSize: "0.6875rem", letterSpacing: "0.06em", background: theme.primary }}
+        >
+          {pkg.highlight}
+        </div>
+      )}
+
+      <div className="px-6 pt-6 pb-6 flex flex-col flex-1 gap-4">
+        <p className="font-display font-extrabold" style={{ fontSize: "1.0625rem", color: "var(--blue-navy)" }}>
+          {pkg.label}
+        </p>
+
+        {/* PRICE — highlighted */}
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="font-display font-extrabold leading-none" style={{ fontSize: "1.75rem", color: theme.primary, letterSpacing: "-0.02em" }}>
+              {pkg.price}
+            </span>
+            {pkg.originalPrice && (
+              <span style={{ fontSize: "0.9375rem", color: "var(--text-faint)", textDecoration: "line-through" }}>
+                {pkg.originalPrice}
+              </span>
+            )}
+          </div>
+          {pkg.note && (
+            <p style={{ fontSize: "0.75rem", color: "var(--text-faint)", marginTop: "4px" }}>{pkg.note}</p>
+          )}
+        </div>
+
+        <div className="flex-1" />
+
+        <motion.a
+          href={
+            registerHref
+              ? withQueryParams(registerHref, { packageId: pkg.id })
+              : ctaHref
+          }
+          className="flex items-center justify-center gap-2 py-3 rounded-2xl font-display font-bold"
+          style={{
+            fontSize: "0.875rem",
+            textDecoration: "none",
+            ...(featured
+              ? { background: theme.primary, color: "white", boxShadow: `0 4px 16px ${theme.primary}33` }
+              : { background: `${theme.primary}10`, color: theme.primary, border: `1.5px solid ${theme.primary}28` }),
+          }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          Pilih Paket
+          <ArrowIcon color={featured ? "white" : theme.primary} />
+        </motion.a>
+      </div>
+    </motion.div>
+  );
+}
+
+/* Lightweight fallback when a permanent program has no packages supplied. */
+function EvergreenCTA({ theme, ctaHref }: { theme: Theme; ctaHref: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, ease: EASE }}
+      className="mx-auto max-w-xl rounded-3xl text-center px-7 py-9"
+      style={{ background: "var(--surface)", border: `1.5px solid ${theme.border}`, boxShadow: `0 12px 48px -16px ${theme.primary}30` }}
+    >
+      <div
+        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-4"
+        style={{ background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.28)" }}
+      >
+        <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#16a34a" }} />
+        <span className="font-display font-bold" style={{ fontSize: "0.6875rem", color: "#15803d", letterSpacing: "0.04em" }}>
+          Pendaftaran selalu terbuka
+        </span>
+      </div>
+      <h3 className="font-display font-extrabold" style={{ fontSize: "1.375rem", color: "var(--blue-navy)" }}>
+        Mulai kapan pun kamu siap
+      </h3>
+      <p className="mt-2 mb-6 mx-auto" style={{ fontSize: "0.875rem", color: "var(--text-muted)", maxWidth: "360px", lineHeight: 1.7 }}>
+        Program ini berjalan tanpa batch. Daftar hari ini dan langsung mulai.
+      </p>
+      <motion.a
+        href={ctaHref}
+        className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-display font-bold text-white"
+        style={{ fontSize: "0.9375rem", background: theme.primary, boxShadow: `0 6px 24px ${theme.primary}40`, textDecoration: "none" }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.97 }}
+      >
+        Daftar Sekarang
+        <ArrowIcon color="white" />
+      </motion.a>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ROOT
+───────────────────────────────────────────────────────────── */
+
 export function BatchesSection({
   batches,
   theme,
-  ctaHref: fallbackCtaHref,
+  ctaHref,
+  mode = "scheduled",
+  packages = [],
+  registerHref,          // ← NEW: e.g. `/registrasi/${slug}`
 }: {
   batches: ProgramBatch[];
   theme: Theme;
   ctaHref: string;
+  mode?: "scheduled" | "permanent";
+  packages?: PricingPackage[];
+  registerHref?: string; // when set, cards link here instead of ctaHref
 }) {
+  const isPermanent = mode === "permanent";
+
   return (
-    <section
-      id="batches"
-      className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--bg-soft)" }}
-    >
-      {/* radial top glow */}
+    <section id="batches" className="relative py-20 lg:py-28 overflow-hidden" style={{ background: "var(--bg-soft)" }}>
       <div
         className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `radial-gradient(ellipse 70% 45% at 50% 0%, ${theme.soft ?? `${theme.primary}18`} 0%, transparent 70%)`,
-        }}
-      />
-
-      {/* subtle grid texture */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage: `linear-gradient(var(--border-soft) 1px, transparent 1px), linear-gradient(90deg, var(--border-soft) 1px, transparent 1px)`,
-          backgroundSize: "48px 48px",
-        }}
+        style={{ backgroundImage: `radial-gradient(ellipse 70% 45% at 50% 0%, ${theme.soft} 0%, transparent 70%)` }}
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        {/* ── Section header ── */}
-        <div className="flex flex-col items-center text-center mb-14">
-          {/* pill */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-5"
-            style={{
-              background: theme.soft ?? `${theme.primary}15`,
-              border: `1px solid ${theme.border ?? `${theme.primary}30`}`,
-            }}
-          >
-            <svg viewBox="0 0 14 14" className="w-3.5 h-3.5" fill="none">
-              <rect
-                x="1"
-                y="3"
-                width="12"
-                height="10"
-                rx="1.5"
-                stroke={theme.primary}
-                strokeWidth={1.4}
-              />
-              <path
-                d="M4 1v3M10 1v3M1 7h12"
-                stroke={theme.primary}
-                strokeWidth={1.4}
-                strokeLinecap="round"
-              />
-            </svg>
-            <span
-              className="font-display font-bold"
-              style={{
-                fontSize: "0.75rem",
-                color: theme.primary,
-                letterSpacing: "0.04em",
-              }}
-            >
-              Jadwal Batch
-            </span>
-          </motion.div>
+        {isPermanent ? (
+          <>
+            <SectionHeader
+              theme={theme}
+              eyebrow="Pilihan Paket"
+              title="Pilih Paket yang"
+              titleAccent="Sesuai Kebutuhanmu"
+              subtitle="Program fleksibel tanpa jadwal batch. Pilih paket, daftar kapan saja, dan langsung mulai."
+            />
 
-          <motion.h2
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.07 }}
-            className="font-display font-extrabold mb-4"
-            style={{
-              fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
-              color: "var(--blue-navy)",
-              lineHeight: 1.15,
-            }}
-          >
-            Pilih Batch yang{" "}
-            <span style={{ color: theme.primary }}>Sesuai Jadwalmu</span>
-          </motion.h2>
-
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.13 }}
-            style={{
-              fontSize: "0.9375rem",
-              color: "var(--text-muted)",
-              maxWidth: "460px",
-              lineHeight: "1.75",
-            }}
-          >
-            Batch buka secara rutin. Pilih sesi yang paling cocok, lalu
-            daftarkan dirimu sebelum kuota habis.
-          </motion.p>
-        </div>
-
-        {/* ── Cards grid ── */}
-        <div
-          className={`grid gap-6 ${
-            batches.length === 1
-              ? "max-w-sm mx-auto"
-              : batches.length === 2
-                ? "sm:grid-cols-2 max-w-2xl mx-auto"
-                : "sm:grid-cols-2 lg:grid-cols-3"
-          }`}
-        >
-          {batches.map((batch, i) => {
-            const cfg = STATUS_CONFIG[batch.status];
-            const pct =
-              batch.capacity && batch.enrolled
-                ? Math.round((batch.enrolled / batch.capacity) * 100)
-                : null;
-            const spotsLeft =
-              batch.capacity && batch.enrolled
-                ? batch.capacity - batch.enrolled
-                : null;
-
-            const hasPrimary = Boolean(
-              batch.primaryCtaLabel && batch.primaryCtaHref,
-            );
-            const hasSecondary = Boolean(
-              batch.secondaryCtaLabel && batch.secondaryCtaHref,
-            );
-            const primaryHref = batch.primaryCtaHref ?? fallbackCtaHref;
-            const isUrgent = spotsLeft !== null && spotsLeft <= 10;
-
-            // Compute duration in days for the visual duration chip
-            const durationDays =
-              batch.startDate && batch.endDate
-                ? Math.round(
-                    (new Date(batch.endDate).getTime() -
-                      new Date(batch.startDate).getTime()) /
-                      (1000 * 60 * 60 * 24),
-                  ) + 1
-                : null;
-
-            return (
-              <motion.div
-                key={batch.id}
-                initial={{ opacity: 0, y: 32 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.55, delay: i * 0.1, ease: EASE }}
-                whileHover={batch.isOpen ? { y: -8 } : undefined}
-                className="relative flex flex-col rounded-[28px] overflow-hidden h-full group/card"
-                style={{
-                  background: "var(--surface)",
-                  border: `1.5px solid ${batch.isOpen ? (theme.border ?? `${theme.primary}35`) : "var(--border-soft)"}`,
-                  boxShadow: batch.isOpen
-                    ? `0 2px 0 0 ${theme.primary}22, 0 8px 40px -8px ${theme.primary}28, 0 1px 3px rgba(0,0,0,0.05)`
-                    : "0 1px 8px rgba(0,0,0,0.04)",
-                  opacity: batch.status === "closed" ? 0.55 : 1,
-                  transition:
-                    "box-shadow 0.35s ease, transform 0.35s ease, border-color 0.35s ease",
-                }}
+            {packages.length > 0 ? (
+              <div
+                className={`grid gap-6 ${
+                  packages.length === 1
+                    ? "max-w-sm mx-auto"
+                    : packages.length === 2
+                      ? "sm:grid-cols-2 max-w-3xl mx-auto"
+                      : "sm:grid-cols-2 lg:grid-cols-3"
+                }`}
               >
-                {/* ── Hero header band ── */}
-                <div
-                  className="relative px-6 pt-6 pb-5 overflow-hidden"
-                  style={{
-                    background: batch.isOpen
-                      ? `linear-gradient(135deg, ${theme.primary}18 0%, ${theme.primary}08 60%, transparent 100%)`
-                      : "var(--bg-soft, rgba(0,0,0,0.02))",
-                    borderBottom: `1px solid ${batch.isOpen ? `${theme.primary}14` : "var(--border-soft)"}`,
-                  }}
-                >
-                  {/* decorative circle */}
-                  {batch.isOpen && (
-                    <div
-                      className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none"
-                      style={{
-                        background: `radial-gradient(circle, ${theme.primary}22 0%, transparent 70%)`,
-                      }}
-                    />
-                  )}
+                {packages.map((pkg, i) => (
+                  <PackageCard
+                    key={`${pkg.label}-${i}`}
+                    pkg={pkg}
+                    theme={theme}
+                    ctaHref={ctaHref}
+                    registerHref={registerHref}
+                    index={i}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EvergreenCTA theme={theme} ctaHref={ctaHref} />
+            )}
+          </>
+        ) : (
+          <>
+            <SectionHeader
+              theme={theme}
+              eyebrow="Jadwal Batch"
+              title="Pilih Batch yang"
+              titleAccent="Sesuai Jadwalmu"
+              subtitle="Batch dibuka secara berkala. Pilih sesi yang cocok, lalu daftar sebelum kuota habis."
+            />
 
-                  {/* Top row: status badge + duration chip */}
-                  <div className="flex items-center justify-between gap-2 mb-4 relative z-10">
-                    {/* Status badge */}
-                    <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-display font-bold"
-                      style={{
-                        fontSize: "0.5625rem",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        background: cfg.bg,
-                        border: `1px solid ${cfg.border}`,
-                        color: cfg.text,
-                      }}
-                    >
-                      <motion.span
-                        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                        style={{ background: cfg.dot }}
-                        animate={
-                          batch.isOpen
-                            ? { opacity: [1, 0.2, 1] }
-                            : { opacity: 1 }
-                        }
-                        transition={{ duration: 1.8, repeat: Infinity }}
-                      />
-                      {cfg.label}
-                    </span>
+            <div
+              className={`grid gap-6 ${
+                batches.length === 1
+                  ? "max-w-sm mx-auto"
+                  : batches.length === 2
+                    ? "sm:grid-cols-2 max-w-3xl mx-auto"
+                    : "sm:grid-cols-2 lg:grid-cols-3"
+              }`}
+            >
+              {batches.map((batch, i) => (
+                <BatchCard
+                  key={batch.id}
+                  batch={batch}
+                  theme={theme}
+                  fallbackCtaHref={ctaHref}
+                  registerHref={registerHref}
+                  index={i}
+                />
+              ))}
+            </div>
 
-                    {/* Duration chip */}
-                    {durationDays !== null && (
-                      <span
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-display font-bold"
-                        style={{
-                          fontSize: "0.5625rem",
-                          letterSpacing: "0.04em",
-                          background: "var(--bg-soft, rgba(0,0,0,0.05))",
-                          color: "var(--text-faint)",
-                          border: "1px solid var(--border-soft)",
-                        }}
-                      >
-                        <svg
-                          viewBox="0 0 10 10"
-                          className="w-2.5 h-2.5"
-                          fill="none"
-                        >
-                          <circle
-                            cx="5"
-                            cy="5"
-                            r="4"
-                            stroke="currentColor"
-                            strokeWidth={1.3}
-                          />
-                          <path
-                            d="M5 3v2.5l1.5 1"
-                            stroke="currentColor"
-                            strokeWidth={1.2}
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                        {durationDays} hari
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Batch name */}
-                  <p
-                    className="font-display font-extrabold leading-tight relative z-10"
-                    style={{
-                      fontSize: "1.1875rem",
-                      color: "var(--blue-navy)",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {batch.label}
-                  </p>
-
-                  {batch.schedule && (
-                    <p
-                      className="mt-1 relative z-10"
-                      style={{
-                        fontSize: "0.8125rem",
-                        color: "var(--text-faint)",
-                      }}
-                    >
-                      {batch.schedule}
-                    </p>
-                  )}
-
-                  {batch.note && (
-                    <p
-                      className="mt-2 inline-flex items-center gap-1 font-display font-semibold relative z-10"
-                      style={{ fontSize: "0.6875rem", color: theme.primary }}
-                    >
-                      <svg
-                        viewBox="0 0 10 10"
-                        className="w-2.5 h-2.5"
-                        fill="none"
-                      >
-                        <path
-                          d="M5 1l1.1 2.7L9 4.2l-2 2 .5 2.8L5 7.7 2.5 9l.5-2.8-2-2 2.9-.5z"
-                          fill={theme.primary}
-                        />
-                      </svg>
-                      {batch.note}
-                    </p>
-                  )}
-                </div>
-
-                {/* ── Card body ── */}
-                <div className="px-6 pt-5 pb-6 flex flex-col flex-1 gap-4">
-                  {/* Date range — full-width pill */}
-                  {(batch.startDate || batch.endDate) && (
-                    <div
-                      className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                      style={{
-                        background: batch.isOpen
-                          ? `${theme.primary}0c`
-                          : "var(--bg-soft, rgba(0,0,0,0.03))",
-                        border: `1px dashed ${batch.isOpen ? `${theme.primary}30` : "var(--border-soft)"}`,
-                      }}
-                    >
-                      {/* Calendar icon with filled dates */}
-                      <div
-                        className="flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center"
-                        style={{
-                          background: batch.isOpen
-                            ? `${theme.primary}18`
-                            : "var(--border-soft)",
-                        }}
-                      >
-                        <svg
-                          viewBox="0 0 16 16"
-                          className="w-4 h-4"
-                          fill="none"
-                        >
-                          <rect
-                            x="1.5"
-                            y="3"
-                            width="13"
-                            height="11"
-                            rx="2"
-                            stroke={
-                              batch.isOpen ? theme.primary : "var(--text-faint)"
-                            }
-                            strokeWidth={1.4}
-                          />
-                          <path
-                            d="M5 1.5v3M11 1.5v3M1.5 7.5h13"
-                            stroke={
-                              batch.isOpen ? theme.primary : "var(--text-faint)"
-                            }
-                            strokeWidth={1.4}
-                            strokeLinecap="round"
-                          />
-                          <rect
-                            x="3.5"
-                            y="9"
-                            width="2.5"
-                            height="2.5"
-                            rx="0.5"
-                            fill={
-                              batch.isOpen ? theme.primary : "var(--text-faint)"
-                            }
-                          />
-                        </svg>
-                      </div>
-                      <div className="min-w-0">
-                        <p
-                          className="font-display font-bold leading-tight"
-                          style={{
-                            fontSize: "0.875rem",
-                            color: "var(--blue-navy)",
-                          }}
-                        >
-                          {batch.startDate && batch.endDate
-                            ? `${formatDate(batch.startDate)} – ${formatDate(batch.endDate)}`
-                            : batch.startDate
-                              ? `Mulai ${formatDate(batch.startDate)}`
-                              : ""}
-                        </p>
-                        {durationDays && (
-                          <p
-                            style={{
-                              fontSize: "0.6875rem",
-                              color: "var(--text-faint)",
-                              marginTop: "1px",
-                            }}
-                          >
-                            Program {durationDays} hari penuh
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Capacity bar */}
-                  {pct !== null && batch.capacity && batch.enrolled && (
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5">
-                          <svg
-                            viewBox="0 0 12 12"
-                            className="w-3 h-3"
-                            fill="none"
-                          >
-                            <circle
-                              cx="6"
-                              cy="4"
-                              r="2.5"
-                              stroke="var(--text-faint)"
-                              strokeWidth={1.2}
-                            />
-                            <path
-                              d="M1.5 10.5c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"
-                              stroke="var(--text-faint)"
-                              strokeWidth={1.2}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <p
-                            style={{
-                              fontSize: "0.6875rem",
-                              color: "var(--text-faint)",
-                            }}
-                          >
-                            Kursi terisi
-                          </p>
-                        </div>
-                        <p
-                          className="font-display font-bold"
-                          style={{
-                            fontSize: "0.6875rem",
-                            color: pct >= 80 ? "#dc2626" : "var(--text-faint)",
-                          }}
-                        >
-                          {batch.enrolled}/{batch.capacity}
-                          <span className="font-normal opacity-60 ml-0.5">
-                            ({pct}%)
-                          </span>
-                        </p>
-                      </div>
-                      {/* segmented bar */}
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 10 }).map((_, seg) => {
-                          const filled = seg < Math.round(pct / 10);
-                          return (
-                            <motion.div
-                              key={seg}
-                              className="flex-1 h-1.5 rounded-sm"
-                              initial={{ opacity: 0, scaleX: 0 }}
-                              whileInView={{ opacity: 1, scaleX: 1 }}
-                              viewport={{ once: true }}
-                              transition={{
-                                duration: 0.4,
-                                delay: 0.2 + seg * 0.04,
-                                ease: EASE,
-                              }}
-                              style={{
-                                background: filled
-                                  ? pct >= 80
-                                    ? seg >= 8
-                                      ? "#ef4444"
-                                      : "#f59e0b"
-                                    : theme.primary
-                                  : "var(--border-soft)",
-                                transformOrigin: "left",
-                              }}
-                            />
-                          );
-                        })}
-                      </div>
-                      {isUrgent && (
-                        <motion.p
-                          initial={{ opacity: 0, x: -4 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className="mt-2 font-display font-bold flex items-center gap-1"
-                          style={{ fontSize: "0.6875rem", color: "#dc2626" }}
-                        >
-                          <span>⚡</span>
-                          <span>Hanya {spotsLeft} kursi tersisa!</span>
-                        </motion.p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Spacer */}
-                  <div className="flex-1" />
-
-                  {/* ── Single-row CTA zone ── */}
-                  {batch.isOpen ? (
-                    <div className="flex items-center gap-2 mt-2">
-                      {/* Primary CTA — grows to fill */}
-                      <motion.a
-                        href={primaryHref}
-                        className="relative flex-1 min-w-0 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-display font-bold text-white overflow-hidden group/btn"
-                        style={{
-                          fontSize: "0.875rem",
-                          background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.strong ?? theme.primary} 100%)`,
-                          boxShadow: `0 4px 20px ${theme.primary}40`,
-                          textDecoration: "none",
-                          whiteSpace: "nowrap",
-                        }}
-                        whileHover={{ scale: 1.025 }}
-                        whileTap={{ scale: 0.96 }}
-                      >
-                        <motion.span
-                          className="absolute inset-0 opacity-0 group-hover/btn:opacity-100"
-                          style={{
-                            background:
-                              "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%)",
-                            backgroundSize: "200% 100%",
-                          }}
-                          animate={{
-                            backgroundPosition: ["200% 0", "-200% 0"],
-                          }}
-                          transition={{
-                            duration: 1.8,
-                            repeat: Infinity,
-                            ease: "linear",
-                          }}
-                        />
-                        <span className="relative z-10 truncate">
-                          {hasPrimary ? batch.primaryCtaLabel : "Daftar"}
-                        </span>
-                        <span className="relative z-10 flex-shrink-0">
-                          <CtaIcon
-                            name={batch.primaryCtaIcon ?? "arrow-right"}
-                            className="w-3.5 h-3.5"
-                            color="white"
-                          />
-                        </span>
-                      </motion.a>
-
-                      {/* Secondary CTA — fixed width, text + icon */}
-                      {hasSecondary && (
-                        <motion.a
-                          href={batch.secondaryCtaHref}
-                          target={
-                            batch.secondaryCtaHref?.startsWith("http")
-                              ? "_blank"
-                              : undefined
-                          }
-                          rel="noopener noreferrer"
-                          className="flex-shrink-0 flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl font-display font-semibold"
-                          style={{
-                            fontSize: "0.8125rem",
-                            color: theme.primary,
-                            background: `${theme.primary}10`,
-                            border: `1.5px solid ${theme.primary}28`,
-                            textDecoration: "none",
-                            whiteSpace: "nowrap",
-                          }}
-                          whileHover={{
-                            scale: 1.04,
-                            backgroundColor: `${theme.primary}1c`,
-                          }}
-                          whileTap={{ scale: 0.96 }}
-                        >
-                          <CtaIcon
-                            name={batch.secondaryCtaIcon}
-                            className="w-3.5 h-3.5"
-                            color={theme.primary}
-                          />
-                          <span className="hidden md:inline">
-                            {batch.secondaryCtaLabel}
-                          </span>
-                        </motion.a>
-                      )}
-
-                      {/* Brochure icon — smallest, rightmost */}
-                      {batch.brochure && (
-                        <BrochureButton
-                          brochure={batch.brochure}
-                          theme={theme}
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <div
-                      className="mt-2 flex items-center justify-center gap-2 w-full py-3 rounded-2xl font-display font-semibold"
-                      style={{
-                        fontSize: "0.875rem",
-                        background: "var(--border-soft)",
-                        color: "var(--text-faint)",
-                      }}
-                    >
-                      {batch.status === "coming_soon"
-                        ? "⏳ Segera Dibuka"
-                        : batch.status === "full"
-                          ? "Kursi Penuh"
-                          : "Ditutup"}
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* ── Footer note ── */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-10 flex items-center justify-center gap-2.5"
-        >
-          <div
-            className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-            style={{ background: theme.soft ?? `${theme.primary}15` }}
-          >
-            <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none">
-              <path
-                d="M5 2v4M5 7.5v.5"
-                stroke={theme.primary}
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-          <p style={{ fontSize: "0.8125rem", color: "var(--text-faint)" }}>
-            Batch dibuka secara berkala — pendaftaran bisa ditutup sewaktu-waktu
-            jika kuota penuh.
-          </p>
-        </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="mt-10 text-center"
+              style={{ fontSize: "0.8125rem", color: "var(--text-faint)" }}
+            >
+              Batch dibuka secara berkala — pendaftaran bisa ditutup sewaktu-waktu jika kuota penuh.
+            </motion.p>
+          </>
+        )}
       </div>
     </section>
   );

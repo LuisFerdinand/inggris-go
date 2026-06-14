@@ -1,3 +1,16 @@
+// app/db/schema/blog.ts
+//
+// MIGRATION NEEDED after updating this file:
+//   npm run db:push
+//
+// New columns added to `post`:
+//   - is_featured  boolean  default false
+//   - category_id  text     FK → post_category(id)  ON DELETE SET NULL
+//
+// New table added:
+//   - post_comment (id, post_id, user_id, content, status, created_at, updated_at)
+//     status: pending | approved | rejected
+
 import {
   pgTable,
   text,
@@ -5,6 +18,7 @@ import {
   jsonb,
   integer,
   uniqueIndex,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { user } from "./auth-schema";
@@ -25,14 +39,22 @@ export const post = pgTable("post", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 
+  // Category (optional — can be ungrouped)
+  categoryId: text("category_id").references(() => postCategory.id, {
+    onDelete: "set null",
+  }),
+
   status: text("status").default("draft"),
   // draft | published | archived
 
+  // Mark as featured to appear in the hero slider on the blog index page
+  isFeatured: boolean("is_featured").default(false).notNull(),
+
   publishedAt: timestamp("published_at"),
 
-  readTime: integer("read_time"), // optional (minutes)
+  readTime: integer("read_time"),
 
-  viewCount: integer("view_count").default(0), // cached
+  viewCount: integer("view_count").default(0),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
@@ -45,6 +67,9 @@ export const postCategory = pgTable("post_category", {
   slug: text("slug").notNull().unique(),
 
   description: text("description"),
+
+  // Display order in the filter bar
+  order: integer("order").default(0).notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -74,7 +99,7 @@ export const postView = pgTable("post_view", {
     .notNull()
     .references(() => post.id, { onDelete: "cascade" }),
 
-  userId: text("user_id"), // nullable (guest view allowed)
+  userId: text("user_id"),
 
   ipAddress: text("ip_address"),
 
@@ -97,7 +122,6 @@ export const postLike = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [
-    // prevent duplicate likes
     uniqueIndex("post_like_unique").on(table.postId, table.userId),
   ],
 );
@@ -120,35 +144,57 @@ export const postSave = pgTable(
   (table) => [uniqueIndex("post_save_unique").on(table.postId, table.userId)],
 );
 
+export const postComment = pgTable("post_comment", {
+  id: text("id").primaryKey(),
+
+  postId: text("post_id")
+    .notNull()
+    .references(() => post.id, { onDelete: "cascade" }),
+
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+
+  content: text("content").notNull(),
+
+  // Moderation: pending → approved | rejected
+  status: text("status").default("approved").notNull(),
+  // pending | approved | rejected
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
+});
+
+/* ── Relations ─────────────────────────────────────────── */
+
 export const postRelations = relations(post, ({ one, many }) => ({
-  author: one(user, {
-    fields: [post.authorId],
-    references: [user.id],
+  author: one(user, { fields: [post.authorId], references: [user.id] }),
+  category: one(postCategory, {
+    fields: [post.categoryId],
+    references: [postCategory.id],
   }),
   likes: many(postLike),
   saves: many(postSave),
   views: many(postView),
   tags: many(postTag),
+  comments: many(postComment),
+}));
+
+export const postCategoryRelations = relations(postCategory, ({ many }) => ({
+  posts: many(post),
 }));
 
 export const postLikeRelations = relations(postLike, ({ one }) => ({
-  post: one(post, {
-    fields: [postLike.postId],
-    references: [post.id],
-  }),
-  user: one(user, {
-    fields: [postLike.userId],
-    references: [user.id],
-  }),
+  post: one(post, { fields: [postLike.postId], references: [post.id] }),
+  user: one(user, { fields: [postLike.userId], references: [user.id] }),
 }));
 
 export const postSaveRelations = relations(postSave, ({ one }) => ({
-  post: one(post, {
-    fields: [postSave.postId],
-    references: [post.id],
-  }),
-  user: one(user, {
-    fields: [postSave.userId],
-    references: [user.id],
-  }),
+  post: one(post, { fields: [postSave.postId], references: [post.id] }),
+  user: one(user, { fields: [postSave.userId], references: [user.id] }),
+}));
+
+export const postCommentRelations = relations(postComment, ({ one }) => ({
+  post: one(post, { fields: [postComment.postId], references: [post.id] }),
+  user: one(user, { fields: [postComment.userId], references: [user.id] }),
 }));

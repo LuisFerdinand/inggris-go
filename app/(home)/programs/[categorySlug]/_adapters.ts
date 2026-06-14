@@ -9,6 +9,7 @@ import { appRouter } from "@/lib/trpc/routers/_app";
 import type {
   CategoryCTA,
   CategoryMeta,
+  PricingPackage,
   ProgramBatch,
   ProgramDetail,
   ProgramMeta,
@@ -28,6 +29,45 @@ export async function getPublicCaller() {
 function formatIDR(v: number | null | undefined) {
   if (v == null) return "Hubungi Admin";
   return `Rp ${v.toLocaleString("id-ID")}`;
+}
+
+// DB package row → marketing PricingPackage (price ints → "Rp ..." strings)
+type DbPackage = {
+  id: string;
+  title: string;
+  description?: string | null;
+  price: number;
+  originalPrice?: number | null;
+  isDefault?: boolean | null;
+};
+
+function dbPackageToPricing(p: DbPackage): PricingPackage {
+  return {
+    id: p.id, 
+    label: p.title,
+    price: formatIDR(p.price),
+    originalPrice:
+      p.originalPrice != null && p.originalPrice > p.price
+        ? formatIDR(p.originalPrice)
+        : undefined,
+    highlight: p.isDefault ? "Paling Populer" : undefined,
+    note: p.description ?? undefined,
+  };
+}
+
+function registrationHref(programSlug: string, batchId?: string) {
+  const href = `/registrasi/${encodeURIComponent(programSlug)}`;
+  if (!batchId) return href;
+  return `${href}?batchId=${encodeURIComponent(batchId)}`;
+}
+
+
+// Pick the price shown on a batch card: the default package, else the cheapest.
+function pickBatchPackage(pkgs: DbPackage[]): DbPackage | undefined {
+  if (!pkgs.length) return undefined;
+  const def = pkgs.find((p) => p.isDefault);
+  if (def) return def;
+  return [...pkgs].sort((a, b) => a.price - b.price)[0];
 }
 
 /* ── Program (card) ── */
@@ -119,8 +159,7 @@ export function dbCategoryToMeta(
 }
 
 /* ── Program detail ── */
-
-function dbBatchToProgramBatch(b: any): ProgramBatch {
+function dbBatchToProgramBatch(b: any, programSlug: string): ProgramBatch {
   const status: ProgramBatch["status"] =
     b.status === "open"
       ? "open"
@@ -129,6 +168,13 @@ function dbBatchToProgramBatch(b: any): ProgramBatch {
         : b.status === "coming_soon"
           ? "coming_soon"
           : "closed";
+
+  const chosen = pickBatchPackage((b.packages ?? []) as DbPackage[]);
+
+  // ✅ Keep old CMS primary CTA, usually WA, as secondary CTA.
+  const oldPrimaryHref = b.primaryCtaHref ?? undefined;
+  const oldPrimaryLabel = b.primaryCtaLabel ?? undefined;
+  const oldPrimaryIcon = b.primaryCtaIcon ?? undefined;
 
   return {
     id: b.id,
@@ -140,27 +186,66 @@ function dbBatchToProgramBatch(b: any): ProgramBatch {
     isOpen: b.status === "open" || b.status === "ongoing",
     capacity: b.capacity ?? undefined,
     enrolled: b.enrolledCount ?? undefined,
+    price: chosen ? formatIDR(chosen.price) : undefined,
+    originalPrice:
+      chosen?.originalPrice != null && chosen.originalPrice > chosen.price
+        ? formatIDR(chosen.originalPrice)
+        : undefined,
     brochure: b.brochureUrl
       ? { url: b.brochureUrl, label: b.brochureLabel ?? undefined }
       : undefined,
-    primaryCtaLabel: b.primaryCtaLabel ?? undefined,
-    primaryCtaHref: b.primaryCtaHref ?? undefined,
-    primaryCtaIcon: b.primaryCtaIcon ?? undefined,
-    secondaryCtaLabel: b.secondaryCtaLabel ?? undefined,
-    secondaryCtaHref: b.secondaryCtaHref ?? undefined,
-    secondaryCtaIcon: b.secondaryCtaIcon ?? undefined,
+
+    // ✅ Main button now opens online registration, not WhatsApp.
+    primaryCtaLabel: "Daftar Online",
+    primaryCtaHref: registrationHref(programSlug, b.id),
+    primaryCtaIcon: "arrow-right",
+
+    // ✅ WhatsApp/admin CTA stays available as secondary button.
+    secondaryCtaLabel:
+      b.secondaryCtaLabel ?? oldPrimaryLabel ?? "Tanya Admin",
+    secondaryCtaHref:
+      b.secondaryCtaHref ?? oldPrimaryHref,
+    secondaryCtaIcon:
+      b.secondaryCtaIcon ?? oldPrimaryIcon ?? "message-circle",
   };
 }
 
 export function dbDetailToProgramDetail(d: any): ProgramDetail {
+  const isScheduled = d.program.scheduleType === "scheduled";
+  const onlineRegistrationHref = registrationHref(d.program.slug);
+
   return {
     slug: d.program.slug,
     theme: {
       primary: d.theme?.primary ?? d.category?.themePrimary ?? "#1a52c8",
     },
-    hasBatch: d.program.scheduleType === "scheduled" && d.batches.length > 0,
-    batches: d.batches.map(dbBatchToProgramBatch),
-    // CMS stores sections in the same shape as data.ts → passthrough.
-    sections: (d.sections ?? []) as ProgramSection[],
+    hasBatch: isScheduled && d.batches.length > 0,
+
+    // ✅ pass program slug so each batch gets `/registrasi/[slug]?batchId=...`
+    batches: d.batches.map((b: any) =>
+      dbBatchToProgramBatch(b, d.program.slug),
+    ),
+
+    packages: (d.directPackages ?? []).map((p: DbPackage) =>
+      dbPackageToPricing(p),
+    ),
+
+    // Optional but recommended:
+    // makes bottom CTA section go online too if CMS CTA still points to WA.
+    sections: ((d.sections ?? []) as ProgramSection[]).map((section) => {
+      if (section.type !== "cta") return section;
+
+      return {
+        ...section,
+        content: {
+          ...section.content,
+          cta: {
+            ...section.content.cta,
+            label: section.content.cta.label ?? "Daftar Online",
+            href: onlineRegistrationHref,
+          },
+        },
+      };
+    }),
   };
 }

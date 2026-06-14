@@ -824,6 +824,7 @@ type StepsSection = BaseSection & {
 };
 
 export type PricingPackage = {
+  id?: string;
   label: string; // e.g. "5x Pertemuan"
   price: string;
   originalPrice?: string;
@@ -1029,6 +1030,9 @@ export type ProgramBatch = {
     label?: string;
   };
 
+  price?: string; 
+  originalPrice?: string;
+
   primaryCtaLabel?: string;
   primaryCtaHref?: string;
   primaryCtaIcon?: string;
@@ -1048,6 +1052,7 @@ export type ProgramDetail = {
   hasBatch?: boolean;
   batches?: ProgramBatch[];
   sections: ProgramSection[];
+  packages?: PricingPackage[];
 };
 
 export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {

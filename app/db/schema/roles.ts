@@ -13,6 +13,7 @@ import { user } from "./auth-schema";
 export const ROLES = [
   "guest",
   "user",
+  "student",
   "teacher",
   "author",
   "admin",

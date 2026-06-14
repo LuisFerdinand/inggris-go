@@ -1,6 +1,13 @@
 // app/db/schema/auth-schema.ts
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -14,6 +21,16 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").default(false).notNull(),
 
   image: text("image"),
+
+  // ─────────────────────────────────────────────
+  // Online registration profile fields
+  //
+  // Nullable because existing users will not have
+  // these values yet.
+  // ─────────────────────────────────────────────
+  phone: text("phone"),
+
+  age: integer("age"),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 

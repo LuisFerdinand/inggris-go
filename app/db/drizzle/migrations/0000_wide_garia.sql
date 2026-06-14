@@ -6,7 +6,7 @@ CREATE TYPE "public"."program_level" AS ENUM('beginner', 'intermediate', 'advanc
 CREATE TYPE "public"."program_schedule_type" AS ENUM('permanent', 'scheduled');--> statement-breakpoint
 CREATE TYPE "public"."program_status" AS ENUM('draft', 'published', 'archived');--> statement-breakpoint
 CREATE TYPE "public"."registration_type" AS ENUM('online', 'offline');--> statement-breakpoint
-CREATE TYPE "public"."role" AS ENUM('guest', 'user', 'teacher', 'author', 'admin', 'super_admin');--> statement-breakpoint
+CREATE TYPE "public"."role" AS ENUM('guest', 'user', 'student', 'teacher', 'author', 'admin', 'super_admin');--> statement-breakpoint
 CREATE TYPE "public"."coupon_type" AS ENUM('public', 'private');--> statement-breakpoint
 CREATE TYPE "public"."discount_type" AS ENUM('percentage', 'fixed');--> statement-breakpoint
 CREATE TYPE "public"."enrollment_status" AS ENUM('pending_payment', 'paid', 'confirmed', 'cancelled', 'expired');--> statement-breakpoint
@@ -32,10 +32,13 @@ CREATE TABLE "program_batches" (
 	"timezone" text DEFAULT 'WIB',
 	"notes" text,
 	"brochure_url" text,
+	"brochure_label" text,
 	"primary_cta_label" text,
 	"primary_cta_href" text,
+	"primary_cta_icon" text,
 	"secondary_cta_label" text,
 	"secondary_cta_href" text,
+	"secondary_cta_icon" text,
 	"order" integer DEFAULT 0 NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp,
@@ -93,8 +96,9 @@ CREATE TABLE "program_packages" (
 	"original_price" integer,
 	"is_default" boolean DEFAULT false NOT NULL,
 	"order" integer DEFAULT 0 NOT NULL,
+	"features" jsonb,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"features" jsonb
+	"updated_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "programs" (
@@ -161,6 +165,8 @@ CREATE TABLE "user" (
 	"password_hash" text,
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"image" text,
+	"phone" text,
+	"age" integer,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "user_email_unique" UNIQUE("email")
