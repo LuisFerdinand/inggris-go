@@ -1,24 +1,29 @@
 // app/db/seed/index.ts
+
 import "dotenv/config"; // ✅ MUST be first, before ANY import
 
 import {
   seedAllPrograms,
   seedCategories,
-  seedProgramBatches,
-  seedProgramPackages,
-  seedPrograms,
-  syncProgramStartingPrices,
 } from "./programs.seed";
+
 import { seedRoles, seedUserRoles, seedUsers } from "./users.seed";
-import { seedAllBlog, seedBlogTags, seedPostCategories, seedPosts } from "./blog.seed";
+
+import { seedAllBlog } from "./blog.seed";
+
+import { seedSiteHeaderSettings } from "./site-header.seed";
 
 async function main() {
   console.log("🌱 Seeding...\n");
+
   try {
     // ── Auth / users ───────────────────────────────────────────────────────────
     await seedRoles();
     await seedUsers();
     await seedUserRoles();
+
+    // ── Site Header / Layout CMS ───────────────────────────────────────────────
+    await seedSiteHeaderSettings();
 
     // ── Programs ───────────────────────────────────────────────────────────────
     await seedCategories();

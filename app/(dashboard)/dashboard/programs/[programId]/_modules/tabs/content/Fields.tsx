@@ -1,23 +1,28 @@
 // app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/content/Fields.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
   GripVertical,
   ImageIcon,
+  Loader2,
   Plus,
   Trash2,
+  Upload,
   ArrowUp,
   ArrowDown,
+  X,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
 import { IconPicker } from "@/components/Form";
+import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 
 import { FieldWrap, inputCls, textareaCls } from "../detail";
 
@@ -50,6 +55,9 @@ function moveInArray<T>(arr: T[], index: number, dir: "up" | "down"): T[] {
    LEAF CONTROLS
 ───────────────────────────────────────────────────────────── */
 
+const ACCEPTED_IMAGE_TYPES = "image/*";
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // keep in sync with /api/upload
+
 function ImageField({
   value,
   onChange,
@@ -57,26 +65,138 @@ function ImageField({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const { upload, isUploading, progress, error, reset } = useCloudinaryUpload();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFile(file: File | undefined | null) {
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error("Ukuran gambar maksimal 10 MB");
+      return;
+    }
+
+    const url = await upload(file);
+    if (url) {
+      onChange(url);
+    } else if (error) {
+      toast.error(error);
+    }
+  }
+
+  function onInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    void handleFile(file);
+    // allow re-selecting the same file later
+    e.target.value = "";
+  }
+
+  function onDrop(e: React.DragEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    void handleFile(file);
+  }
+
+  function onDragOver(e: React.DragEvent<HTMLButtonElement>) {
+    e.preventDefault();
+  }
+
+  function clearImage() {
+    reset();
+    onChange("");
+  }
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-stretch gap-2">
-        <div className="size-[52px] flex-shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+        {/* Preview / drop target */}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          disabled={isUploading}
+          className={cn(
+            "group relative size-[52px] flex-shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50 transition-colors",
+            "hover:border-blue-300 hover:bg-blue-50/40",
+            isUploading && "cursor-wait",
+          )}
+          title={value ? "Ganti gambar" : "Unggah gambar"}
+        >
           {value ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={value} alt="" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <ImageIcon className="size-4 text-neutral-300" />
+              <ImageIcon className="size-4 text-neutral-300 group-hover:text-blue-400" />
             </div>
           )}
+
+          {isUploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <Loader2 className="size-4 animate-spin text-white" />
+            </div>
+          )}
+
+          {!isUploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-opacity group-hover:bg-black/30 group-hover:opacity-100">
+              <Upload className="size-3.5 text-white" />
+            </div>
+          )}
+        </button>
+
+        {/* URL input — still editable manually */}
+        <div className="relative flex-1">
+          <input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="https://… atau unggah gambar"
+            className={cn(inputCls, "w-full pr-8")}
+          />
+          {value && !isUploading && (
+            <button
+              type="button"
+              onClick={clearImage}
+              className="absolute right-2 top-1/2 flex size-5 -translate-y-1/2 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+              title="Hapus gambar"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
         </div>
+
         <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="https://… atau /images/…"
-          className={cn(inputCls, "flex-1")}
+          ref={inputRef}
+          type="file"
+          accept={ACCEPTED_IMAGE_TYPES}
+          onChange={onInputChange}
+          className="hidden"
         />
       </div>
+
+      {/* Upload progress */}
+      {isUploading && (
+        <div className="flex items-center gap-2">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100">
+            <div
+              className="h-full rounded-full bg-blue-500 transition-all"
+              style={{ width: `${progress ?? 0}%` }}
+            />
+          </div>
+          <span className="text-[11px] font-medium text-neutral-400">
+            {progress ?? 0}%
+          </span>
+        </div>
+      )}
+
+      {/* Inline error (in addition to toast) */}
+      {error && !isUploading && (
+        <p className="text-[11px] font-medium text-red-500">{error}</p>
+      )}
     </div>
   );
 }

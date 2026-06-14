@@ -1,4 +1,5 @@
 // app/modules/blog/server/blog.router.ts
+
 import { z } from "zod";
 import {
   and,
@@ -10,8 +11,8 @@ import {
   ne,
   inArray,
   or,
-  SQL,
 } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import {
@@ -50,13 +51,21 @@ export type CategoryRow = {
   createdAt: Date;
 };
 
+export type BlogTagRow = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
 export type PostRow = {
   id: string;
   title: string;
   slug: string;
   excerpt: string | null;
+  content: unknown;
+  contentHtml: string | null;
   coverImage: string | null;
-  status: string;
+  status: string | null;
   isFeatured: boolean;
   publishedAt: Date | null;
   readTime: number | null;
@@ -67,7 +76,7 @@ export type PostRow = {
   authorId: string;
   categoryId: string | null;
   category: CategoryRow | null;
-  tags: { id: string; name: string; slug: string }[];
+  tags: BlogTagRow[];
 };
 
 const idInput = z.object({ id: z.string().min(1) });
@@ -90,15 +99,49 @@ function makeSlug(title: string): string {
     .replace(/-{2,}/g, "-");
 }
 
+function getRequiredAuthUserId(ctx: unknown): string {
+  const c = ctx as {
+    authUserId?: string | null;
+    auth?: { userId?: string | null };
+    session?: { user?: { id?: string | null } };
+  };
+
+  const userId =
+    c.authUserId ?? c.auth?.userId ?? c.session?.user?.id ?? null;
+
+  if (!userId) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Anda harus login terlebih dahulu.",
+    });
+  }
+
+  return userId;
+}
+
+function getOptionalAuthUserId(ctx: unknown): string | null {
+  const c = ctx as {
+    authUserId?: string | null;
+    auth?: { userId?: string | null };
+    session?: { user?: { id?: string | null } };
+  };
+
+  return c.authUserId ?? c.auth?.userId ?? c.session?.user?.id ?? null;
+}
+
 async function uniquePostSlug(base: string, excludeId?: string) {
   let attempt = 0;
   const slug = makeSlug(base);
+
   while (true) {
     const candidate = attempt === 0 ? slug : `${slug}-${attempt}`;
+
     const existing = await db.query.post.findFirst({
       where: eq(post.slug, candidate),
     });
+
     if (!existing || existing.id === excludeId) return candidate;
+
     attempt++;
   }
 }
@@ -106,19 +149,27 @@ async function uniquePostSlug(base: string, excludeId?: string) {
 async function uniqueCategorySlug(base: string, excludeId?: string) {
   let attempt = 0;
   const slug = makeSlug(base);
+
   while (true) {
     const candidate = attempt === 0 ? slug : `${slug}-${attempt}`;
+
     const existing = await db.query.postCategory.findFirst({
       where: eq(postCategory.slug, candidate),
     });
+
     if (!existing || existing.id === excludeId) return candidate;
+
     attempt++;
   }
 }
 
-async function getTagsForPost(postId: string) {
+async function getTagsForPost(postId: string): Promise<BlogTagRow[]> {
   return db
-    .select({ id: tag.id, name: tag.name, slug: tag.slug })
+    .select({
+      id: tag.id,
+      name: tag.name,
+      slug: tag.slug,
+    })
     .from(postTag)
     .innerJoin(tag, eq(postTag.tagId, tag.id))
     .where(eq(postTag.postId, postId));
@@ -128,33 +179,44 @@ async function getCategoryForPost(
   categoryId: string | null,
 ): Promise<CategoryRow | null> {
   if (!categoryId) return null;
+
   const row = await db.query.postCategory.findFirst({
     where: eq(postCategory.id, categoryId),
   });
+
   return row ?? null;
 }
 
 async function getLikeCount(postId: string): Promise<number> {
   const [row] = await db
-    .select({ count: count() })
+    .select({
+      count: count(),
+    })
     .from(postLike)
     .where(eq(postLike.postId, postId));
+
   return row?.count ?? 0;
 }
 
 async function getUserLiked(postId: string, userId: string): Promise<boolean> {
   const row = await db.query.postLike.findFirst({
     where: and(eq(postLike.postId, postId), eq(postLike.userId, userId)),
-    columns: { id: true },
+    columns: {
+      id: true,
+    },
   });
+
   return !!row;
 }
 
 async function assertUserExists(userId: string): Promise<void> {
   const row = await db.query.user.findFirst({
     where: eq(user.id, userId),
-    columns: { id: true },
+    columns: {
+      id: true,
+    },
   });
+
   if (!row) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -163,33 +225,40 @@ async function assertUserExists(userId: string): Promise<void> {
   }
 }
 
-/* Minimal shape every select query passes into enrichPost.
-   Must match exactly the columns selected in getPublished, getRelated, etc. */
-type RawPostRow = {
+/**
+ * Minimal shape needed by enrichPost.
+ *
+ * Important:
+ * Keep this generic so extra fields from admin queries are preserved.
+ * Example: contentHtml, status, authorId, content, createdAt, updatedAt.
+ */
+type RawPostBase = {
   id: string;
-  title: string;
-  slug: string;
-  excerpt: string | null;
-  coverImage: string | null;
-  isFeatured: boolean;
-  publishedAt: Date | null;
-  readTime: number | null;
-  viewCount: number | null;
   categoryId: string | null;
 };
 
-/* Enrich a raw post row with tags, category, and likeCount */
-async function enrichPost(p: RawPostRow) {
+export type EnrichedPost<T extends RawPostBase = RawPostBase> = T & {
+  tags: BlogTagRow[];
+  category: CategoryRow | null;
+  likeCount: number;
+};
+
+async function enrichPost<T extends RawPostBase>(
+  p: T,
+): Promise<EnrichedPost<T>> {
   const [tags, category, likeCount] = await Promise.all([
     getTagsForPost(p.id),
     getCategoryForPost(p.categoryId),
     getLikeCount(p.id),
   ]);
-  return { ...p, tags, category, likeCount };
-}
 
-/** Convenience type — derive LivePost from enrichPost's return shape */
-export type EnrichedPost = Awaited<ReturnType<typeof enrichPost>>;
+  return {
+    ...p,
+    tags,
+    category,
+    likeCount,
+  };
+}
 
 /* =========================================================
    ROUTER
@@ -200,7 +269,6 @@ export const blogRouter = createTRPCRouter({
      CATEGORIES
   ───────────────────────────────────────────────────── */
 
-  /** List all categories — public (used by filter bar on blog index) */
   getCategories: baseProcedure.query(async () => {
     return db
       .select()
@@ -208,7 +276,6 @@ export const blogRouter = createTRPCRouter({
       .orderBy(asc(postCategory.order), asc(postCategory.name));
   }),
 
-  /** Create a new category — admin only */
   createCategory: protectedProcedure
     .input(
       z.object({
@@ -218,6 +285,7 @@ export const blogRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const slug = await uniqueCategorySlug(input.name);
+
       const [row] = await db
         .insert(postCategory)
         .values({
@@ -228,22 +296,25 @@ export const blogRouter = createTRPCRouter({
           order: 0,
         })
         .returning();
+
       return row;
     }),
 
-  /** Delete a category — admin only */
   deleteCategory: protectedProcedure
     .input(idInput)
     .mutation(async ({ input }) => {
-      // Detach posts from this category before deleting
       await db
         .update(post)
-        .set({ categoryId: null })
+        .set({
+          categoryId: null,
+        })
         .where(eq(post.categoryId, input.id));
-      await db
-        .delete(postCategory)
-        .where(eq(postCategory.id, input.id));
-      return { success: true };
+
+      await db.delete(postCategory).where(eq(postCategory.id, input.id));
+
+      return {
+        success: true,
+      };
     }),
 
   /* ─────────────────────────────────────────────────────
@@ -254,19 +325,28 @@ export const blogRouter = createTRPCRouter({
     return db.select().from(tag).orderBy(asc(tag.name));
   }),
 
-  /** Public tag list — used by filter bars */
   getTagsPublic: baseProcedure.query(async () => {
     return db.select().from(tag).orderBy(asc(tag.name));
   }),
 
   createTag: protectedProcedure
-    .input(z.object({ name: z.string().min(1) }))
+    .input(
+      z.object({
+        name: z.string().min(1),
+      }),
+    )
     .mutation(async ({ input }) => {
       const slug = makeSlug(input.name);
+
       const [row] = await db
         .insert(tag)
-        .values({ id: crypto.randomUUID(), name: input.name, slug })
+        .values({
+          id: crypto.randomUUID(),
+          name: input.name,
+          slug,
+        })
         .returning();
+
       return row;
     }),
 
@@ -278,16 +358,27 @@ export const blogRouter = createTRPCRouter({
     .input(postFilterSchema)
     .query(async ({ input }) => {
       const conditions: SQL[] = [];
-      if (input.status) conditions.push(eq(post.status, input.status));
-      if (input.searchQuery)
+
+      if (input.status) {
+        conditions.push(eq(post.status, input.status));
+      }
+
+      if (input.searchQuery) {
         conditions.push(ilike(post.title, `%${input.searchQuery}%`));
-      if (input.categoryId)
+      }
+
+      if (input.categoryId) {
         conditions.push(eq(post.categoryId, input.categoryId));
-      if (input.isFeatured !== undefined)
+      }
+
+      if (input.isFeatured !== undefined) {
         conditions.push(eq(post.isFeatured, input.isFeatured));
+      }
 
       const limit = input.limit ?? 20;
-      const offset = ((input.page ?? 1) - 1) * limit;
+      const page = input.page ?? 1;
+      const offset = (page - 1) * limit;
+      const whereClause = conditions.length ? and(...conditions) : undefined;
 
       const rows = await db
         .select({
@@ -295,6 +386,8 @@ export const blogRouter = createTRPCRouter({
           title: post.title,
           slug: post.slug,
           excerpt: post.excerpt,
+          content: post.content,
+          contentHtml: post.contentHtml,
           coverImage: post.coverImage,
           status: post.status,
           isFeatured: post.isFeatured,
@@ -307,22 +400,24 @@ export const blogRouter = createTRPCRouter({
           categoryId: post.categoryId,
         })
         .from(post)
-        .where(conditions.length ? and(...conditions) : undefined)
+        .where(whereClause)
         .orderBy(desc(post.createdAt))
         .limit(limit)
         .offset(offset);
 
       const [totalRow] = await db
-        .select({ count: count() })
+        .select({
+          count: count(),
+        })
         .from(post)
-        .where(conditions.length ? and(...conditions) : undefined);
+        .where(whereClause);
 
       const posts = await Promise.all(rows.map(enrichPost));
 
       return {
         posts,
         total: totalRow?.count ?? 0,
-        page: input.page ?? 1,
+        page,
         limit,
       };
     }),
@@ -330,12 +425,36 @@ export const blogRouter = createTRPCRouter({
   getById: protectedProcedure.input(idInput).query(async ({ input }) => {
     const row = await db.query.post.findFirst({
       where: eq(post.id, input.id),
+      columns: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        content: true,
+        contentHtml: true,
+        coverImage: true,
+
+        authorId: true,
+        categoryId: true,
+
+        status: true,
+        isFeatured: true,
+
+        publishedAt: true,
+        readTime: true,
+        viewCount: true,
+
+        createdAt: true,
+        updatedAt: true,
+      },
     });
-    if (!row)
+
+    if (!row) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Artikel tidak ditemukan",
       });
+    }
 
     return enrichPost(row);
   }),
@@ -343,9 +462,16 @@ export const blogRouter = createTRPCRouter({
   create: protectedProcedure
     .input(postInsertSchema)
     .mutation(async ({ input, ctx }) => {
+      const actorUserId = getRequiredAuthUserId(ctx);
+
       const { tagIds, slug: inputSlug, ...values } = input;
+
       const slug = await uniquePostSlug(inputSlug || values.title);
       const id = crypto.randomUUID();
+
+      const authorId = values.authorId || actorUserId;
+
+      await assertUserExists(authorId);
 
       const [row] = await db
         .insert(post)
@@ -353,7 +479,7 @@ export const blogRouter = createTRPCRouter({
           ...values,
           id,
           slug,
-          authorId: values.authorId || ctx.auth.userId,
+          authorId,
           publishedAt:
             values.status === "published" && !values.publishedAt
               ? new Date()
@@ -362,6 +488,13 @@ export const blogRouter = createTRPCRouter({
                 : null,
         })
         .returning();
+
+      if (!row) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Gagal membuat artikel.",
+        });
+      }
 
       if (tagIds?.length) {
         await db.insert(postTag).values(
@@ -373,7 +506,7 @@ export const blogRouter = createTRPCRouter({
         );
       }
 
-      return enrichPost({ ...row!, categoryId: row!.categoryId ?? null });
+      return enrichPost(row);
     }),
 
   update: protectedProcedure
@@ -384,19 +517,28 @@ export const blogRouter = createTRPCRouter({
       const existing = await db.query.post.findFirst({
         where: eq(post.id, id),
       });
-      if (!existing)
+
+      if (!existing) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Artikel tidak ditemukan",
         });
+      }
+
+      if (rest.authorId) {
+        await assertUserExists(rest.authorId);
+      }
 
       const slugSource = inputSlug || rest.title;
+
       const nextSlug = slugSource
         ? await uniquePostSlug(slugSource, id)
         : undefined;
 
-      let publishedAt =
-        rest.publishedAt ? new Date(rest.publishedAt) : existing.publishedAt;
+      let publishedAt = rest.publishedAt
+        ? new Date(rest.publishedAt)
+        : existing.publishedAt;
+
       if (
         rest.status === "published" &&
         !existing.publishedAt &&
@@ -415,14 +557,16 @@ export const blogRouter = createTRPCRouter({
         .where(eq(post.id, id))
         .returning();
 
-      if (!row)
+      if (!row) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Artikel tidak ditemukan",
         });
+      }
 
       if (tagIds !== undefined) {
         await db.delete(postTag).where(eq(postTag.postId, id));
+
         if (tagIds.length) {
           await db.insert(postTag).values(
             tagIds.map((tagId) => ({
@@ -434,7 +578,7 @@ export const blogRouter = createTRPCRouter({
         }
       }
 
-      return enrichPost({ ...row, categoryId: row.categoryId ?? null });
+      return enrichPost(row);
     }),
 
   setStatus: protectedProcedure
@@ -448,44 +592,77 @@ export const blogRouter = createTRPCRouter({
       const existing = await db.query.post.findFirst({
         where: eq(post.id, input.id),
       });
-      const publishedAt =
-        input.status === "published" && !existing?.publishedAt
-          ? new Date()
-          : existing?.publishedAt;
 
-      const [row] = await db
-        .update(post)
-        .set({ status: input.status, publishedAt })
-        .where(eq(post.id, input.id))
-        .returning();
-      if (!row)
+      if (!existing) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Artikel tidak ditemukan",
         });
+      }
+
+      const publishedAt =
+        input.status === "published" && !existing.publishedAt
+          ? new Date()
+          : existing.publishedAt;
+
+      const [row] = await db
+        .update(post)
+        .set({
+          status: input.status,
+          publishedAt,
+        })
+        .where(eq(post.id, input.id))
+        .returning();
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Artikel tidak ditemukan",
+        });
+      }
+
       return row;
     }),
 
   remove: protectedProcedure.input(idInput).mutation(async ({ input }) => {
     await db.delete(postTag).where(eq(postTag.postId, input.id));
     await db.delete(post).where(eq(post.id, input.id));
-    return { success: true };
+
+    return {
+      success: true,
+    };
   }),
 
   getStats: protectedProcedure.query(async () => {
     const rows = await db
-      .select({ status: post.status, count: count() })
+      .select({
+        status: post.status,
+        count: count(),
+      })
       .from(post)
       .groupBy(post.status);
 
-    const stats = { total: 0, published: 0, draft: 0, archived: 0 };
+    const stats = {
+      total: 0,
+      published: 0,
+      draft: 0,
+      archived: 0,
+    };
+
     for (const r of rows) {
       const c = r.count ?? 0;
+
       stats.total += c;
-      if (r.status === "published") stats.published = c;
-      else if (r.status === "draft") stats.draft = c;
-      else if (r.status === "archived") stats.archived = c;
+
+      if (r.status === "published") {
+        stats.published = c;
+      } else if (r.status === "draft") {
+        stats.draft = c;
+      } else if (r.status === "archived") {
+        stats.archived = c;
+      }
     }
+
     return stats;
   }),
 
@@ -493,11 +670,6 @@ export const blogRouter = createTRPCRouter({
      PUBLIC — POSTS
   ───────────────────────────────────────────────────── */
 
-  /**
-   * Returns only PUBLISHED posts.
-   * Supports filtering by category slug, tag slug, search, isFeatured.
-   * Draft / archived → never returned.
-   */
   getPublished: baseProcedure
     .input(
       z.object({
@@ -523,59 +695,78 @@ export const blogRouter = createTRPCRouter({
         conditions.push(ilike(post.title, `%${input.search}%`));
       }
 
-      // Filter by category slug — join to postCategory
-      let categoryId: string | undefined;
       if (input.categorySlug) {
         const cat = await db.query.postCategory.findFirst({
           where: eq(postCategory.slug, input.categorySlug),
-          columns: { id: true },
+          columns: {
+            id: true,
+          },
         });
-        if (cat) {
-          categoryId = cat.id;
-          conditions.push(eq(post.categoryId, cat.id));
-        } else {
-          // No posts match a non-existent category
-          return { posts: [], total: 0, page: input.page, limit: input.limit };
+
+        if (!cat) {
+          return {
+            posts: [],
+            total: 0,
+            page: input.page,
+            limit: input.limit,
+          };
         }
+
+        conditions.push(eq(post.categoryId, cat.id));
       }
 
-      // Filter by tag slug — need posts that have this tag
-      let tagPostIds: string[] | undefined;
       if (input.tagSlug) {
         const tagRow = await db.query.tag.findFirst({
           where: eq(tag.slug, input.tagSlug),
-          columns: { id: true },
+          columns: {
+            id: true,
+          },
         });
-        if (tagRow) {
-          const ptRows = await db
-            .select({ postId: postTag.postId })
-            .from(postTag)
-            .where(eq(postTag.tagId, tagRow.id));
-          tagPostIds = ptRows.map((r) => r.postId);
-          if (tagPostIds.length === 0) {
-            return {
-              posts: [],
-              total: 0,
-              page: input.page,
-              limit: input.limit,
-            };
-          }
-          conditions.push(inArray(post.id, tagPostIds));
-        } else {
-          return { posts: [], total: 0, page: input.page, limit: input.limit };
+
+        if (!tagRow) {
+          return {
+            posts: [],
+            total: 0,
+            page: input.page,
+            limit: input.limit,
+          };
         }
+
+        const ptRows = await db
+          .select({
+            postId: postTag.postId,
+          })
+          .from(postTag)
+          .where(eq(postTag.tagId, tagRow.id));
+
+        const tagPostIds = ptRows.map((r) => r.postId);
+
+        if (tagPostIds.length === 0) {
+          return {
+            posts: [],
+            total: 0,
+            page: input.page,
+            limit: input.limit,
+          };
+        }
+
+        conditions.push(inArray(post.id, tagPostIds));
       }
 
       let orderBy;
+
       switch (input.sort) {
         case "popular":
           orderBy = desc(post.viewCount);
           break;
+
         case "quickread":
           orderBy = asc(post.readTime);
           break;
+
         default:
           orderBy = desc(post.publishedAt);
+          break;
       }
 
       const limit = input.limit;
@@ -601,7 +792,9 @@ export const blogRouter = createTRPCRouter({
         .offset(offset);
 
       const [totalRow] = await db
-        .select({ count: count() })
+        .select({
+          count: count(),
+        })
         .from(post)
         .where(and(...conditions));
 
@@ -620,7 +813,11 @@ export const blogRouter = createTRPCRouter({
     }),
 
   getBySlug: baseProcedure
-    .input(z.object({ slug: z.string().min(1) }))
+    .input(
+      z.object({
+        slug: z.string().min(1),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const row = await db.query.post.findFirst({
         where: eq(post.slug, input.slug),
@@ -639,10 +836,16 @@ export const blogRouter = createTRPCRouter({
         getLikeCount(row.id),
       ]);
 
-      const userId = ctx.session?.user?.id ?? null;
+      const userId = getOptionalAuthUserId(ctx);
       const userLiked = userId ? await getUserLiked(row.id, userId) : false;
 
-      return { ...row, tags, category, likeCount, userLiked };
+      return {
+        ...row,
+        tags,
+        category,
+        likeCount,
+        userLiked,
+      };
     }),
 
   getRelated: baseProcedure
@@ -659,7 +862,6 @@ export const blogRouter = createTRPCRouter({
         ne(post.id, input.postId),
       ];
 
-      // Prefer same category
       if (input.categoryId) {
         conditions.push(eq(post.categoryId, input.categoryId));
       }
@@ -682,8 +884,8 @@ export const blogRouter = createTRPCRouter({
         .orderBy(desc(post.publishedAt))
         .limit(input.limit);
 
-      // If not enough from same category, backfill with any post
       let result = rows;
+
       if (result.length < input.limit && input.categoryId) {
         const extra = await db
           .select({
@@ -699,19 +901,16 @@ export const blogRouter = createTRPCRouter({
             categoryId: post.categoryId,
           })
           .from(post)
-          .where(
-            and(
-              eq(post.status, "published"),
-              ne(post.id, input.postId),
-            ),
-          )
+          .where(and(eq(post.status, "published"), ne(post.id, input.postId)))
           .orderBy(desc(post.publishedAt))
           .limit(input.limit - result.length + 5);
 
         const existingIds = new Set(result.map((r) => r.id));
+
         const backfill = extra
           .filter((r) => !existingIds.has(r.id))
           .slice(0, input.limit - result.length);
+
         result = [...result, ...backfill];
       }
 
@@ -731,27 +930,38 @@ export const blogRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const row = await db.query.post.findFirst({
-        where: and(
-          eq(post.slug, input.slug),
-          eq(post.status, "published"),
-        ),
-        columns: { id: true, viewCount: true },
+        where: and(eq(post.slug, input.slug), eq(post.status, "published")),
+        columns: {
+          id: true,
+          viewCount: true,
+        },
       });
-      if (!row) return { success: false };
 
-      const userId = ctx.session?.user?.id ?? null;
+      if (!row) {
+        return {
+          success: false,
+        };
+      }
+
+      const userId = getOptionalAuthUserId(ctx);
+
       if (userId) {
         const recent = await db.query.postView.findFirst({
-          where: and(
-            eq(postView.postId, row.id),
-            eq(postView.userId, userId),
-          ),
-          columns: { id: true, createdAt: true },
+          where: and(eq(postView.postId, row.id), eq(postView.userId, userId)),
+          columns: {
+            id: true,
+            createdAt: true,
+          },
           orderBy: desc(postView.createdAt),
         });
+
         const thirtyMins = new Date(Date.now() - 30 * 60 * 1000);
+
         if (recent && recent.createdAt > thirtyMins) {
-          return { success: true, counted: false };
+          return {
+            success: true,
+            counted: false,
+          };
         }
       }
 
@@ -761,73 +971,103 @@ export const blogRouter = createTRPCRouter({
         userId,
         ipAddress: input.ipAddress ?? null,
       });
+
       await db
         .update(post)
-        .set({ viewCount: (row.viewCount ?? 0) + 1 })
+        .set({
+          viewCount: (row.viewCount ?? 0) + 1,
+        })
         .where(eq(post.id, row.id));
 
-      return { success: true, counted: true };
+      return {
+        success: true,
+        counted: true,
+      };
     }),
 
   toggleLike: protectedProcedure
-    .input(z.object({ postId: z.string().min(1) }))
+    .input(
+      z.object({
+        postId: z.string().min(1),
+      }),
+    )
     .mutation(async ({ input, ctx }) => {
-      const userId = ctx.auth.userId;
+      const userId = getRequiredAuthUserId(ctx);
+
       await assertUserExists(userId);
 
       const postRow = await db.query.post.findFirst({
-        where: and(
-          eq(post.id, input.postId),
-          eq(post.status, "published"),
-        ),
-        columns: { id: true },
+        where: and(eq(post.id, input.postId), eq(post.status, "published")),
+        columns: {
+          id: true,
+        },
       });
-      if (!postRow)
+
+      if (!postRow) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Artikel tidak ditemukan",
         });
+      }
 
       const existing = await db.query.postLike.findFirst({
-        where: and(
-          eq(postLike.postId, input.postId),
-          eq(postLike.userId, userId),
-        ),
-        columns: { id: true },
+        where: and(eq(postLike.postId, input.postId), eq(postLike.userId, userId)),
+        columns: {
+          id: true,
+        },
       });
 
       if (existing) {
         await db.delete(postLike).where(eq(postLike.id, existing.id));
-        return { liked: false, likeCount: await getLikeCount(input.postId) };
-      } else {
-        await db.insert(postLike).values({
-          id: crypto.randomUUID(),
-          postId: input.postId,
-          userId,
-        });
-        return { liked: true, likeCount: await getLikeCount(input.postId) };
+
+        return {
+          liked: false,
+          likeCount: await getLikeCount(input.postId),
+        };
       }
+
+      await db.insert(postLike).values({
+        id: crypto.randomUUID(),
+        postId: input.postId,
+        userId,
+      });
+
+      return {
+        liked: true,
+        likeCount: await getLikeCount(input.postId),
+      };
     }),
 
   getLikeState: baseProcedure
-    .input(z.object({ postId: z.string().min(1) }))
+    .input(
+      z.object({
+        postId: z.string().min(1),
+      }),
+    )
     .query(async ({ input, ctx }) => {
-      const userId = ctx.session?.user?.id ?? null;
+      const userId = getOptionalAuthUserId(ctx);
+
       const [likeCount, userLiked] = await Promise.all([
         getLikeCount(input.postId),
-        userId
-          ? getUserLiked(input.postId, userId)
-          : Promise.resolve(false),
+        userId ? getUserLiked(input.postId, userId) : Promise.resolve(false),
       ]);
-      return { likeCount, userLiked };
+
+      return {
+        likeCount,
+        userLiked,
+      };
     }),
 
-  /**
-   * Public — list APPROVED comments for a published post.
-   * Used on the blog detail page.
-   */
+  /* ─────────────────────────────────────────────────────
+     PUBLIC — COMMENTS
+  ───────────────────────────────────────────────────── */
+
   getComments: baseProcedure
-    .input(z.object({ postId: z.string().min(1) }))
+    .input(
+      z.object({
+        postId: z.string().min(1),
+      }),
+    )
     .query(async ({ input }) => {
       const rows = await db
         .select({
@@ -852,15 +1092,14 @@ export const blogRouter = createTRPCRouter({
         id: r.id,
         content: r.content,
         createdAt: r.createdAt,
-        user: { id: r.userId, name: r.userName, image: r.userImage },
+        user: {
+          id: r.userId,
+          name: r.userName,
+          image: r.userImage,
+        },
       }));
     }),
 
-  /**
-   * Authenticated — post a comment on a published post.
-   * Comments are auto-approved by default (status="approved").
-   * Admins can moderate via getCommentsAdmin / setCommentStatus.
-   */
   addComment: protectedProcedure
     .input(
       z.object({
@@ -869,21 +1108,23 @@ export const blogRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const userId = ctx.auth.userId;
+      const userId = getRequiredAuthUserId(ctx);
+
       await assertUserExists(userId);
 
       const postRow = await db.query.post.findFirst({
-        where: and(
-          eq(post.id, input.postId),
-          eq(post.status, "published"),
-        ),
-        columns: { id: true },
+        where: and(eq(post.id, input.postId), eq(post.status, "published")),
+        columns: {
+          id: true,
+        },
       });
-      if (!postRow)
+
+      if (!postRow) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Artikel tidak ditemukan",
         });
+      }
 
       const [row] = await db
         .insert(postComment)
@@ -903,11 +1144,6 @@ export const blogRouter = createTRPCRouter({
      ADMIN — COMMENT MODERATION
   ───────────────────────────────────────────────────── */
 
-  /**
-   * Paginated comment list for the admin moderation page.
-   * Supports filtering by status and searching comment content,
-   * commenter name, or post title.
-   */
   getCommentsAdmin: protectedProcedure
     .input(
       z.object({
@@ -920,21 +1156,26 @@ export const blogRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       const conditions: SQL[] = [];
-      if (input.status) conditions.push(eq(postComment.status, input.status));
-      if (input.postId) conditions.push(eq(postComment.postId, input.postId));
+
+      if (input.status) {
+        conditions.push(eq(postComment.status, input.status));
+      }
+
+      if (input.postId) {
+        conditions.push(eq(postComment.postId, input.postId));
+      }
+
       if (input.searchQuery) {
         const q = `%${input.searchQuery}%`;
+
         conditions.push(
-          or(
-            ilike(postComment.content, q),
-            ilike(user.name, q),
-            ilike(post.title, q),
-          )!,
+          or(ilike(postComment.content, q), ilike(user.name, q), ilike(post.title, q))!,
         );
       }
 
       const limit = input.limit;
       const offset = (input.page - 1) * limit;
+      const whereClause = conditions.length ? and(...conditions) : undefined;
 
       const rows = await db
         .select({
@@ -943,10 +1184,12 @@ export const blogRouter = createTRPCRouter({
           status: postComment.status,
           createdAt: postComment.createdAt,
           updatedAt: postComment.updatedAt,
+
           userId: postComment.userId,
           userName: user.name,
           userImage: user.image,
           userEmail: user.email,
+
           postId: postComment.postId,
           postTitle: post.title,
           postSlug: post.slug,
@@ -954,17 +1197,19 @@ export const blogRouter = createTRPCRouter({
         .from(postComment)
         .innerJoin(user, eq(postComment.userId, user.id))
         .innerJoin(post, eq(postComment.postId, post.id))
-        .where(conditions.length ? and(...conditions) : undefined)
+        .where(whereClause)
         .orderBy(desc(postComment.createdAt))
         .limit(limit)
         .offset(offset);
 
       const [totalRow] = await db
-        .select({ count: count() })
+        .select({
+          count: count(),
+        })
         .from(postComment)
         .innerJoin(user, eq(postComment.userId, user.id))
         .innerJoin(post, eq(postComment.postId, post.id))
-        .where(conditions.length ? and(...conditions) : undefined);
+        .where(whereClause);
 
       const comments = rows.map((r) => ({
         id: r.id,
@@ -972,35 +1217,60 @@ export const blogRouter = createTRPCRouter({
         status: r.status,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
-        user: { id: r.userId, name: r.userName, image: r.userImage, email: r.userEmail },
-        post: { id: r.postId, title: r.postTitle, slug: r.postSlug },
+        user: {
+          id: r.userId,
+          name: r.userName,
+          image: r.userImage,
+          email: r.userEmail,
+        },
+        post: {
+          id: r.postId,
+          title: r.postTitle,
+          slug: r.postSlug,
+        },
       }));
 
-      return { comments, total: totalRow?.count ?? 0, page: input.page, limit };
+      return {
+        comments,
+        total: totalRow?.count ?? 0,
+        page: input.page,
+        limit,
+      };
     }),
 
-  /**
-   * Counts of comments by status — for the summary strip on the
-   * admin comment moderation page.
-   */
   getCommentStats: protectedProcedure.query(async () => {
     const rows = await db
-      .select({ status: postComment.status, count: count() })
+      .select({
+        status: postComment.status,
+        count: count(),
+      })
       .from(postComment)
       .groupBy(postComment.status);
 
-    const stats = { total: 0, pending: 0, approved: 0, rejected: 0 };
+    const stats = {
+      total: 0,
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+    };
+
     for (const r of rows) {
       const c = r.count ?? 0;
+
       stats.total += c;
-      if (r.status === "pending") stats.pending = c;
-      else if (r.status === "approved") stats.approved = c;
-      else if (r.status === "rejected") stats.rejected = c;
+
+      if (r.status === "pending") {
+        stats.pending = c;
+      } else if (r.status === "approved") {
+        stats.approved = c;
+      } else if (r.status === "rejected") {
+        stats.rejected = c;
+      }
     }
+
     return stats;
   }),
 
-  /** Approve, reject, or revert a comment to pending — admin only. */
   setCommentStatus: protectedProcedure
     .input(
       z.object({
@@ -1011,18 +1281,22 @@ export const blogRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const [row] = await db
         .update(postComment)
-        .set({ status: input.status })
+        .set({
+          status: input.status,
+        })
         .where(eq(postComment.id, input.id))
         .returning();
-      if (!row)
+
+      if (!row) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Komentar tidak ditemukan",
         });
+      }
+
       return row;
     }),
 
-  /** Bulk approve/reject — used by the "select all" bar in the admin UI. */
   bulkSetCommentStatus: protectedProcedure
     .input(
       z.object({
@@ -1033,24 +1307,39 @@ export const blogRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       await db
         .update(postComment)
-        .set({ status: input.status })
+        .set({
+          status: input.status,
+        })
         .where(inArray(postComment.id, input.ids));
-      return { success: true, count: input.ids.length };
+
+      return {
+        success: true,
+        count: input.ids.length,
+      };
     }),
 
-  /** Delete a comment permanently — admin only. */
   deleteComment: protectedProcedure
     .input(idInput)
     .mutation(async ({ input }) => {
       await db.delete(postComment).where(eq(postComment.id, input.id));
-      return { success: true };
+
+      return {
+        success: true,
+      };
     }),
 
-  /** Bulk delete — used by the "select all" bar in the admin UI. */
   bulkDeleteComments: protectedProcedure
-    .input(z.object({ ids: z.array(z.string().min(1)).min(1) }))
+    .input(
+      z.object({
+        ids: z.array(z.string().min(1)).min(1),
+      }),
+    )
     .mutation(async ({ input }) => {
       await db.delete(postComment).where(inArray(postComment.id, input.ids));
-      return { success: true, count: input.ids.length };
+
+      return {
+        success: true,
+        count: input.ids.length,
+      };
     }),
 });

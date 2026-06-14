@@ -21,6 +21,7 @@ import OverviewTab from "../../tabs/OverviewTab";
 import DetailTab from "../../tabs/DetailTab";
 import ContentTab from "../../tabs/ContentTab";
 import CommerceTab from "../../tabs/CommerceTab";
+import EnrollmentsTab from "../../tabs/EnrollmentsTab";
 
 const TAB_OPTIONS = [
   "overview",
@@ -185,14 +186,7 @@ export function ProgramDetailView({ programId }: ProgramDetailViewProps) {
 
         {active === "commerce" && <CommerceTab programId={programId} />}
 
-        {active === "enrollments" && (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-3xl border border-[var(--border-soft)] bg-white py-20 text-[var(--text-faint)] shadow-badge">
-            <Users className="size-6 opacity-50" />
-            <p className="text-sm font-semibold text-[var(--text-muted)]">
-              Pendaftar segera hadir
-            </p>
-          </div>
-        )}
+        {active === "enrollments" && <EnrollmentsTab programId={programId} />}
       </div>
     </div>
   );

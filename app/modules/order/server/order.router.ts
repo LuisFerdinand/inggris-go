@@ -1,11 +1,10 @@
 // app/modules/order/server/order.router.ts
 
 import { z } from "zod";
-import { and, eq } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
+import { and, desc, eq, gte, ilike, or, sql, SQL } from "drizzle-orm";import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 
-import { createTRPCRouter, baseProcedure } from "@/lib/trpc/init";
+import { createTRPCRouter, baseProcedure, protectedProcedure } from "@/lib/trpc/init";
 import { auth } from "@/lib/auth";
 
 import { db } from "@/app/db/db";
@@ -89,6 +88,439 @@ const registerOnlineInput = z.object({
     }, z.string().min(6, "Password minimal 6 karakter").optional())
     .optional(),
 });
+
+/* =========================================================
+   ENROLLMENTS (dashboard "Pendaftar" tab)
+========================================================= */
+
+const getEnrollmentsByProgramInput = z.object({
+  programId: z.string().min(1).optional(),
+
+  status: z
+    .enum(["pending_payment", "paid", "confirmed", "cancelled", "expired"])
+    .optional(),
+
+  paymentStatus: z
+    .enum(["pending", "paid", "failed", "expired", "cancelled", "refunded"])
+    .optional(),
+
+  batchId: z.string().optional(),
+
+  search: z.string().trim().optional(),
+
+  limit: z.number().int().min(1).max(100).default(20),
+  offset: z.number().int().min(0).default(0),
+});
+
+const getEnrollmentByIdInput = z.object({
+  id: z.string().min(1),
+});
+
+export type EnrollmentListResult = Awaited<ReturnType<typeof buildEnrollmentList>>;
+export type EnrollmentListItem = EnrollmentListResult["items"][number];
+export type EnrollmentDetail = Awaited<ReturnType<typeof buildEnrollmentDetail>>;
+
+async function buildEnrollmentList(
+  input: z.infer<typeof getEnrollmentsByProgramInput>,
+) {
+  const conditions: SQL[] = [];
+
+  if (input.programId) {
+    conditions.push(eq(enrollments.programId, input.programId));
+  }
+
+  if (input.status) {
+    conditions.push(eq(enrollments.status, input.status));
+  }
+
+  if (input.batchId) {
+    conditions.push(eq(enrollments.batchId, input.batchId));
+  }
+
+  if (input.search) {
+    const term = `%${input.search}%`;
+    const searchCondition = or(
+      ilike(enrollments.customerName, term),
+      ilike(enrollments.email, term),
+      ilike(enrollments.phone, term),
+    );
+    if (searchCondition) conditions.push(searchCondition);
+  }
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
+    .from(enrollments)
+    .where(and(...conditions));
+
+  const rows = await db.query.enrollments.findMany({
+    where: and(...conditions),
+    orderBy: [desc(enrollments.createdAt)],
+    limit: input.limit,
+    offset: input.offset,
+  });
+
+  const enrollmentIds = rows.map((r) => r.id);
+
+  const latestPayments = enrollmentIds.length
+    ? await db.query.payments.findMany({
+        where: (p, { inArray }) => inArray(p.enrollmentId, enrollmentIds),
+        orderBy: [desc(payments.createdAt)],
+      })
+    : [];
+
+  const paymentByEnrollment = new Map<string, (typeof latestPayments)[number]>();
+  for (const p of latestPayments) {
+    if (!paymentByEnrollment.has(p.enrollmentId)) {
+      paymentByEnrollment.set(p.enrollmentId, p);
+    }
+  }
+
+  let filtered = rows;
+  if (input.paymentStatus) {
+    filtered = rows.filter(
+      (r) => paymentByEnrollment.get(r.id)?.status === input.paymentStatus,
+    );
+  }
+
+  const items = filtered.map((r) => {
+    const payment = paymentByEnrollment.get(r.id);
+
+    return {
+      id: r.id,
+      type: r.type,
+      status: r.status,
+
+      customerName: r.customerName,
+      phone: r.phone,
+      email: r.email,
+      childName: r.childName,
+      age: r.age,
+
+      program: {
+        id: r.programId,
+        title: r.programSnapshot?.title ?? null,
+        slug: r.programSnapshot?.slug ?? null,
+        thumbnail: r.programSnapshot?.thumbnail ?? null,
+        format: r.programSnapshot?.format ?? null,
+        level: r.programSnapshot?.level ?? null,
+      },
+
+      batch: r.batchSnapshot
+        ? {
+            id: r.batchId,
+            title: r.batchSnapshot.title,
+            startDate: r.batchSnapshot.startDate ?? null,
+            endDate: r.batchSnapshot.endDate ?? null,
+            mode: r.batchSnapshot.mode ?? null,
+            location: r.batchSnapshot.location ?? null,
+          }
+        : null,
+
+      package: {
+        id: r.packageId,
+        title: r.packageSnapshot?.title ?? null,
+        price: r.packageSnapshot?.price ?? null,
+        originalPrice: r.packageSnapshot?.originalPrice ?? null,
+      },
+
+      pricing: {
+        subtotal: r.subtotalPrice,
+        discount: r.discountAmount,
+        final: r.finalPrice,
+        couponCode: r.couponCode ?? null,
+      },
+
+      payment: payment
+        ? {
+            id: payment.id,
+            status: payment.status,
+            method: payment.paymentMethod,
+            invoiceNumber: payment.invoiceNumber,
+            paymentUrl: payment.paymentUrl,
+            paidAt: payment.paidAt,
+            expiredAt: payment.expiredAt,
+          }
+        : null,
+
+      isManual: r.isManual,
+      source: r.source,
+
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  });
+
+  return {
+    items,
+    total: input.paymentStatus ? items.length : count,
+    limit: input.limit,
+    offset: input.offset,
+  };
+}
+
+async function buildEnrollmentDetail(id: string) {
+  const enrollment = await db.query.enrollments.findFirst({
+    where: eq(enrollments.id, id),
+  });
+
+  if (!enrollment) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Pendaftaran tidak ditemukan",
+    });
+  }
+
+  const enrollmentPayments = await db.query.payments.findMany({
+    where: eq(payments.enrollmentId, id),
+    orderBy: [desc(payments.createdAt)],
+  });
+
+  const account = enrollment.userId
+    ? await db.query.user.findFirst({
+        where: eq(user.id, enrollment.userId),
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          age: true,
+          image: true,
+          createdAt: true,
+        },
+      })
+    : null;
+
+  return {
+    id: enrollment.id,
+    type: enrollment.type,
+    status: enrollment.status,
+    scheduleType: enrollment.scheduleType,
+
+    customerName: enrollment.customerName,
+    phone: enrollment.phone,
+    email: enrollment.email,
+    childName: enrollment.childName,
+    age: enrollment.age,
+
+    program: enrollment.programSnapshot,
+    batch: enrollment.batchSnapshot,
+    package: enrollment.packageSnapshot,
+
+    pricing: {
+      subtotal: enrollment.subtotalPrice,
+      discount: enrollment.discountAmount,
+      final: enrollment.finalPrice,
+      couponCode: enrollment.couponCode,
+      couponSnapshot: enrollment.couponSnapshot,
+    },
+
+    formData: enrollment.data,
+    attachments: enrollment.attachments,
+    metadata: enrollment.metadata,
+
+    isManual: enrollment.isManual,
+    source: enrollment.source,
+
+    payments: enrollmentPayments.map((p) => ({
+      id: p.id,
+      provider: p.provider,
+      method: p.paymentMethod,
+      invoiceNumber: p.invoiceNumber,
+      amount: p.amount,
+      currency: p.currency,
+      status: p.status,
+      paymentUrl: p.paymentUrl,
+      paidAt: p.paidAt,
+      expiredAt: p.expiredAt,
+      failureReason: p.failureReason,
+      createdAt: p.createdAt,
+    })),
+
+    account,
+
+    createdAt: enrollment.createdAt,
+    updatedAt: enrollment.updatedAt,
+  };
+}
+
+/* =========================================================
+   DASHBOARD ANALYTICS
+========================================================= */
+
+const dashboardOverviewInput = z.object({
+  months: z.number().int().min(3).max(24).default(12),
+});
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function getMonthKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+}
+
+function getMonthLabel(date: Date) {
+  return date.toLocaleDateString("id-ID", {
+    month: "short",
+    year: "2-digit",
+  });
+}
+
+function isPaidEnrollmentStatus(status: string) {
+  return status === "paid" || status === "confirmed";
+}
+
+function isUnpaidEnrollmentStatus(status: string) {
+  return status === "pending_payment";
+}
+
+async function buildDashboardOverview(
+  input: z.infer<typeof dashboardOverviewInput>,
+) {
+  const now = new Date();
+  const fromDate = addMonths(startOfMonth(now), -(input.months - 1));
+
+  const [summaryRow] = await db
+    .select({
+      totalOrders: sql<number>`count(*)`.mapWith(Number),
+
+      paidOrders:
+        sql<number>`count(*) filter (where ${enrollments.status} in ('paid', 'confirmed'))`.mapWith(
+          Number,
+        ),
+
+      unpaidOrders:
+        sql<number>`count(*) filter (where ${enrollments.status} = 'pending_payment')`.mapWith(
+          Number,
+        ),
+
+      cancelledOrders:
+        sql<number>`count(*) filter (where ${enrollments.status} in ('cancelled', 'expired'))`.mapWith(
+          Number,
+        ),
+
+      paidRevenue:
+        sql<number>`coalesce(sum(case when ${enrollments.status} in ('paid', 'confirmed') then ${enrollments.finalPrice} else 0 end), 0)`.mapWith(
+          Number,
+        ),
+
+      unpaidRevenue:
+        sql<number>`coalesce(sum(case when ${enrollments.status} = 'pending_payment' then ${enrollments.finalPrice} else 0 end), 0)`.mapWith(
+          Number,
+        ),
+
+      totalPotentialRevenue:
+        sql<number>`coalesce(sum(${enrollments.finalPrice}), 0)`.mapWith(Number),
+
+      averagePaidOrderValue:
+        sql<number>`coalesce(avg(case when ${enrollments.status} in ('paid', 'confirmed') then ${enrollments.finalPrice} end), 0)`.mapWith(
+          Number,
+        ),
+    })
+    .from(enrollments);
+
+  const chartRows = await db
+    .select({
+      status: enrollments.status,
+      finalPrice: enrollments.finalPrice,
+      createdAt: enrollments.createdAt,
+    })
+    .from(enrollments)
+    .where(gte(enrollments.createdAt, fromDate));
+
+  const chartMap = new Map<
+    string,
+    {
+      month: string;
+      label: string;
+      paid: number;
+      unpaid: number;
+      total: number;
+      paidOrders: number;
+      unpaidOrders: number;
+      totalOrders: number;
+    }
+  >();
+
+  for (let i = 0; i < input.months; i++) {
+    const date = addMonths(fromDate, i);
+    const key = getMonthKey(date);
+
+    chartMap.set(key, {
+      month: key,
+      label: getMonthLabel(date),
+      paid: 0,
+      unpaid: 0,
+      total: 0,
+      paidOrders: 0,
+      unpaidOrders: 0,
+      totalOrders: 0,
+    });
+  }
+
+  for (const row of chartRows) {
+    const key = getMonthKey(row.createdAt);
+    const point = chartMap.get(key);
+
+    if (!point) continue;
+
+    point.total += row.finalPrice;
+    point.totalOrders += 1;
+
+    if (isPaidEnrollmentStatus(row.status)) {
+      point.paid += row.finalPrice;
+      point.paidOrders += 1;
+    }
+
+    if (isUnpaidEnrollmentStatus(row.status)) {
+      point.unpaid += row.finalPrice;
+      point.unpaidOrders += 1;
+    }
+  }
+
+  const recent = await buildEnrollmentList({
+    limit: 8,
+    offset: 0,
+  });
+
+  const totalOrders = summaryRow?.totalOrders ?? 0;
+  const paidOrders = summaryRow?.paidOrders ?? 0;
+
+  return {
+    summary: {
+      totalOrders,
+      paidOrders,
+      unpaidOrders: summaryRow?.unpaidOrders ?? 0,
+      cancelledOrders: summaryRow?.cancelledOrders ?? 0,
+
+      paidRevenue: summaryRow?.paidRevenue ?? 0,
+      unpaidRevenue: summaryRow?.unpaidRevenue ?? 0,
+      totalPotentialRevenue: summaryRow?.totalPotentialRevenue ?? 0,
+      averagePaidOrderValue: summaryRow?.averagePaidOrderValue ?? 0,
+
+      paidRate: totalOrders > 0 ? (paidOrders / totalOrders) * 100 : 0,
+    },
+
+    chart: Array.from(chartMap.values()),
+
+    recentOrders: recent.items,
+  };
+}
+
+export type OrderDashboardOverview = Awaited<
+  ReturnType<typeof buildDashboardOverview>
+>;
+
+/* =========================================================
+   ROUTER
+========================================================= */
 
 export const orderRouter = createTRPCRouter({
   registerOnline: baseProcedure
@@ -417,5 +849,170 @@ export const orderRouter = createTRPCRouter({
         invoiceNumber,
         paymentUrl: doku.paymentUrl,
       };
+    }),
+
+  /* ────────────────────────────────────────────────────────
+     ENROLLMENTS — "Pendaftar" tab (dashboard)
+  ───────────────────────────────────────────────────────── */
+
+  getEnrollmentsByProgram: protectedProcedure
+    .input(getEnrollmentsByProgramInput)
+    .query(async ({ input }) => {
+      if (!input.programId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "programId wajib diisi",
+        });
+      }
+
+      const program = await db.query.programs.findFirst({
+        where: eq(programs.id, input.programId),
+        columns: { id: true, scheduleType: true },
+      });
+
+      if (!program) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan",
+        });
+      }
+
+      return buildEnrollmentList(input);
+    }),
+
+  getProgramBatchOptions: protectedProcedure
+    .input(z.object({ programId: z.string().min(1) }))
+    .query(async ({ input }) => {
+      return db.query.programBatches.findMany({
+        where: eq(programBatches.programId, input.programId),
+        columns: { id: true, title: true },
+        orderBy: [desc(programBatches.createdAt)],
+      });
+    }),
+
+  getEnrollmentById: protectedProcedure
+    .input(getEnrollmentByIdInput)
+    .query(async ({ input }) => buildEnrollmentDetail(input.id)),
+
+  /* ────────────────────────────────────────────────────────
+     ORDERS — global "/dashboard/orders" page
+  ───────────────────────────────────────────────────────── */
+
+  getDashboardOverview: protectedProcedure
+    .input(dashboardOverviewInput)
+    .query(async ({ input }) => {
+      return buildDashboardOverview(input);
+    }),
+
+  /**
+   * Cross-program enrollment/order list. Same shape as
+   * `getEnrollmentsByProgram`, but `programId` is optional so it
+   * can list orders across every program.
+   */
+  getAll: protectedProcedure
+    .input(getEnrollmentsByProgramInput.omit({ programId: true }).extend({
+      programId: z.string().min(1).optional(),
+    }))
+    .query(async ({ input }) => {
+      return buildEnrollmentList(input);
+    }),
+
+  /**
+   * Programs that have at least one enrollment — used to populate
+   * the program filter dropdown on the global orders page.
+   */
+  getOrderProgramOptions: protectedProcedure.query(async () => {
+    const rows = await db
+      .selectDistinct({
+        id: programs.id,
+        title: programs.title,
+        slug: programs.slug,
+      })
+      .from(enrollments)
+      .innerJoin(programs, eq(enrollments.programId, programs.id))
+      .orderBy(programs.title);
+
+    return rows;
+  }),
+
+  /**
+   * Update the enrollment-level status (e.g. mark as confirmed,
+   * cancel, mark expired). Does not touch the payment record.
+   */
+  updateEnrollmentStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        status: z.enum([
+          "pending_payment",
+          "paid",
+          "confirmed",
+          "cancelled",
+          "expired",
+        ]),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const [row] = await db
+        .update(enrollments)
+        .set({ status: input.status, updatedAt: new Date() })
+        .where(eq(enrollments.id, input.id))
+        .returning();
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Pendaftaran tidak ditemukan",
+        });
+      }
+
+      return row;
+    }),
+
+  /**
+   * Update the latest payment's status for an enrollment
+   * (e.g. mark manual transfer as paid, mark as refunded).
+   */
+  updatePaymentStatus: protectedProcedure
+    .input(
+      z.object({
+        paymentId: z.string().min(1),
+        status: z.enum([
+          "pending",
+          "paid",
+          "failed",
+          "expired",
+          "cancelled",
+          "refunded",
+        ]),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const [row] = await db
+        .update(payments)
+        .set({
+          status: input.status,
+          ...(input.status === "paid" ? { paidAt: new Date() } : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(payments.id, input.paymentId))
+        .returning();
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Pembayaran tidak ditemukan",
+        });
+      }
+
+      // Keep enrollment status in sync for the common "mark as paid" case.
+      if (input.status === "paid") {
+        await db
+          .update(enrollments)
+          .set({ status: "paid", updatedAt: new Date() })
+          .where(eq(enrollments.id, row.enrollmentId));
+      }
+
+      return row;
     }),
 });

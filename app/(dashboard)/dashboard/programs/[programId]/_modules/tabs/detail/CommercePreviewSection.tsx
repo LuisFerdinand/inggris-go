@@ -531,7 +531,7 @@ export function CommercePreviewSection({
 
         {/* CTA */}
         <Link
-          href={`/dashboard/programs/${programId}?tab=packages`}
+          href={`/dashboard/programs/${programId}?tab=commerce`}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-neutral-200 bg-white text-neutral-700 text-[12px] font-semibold hover:border-neutral-300 hover:bg-neutral-50 hover:shadow-sm transition-all duration-150 self-start"
         >
           <Package className="size-3.5" />

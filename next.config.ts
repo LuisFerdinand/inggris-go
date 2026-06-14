@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { hostname } from "os";
 
 const nextConfig: NextConfig = {
   images: {
@@ -15,6 +16,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "q1irs9l4ex.ufs.sh",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      }
     ],
   },
 };

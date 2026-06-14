@@ -91,7 +91,7 @@ export function OverviewQuickActions({
       icon: LayoutList,
       iconBg: "bg-violet-50",
       iconColor: "text-violet-600",
-      href: `/dashboard/programs/${programId}/content`,
+      href: `/dashboard/programs/${programId}?tab=content`,
     },
     {
       label: isPublished ? "Program Live" : "Publikasi Program",

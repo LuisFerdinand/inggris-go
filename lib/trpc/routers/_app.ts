@@ -8,6 +8,7 @@ import { categoryRouter } from "@/app/modules/program/server/category.router";
 import { orderRouter } from "@/app/modules/order/server/order.router";
 import { programPublicRouter } from "@/app/modules/program/server/program.public.router";
 import { blogRouter } from "@/app/modules/blog/server/blog.router";
+import { siteHeaderRouter } from "@/app/modules/site-header/server/site-header.router";
 
 export const appRouter = createTRPCRouter({
   users: userRouter,
@@ -18,6 +19,7 @@ export const appRouter = createTRPCRouter({
   orders: orderRouter,
   publicPrograms: programPublicRouter,
   blog: blogRouter,
+  siteHeader: siteHeaderRouter,
 });
 
 export type AppRouter = typeof appRouter;

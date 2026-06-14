@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx app/db/seed/index.ts",
+    "db:seed:site-header": "tsx app/db/seed/site-header.single.ts",
     "db:drop": "drizzle-kit drop",
     "db:reset": "tsx app/db/reset/index.ts"
   },

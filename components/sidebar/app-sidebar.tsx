@@ -12,6 +12,7 @@ import {
   Newspaper,
   Settings2,
   BarChart3,
+  Globe2,
 } from "lucide-react";
 
 import {
@@ -64,11 +65,15 @@ export const routes = {
     root: "/dashboard/blog",
     create: "/dashboard/blog/new",
 
-    comments: "/dashboard/blog/comments",
+  },
+  
+  comments: {
+      root: "/dashboard/blog/comments",
   },
 
   settings: {
     root: "/dashboard/settings",
+    header: "/dashboard/settings/header",  
   },
 };
 
@@ -124,29 +129,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "Blog",
       icon: Newspaper,
+      url: routes.blog.root,
 
+      // Blog active only for /dashboard/blog and blog detail/create pages,
+      // but NOT comments
       isActive:
-        isActive(pathname, routes.blog.root) ||
-        isActive(pathname, routes.blog.comments),
+        isActive(pathname, routes.blog.root) &&
+        !isActive(pathname, routes.comments.root),
+    },
+    {
+      title: "Comments",
+      icon: CreditCard,
+      url: routes.comments.root,
 
-      items: [
-        {
-          title: "Semua Artikel",
-          url: routes.blog.root,
-
-          isActive:
-            pathname === routes.blog.root ||
-            (pathname.startsWith(routes.blog.root + "/") &&
-              !pathname.startsWith(routes.blog.comments)),
-        },
-
-        {
-          title: "Komentar",
-          url: routes.blog.comments,
-
-          isActive: isActive(pathname, routes.blog.comments),
-        },
-      ],
+      isActive: isActive(pathname, routes.comments.root),
     },
   ];
 
@@ -191,19 +187,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "Analitik",
       icon: BarChart3,
-
       url: routes.analitik.root,
-
       isActive: isActive(pathname, routes.analitik.root),
     },
 
     {
       title: "Pengaturan",
       icon: Settings2,
-
       url: routes.settings.root,
 
-      isActive: isActive(pathname, routes.settings.root),
+      // Exact only, so Site Header can be active by itself
+      isActive: pathname === routes.settings.root,
+    },
+
+    {
+      title: "Site Header",
+      icon: Globe2,
+      url: routes.settings.header,
+      isActive: isActive(pathname, routes.settings.header),
     },
   ];
 
