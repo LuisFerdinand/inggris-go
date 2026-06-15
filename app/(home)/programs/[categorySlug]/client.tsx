@@ -1550,40 +1550,44 @@ function ProgramCard({
           {/* Meta chips */}
           {(program.duration || program.format) && (
             <div className="flex flex-wrap gap-1.5 mb-3">
-              {[program.duration, program.format].filter(Boolean).map((v) => (
-                <span
-                  key={v}
-                  className="px-2.5 py-1 rounded-full font-display font-semibold"
-                  style={{
-                    fontSize: "0.625rem",
-                    background: theme.softStrong,
-                    color: theme.primary,
-                    border: `1px solid ${theme.border}`,
-                  }}
-                >
-                  {v}
-                </span>
-              ))}
+              {[program.duration, program.format]
+                .filter((v): v is string => Boolean(v))
+                .map((v, chipIndex) => (
+                  <span
+                    key={`${program.slug}-meta-${v}-${chipIndex}`}
+                    className="px-2.5 py-1 rounded-full font-display font-semibold"
+                    style={{
+                      fontSize: "0.625rem",
+                      background: theme.softStrong,
+                      color: theme.primary,
+                      border: `1px solid ${theme.border}`,
+                    }}
+                  >
+                    {v}
+                  </span>
+                ))}
             </div>
           )}
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {program.tags.slice(0, 4).map((tag) => (
-              <span
-                key={tag}
-                className="px-2 py-0.5 rounded-full"
-                style={{
-                  fontSize: "0.5875rem",
-                  background: "var(--surface-soft)",
-                  color: "var(--text-muted)",
-                  border: "1px solid var(--border-soft)",
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          {program.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {program.tags.slice(0, 4).map((tag, tagIndex) => (
+                <span
+                  key={`${program.slug}-tag-${tag}-${tagIndex}`}
+                  className="px-2 py-0.5 rounded-full"
+                  style={{
+                    fontSize: "0.5875rem",
+                    background: "var(--surface-soft)",
+                    color: "var(--text-muted)",
+                    border: "1px solid var(--border-soft)",
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Price tiers */}
           {program.priceTiers && program.priceTiers.length > 0 && (
@@ -1598,10 +1602,11 @@ function ProgramCard({
               >
                 Pilih Paket
               </p>
+
               <div className="grid grid-cols-2 gap-1.5">
-                {program.priceTiers.slice(0, 4).map((tier) => (
+                {program.priceTiers.slice(0, 4).map((tier, tierIndex) => (
                   <div
-                    key={tier.label}
+                    key={`${program.slug}-tier-${tier.label}-${tier.price}-${tierIndex}`}
                     className="rounded-xl p-2.5 transition-colors"
                     style={{
                       background: theme.soft,
@@ -1619,6 +1624,7 @@ function ProgramCard({
                     >
                       {tier.label}
                     </p>
+
                     <p
                       className="font-display font-black"
                       style={{
@@ -1754,7 +1760,7 @@ function ProgramList({
         <div className={`grid gap-6 ${colClass}`}>
           {category.programs.map((prog, i) => (
             <ProgramCard
-              key={prog.slug}
+              key={`${prog.slug}-${prog.href}-${i}`}
               program={prog}
               theme={theme}
               index={i}
@@ -3414,149 +3420,22 @@ export default function CategoryPageClient({ meta }: { meta: CategoryMeta }) {
     [meta.theme.primary],
   );
 
-  const hasBoth = !!(meta.painPoints?.length && meta.benefits?.length);
-
-  const navSections = useMemo(() => {
-    const base: { id: string; label: string }[] = [
+  const navSections = useMemo(
+    () => [
       { id: "hero", label: "Overview" },
       { id: "program-list", label: "Program" },
-    ];
-    if (hasBoth) base.push({ id: "masalah", label: "Solusi" });
-    if (meta.steps?.length)
-      base.push({ id: "cara-mulai", label: "Cara Mulai" });
-    if (meta.experience?.length)
-      base.push({ id: "pengalaman", label: "Pengalaman" });
-    if (meta.comparison?.length) base.push({ id: "detail", label: "Detail" });
-    if (meta.socialProof?.length)
-      base.push({ id: "testimoni", label: "Testimoni" });
-    base.push({ id: "faq", label: "FAQ" });
-    base.push({ id: "daftar", label: "Daftar" });
-    return base;
-  }, [meta, hasBoth]);
+    ],
+    [],
+  );
 
   return (
     <main className="relative w-full overflow-x-hidden">
       <SideProgressNav sections={navSections} theme={theme} />
       <ScrollToTopButton theme={theme} />
+
       <CategoryHero category={meta} theme={theme} />
 
-      {/* 2. Programs */}
       <ProgramList category={meta} theme={theme} />
-      {/* 4. Pain → Solution */}
-      {hasBoth && (
-        <PainSolutionSection
-          painPoints={meta.painPoints!}
-          benefits={meta.benefits!}
-          theme={theme}
-        />
-      )}
-      {/* Fallback: only pain points */}
-      {!hasBoth && meta.painPoints && meta.painPoints.length > 0 && (
-        <section
-          id="masalah"
-          className="relative py-20 lg:py-24 overflow-hidden"
-          style={{ background: "var(--surface)" }}
-        >
-          <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-            <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 lg:gap-20 items-start">
-              <div>
-                <Reveal>
-                  <SectionPill theme={theme}>
-                    ✦ Kamu Tidak Sendirian
-                  </SectionPill>
-                </Reveal>
-                <Reveal delay={0.07}>
-                  <h2
-                    className="font-display font-extrabold mt-5 mb-4"
-                    style={{
-                      fontSize: "clamp(1.9rem, 3vw, 2.5rem)",
-                      letterSpacing: "-0.022em",
-                      color: "var(--blue-navy)",
-                    }}
-                  >
-                    Masalah yang sering bikin{" "}
-                    <span style={{ color: theme.primary }}>stuck belajar</span>
-                  </h2>
-                </Reveal>
-              </div>
-              <div className="space-y-4">
-                {meta.painPoints.map((point, i) => (
-                  <Reveal key={point.title} delay={i * 0.09} y={20}>
-                    <motion.div
-                      whileHover={{ x: 6, scale: 1.01 }}
-                      className="flex items-start gap-4 p-4 rounded-2xl"
-                      style={{
-                        background: theme.soft,
-                        border: `1.5px solid ${theme.border}`,
-                      }}
-                    >
-                      {point.icon && (
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{
-                            background: theme.softStrong,
-                            border: `1.5px solid ${theme.border}`,
-                          }}
-                        >
-                          <Icon
-                            name={point.icon as any}
-                            className="w-5 h-5"
-                            style={{ color: theme.primary }}
-                          />
-                        </div>
-                      )}
-                      <div>
-                        <p
-                          className="font-display font-bold mb-1"
-                          style={{
-                            fontSize: "0.9375rem",
-                            color: "var(--blue-navy)",
-                          }}
-                        >
-                          {point.title}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: "0.8125rem",
-                            color: "var(--text-muted)",
-                            lineHeight: "1.6",
-                          }}
-                        >
-                          {point.description}
-                        </p>
-                      </div>
-                    </motion.div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-      {/* 5. Steps */}
-      {meta.steps && meta.steps.length > 0 && (
-        <StepsSection steps={meta.steps} theme={theme} />
-      )}
-      {/* 6. Experience */}
-      {meta.experience && meta.experience.length > 0 && (
-        <ExperienceSection experience={meta.experience} theme={theme} />
-      )}
-      {/* 7. Comparison */}
-      {meta.comparison && meta.comparison.length > 0 && (
-        <ComparisonSection
-          comparison={meta.comparison}
-          theme={theme}
-          categoryLabel={meta.shortLabel ?? meta.label}
-        />
-      )}
-      {/* 8. Testimonials */}
-      {meta.socialProof && meta.socialProof.length > 0 && (
-        <TestimonialsSection socialProof={meta.socialProof} theme={theme} />
-      )}
-      {/* 9. FAQ — NEW */}
-      <FAQSection theme={theme} category={meta} />
-      {/* 10. Final CTA */}
-      <CTASection cta={meta.cta} theme={theme} />
     </main>
   );
 }
