@@ -445,7 +445,7 @@ export function BatchForm({
           <Button
             type="submit"
             disabled={isPending}
-            className="h-8 rounded-lg bg-neutral-900 px-3 text-[12px] font-semibold text-white hover:bg-neutral-800"
+            className="h-8 rounded-lg border border-blue-600 bg-blue-600 px-3 text-[12px] font-semibold text-white shadow-sm hover:border-blue-700 hover:bg-blue-700"
           >
             {isPending ? (
               <Loader2 className="mr-1.5 size-3.5 animate-spin" />

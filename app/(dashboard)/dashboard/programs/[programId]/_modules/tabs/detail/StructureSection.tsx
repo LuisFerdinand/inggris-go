@@ -769,8 +769,12 @@ export function StructureSection({ data, programId }: StructureSectionProps) {
   const utils = trpc.useUtils();
 
   const updateStructure = trpc.programs.updateStructure.useMutation({
-    onSuccess: () => {
-      utils.programs.getDetail.invalidate({ id: programId });
+    onSuccess: async () => {
+      await Promise.all([
+        utils.programs.getDetail.invalidate({ id: programId }),
+        utils.programs.getFiltered.invalidate(),
+      ]);
+
       toast.success("Struktur program berhasil disimpan");
       setIsEditing(false);
       form.reset(form.getValues());

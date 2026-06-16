@@ -22,6 +22,7 @@ import {
 import Image from "next/image";
 import { SOCIAL_PROOF } from "@/constants";
 import { buildWhatsAppUrl } from "@/lib/config";
+import { useRouter } from "next/navigation";
 
 /* ══════════════════════════════════════════════════════════════
  * TYPES & CONSTANTS
@@ -150,6 +151,54 @@ function GridTexture({ theme }: { theme: Theme }) {
       }}
     />
   );
+}
+
+const DURATION_UNITS = [
+  { factor: 10080, label: "minggu" },
+  { factor: 1440, label: "hari" },
+  { factor: 60, label: "jam" },
+  { factor: 1, label: "menit" },
+] as const;
+
+function formatProgramDuration(
+  duration: string | number | null | undefined,
+) {
+  if (duration == null || duration === "") return null;
+
+  // If old/static data already says "3 hari", "2 minggu", etc, keep it.
+  if (typeof duration === "string") {
+    const trimmed = duration.trim();
+
+    if (!trimmed) return null;
+
+    const numericOnly = /^\d+$/.test(trimmed);
+
+    if (!numericOnly) return trimmed;
+
+    duration = Number(trimmed);
+  }
+
+  if (!Number.isFinite(duration) || duration <= 0) return null;
+
+  const unit =
+    DURATION_UNITS.find((u) => duration % u.factor === 0) ??
+    DURATION_UNITS[DURATION_UNITS.length - 1];
+
+  const value = duration / unit.factor;
+
+  return `${value} ${unit.label}`;
+}
+
+
+const HIGHLIGHT_SEPARATOR = "|";
+
+function splitProgramHighlight(highlight: string | null | undefined) {
+  if (!highlight) return [];
+
+  return highlight
+    .split(HIGHLIGHT_SEPARATOR)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1383,6 +1432,7 @@ function ProgramCard({
   index: number;
 }) {
   const [hovered, setHovered] = useState(false);
+  const router = useRouter();
 
   const startingPrice = program.priceTiers
     ? (() => {
@@ -1396,190 +1446,231 @@ function ProgramCard({
     : null;
 
   return (
-    <Reveal delay={index * 0.08} y={36}>
+    <Reveal delay={index * 0.08} y={32}>
       <motion.a
         href={program.href}
         onHoverStart={() => setHovered(true)}
         onHoverEnd={() => setHovered(false)}
-        whileHover={{ scale: 1.02, y: -8 }}
+        whileHover={{ y: -6 }}
         whileTap={{ scale: 0.99 }}
-        transition={{ duration: 0.3, ease: EASE }}
-        className="flex flex-col rounded-3xl overflow-hidden h-full relative"
+        transition={{ duration: 0.25, ease: EASE }}
+        className="flex flex-col rounded-[20px] overflow-hidden h-full relative group"
         style={{
           background: "var(--surface)",
-          border: `1.5px solid ${hovered ? theme.border : "var(--border-soft)"}`,
+          border: `1px solid ${hovered ? theme.border : "var(--border-soft)"}`,
           boxShadow: hovered
-            ? `0 32px 72px ${theme.border}, 0 4px 24px rgba(10,45,135,0.08)`
-            : "0 2px 16px rgba(10,45,135,0.05)",
-          transition: "border-color 0.25s ease, box-shadow 0.3s ease",
+            ? `0 20px 56px ${theme.border}, 0 2px 12px rgba(10,45,135,0.06)`
+            : "0 1px 8px rgba(10,45,135,0.04)",
+          transition: "border-color 0.2s ease, box-shadow 0.25s ease",
           textDecoration: "none",
         }}
       >
-        {/* Top gradient strip */}
+        {/* Subtle shine overlay on hover */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[20px]"
+          style={{
+            background:
+              "linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.04) 50%, transparent 60%)",
+          }}
+        />
+
+        {/* Top accent bar */}
         <div
           style={{
-            height: "4px",
+            height: "3px",
             background: hovered
               ? `linear-gradient(90deg, ${theme.primary}, ${theme.strong})`
-              : `linear-gradient(90deg, ${theme.border}, transparent)`,
+              : theme.border,
             transition: "background 0.3s ease",
           }}
         />
 
-        {/* Hover glow bg */}
-        <AnimatePresence>
-          {hovered && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 pointer-events-none"
-              style={{ background: theme.soft }}
+        {/* Header — icon + title + badges */}
+        <div className="flex items-start gap-3.5 px-5 pt-5">
+          <motion.div
+            className="w-12 h-12 rounded-[14px] flex items-center justify-center flex-shrink-0"
+            style={{
+              background: hovered ? theme.softStrong : theme.soft,
+              border: `1.5px solid ${theme.border}`,
+              transition: "background 0.2s ease",
+            }}
+            animate={hovered ? { rotate: [-4, 4, 0] } : { rotate: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            <Icon
+              name={program.icon as any}
+              className="w-5 h-5"
+              style={{ color: theme.primary }}
             />
-          )}
-        </AnimatePresence>
+          </motion.div>
 
-        <div className="relative flex flex-col flex-1 p-5">
-          {/* Icon + title */}
-          <div className="flex items-start gap-4 mb-5">
-            <motion.div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
-              style={{
-                background: hovered ? theme.softStrong : theme.soft,
-                border: `1.5px solid ${theme.border}`,
-                transition: "background 0.25s ease",
-              }}
-              animate={hovered ? { rotate: [0, -5, 5, 0] } : { rotate: 0 }}
-              transition={{ duration: 0.4 }}
+          <div className="flex-1 min-w-0 pt-0.5">
+            <p
+              className="font-display font-bold leading-snug mb-1.5"
+              style={{ fontSize: "1rem", color: "var(--blue-navy)" }}
             >
-              <Icon
-                name={program.icon as any}
-                className="w-6 h-6"
-                style={{ color: theme.primary }}
-              />
-            </motion.div>
-            <div className="flex-1 min-w-0">
-              <p
-                className="font-display font-bold leading-snug"
-                style={{
-                  fontSize: "1.0625rem",
-                  color: "black",
-                }}
-              >
-                {program.title}
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {program.badge && (
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full font-display font-bold"
-                    style={{
-                      fontSize: "0.5625rem",
-                      background: theme.primary,
-                      color: "white",
-                      letterSpacing: "0.05em",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {program.badge}
-                  </span>
-                )}
-                {program.level && (
-                  <span
-                    className="inline-flex items-center px-2 py-0.5 rounded-full font-display font-semibold"
-                    style={{
-                      fontSize: "0.5625rem",
-                      background: theme.soft,
-                      color: theme.primary,
-                      border: `1px solid ${theme.border}`,
-                    }}
-                  >
-                    {program.level}
-                  </span>
-                )}
-              </div>
+              {program.title}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {program.badge && (
+                <span
+                  className="inline-flex items-center px-2 py-0.5 rounded-[6px] font-display font-bold"
+                  style={{
+                    fontSize: "0.5625rem",
+                    background: theme.primary,
+                    color: "white",
+                    letterSpacing: "0.05em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {program.badge}
+                </span>
+              )}
+              {program.level && (
+                <span
+                  className="inline-flex items-center px-2 py-0.5 rounded-[6px] font-display font-semibold"
+                  style={{
+                    fontSize: "0.5625rem",
+                    background: "var(--surface-soft)",
+                    color: "var(--text-muted)",
+                    border: "1px solid var(--border-soft)",
+                  }}
+                >
+                  {program.level}
+                </span>
+              )}
             </div>
           </div>
+        </div>
 
+        {/* Body */}
+        <div className="flex flex-col flex-1 px-5 pt-4 pb-0 gap-3.5">
           {/* Description */}
           <p
-            className="mb-4"
             style={{
               fontSize: "0.8125rem",
               color: "var(--text-muted)",
-              lineHeight: "1.7",
+              lineHeight: "1.68",
             }}
           >
             {program.description}
           </p>
 
-          {/* Highlight block */}
-          {program.highlight && (
-            <div
-              className="flex items-start gap-2.5 mb-4 p-3.5 rounded-xl"
-              style={{
-                background: theme.soft,
-                border: `1px solid ${theme.border}`,
-              }}
-            >
+          {/* Highlight */}
+          {program.highlight && (() => {
+            const highlightItems = splitProgramHighlight(program.highlight);
+            const isMultiHighlight = highlightItems.length > 1;
+
+            return (
               <div
-                className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center"
-                style={{ background: theme.softStrong }}
-              >
-                <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none">
-                  <path
-                    d="M2 5l2 2 4-4"
-                    stroke={theme.primary}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-              <p
+                className="p-3 rounded-xl"
                 style={{
-                  fontSize: "0.8125rem",
-                  color: "var(--text-muted)",
-                  lineHeight: "1.55",
+                  background: "var(--surface-soft)",
+                  border: "1px solid var(--border-soft)",
                 }}
               >
-                {program.highlight}
-              </p>
-            </div>
-          )}
+                {isMultiHighlight ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {highlightItems.map((text, i) => (
+                      <span
+                        key={`${text}-${i}`}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-display font-semibold"
+                        style={{
+                          fontSize: "0.625rem",
+                          background: theme.soft,
+                          color: theme.primary,
+                          border: `1px solid ${theme.border}`,
+                        }}
+                      >
+                        <svg
+                          viewBox="0 0 10 10"
+                          className="w-2 h-2 flex-shrink-0"
+                          fill="none"
+                        >
+                          <path
+                            d="M2 5l2 2 4-4"
+                            stroke={theme.primary}
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        {text}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2.5">
+                    <div
+                      className="mt-0.5 flex-shrink-0 w-[18px] h-[18px] rounded-full flex items-center justify-center"
+                      style={{ background: theme.soft }}
+                    >
+                      <svg viewBox="0 0 10 10" className="w-2.5 h-2.5" fill="none">
+                        <path
+                          d="M2 5l2 2 4-4"
+                          stroke={theme.primary}
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: "0.8125rem",
+                        color: "var(--text-muted)",
+                        lineHeight: "1.55",
+                      }}
+                    >
+                      {highlightItems[0] ?? program.highlight}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Meta chips */}
-          {(program.duration || program.format) && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {[program.duration, program.format]
-                .filter((v): v is string => Boolean(v))
-                .map((v, chipIndex) => (
+          {(() => {
+            const durationLabel = formatProgramDuration(program.duration);
+
+            const chips = [durationLabel, program.format].filter(
+              (v): v is string => Boolean(v),
+            );
+
+            if (chips.length === 0) return null;
+
+            return (
+              <div className="flex flex-wrap gap-1.5">
+                {chips.map((v, i) => (
                   <span
-                    key={`${program.slug}-meta-${v}-${chipIndex}`}
-                    className="px-2.5 py-1 rounded-full font-display font-semibold"
+                    key={`${v}-${i}`}
+                    className="px-2.5 py-1 rounded-[8px] font-display font-semibold"
                     style={{
                       fontSize: "0.625rem",
-                      background: theme.softStrong,
-                      color: theme.primary,
-                      border: `1px solid ${theme.border}`,
+                      background: "var(--surface-soft)",
+                      color: "var(--text-muted)",
+                      border: "1px solid var(--border-soft)",
                     }}
                   >
                     {v}
                   </span>
                 ))}
-            </div>
-          )}
+              </div>
+            );
+          })()}
 
           {/* Tags */}
           {program.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {program.tags.slice(0, 4).map((tag, tagIndex) => (
+            <div className="flex flex-wrap gap-1.5">
+              {program.tags.slice(0, 4).map((tag, i) => (
                 <span
-                  key={`${program.slug}-tag-${tag}-${tagIndex}`}
+                  key={i}
                   className="px-2 py-0.5 rounded-full"
                   style={{
                     fontSize: "0.5875rem",
                     background: "var(--surface-soft)",
-                    color: "var(--text-muted)",
+                    color: "var(--text-faint)",
                     border: "1px solid var(--border-soft)",
                   }}
                 >
@@ -1591,7 +1682,7 @@ function ProgramCard({
 
           {/* Price tiers */}
           {program.priceTiers && program.priceTiers.length > 0 && (
-            <div className="mb-4">
+            <div>
               <p
                 className="font-display font-bold uppercase mb-2"
                 style={{
@@ -1602,12 +1693,11 @@ function ProgramCard({
               >
                 Pilih Paket
               </p>
-
               <div className="grid grid-cols-2 gap-1.5">
-                {program.priceTiers.slice(0, 4).map((tier, tierIndex) => (
+                {program.priceTiers.slice(0, 4).map((tier, i) => (
                   <div
-                    key={`${program.slug}-tier-${tier.label}-${tier.price}-${tierIndex}`}
-                    className="rounded-xl p-2.5 transition-colors"
+                    key={i}
+                    className="rounded-[10px] p-2.5"
                     style={{
                       background: theme.soft,
                       border: `1px solid ${theme.border}`,
@@ -1624,13 +1714,13 @@ function ProgramCard({
                     >
                       {tier.label}
                     </p>
-
                     <p
                       className="font-display font-black"
                       style={{
                         fontSize: "0.9375rem",
                         color: theme.primary,
                         letterSpacing: "-0.02em",
+                        marginTop: "2px",
                       }}
                     >
                       {tier.price}
@@ -1642,54 +1732,60 @@ function ProgramCard({
           )}
 
           <div className="flex-1" />
+        </div>
 
-          {/* Footer */}
-          <div
-            className="flex items-center justify-between pt-4"
-            style={{ borderTop: "1px solid var(--border-soft)" }}
-          >
-            <div>
-              <p
-                style={{
-                  fontSize: "0.5875rem",
-                  color: "var(--text-faint)",
-                }}
-              >
-                {startingPrice ? "Mulai dari" : "Harga"}
-              </p>
-              <p
-                className="font-display font-black"
-                style={{
-                  fontSize: "1.125rem",
-                  color: theme.primary,
-                  letterSpacing: "-0.025em",
-                }}
-              >
-                {startingPrice ?? program.price}
-              </p>
-            </div>
-            <motion.div
-              className="flex items-center gap-2 font-display font-bold px-5 py-2.5 rounded-xl text-white"
+        {/* Footer */}
+        <div
+          className="flex items-center justify-between px-5 pt-4 pb-5 mt-4"
+          style={{ borderTop: "1px solid var(--border-soft)" }}
+        >
+          <div>
+            <p style={{ fontSize: "0.5875rem", color: "var(--text-faint)" }}>
+              {startingPrice ? "Mulai dari" : "Harga"}
+            </p>
+            <p
+              className="font-display font-black"
               style={{
-                fontSize: "0.875rem",
-                background: theme.primary,
-                boxShadow: `0 4px 16px ${theme.border}`,
+                fontSize: "1.1875rem",
+                color: theme.primary,
+                letterSpacing: "-0.03em",
               }}
-              animate={hovered ? { x: 4 } : { x: 0 }}
-              transition={{ duration: 0.2 }}
             >
-              Daftar
-              <svg viewBox="0 0 14 14" className="w-3.5 h-3.5" fill="none">
-                <path
-                  d="M2.5 7h9M7.5 3.5l3.5 3.5-3.5 3.5"
-                  stroke="white"
-                  strokeWidth={1.7}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </motion.div>
+              {startingPrice ?? program.price}
+            </p>
           </div>
+
+          <motion.button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(`/registrasi/${program.slug}`);
+            }}
+            className="flex items-center gap-2 font-display font-bold px-5 py-2.5 rounded-xl text-white"
+            style={{
+              fontSize: "0.875rem",
+              background: theme.primary,
+              boxShadow: hovered ? `0 6px 20px ${theme.border}` : "none",
+              transition: "box-shadow 0.25s ease",
+              border: "none",
+              cursor: "pointer",
+            }}
+            animate={hovered ? { x: 3 } : { x: 0 }}
+            transition={{ duration: 0.2 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            Daftar
+            <svg viewBox="0 0 14 14" className="w-3.5 h-3.5" fill="none">
+              <path
+                d="M2.5 7h9M7.5 3.5l3.5 3.5-3.5 3.5"
+                stroke="white"
+                strokeWidth={1.7}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.button>
         </div>
       </motion.a>
     </Reveal>
@@ -1703,6 +1799,9 @@ function ProgramList({
   category: CategoryMeta;
   theme: Theme;
 }) {
+  const [activeProgramIndex, setActiveProgramIndex] = useState(0);
+  const mobileCarouselRef = useRef<HTMLDivElement | null>(null);
+
   const colClass =
     category.programs.length === 1
       ? "max-w-md mx-auto"
@@ -1710,10 +1809,70 @@ function ProgramList({
         ? "sm:grid-cols-2 max-w-2xl mx-auto"
         : "sm:grid-cols-2 lg:grid-cols-3";
 
+  const updateActiveProgramFromScroll = useCallback(() => {
+    const scroller = mobileCarouselRef.current;
+    if (!scroller) return;
+
+    const cards = Array.from(
+      scroller.querySelectorAll<HTMLElement>("[data-program-card]"),
+    );
+
+    if (cards.length === 0) return;
+
+    const viewportCenter = scroller.scrollLeft + scroller.clientWidth / 2;
+
+    let closestIndex = 0;
+    let closestDistance = Number.POSITIVE_INFINITY;
+
+    cards.forEach((card, index) => {
+      const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+      const distance = Math.abs(cardCenter - viewportCenter);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    setActiveProgramIndex(closestIndex);
+  }, []);
+
+  const scrollToProgram = useCallback((index: number) => {
+    const scroller = mobileCarouselRef.current;
+    if (!scroller) return;
+
+    const cards = Array.from(
+      scroller.querySelectorAll<HTMLElement>("[data-program-card]"),
+    );
+
+    const target = cards[index];
+    if (!target) return;
+
+    target.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+
+    setActiveProgramIndex(index);
+  }, []);
+
+  useEffect(() => {
+    setActiveProgramIndex(0);
+
+    const scroller = mobileCarouselRef.current;
+    if (!scroller) return;
+
+    scroller.scrollTo({
+      left: 0,
+      behavior: "auto",
+    });
+  }, [category.key]);
+
   return (
     <section
       id="program-list"
-      className="relative py-20 lg:py-28 overflow-hidden"
+      className="relative overflow-hidden py-20 lg:py-28"
       style={{ background: "var(--bg-soft)" }}
     >
       <div
@@ -1722,16 +1881,18 @@ function ProgramList({
           backgroundImage: `radial-gradient(ellipse 55% 50% at 100% 0%, ${theme.soft} 0%, transparent 55%), radial-gradient(ellipse 45% 55% at 0% 100%, ${theme.soft} 0%, transparent 55%)`,
         }}
       />
+
       <GridTexture theme={theme} />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        <div className="flex flex-col items-center text-center mb-14">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+        <div className="mb-10 flex flex-col items-center text-center sm:mb-14">
           <Reveal>
             <SectionPill theme={theme}>✦ Program Tersedia</SectionPill>
           </Reveal>
+
           <Reveal delay={0.07}>
             <h2
-              className="font-display font-extrabold mt-5 mb-4 leading-[1.07]"
+              className="mt-5 mb-4 font-display font-extrabold leading-[1.07]"
               style={{
                 fontSize: "clamp(1.9rem, 3.5vw, 2.875rem)",
                 letterSpacing: "-0.026em",
@@ -1742,6 +1903,7 @@ function ProgramList({
               <span style={{ color: theme.primary }}>paling cocok untukmu</span>
             </h2>
           </Reveal>
+
           <Reveal delay={0.13}>
             <p
               style={{
@@ -1755,12 +1917,118 @@ function ProgramList({
               {category.shortLabel}. Klik untuk detail dan pendaftaran.
             </p>
           </Reveal>
+
+          {category.programs.length > 1 && (
+            <Reveal delay={0.18}>
+              <div
+                className="mt-5 flex items-center gap-2 rounded-full px-3 py-1.5 sm:hidden"
+                style={{
+                  background: theme.soft,
+                  border: `1px solid ${theme.border}`,
+                  color: theme.primary,
+                }}
+              >
+                <span
+                  className="font-display font-bold uppercase"
+                  style={{
+                    fontSize: "0.5625rem",
+                    letterSpacing: "0.12em",
+                  }}
+                >
+                  Geser untuk lihat program lain
+                </span>
+
+                <motion.svg
+                  viewBox="0 0 18 18"
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{
+                    duration: 1.4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <path
+                    d="M3 9h12M10.5 4.5 15 9l-4.5 4.5"
+                    stroke={theme.primary}
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </motion.svg>
+              </div>
+            </Reveal>
+          )}
         </div>
 
-        <div className={`grid gap-6 ${colClass}`}>
+        {/* Mobile: horizontal swipe carousel */}
+        <div className="sm:hidden">
+          <div
+            ref={mobileCarouselRef}
+            onScroll={updateActiveProgramFromScroll}
+            className="-mx-5 overflow-x-auto overscroll-x-contain scroll-smooth pb-5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <div className="flex items-stretch gap-4">
+              {/* Left spacer so first card can center */}
+              <div
+                aria-hidden="true"
+                className="shrink-0 snap-none"
+                style={{
+                  width: "calc((100vw - min(86vw, 360px)) / 2 - 8px)",
+                }}
+              />
+
+              {category.programs.map((prog, i) => (
+                <div
+                  key={`${prog.slug}-${prog.href}-${i}-mobile`}
+                  data-program-card
+                  className="w-[86vw] max-w-[360px] shrink-0 snap-center"
+                >
+                  <ProgramCard program={prog} theme={theme} index={i} />
+                </div>
+              ))}
+
+              {/* Right spacer so last card can center */}
+              <div
+                aria-hidden="true"
+                className="shrink-0 snap-none"
+                style={{
+                  width: "calc((100vw - min(86vw, 360px)) / 2 - 8px)",
+                }}
+              />
+            </div>
+          </div>
+
+          {category.programs.length > 1 && (
+            <div className="mt-1 flex items-center justify-center gap-2">
+              {category.programs.map((prog, i) => {
+                const isActive = activeProgramIndex === i;
+
+                return (
+                  <button
+                    key={`${prog.slug}-mobile-dot-${i}`}
+                    type="button"
+                    aria-label={`Lihat program ${i + 1}`}
+                    onClick={() => scrollToProgram(i)}
+                    className="h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: isActive ? 24 : 8,
+                      background: isActive ? theme.primary : theme.border,
+                      opacity: isActive ? 1 : 0.65,
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Tablet / Desktop: normal grid */}
+        <div className={`hidden gap-6 sm:grid ${colClass}`}>
           {category.programs.map((prog, i) => (
             <ProgramCard
-              key={`${prog.slug}-${prog.href}-${i}`}
+              key={`${prog.slug}-${prog.href}-${i}-desktop`}
               program={prog}
               theme={theme}
               index={i}
@@ -1771,20 +2039,20 @@ function ProgramList({
         {/* Quick comparison hint */}
         <Reveal delay={0.2}>
           <div
-            className="mt-10 p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-4"
+            className="mt-10 flex flex-col items-start gap-4 rounded-2xl p-5 sm:flex-row sm:items-center"
             style={{
               background: theme.soft,
               border: `1px solid ${theme.border}`,
             }}
           >
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
               style={{
                 background: theme.softStrong,
                 border: `1px solid ${theme.border}`,
               }}
             >
-              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
+              <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none">
                 <circle
                   cx="8"
                   cy="8"
@@ -1800,6 +2068,7 @@ function ProgramList({
                 />
               </svg>
             </div>
+
             <div className="flex-1">
               <p
                 className="font-display font-bold"
@@ -1810,6 +2079,7 @@ function ProgramList({
               >
                 Tidak yakin program mana yang tepat?
               </p>
+
               <p
                 style={{
                   fontSize: "0.8125rem",
@@ -1820,12 +2090,13 @@ function ProgramList({
                 Konsultasikan dengan tim kami — gratis, tanpa tekanan.
               </p>
             </div>
+
             <motion.a
               href={buildWhatsAppUrl({
                 title: "Konsultasi",
                 intent: "consultation",
               })}
-              className="font-display font-bold px-5 py-2.5 rounded-xl whitespace-nowrap flex-shrink-0"
+              className="shrink-0 whitespace-nowrap rounded-xl px-5 py-2.5 font-display font-bold"
               style={{
                 fontSize: "0.875rem",
                 color: theme.primary,
@@ -1841,7 +2112,6 @@ function ProgramList({
           </div>
         </Reveal>
       </div>
-      <TrustBar theme={theme}></TrustBar>
     </section>
   );
 }

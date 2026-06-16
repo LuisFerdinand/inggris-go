@@ -108,7 +108,8 @@ export type ProgramMeta = {
   href: string;
 
   benefits?: Benefit[];
-  duration?: string;
+  duration?: string | number | null;
+  durationMinutes?: number | null;
   format?: string;
   level?: string;
 };

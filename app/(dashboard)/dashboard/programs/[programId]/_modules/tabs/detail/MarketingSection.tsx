@@ -1,7 +1,7 @@
 // app/(dashboard)/dashboard/programs/[programId]/_modules/tabs/detail/MarketingSection.tsx
 "use client";
 
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, KeyboardEvent, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,11 +13,12 @@ import {
   Hash,
   X,
   Sparkles,
-  Tag,
 } from "lucide-react";
+
 import { trpc } from "@/lib/trpc/client";
 import toast from "react-hot-toast";
-import { cn } from "@/lib/utils";
+import { cn, generateTheme } from "@/lib/utils";
+
 import {
   SectionCard,
   ReadField,
@@ -41,10 +42,29 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 /* ─────────────────────────────────────────────────────────────
-   TAG INPUT
+   CONSTANTS / HELPERS
 ───────────────────────────────────────────────────────────── */
 
 const MAX_TAGS = 15;
+const HIGHLIGHT_SEPARATOR = "|";
+
+type Theme = ReturnType<typeof generateTheme>;
+
+function splitProgramHighlight(highlight: string | null | undefined) {
+  if (!highlight) return [];
+
+  // Backward compatible:
+  // New format: "A | B | C"
+  // Old format: "A • B • C"
+  const separator = highlight.includes(HIGHLIGHT_SEPARATOR)
+    ? HIGHLIGHT_SEPARATOR
+    : "•";
+
+  return highlight
+    .split(separator)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
 // Common suggested tags users can click to add instantly
 const SUGGESTED_TAGS = [
@@ -59,6 +79,141 @@ const SUGGESTED_TAGS = [
   "ielts",
   "bisnis",
 ];
+
+/* ─────────────────────────────────────────────────────────────
+   PUBLIC CARD STYLE PREVIEWS
+   These match the public ProgramCard visual treatment.
+───────────────────────────────────────────────────────────── */
+
+function PublicCardBadgePreview({
+  badge,
+  theme,
+}: {
+  badge: string;
+  theme: Theme;
+}) {
+  return (
+    <span
+      className="inline-flex items-center rounded-[6px] px-2 py-0.5 font-display font-bold"
+      style={{
+        fontSize: "0.5625rem",
+        background: theme.primary,
+        color: "white",
+        letterSpacing: "0.05em",
+        textTransform: "uppercase",
+      }}
+    >
+      {badge}
+    </span>
+  );
+}
+
+function PublicCardHighlightPreview({
+  highlight,
+  theme,
+}: {
+  highlight: string;
+  theme: Theme;
+}) {
+  const highlightItems = splitProgramHighlight(highlight);
+  const isMultiHighlight = highlightItems.length > 1;
+
+  return (
+    <div
+      className="w-full rounded-xl p-3"
+      style={{
+        background: "var(--surface-soft)",
+        border: "1px solid var(--border-soft)",
+      }}
+    >
+      {isMultiHighlight ? (
+        <div className="flex flex-wrap gap-1.5">
+          {highlightItems.map((text, i) => (
+            <span
+              key={`${text}-${i}`}
+              className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 font-display font-semibold"
+              style={{
+                fontSize: "0.625rem",
+                background: theme.soft,
+                color: theme.primary,
+                border: `1px solid ${theme.border}`,
+              }}
+            >
+              <svg
+                viewBox="0 0 10 10"
+                className="h-2 w-2 flex-shrink-0"
+                fill="none"
+              >
+                <path
+                  d="M2 5l2 2 4-4"
+                  stroke={theme.primary}
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {text}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="flex items-start gap-2.5">
+          <div
+            className="mt-0.5 flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full"
+            style={{ background: theme.soft }}
+          >
+            <svg viewBox="0 0 10 10" className="h-2.5 w-2.5" fill="none">
+              <path
+                d="M2 5l2 2 4-4"
+                stroke={theme.primary}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+
+          <p
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--text-muted)",
+              lineHeight: "1.55",
+            }}
+          >
+            {highlightItems[0] ?? highlight}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PublicCardTagsPreview({ tags }: { tags: string[] }) {
+  if (tags.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {tags.slice(0, 4).map((tag, i) => (
+        <span
+          key={`${tag}-${i}`}
+          className="rounded-full px-2 py-0.5"
+          style={{
+            fontSize: "0.5875rem",
+            background: "var(--surface-soft)",
+            color: "var(--text-faint)",
+            border: "1px solid var(--border-soft)",
+          }}
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TAG INPUT
+───────────────────────────────────────────────────────────── */
 
 interface TagInputProps {
   value: string[];
@@ -83,6 +238,7 @@ function TagInput({ value, onChange }: TagInputProps) {
 
   function addTag(raw: string) {
     const tag = sanitize(raw);
+
     if (tag && !value.includes(tag) && canAdd) {
       onChange([...value, tag]);
       setInputValue("");
@@ -166,7 +322,6 @@ function TagInput({ value, onChange }: TagInputProps) {
 
       {/* Footer row: suggestions + counter */}
       <div className="flex items-start justify-between gap-3 min-h-[22px]">
-        {/* Suggestions */}
         <AnimatePresence>
           {focused && suggestions.length > 0 && (
             <motion.div
@@ -194,7 +349,6 @@ function TagInput({ value, onChange }: TagInputProps) {
           )}
         </AnimatePresence>
 
-        {/* Tag counter */}
         <span
           className={cn(
             "text-[10px] font-semibold tabular-nums ml-auto whitespace-nowrap flex-shrink-0",
@@ -209,32 +363,10 @@ function TagInput({ value, onChange }: TagInputProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   LIVE PREVIEW CHIPS (shared by read + edit)
-───────────────────────────────────────────────────────────── */
-
-function BadgeChip({ label }: { label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold ring-1 ring-amber-100 shadow-sm">
-      <Award className="size-3 text-amber-500" />
-      {label}
-    </span>
-  );
-}
-
-function HighlightChip({ label }: { label: string }) {
-  return (
-    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-[12px] font-semibold shadow-sm max-w-full">
-      <TrendingUp className="size-3.5 text-emerald-500 flex-shrink-0" />
-      <span className="truncate">{label}</span>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────────
    READ MODE
 ───────────────────────────────────────────────────────────── */
 
-function ReadMode({ data }: { data: DetailData }) {
+function ReadMode({ data, theme }: { data: DetailData; theme: Theme }) {
   const tags = data.tags ?? [];
 
   return (
@@ -242,30 +374,25 @@ function ReadMode({ data }: { data: DetailData }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Badge */}
         <ReadField label="Badge" empty={!data.badge}>
-          {data.badge ? <BadgeChip label={data.badge} /> : null}
+          {data.badge ? (
+            <PublicCardBadgePreview badge={data.badge} theme={theme} />
+          ) : null}
         </ReadField>
 
         {/* Highlight */}
         <ReadField label="Highlight" empty={!data.highlight}>
-          {data.highlight ? <HighlightChip label={data.highlight} /> : null}
+          {data.highlight ? (
+            <PublicCardHighlightPreview
+              highlight={data.highlight}
+              theme={theme}
+            />
+          ) : null}
         </ReadField>
       </div>
 
       {/* Tags */}
       <ReadField label="Tags" empty={tags.length === 0}>
-        {tags.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5 mt-0.5">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center gap-1 pl-2 pr-2.5 py-0.5 rounded-full bg-neutral-50 border border-neutral-200 text-[11px] font-semibold text-neutral-700"
-              >
-                <Hash className="size-2.5 opacity-60" />
-                {tag}
-              </span>
-            ))}
-          </div>
-        ) : null}
+        <PublicCardTagsPreview tags={tags} />
       </ReadField>
     </div>
   );
@@ -275,15 +402,23 @@ function ReadMode({ data }: { data: DetailData }) {
    EDIT MODE
 ───────────────────────────────────────────────────────────── */
 
-function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
+function EditMode({
+  form,
+  theme,
+}: {
+  form: ReturnType<typeof useForm<FormValues>>;
+  theme: Theme;
+}) {
   const {
     register,
     control,
     watch,
     formState: { errors },
   } = form;
+
   const badgeVal = watch("badge");
   const highlightVal = watch("highlight");
+  const tagsVal = watch("tags") ?? [];
 
   return (
     <div className="flex flex-col gap-5">
@@ -291,7 +426,7 @@ function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
         {/* Badge */}
         <FieldWrap
           label="Badge"
-          hint='Contoh: "Bestseller", "Baru", "Hot"'
+          hint='Contoh: "Bestseller", "Baru", "Hot". Preview mengikuti badge kartu publik.'
           error={errors.badge?.message}
         >
           <div className="flex flex-col gap-2">
@@ -305,7 +440,6 @@ function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
               />
             </div>
 
-            {/* Live badge preview */}
             <AnimatePresence>
               {badgeVal && (
                 <motion.div
@@ -315,11 +449,16 @@ function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
                   transition={{ duration: 0.16, ease: "easeOut" }}
                   className="overflow-hidden"
                 >
-                  <div className="flex items-center gap-2 pt-0.5">
-                    <span className="text-[10px] text-neutral-400 font-medium flex-shrink-0">
-                      Preview:
+                  <div className="flex flex-col gap-1.5 pt-0.5">
+                    <span className="text-[10px] text-neutral-400 font-medium">
+                      Preview kartu publik:
                     </span>
-                    <BadgeChip label={badgeVal} />
+                    <div>
+                      <PublicCardBadgePreview
+                        badge={badgeVal}
+                        theme={theme}
+                      />
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -330,7 +469,7 @@ function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
         {/* Highlight */}
         <FieldWrap
           label="Highlight"
-          hint="Kalimat singkat di kartu program"
+          hint='Pisahkan beberapa highlight dengan tanda "|". Contoh: Sertifikat termasuk | Mentor aktif | Grup belajar'
           error={errors.highlight?.message}
         >
           <div className="flex flex-col gap-2">
@@ -338,13 +477,12 @@ function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
               <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-emerald-400 pointer-events-none" />
               <input
                 {...register("highlight")}
-                placeholder="Sertifikat termasuk"
+                placeholder="Sertifikat termasuk | Mentor aktif | Grup belajar"
                 maxLength={80}
                 className={cn(inputCls, "pl-9")}
               />
             </div>
 
-            {/* Live highlight preview */}
             <AnimatePresence>
               {highlightVal && (
                 <motion.div
@@ -354,11 +492,15 @@ function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
                   transition={{ duration: 0.16, ease: "easeOut" }}
                   className="overflow-hidden"
                 >
-                  <div className="flex items-center gap-2 pt-0.5">
-                    <span className="text-[10px] text-neutral-400 font-medium flex-shrink-0">
-                      Preview:
+                  <div className="flex flex-col gap-1.5 pt-0.5">
+                    <span className="text-[10px] text-neutral-400 font-medium">
+                      Preview kartu publik:
                     </span>
-                    <HighlightChip label={highlightVal} />
+
+                    <PublicCardHighlightPreview
+                      highlight={highlightVal}
+                      theme={theme}
+                    />
                   </div>
                 </motion.div>
               )}
@@ -370,22 +512,50 @@ function EditMode({ form }: { form: ReturnType<typeof useForm<FormValues>> }) {
       {/* Tags */}
       <FieldWrap
         label="Tags"
-        hint="Tekan Enter, koma, atau spasi untuk menambah. Klik saran untuk cepat."
+        hint="Tekan Enter, koma, atau spasi untuk menambah. Preview mengikuti tampilan tags kartu publik."
         error={
           Array.isArray(errors.tags) ? "Tags tidak valid" : errors.tags?.message
         }
       >
-        <Controller
-          name="tags"
-          control={control}
-          render={({ field }) => (
-            <TagInput value={field.value} onChange={field.onChange} />
-          )}
-        />
+        <div className="flex flex-col gap-2">
+          <Controller
+            name="tags"
+            control={control}
+            render={({ field }) => (
+              <TagInput value={field.value} onChange={field.onChange} />
+            )}
+          />
+
+          <AnimatePresence>
+            {tagsVal.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -4, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: "auto" }}
+                exit={{ opacity: 0, y: -4, height: 0 }}
+                transition={{ duration: 0.16, ease: "easeOut" }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col gap-1.5 pt-0.5">
+                  <span className="text-[10px] text-neutral-400 font-medium">
+                    Preview kartu publik:
+                  </span>
+
+                  <PublicCardTagsPreview tags={tagsVal} />
+
+                  {tagsVal.length > 4 && (
+                    <p className="text-[10px] text-neutral-400">
+                      Kartu publik hanya menampilkan 4 tag pertama.
+                    </p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </FieldWrap>
 
       <InfoNotice icon={<Sparkles className="size-3.5" />} variant="info">
-        Tags membantu program ditemukan di pencarian dan filter katalog.
+        Badge, highlight, dan tags di atas akan tampil di kartu program publik.
       </InfoNotice>
     </div>
   );
@@ -404,17 +574,10 @@ export function MarketingSection({ data, programId }: MarketingSectionProps) {
   const [isEditing, setIsEditing] = useState(false);
   const utils = trpc.useUtils();
 
-  const updateMarketing = trpc.programs.updateMarketing.useMutation({
-    onSuccess: () => {
-      utils.programs.getDetail.invalidate({ id: programId });
-      toast.success("Marketing metadata berhasil disimpan");
-      setIsEditing(false);
-      form.reset(form.getValues());
-    },
-    onError: (err) => {
-      toast.error(err.message ?? "Gagal menyimpan perubahan");
-    },
-  });
+  const theme = useMemo(
+    () => generateTheme(data.category.themePrimary),
+    [data.category.themePrimary],
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -422,6 +585,22 @@ export function MarketingSection({ data, programId }: MarketingSectionProps) {
       badge: data.badge ?? "",
       highlight: data.highlight ?? "",
       tags: data.tags ?? [],
+    },
+  });
+
+  const updateMarketing = trpc.programs.updateMarketing.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.programs.getDetail.invalidate({ id: programId }),
+        utils.programs.getFiltered.invalidate(),
+      ]);
+
+      toast.success("Marketing metadata berhasil disimpan");
+      setIsEditing(false);
+      form.reset(form.getValues());
+    },
+    onError: (err) => {
+      toast.error(err.message ?? "Gagal menyimpan perubahan");
     },
   });
 
@@ -459,7 +638,7 @@ export function MarketingSection({ data, programId }: MarketingSectionProps) {
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <EditMode form={form} />
+              <EditMode form={form} theme={theme} />
             </motion.div>
           ) : (
             <motion.div
@@ -469,7 +648,7 @@ export function MarketingSection({ data, programId }: MarketingSectionProps) {
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              <ReadMode data={data} />
+              <ReadMode data={data} theme={theme} />
             </motion.div>
           )}
         </AnimatePresence>

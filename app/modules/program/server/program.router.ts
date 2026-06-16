@@ -480,6 +480,7 @@ async function buildDetail(id: string) {
     category: {
       id: category.id,
       label: category.label,
+      shortLabel: category.shortLabel,
       slug: category.slug,
       themePrimary: category.themePrimary,
       icon: category.icon,

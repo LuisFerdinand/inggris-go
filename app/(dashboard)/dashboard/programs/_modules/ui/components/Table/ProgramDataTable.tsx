@@ -171,6 +171,11 @@ interface ProgramDataTableProps {
   isLoading?: boolean;
 }
 
+type ColumnStickyMeta = {
+  headerClassName?: string;
+  cellClassName?: string;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -243,6 +248,10 @@ export function ProgramDataTable({
   const to = Math.min((pageIndex + 1) * pageSize, totalFiltered);
 
   const pageCount = table.getPageCount();
+
+  function getColumnMeta(column: any): ColumnStickyMeta {
+    return (column.columnDef.meta ?? {}) as ColumnStickyMeta;
+  }
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -371,8 +380,8 @@ export function ProgramDataTable({
 
       {/* Table */}
 
-      <div className="overflow-x-auto">
-        <Table>
+      <div className="relative overflow-x-auto">
+        <Table className="min-w-[1050px]">
           <TableHeader>
             {table.getHeaderGroups().map((group) => (
               <TableRow
@@ -386,6 +395,7 @@ export function ProgramDataTable({
                       "h-9 px-3 text-[11px] font-medium uppercase tracking-wide text-neutral-400",
                       header.column.getCanSort() &&
                         "cursor-pointer select-none transition-colors hover:text-neutral-600",
+                      getColumnMeta(header.column).headerClassName,
                     )}
                     onClick={header.column.getToggleSortingHandler()}
                   >
@@ -439,10 +449,16 @@ export function ProgramDataTable({
               rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="border-neutral-100 transition-colors hover:bg-neutral-50/60"
+                  className="group border-neutral-100 transition-colors hover:bg-neutral-50/60"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-3 py-2.5">
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "px-3 py-2.5",
+                        getColumnMeta(cell.column).cellClassName,
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

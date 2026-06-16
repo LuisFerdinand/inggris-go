@@ -73,7 +73,7 @@ export type ProgramMeta = {
   href: string;
 
   benefits?: Benefit[];
-  duration?: string;
+  duration?: string | number | null;
   format?: string;
   level?: string;
 };
@@ -830,6 +830,7 @@ export type PricingPackage = {
   originalPrice?: string;
   highlight?: string; // e.g. "Paling Populer"
   note?: string;
+  features?: string[];
 };
 
 export type PricingGroup = {

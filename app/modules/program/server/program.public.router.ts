@@ -23,6 +23,25 @@ import {
 
 const PUBLISHED = "published" as const;
 
+const DURATION_UNITS = [
+  { factor: 10080, label: "minggu" },
+  { factor: 1440, label: "hari" },
+  { factor: 60, label: "jam" },
+  { factor: 1, label: "menit" },
+] as const;
+
+function formatProgramDuration(totalMinutes: number | null | undefined) {
+  if (!totalMinutes || totalMinutes <= 0) return null;
+
+  const unit =
+    DURATION_UNITS.find((u) => totalMinutes % u.factor === 0) ??
+    DURATION_UNITS[DURATION_UNITS.length - 1];
+
+  const value = totalMinutes / unit.factor;
+
+  return `${value} ${unit.label}`;
+}
+
 export const programPublicRouter = createTRPCRouter({
   /**
    * All published categories (ordered) with a slim list of their published
@@ -112,8 +131,11 @@ export const programPublicRouter = createTRPCRouter({
         const prices = packages
           .map((k) => k.price)
           .filter((n): n is number => typeof n === "number");
+
         return {
           ...p,
+          durationMinutes: p.duration,
+          duration: formatProgramDuration(p.duration),
           packages,
           startingPrice: prices.length ? Math.min(...prices) : null,
         };
@@ -155,7 +177,11 @@ export const programPublicRouter = createTRPCRouter({
       ]);
 
       return {
-        program,
+        program: {
+          ...program,
+          durationMinutes: program.duration,
+          duration: formatProgramDuration(program.duration),
+        },
         category: category ?? null,
         sections: (content?.sections ?? []) as unknown[],
         theme: content?.theme ?? null,
@@ -164,7 +190,6 @@ export const programPublicRouter = createTRPCRouter({
           ...b,
           packages: [...(b.packages ?? [])].sort((a, c) => a.order - c.order),
         })),
-        // Direct (batch-less) packages — used by permanent programs.
         directPackages: packages.filter((p) => !p.batchId),
       };
     }),

@@ -626,6 +626,38 @@ function PackageCard({
           {pkg.note && (
             <p style={{ fontSize: "0.75rem", color: "var(--text-faint)", marginTop: "4px" }}>{pkg.note}</p>
           )}
+
+          {pkg.features && pkg.features.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {pkg.features.slice(0, 5).map((feature, i) => (
+                <div
+                  key={`${feature}-${i}`}
+                  className="flex items-start gap-2"
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--text-muted)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  <span
+                    className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full"
+                    style={{ background: theme.soft }}
+                  >
+                    <svg viewBox="0 0 10 10" className="h-2.5 w-2.5" fill="none">
+                      <path
+                        d="M2 5l2 2 4-4"
+                        stroke={theme.primary}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span>{feature}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex-1" />

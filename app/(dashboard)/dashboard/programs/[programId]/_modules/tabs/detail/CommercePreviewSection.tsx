@@ -333,8 +333,12 @@ export function PublishingSection({ data, programId }: PublishingSectionProps) {
   const utils = trpc.useUtils();
 
   const updateStatus = trpc.programs.updateStatus.useMutation({
-    onSuccess: () => {
-      utils.programs.getDetail.invalidate({ id: programId });
+    onSuccess: async () => {
+      await Promise.all([
+        utils.programs.getDetail.invalidate({ id: programId }),
+        utils.programs.getFiltered.invalidate(),
+      ]);
+
       toast.success("Status program berhasil diperbarui");
       setIsEditing(false);
       form.reset(form.getValues());

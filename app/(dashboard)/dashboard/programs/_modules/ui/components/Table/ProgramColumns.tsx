@@ -40,6 +40,9 @@ import {
   ProgramStatus,
 } from "@/lib/enums/enums";
 import { ProgramThumb, CountBadge, ProgramStatusBadge } from "..";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { trpc } from "@/lib/trpc/client";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -54,6 +57,31 @@ function relDate(ds: string | Date) {
   if (diff < 30) return `${diff} hari lalu`;
   if (diff < 365) return `${Math.floor(diff / 30)} bln lalu`;
   return `${Math.floor(diff / 365)} thn lalu`;
+}
+
+type DurationUnit = {
+  id: "weeks" | "days" | "hours" | "minutes";
+  factor: number;
+  label: string;
+};
+
+const DURATION_UNITS: DurationUnit[] = [
+  { id: "weeks", factor: 10080, label: "minggu" },
+  { id: "days", factor: 1440, label: "hari" },
+  { id: "hours", factor: 60, label: "jam" },
+  { id: "minutes", factor: 1, label: "menit" },
+];
+
+function formatProgramDuration(totalMinutes: number | null | undefined) {
+  if (!totalMinutes || totalMinutes <= 0) return "—";
+
+  const unit =
+    DURATION_UNITS.find((u) => totalMinutes % u.factor === 0) ??
+    DURATION_UNITS[DURATION_UNITS.length - 1];
+
+  const value = totalMinutes / unit.factor;
+
+  return `${value} ${unit.label}`;
 }
 
 const FORMAT_CONFIG: Record<
@@ -111,6 +139,190 @@ function SortHeader({
         )}
       />
     </button>
+  );
+}
+
+function ProgramRowActions({ program }: { program: FilteredProgram }) {
+  const router = useRouter();
+  const utils = trpc.useUtils();
+
+  const publicUrl = program.category?.slug
+    ? `/programs/${program.category.slug}/${program.slug}`
+    : null;
+
+  const refreshList = async () => {
+    await utils.programs.getFiltered.invalidate();
+  };
+
+  const updateStatus = trpc.programs.updateStatus.useMutation({
+    onSuccess: async () => {
+      await refreshList();
+      toast.success("Status program berhasil diperbarui");
+    },
+    onError: (err) => {
+      toast.error(err.message ?? "Gagal memperbarui status program");
+    },
+  });
+
+  const duplicateProgram = trpc.programs.duplicate.useMutation({
+    onSuccess: async (newProgram) => {
+      await refreshList();
+      toast.success("Program berhasil diduplikat");
+
+      if (newProgram?.id) {
+        router.push(`/dashboard/programs/${newProgram.id}`);
+      }
+    },
+    onError: (err) => {
+      toast.error(err.message ?? "Gagal menduplikat program");
+    },
+  });
+
+  const removeProgram = trpc.programs.remove.useMutation({
+    onSuccess: async () => {
+      await refreshList();
+      toast.success("Program berhasil dihapus");
+    },
+    onError: (err) => {
+      toast.error(err.message ?? "Gagal menghapus program");
+    },
+  });
+
+  const isMutating =
+    updateStatus.isPending ||
+    duplicateProgram.isPending ||
+    removeProgram.isPending;
+
+  function handleOpenPublicPage() {
+    if (!publicUrl) {
+      toast.error("Kategori program belum tersedia");
+      return;
+    }
+
+    window.open(publicUrl, "_blank", "noopener,noreferrer");
+  }
+
+  function handleDuplicate() {
+    duplicateProgram.mutate({ id: program.id });
+  }
+
+  function handleRemove() {
+    const confirmed = window.confirm(
+      `Hapus program "${program.title}"? Tindakan ini tidak bisa dibatalkan.`,
+    );
+
+    if (!confirmed) return;
+
+    removeProgram.mutate({ id: program.id });
+  }
+
+  function handleStatusChange(status: ProgramStatus) {
+    if (program.status === status) return;
+
+    updateStatus.mutate({
+      id: program.id,
+      status,
+    });
+  }
+
+  return (
+    <div className="flex justify-end">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            disabled={isMutating}
+            className="size-7 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 data-[state=open]:bg-neutral-100 data-[state=open]:text-neutral-700 disabled:opacity-50"
+            aria-label="Buka menu aksi"
+          >
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuLabel className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+            Aksi Program
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem asChild>
+            <Link
+              href={`/dashboard/programs/${program.id}`}
+              className="flex cursor-pointer items-center gap-2 text-xs"
+            >
+              <Eye className="size-3.5 text-neutral-400" />
+              Lihat detail
+            </Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            disabled={!publicUrl}
+            onClick={handleOpenPublicPage}
+            className="flex cursor-pointer items-center gap-2 text-xs"
+          >
+            <ExternalLink className="size-3.5 text-neutral-400" />
+            Buka halaman publik
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            disabled={isMutating}
+            onClick={handleDuplicate}
+            className="flex cursor-pointer items-center gap-2 text-xs"
+          >
+            <Copy className="size-3.5 text-neutral-400" />
+            Duplikat program
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {program.status !== "published" && (
+            <DropdownMenuItem
+              disabled={isMutating}
+              onClick={() => handleStatusChange("published")}
+              className="flex cursor-pointer items-center gap-2 text-xs text-emerald-700 focus:bg-emerald-50 focus:text-emerald-700"
+            >
+              <Eye className="size-3.5" />
+              Publish program
+            </DropdownMenuItem>
+          )}
+
+          {program.status !== "draft" && (
+            <DropdownMenuItem
+              disabled={isMutating}
+              onClick={() => handleStatusChange("draft")}
+              className="flex cursor-pointer items-center gap-2 text-xs"
+            >
+              <Clock className="size-3.5 text-neutral-400" />
+              Jadikan draft
+            </DropdownMenuItem>
+          )}
+
+          {program.status !== "archived" && (
+            <DropdownMenuItem
+              disabled={isMutating}
+              onClick={() => handleStatusChange("archived")}
+              className="flex cursor-pointer items-center gap-2 text-xs"
+            >
+              <Archive className="size-3.5 text-neutral-400" />
+              Arsipkan program
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            disabled={isMutating}
+            onClick={handleRemove}
+            className="flex cursor-pointer items-center gap-2 text-xs text-red-600 focus:bg-red-50 focus:text-red-600"
+          >
+            <Trash2 className="size-3.5" />
+            Hapus program
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
@@ -196,7 +408,7 @@ export function getProgramColumns(): ColumnDef<FilteredProgram>[] {
             {/* Row 2: duration · schedule */}
             <div className="flex items-center gap-1 text-[11px] text-neutral-400">
               <Clock className="size-3 shrink-0" aria-hidden />
-              <span>{duration ? `${duration} hari` : "—"}</span>
+              <span>{formatProgramDuration(duration)}</span>
               <span className="text-neutral-300">·</span>
               <sch.Icon className="size-3 shrink-0" aria-hidden />
               <span>{sch.label}</span>
@@ -309,70 +521,17 @@ export function getProgramColumns(): ColumnDef<FilteredProgram>[] {
       id: "actions",
       enableHiding: false,
       enableSorting: false,
-      header: () => <span className="sr-only">Aksi</span>,
-      cell: ({ row }) => {
-        const { id } = row.original;
-        return (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 data-[state=open]:bg-neutral-100 data-[state=open]:text-neutral-700"
-                  aria-label="Buka menu aksi"
-                >
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuLabel className="text-[11px] font-medium text-neutral-400 uppercase tracking-wide">
-                  Aksi Program
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/dashboard/programs/${id}`}
-                    className="flex items-center gap-2 text-xs cursor-pointer"
-                  >
-                    <Eye className="size-3.5 text-neutral-400" />
-                    Lihat detail
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem className="flex items-center gap-2 text-xs cursor-pointer">
-                  <Copy className="size-3.5 text-neutral-400" />
-                  Duplikat
-                </DropdownMenuItem>
-
-                <DropdownMenuItem className="flex items-center gap-2 text-xs cursor-pointer">
-                  <ExternalLink className="size-3.5 text-neutral-400" />
-                  Buka halaman publik
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem className="flex items-center gap-2 text-xs cursor-pointer">
-                  <Archive className="size-3.5 text-neutral-400" />
-                  Arsipkan
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  className="flex items-center gap-2 text-xs cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // wire delete mutation here
-                  }}
-                >
-                  <Trash2 className="size-3.5" />
-                  Hapus program
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
+      size: 56,
+      minSize: 56,
+      maxSize: 56,
+      meta: {
+        headerClassName:
+          "sticky right-0 z-30 w-[56px] min-w-[56px] bg-white shadow-[-12px_0_18px_-18px_rgba(15,23,42,0.55)]",
+        cellClassName:
+          "sticky right-0 z-20 w-[56px] min-w-[56px] bg-white shadow-[-12px_0_18px_-18px_rgba(15,23,42,0.55)]",
       },
+      header: () => <span className="sr-only">Aksi</span>,
+      cell: ({ row }) => <ProgramRowActions program={row.original} />,
     },
   ];
 }
