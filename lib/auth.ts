@@ -1,12 +1,25 @@
 // lib/auth.ts
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { db } from "@/app/db/db";
-import { user } from "@/app/db/schema/auth-schema";
-import { role, userRole, type Role } from "@/app/db/schema/roles";
+import {
+  account as accountTable,
+  user as userTable,
+} from "@/app/db/schema/auth-schema";
+import type { Role } from "@/app/db/schema/roles";
+import { isSwitchableRole,} from "@/lib/auth/permissions";
+import {
+  ensureDefaultUserRole,
+  getPrimaryRole,
+  getUserRoles,
+} from "@/lib/auth/default-role";
+import { generateId } from "@/lib/utils";
+
+const ONE_HOUR = 60 * 60;
 
 function normalizeEmail(value: unknown) {
   if (typeof value !== "string") return null;
@@ -18,88 +31,184 @@ function normalizeEmail(value: unknown) {
   return email;
 }
 
-function normalizePassword(value: unknown) {
-  if (typeof value !== "string") return null;
-
-  if (value.length < 6) return null;
-
-  return value;
+function getFallbackName(email: string) {
+  return email.split("@")[0] || "User";
 }
 
-async function getPrimaryRole(userId: string): Promise<Role> {
+function canUseRequestedRole(roles: Role[], requestedRole: Role) {
+  if (!isSwitchableRole(requestedRole)) {
+    return false;
+  }
+
+  if (roles.includes("super_admin")) {
+    return true;
+  }
+
+  return roles.includes(requestedRole);
+}
+
+async function getDbUserByEmail(email: string) {
   const rows = await db
     .select({
-      name: role.name,
+      id: userTable.id,
+      name: userTable.name,
+      email: userTable.email,
+      image: userTable.image,
+      passwordHash: userTable.passwordHash,
     })
-    .from(userRole)
-    .innerJoin(role, eq(userRole.roleId, role.id))
-    .where(eq(userRole.userId, userId))
+    .from(userTable)
+    .where(eq(userTable.email, email))
     .limit(1);
 
-  return rows[0]?.name ?? "user";
+  return rows[0] ?? null;
+}
+
+async function upsertGoogleUser(params: {
+  email: string;
+  name?: string | null;
+  image?: string | null;
+  providerAccountId: string;
+  accessToken?: string | null;
+  refreshToken?: string | null;
+  idToken?: string | null;
+  scope?: string | null;
+  accessTokenExpiresAt?: Date | null;
+}) {
+  const now = new Date();
+
+  let existingUser = await getDbUserByEmail(params.email);
+
+  if (!existingUser) {
+    const userId = generateId("user");
+
+    await db.insert(userTable).values({
+      id: userId,
+      name: params.name?.trim() || getFallbackName(params.email),
+      email: params.email,
+      image: params.image ?? null,
+      passwordHash: null,
+      emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    existingUser = {
+      id: userId,
+      name: params.name?.trim() || getFallbackName(params.email),
+      email: params.email,
+      image: params.image ?? null,
+      passwordHash: null,
+    };
+  } else {
+    await db
+      .update(userTable)
+      .set({
+        name: existingUser.name || params.name || getFallbackName(params.email),
+        image: existingUser.image || params.image || null,
+        emailVerified: true,
+        updatedAt: now,
+      })
+      .where(eq(userTable.id, existingUser.id));
+  }
+
+  await ensureDefaultUserRole(existingUser.id);
+
+  await db
+    .insert(accountTable)
+    .values({
+      id: generateId("account"),
+      userId: existingUser.id,
+      providerId: "google",
+      accountId: params.providerAccountId,
+      accessToken: params.accessToken ?? null,
+      refreshToken: params.refreshToken ?? null,
+      idToken: params.idToken ?? null,
+      scope: params.scope ?? null,
+      accessTokenExpiresAt: params.accessTokenExpiresAt ?? null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoNothing();
+
+  await db
+    .update(accountTable)
+    .set({
+      accessToken: params.accessToken ?? null,
+      refreshToken: params.refreshToken ?? null,
+      idToken: params.idToken ?? null,
+      scope: params.scope ?? null,
+      accessTokenExpiresAt: params.accessTokenExpiresAt ?? null,
+      updatedAt: now,
+    })
+    .where(
+      and(
+        eq(accountTable.providerId, "google"),
+        eq(accountTable.accountId, params.providerAccountId),
+      ),
+    );
+
+  const roles = await getUserRoles(existingUser.id);
+  const primaryRole = getPrimaryRole(roles);
+
+  return {
+    id: existingUser.id,
+    name: existingUser.name,
+    email: existingUser.email,
+    image: existingUser.image,
+    roles,
+    role: primaryRole,
+  };
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
-
-  pages: {
-    signIn: "/",
-    error: "/",
-  },
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 
   session: {
-    strategy: "jwt",
-  },
+  strategy: "jwt",
+  maxAge: ONE_HOUR,
+  updateAge: 60,
+},
+
+jwt: {
+  maxAge: ONE_HOUR,
+},
 
   providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID,
+      clientSecret:
+        process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET,
+    }),
+
     Credentials({
       name: "Credentials",
-
       credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-        },
-        password: {
-          label: "Password",
-          type: "password",
-        },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
 
       async authorize(credentials) {
         const email = normalizeEmail(credentials?.email);
-        const password = normalizePassword(credentials?.password);
+        const password =
+          typeof credentials?.password === "string"
+            ? credentials.password
+            : "";
 
-        if (!email || !password) {
-          return null;
-        }
+        if (!email || !password) return null;
 
-        const rows = await db
-          .select()
-          .from(user)
-          .where(eq(user.email, email))
-          .limit(1);
+        const existingUser = await getDbUserByEmail(email);
 
-        const existingUser = rows[0];
+        if (!existingUser?.passwordHash) return null;
 
-        if (!existingUser) {
-          return null;
-        }
-
-        if (!existingUser.passwordHash) {
-          return null;
-        }
-
-        const passwordValid = await bcrypt.compare(
+        const validPassword = await bcrypt.compare(
           password,
           existingUser.passwordHash,
         );
 
-        if (!passwordValid) {
-          return null;
-        }
+        if (!validPassword) return null;
 
-        const primaryRole = await getPrimaryRole(existingUser.id);
+        const roles = await getUserRoles(existingUser.id);
+        const primaryRole = getPrimaryRole(roles);
 
         return {
           id: existingUser.id,
@@ -107,26 +216,138 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: existingUser.email,
           image: existingUser.image,
           role: primaryRole,
+          roles,
         };
       },
     }),
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider !== "google") {
+        return true;
+      }
+
+      const email = normalizeEmail(user.email ?? profile?.email);
+
+      if (!email) {
+        return false;
+      }
+
+      const googleProfile = profile as
+        | {
+            sub?: string;
+            email_verified?: boolean;
+            picture?: string;
+            name?: string;
+          }
+        | undefined;
+
+      if (googleProfile?.email_verified === false) {
+        return false;
+      }
+
+      const providerAccountId =
+        account.providerAccountId ?? googleProfile?.sub ?? null;
+
+      if (!providerAccountId) {
+        return false;
+      }
+
+      const dbUser = await upsertGoogleUser({
+        email,
+        name: user.name ?? googleProfile?.name,
+        image: user.image ?? googleProfile?.picture,
+        providerAccountId,
+        accessToken: account.access_token,
+        refreshToken: account.refresh_token,
+        idToken: account.id_token,
+        scope: account.scope,
+        accessTokenExpiresAt:
+          typeof account.expires_at === "number"
+            ? new Date(account.expires_at * 1000)
+            : null,
+      });
+
+      user.id = dbUser.id;
+      user.name = dbUser.name;
+      user.email = dbUser.email;
+      user.image = dbUser.image;
+
+      Object.assign(user, {
+        role: dbUser.role,
+        roles: dbUser.roles,
+      });
+
+      return true;
+    },
+
+    async jwt({ token, user, trigger, session }) {
       if (user) {
+        const roles = ((user as any).roles ?? []) as Role[];
+        const role = ((user as any).role ??
+          getPrimaryRole(roles)) as Role;
+
         token.id = user.id;
-        token.role = user.role;
+        token.role = role;
+        token.roles = roles.length ? roles : [role];
+        token.activeRole = token.activeRole ?? role;
+      }
+
+      if (!token.id && token.email) {
+        const dbUser = await getDbUserByEmail(token.email);
+
+        if (dbUser) {
+          const roles = await getUserRoles(dbUser.id);
+          const role = getPrimaryRole(roles);
+
+          token.id = dbUser.id;
+          token.role = role;
+          token.roles = roles;
+          token.activeRole = role;
+        }
+      }
+
+      if (trigger === "update") {
+        const requestedRole = (
+          session as {
+            activeRole?: Role;
+            user?: { role?: Role; activeRole?: Role };
+          }
+        )?.activeRole ??
+          (
+            session as {
+              user?: { role?: Role; activeRole?: Role };
+            }
+          )?.user?.activeRole ??
+          (
+            session as {
+              user?: { role?: Role; activeRole?: Role };
+            }
+          )?.user?.role;
+
+        const roles = ((token.roles ?? []) as Role[]).filter(Boolean);
+
+        if (
+          requestedRole &&
+          canUseRequestedRole(roles, requestedRole)
+        ) {
+          token.activeRole = requestedRole;
+        }
       }
 
       return token;
     },
 
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as Role;
-      }
+      const role = (token.role ?? "guest") as Role;
+      const roles = ((token.roles ?? [role]) as Role[]).filter(Boolean);
+      const activeRole = (token.activeRole ?? role) as Role;
+
+      session.user.id = token.id as string;
+      session.user.role = activeRole;
+      session.user.activeRole = activeRole;
+      session.user.roles = roles;
 
       return session;
     },

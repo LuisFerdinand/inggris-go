@@ -1,3 +1,4 @@
+// app/(home)/(auth)/auth/layout.tsx
 import { requireGuest } from "@/lib/auth/guards";
 
 export default async function AuthLayout({

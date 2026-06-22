@@ -7,6 +7,7 @@ import {
   boolean,
   index,
   integer,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -72,7 +73,6 @@ export const account = pgTable(
     id: text("id").primaryKey(),
 
     accountId: text("account_id").notNull(),
-
     providerId: text("provider_id").notNull(),
 
     userId: text("user_id")
@@ -80,17 +80,11 @@ export const account = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
 
     accessToken: text("access_token"),
-
     refreshToken: text("refresh_token"),
-
     idToken: text("id_token"),
-
     accessTokenExpiresAt: timestamp("access_token_expires_at"),
-
     refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-
     scope: text("scope"),
-
     password: text("password"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -99,7 +93,14 @@ export const account = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index("account_userId_idx").on(table.userId)],
+  (table) => [
+    index("account_userId_idx").on(table.userId),
+
+    unique("account_provider_account_unique").on(
+      table.providerId,
+      table.accountId,
+    ),
+  ],
 );
 
 export const verification = pgTable(

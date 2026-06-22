@@ -3,7 +3,7 @@
 "use client";
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { BarChart3 } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 import {
   Card,
@@ -23,14 +23,18 @@ import type { OrderDashboardOverview } from "@/app/modules/order/server/order.ro
 
 type ChartPoint = OrderDashboardOverview["chart"][number];
 
+// Brand-aligned chart colors: paid uses the primary blue (the
+// money that's actually in), unpaid uses gold (pending, not yet
+// resolved) — matching the badge colors used elsewhere instead of
+// arbitrary chart palette defaults.
 const chartConfig = {
   paid: {
-    label: "Paid",
-    color: "var(--chart-1)",
+    label: "Lunas",
+    color: "var(--blue)",
   },
   unpaid: {
-    label: "Unpaid",
-    color: "var(--chart-2)",
+    label: "Belum Dibayar",
+    color: "var(--gold)",
   },
 } satisfies ChartConfig;
 
@@ -38,40 +42,60 @@ function formatCompactIDR(value: number) {
   if (value >= 1_000_000_000) {
     return `Rp ${(value / 1_000_000_000).toFixed(1)}M`;
   }
-
   if (value >= 1_000_000) {
     return `Rp ${(value / 1_000_000).toFixed(1)}jt`;
   }
-
   if (value >= 1_000) {
     return `Rp ${(value / 1_000).toFixed(0)}rb`;
   }
-
   return `Rp ${value}`;
 }
 
 export function ChartAreaInteractive({ data }: { data: ChartPoint[] }) {
   return (
-    <Card className="border-slate-200 bg-white shadow-sm">
-      <CardHeader className="flex flex-col gap-2 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
+    <Card
+      className="overflow-hidden bg-white shadow-sm"
+      style={{ borderColor: "var(--border-soft)" }}
+    >
+      <CardHeader
+        className="flex flex-col gap-2 border-b sm:flex-row sm:items-center sm:justify-between"
+        style={{ borderColor: "var(--border-soft)" }}
+      >
         <div>
-          <CardTitle className="flex items-center gap-2 text-base font-black text-slate-900">
-            <BarChart3 className="size-4 text-indigo-600" />
-            Sales Chart
+          <CardTitle
+            className="font-display flex items-center gap-2 text-[15px] font-bold"
+            style={{ color: "var(--text-main)" }}
+          >
+            <span
+              className="flex size-7 items-center justify-center rounded-lg"
+              style={{ background: "var(--surface-soft)", color: "var(--blue)" }}
+            >
+              <TrendingUp className="size-3.5" />
+            </span>
+            Tren Pendapatan
           </CardTitle>
-          <CardDescription>
-            Perbandingan revenue paid dan unpaid dari pesanan 12 bulan terakhir.
+          <CardDescription className="mt-1 text-[12.5px]">
+            Perbandingan revenue lunas dan belum dibayar, 12 bulan terakhir.
           </CardDescription>
         </div>
 
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold">
-          <span className="flex items-center gap-1.5 text-emerald-700">
-            <span className="size-2 rounded-full bg-[var(--chart-1)]" />
-            Paid
+        <div
+          className="flex items-center gap-3 rounded-xl border px-3 py-2 text-[12px] font-semibold"
+          style={{ borderColor: "var(--border-soft)", background: "var(--bg-soft)" }}
+        >
+          <span className="flex items-center gap-1.5" style={{ color: "var(--blue-navy)" }}>
+            <span
+              className="size-2 rounded-full"
+              style={{ background: "var(--blue)" }}
+            />
+            Lunas
           </span>
-          <span className="flex items-center gap-1.5 text-amber-700">
-            <span className="size-2 rounded-full bg-[var(--chart-2)]" />
-            Unpaid
+          <span className="flex items-center gap-1.5" style={{ color: "var(--blue-navy)" }}>
+            <span
+              className="size-2 rounded-full"
+              style={{ background: "var(--gold)" }}
+            />
+            Belum Dibayar
           </span>
         </div>
       </CardHeader>
@@ -79,66 +103,62 @@ export function ChartAreaInteractive({ data }: { data: ChartPoint[] }) {
       <CardContent className="px-2 pt-6 sm:px-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[320px] w-full"
+          className="aspect-auto h-[300px] w-full"
         >
           <AreaChart data={data}>
             <defs>
               <linearGradient id="fillPaid" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-paid)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-paid)"
-                  stopOpacity={0.1}
-                />
+                <stop offset="5%" stopColor="var(--color-paid)" stopOpacity={0.32} />
+                <stop offset="95%" stopColor="var(--color-paid)" stopOpacity={0.02} />
               </linearGradient>
 
               <linearGradient id="fillUnpaid" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-unpaid)"
-                  stopOpacity={0.75}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-unpaid)"
-                  stopOpacity={0.08}
-                />
+                <stop offset="5%" stopColor="var(--color-unpaid)" stopOpacity={0.28} />
+                <stop offset="95%" stopColor="var(--color-unpaid)" stopOpacity={0.02} />
               </linearGradient>
             </defs>
 
-            <CartesianGrid vertical={false} />
+            <CartesianGrid
+              vertical={false}
+              stroke="var(--border-soft)"
+              strokeDasharray="3 3"
+            />
 
             <XAxis
               dataKey="label"
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
+              tickMargin={10}
               minTickGap={24}
+              tick={{ fontSize: 11, fill: "var(--text-faint)" }}
             />
 
             <YAxis
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              width={72}
+              width={64}
+              tick={{ fontSize: 11, fill: "var(--text-faint)" }}
               tickFormatter={(value) => formatCompactIDR(Number(value))}
             />
 
             <ChartTooltip
-              cursor={false}
+              cursor={{ stroke: "var(--border)", strokeWidth: 1 }}
               content={
                 <ChartTooltipContent
                   indicator="dot"
                   formatter={(value, name) => (
                     <div className="flex min-w-[160px] items-center justify-between gap-4">
-                      <span className="capitalize text-muted-foreground">
-                        {name}
+                      <span
+                        className="capitalize"
+                        style={{ color: "var(--text-faint)" }}
+                      >
+                        {name === "paid" ? "Lunas" : "Belum Dibayar"}
                       </span>
-                      <span className="font-bold text-foreground">
+                      <span
+                        className="font-display font-bold"
+                        style={{ color: "var(--text-main)" }}
+                      >
                         {formatCompactIDR(Number(value))}
                       </span>
                     </div>
@@ -152,6 +172,7 @@ export function ChartAreaInteractive({ data }: { data: ChartPoint[] }) {
               type="monotone"
               fill="url(#fillUnpaid)"
               stroke="var(--color-unpaid)"
+              strokeWidth={2}
               stackId="sales"
             />
 
@@ -160,6 +181,7 @@ export function ChartAreaInteractive({ data }: { data: ChartPoint[] }) {
               type="monotone"
               fill="url(#fillPaid)"
               stroke="var(--color-paid)"
+              strokeWidth={2}
               stackId="sales"
             />
           </AreaChart>

@@ -1,7 +1,9 @@
+// components/sidebar/app-sidebar.tsx
 "use client";
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 import {
   LayoutDashboard,
@@ -13,6 +15,8 @@ import {
   Settings2,
   BarChart3,
   Globe2,
+  Bookmark,
+  KeyRound,
 } from "lucide-react";
 
 import {
@@ -30,8 +34,19 @@ import { AppBrand } from "./app-brand";
 import { DashboardNavUser } from "./nav-user";
 import { NavProject } from "./nav-projects";
 
+import type { Role } from "@/app/db/schema/roles";
+import { canUseRole } from "@/lib/auth/permissions";
+
 export const routes = {
   dashboard: "/dashboard",
+
+  myPrograms: {
+    root: "/dashboard/program-saya",
+  },
+
+  koleksi: {
+    root: "/dashboard/koleksi",
+  },
 
   programs: {
     root: "/dashboard/programs",
@@ -64,16 +79,16 @@ export const routes = {
   blog: {
     root: "/dashboard/blog",
     create: "/dashboard/blog/new",
-
   },
-  
+
   comments: {
-      root: "/dashboard/blog/comments",
+    root: "/dashboard/blog/comments",
   },
 
   settings: {
     root: "/dashboard/settings",
-    header: "/dashboard/settings/header",  
+    account: "/dashboard/settings/account",
+    header: "/dashboard/settings/header",
   },
 };
 
@@ -85,132 +100,183 @@ function isActive(pathname: string, url: string) {
   return pathname === url || pathname.startsWith(url + "/");
 }
 
+type RoleMainNavItem = MainNavItem & {
+  roles: Role[];
+};
+
+type RoleGroupNavItem = GroupNavItem & {
+  roles: Role[];
+};
+
+function filterMainItems(
+  items: RoleMainNavItem[],
+  activeRole: Role,
+): MainNavItem[] {
+  return items
+    .filter((item) => canUseRole(item.roles, activeRole))
+    .map(({ roles: _roles, ...item }) => item);
+}
+
+function filterGroupItems(
+  items: RoleGroupNavItem[],
+  activeRole: Role,
+): GroupNavItem[] {
+  return items
+    .filter((item) => canUseRole(item.roles, activeRole))
+    .map(({ roles: _roles, ...item }) => item);
+}
+
+function hasItems(items: unknown[]) {
+  return items.length > 0;
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
-  const mainItems: MainNavItem[] = [
-    {
-      title: "Dashboard",
-      href: routes.dashboard,
-      icon: LayoutDashboard,
-      isActive: pathname === routes.dashboard,
-    },
-  ];
+  const activeRole: Role = session?.user.role ?? "guest";
 
-  // =========================================================
-  // PROGRAM CMS
-  // =========================================================
+  const mainItems = filterMainItems(
+    [
+      {
+        title: "Dashboard",
+        href: routes.dashboard,
+        icon: LayoutDashboard,
+        isActive: pathname === routes.dashboard,
+        roles: ["admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
 
-  const programItems: GroupNavItem[] = [
-    {
-      title: "Program",
-      icon: BookOpen,
-      url: routes.programs.root,
+  const accountItems = filterGroupItems(
+    [
+      {
+        title: "Program Saya",
+        icon: BookOpen,
+        url: routes.myPrograms.root,
+        isActive: isActive(pathname, routes.myPrograms.root),
+        roles: ["user", "student", "teacher", "admin", "super_admin"],
+      },
+      {
+        title: "Koleksi Saya",
+        icon: Bookmark,
+        url: routes.koleksi.root,
+        isActive: isActive(pathname, routes.koleksi.root),
+        roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+      },
+      {
+        title: "Pengaturan",
+        icon: Settings2,
+        url: routes.settings.root,
+        isActive:
+          pathname === routes.settings.root ||
+          (isActive(pathname, routes.settings.root) &&
+            !isActive(pathname, routes.settings.account) &&
+            !isActive(pathname, routes.settings.header)),
+        roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+      },
+      {
+        title: "Ubah Password",
+        icon: KeyRound,
+        url: routes.settings.account,
+        isActive: isActive(pathname, routes.settings.account),
+        roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
 
-      isActive:
-        pathname === routes.programs.root ||
-        (pathname.startsWith(routes.programs.root + "/") &&
-          !pathname.startsWith(routes.programs.categories)),
-    },
+  const programItems = filterGroupItems(
+    [
+      {
+        title: "Program",
+        icon: BookOpen,
+        url: routes.programs.root,
+        isActive:
+          pathname === routes.programs.root ||
+          (pathname.startsWith(routes.programs.root + "/") &&
+            !pathname.startsWith(routes.programs.categories)),
+        roles: ["admin", "super_admin"],
+      },
+      {
+        title: "Kategori Program",
+        url: routes.programs.categories,
+        isActive: isActive(pathname, routes.programs.categories),
+        roles: ["admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
 
-    {
-      title: "Kategori Program",
-      url: routes.programs.categories,
+  const contentItems = filterGroupItems(
+    [
+      {
+        title: "Blog",
+        icon: Newspaper,
+        url: routes.blog.root,
+        isActive:
+          isActive(pathname, routes.blog.root) &&
+          !isActive(pathname, routes.comments.root),
+        roles: ["author", "admin", "super_admin"],
+      },
+      {
+        title: "Comments",
+        icon: CreditCard,
+        url: routes.comments.root,
+        isActive: isActive(pathname, routes.comments.root),
+        roles: ["author", "admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
 
-      isActive: isActive(pathname, routes.programs.categories),
-    },
-  ];
+  const operationalItems = filterGroupItems(
+    [
+      {
+        title: "Pesanan",
+        icon: ShoppingCart,
+        url: routes.orders.root,
+        isActive: isActive(pathname, routes.orders.root),
+        roles: ["admin", "super_admin"],
+      },
+      {
+        title: "Pembayaran",
+        icon: CreditCard,
+        url: routes.payments.root,
+        isActive: isActive(pathname, routes.payments.root),
+        roles: ["admin", "super_admin"],
+      },
+      {
+        title: "Pengguna",
+        icon: Users,
+        url: routes.users.root,
+        isActive: isActive(pathname, routes.users.root),
+        roles: ["admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
 
-  // =========================================================
-  // CONTENT CMS
-  // =========================================================
-
-  const contentItems: GroupNavItem[] = [
-    {
-      title: "Blog",
-      icon: Newspaper,
-      url: routes.blog.root,
-
-      // Blog active only for /dashboard/blog and blog detail/create pages,
-      // but NOT comments
-      isActive:
-        isActive(pathname, routes.blog.root) &&
-        !isActive(pathname, routes.comments.root),
-    },
-    {
-      title: "Comments",
-      icon: CreditCard,
-      url: routes.comments.root,
-
-      isActive: isActive(pathname, routes.comments.root),
-    },
-  ];
-
-  // =========================================================
-  // OPERATIONS
-  // =========================================================
-
-  const operationalItems: GroupNavItem[] = [
-    {
-      title: "Pesanan",
-      icon: ShoppingCart,
-
-      url: routes.orders.root,
-
-      isActive: isActive(pathname, routes.orders.root),
-    },
-
-    {
-      title: "Pembayaran",
-      icon: CreditCard,
-
-      url: routes.payments.root,
-
-      isActive: isActive(pathname, routes.payments.root),
-    },
-
-    {
-      title: "Pengguna",
-      icon: Users,
-
-      url: routes.users.root,
-
-      isActive: isActive(pathname, routes.users.root),
-    },
-  ];
-
-  // =========================================================
-  // BUSINESS
-  // =========================================================
-
-  const businessItems: GroupNavItem[] = [
-    {
-      title: "Analitik",
-      icon: BarChart3,
-      url: routes.analitik.root,
-      isActive: isActive(pathname, routes.analitik.root),
-    },
-
-    {
-      title: "Pengaturan",
-      icon: Settings2,
-      url: routes.settings.root,
-
-      // Exact only, so Site Header can be active by itself
-      isActive: pathname === routes.settings.root,
-    },
-
-    {
-      title: "Site Header",
-      icon: Globe2,
-      url: routes.settings.header,
-      isActive: isActive(pathname, routes.settings.header),
-    },
-  ];
-
-  // =========================================================
-  // RECENT PROGRAMS
-  // =========================================================
+  const businessItems = filterGroupItems(
+    [
+      {
+        title: "Analitik",
+        icon: BarChart3,
+        url: routes.analitik.root,
+        isActive: isActive(pathname, routes.analitik.root),
+        roles: ["admin", "super_admin"],
+      },
+      {
+        title: "Site Header",
+        icon: Globe2,
+        url: routes.settings.header,
+        isActive: isActive(pathname, routes.settings.header),
+        roles: ["admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
 
   const recentPrograms = [
     {
@@ -218,19 +284,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: routes.programs.detail("1"),
       updatedAt: "2 jam lalu",
     },
-
     {
       name: "TOEFL Intensive Class",
       url: routes.programs.detail("2"),
       updatedAt: "5 jam lalu",
     },
-
     {
       name: "SAT Advanced Preparation",
       url: routes.programs.detail("3"),
       updatedAt: "Kemarin",
     },
   ];
+
+  const showRecentPrograms = canUseRole(["admin", "super_admin"], activeRole);
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -239,17 +305,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={mainItems} />
+        {hasItems(mainItems) && <NavMain items={mainItems} />}
 
-        <NavGroups label="Program CMS" items={programItems} />
+        {hasItems(accountItems) && (
+          <NavGroups label="Akun" items={accountItems} />
+        )}
 
-        <NavGroups label="Konten" items={contentItems} />
+        {hasItems(programItems) && (
+          <NavGroups label="Program CMS" items={programItems} />
+        )}
 
-        <NavGroups label="Operasional" items={operationalItems} />
+        {hasItems(contentItems) && (
+          <NavGroups label="Konten" items={contentItems} />
+        )}
 
-        <NavGroups label="Bisnis" items={businessItems} />
+        {hasItems(operationalItems) && (
+          <NavGroups label="Operasional" items={operationalItems} />
+        )}
 
-        <NavProject items={recentPrograms} />
+        {hasItems(businessItems) && (
+          <NavGroups label="Bisnis" items={businessItems} />
+        )}
+
+        {showRecentPrograms && <NavProject items={recentPrograms} />}
       </SidebarContent>
 
       <SidebarFooter>

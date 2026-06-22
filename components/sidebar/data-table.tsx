@@ -8,9 +8,9 @@ import {
   Calendar,
   CreditCard,
   Inbox,
+  ListOrdered,
   Mail,
   Phone,
-  ShoppingBag,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -35,24 +35,24 @@ import type { OrderDashboardOverview } from "@/app/modules/order/server/order.ro
 
 type RecentOrder = OrderDashboardOverview["recentOrders"][number];
 
+// Status colors are intentionally muted/desaturated so they read
+// as quiet metadata, not competing accent chips. Saturation is
+// reserved for the hero revenue card.
 const ENROLLMENT_STATUS_META: Record<
   string,
-  {
-    label: string;
-    className: string;
-  }
+  { label: string; className: string }
 > = {
   pending_payment: {
     label: "Menunggu Bayar",
-    className: "bg-amber-50 text-amber-700 border-amber-200",
+    className: "bg-amber-50 text-amber-700 border-amber-200/80",
   },
   paid: {
     label: "Lunas",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    className: "border-[color:var(--border-soft)] bg-[color:var(--surface-soft)] text-[color:var(--blue-navy)]",
   },
   confirmed: {
     label: "Terkonfirmasi",
-    className: "bg-blue-50 text-blue-700 border-blue-200",
+    className: "border-[color:var(--border-soft)] bg-[color:var(--surface-soft)] text-[color:var(--blue-navy)]",
   },
   cancelled: {
     label: "Dibatalkan",
@@ -60,28 +60,25 @@ const ENROLLMENT_STATUS_META: Record<
   },
   expired: {
     label: "Kedaluwarsa",
-    className: "bg-red-50 text-red-600 border-red-200",
+    className: "bg-red-50 text-red-600 border-red-200/80",
   },
 };
 
 const PAYMENT_STATUS_META: Record<
   string,
-  {
-    label: string;
-    className: string;
-  }
+  { label: string; className: string }
 > = {
   pending: {
     label: "Pending",
-    className: "bg-amber-50 text-amber-700 border-amber-200",
+    className: "bg-amber-50 text-amber-700 border-amber-200/80",
   },
   paid: {
     label: "Paid",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    className: "border-[color:var(--border-soft)] bg-[color:var(--surface-soft)] text-[color:var(--blue-navy)]",
   },
   failed: {
     label: "Failed",
-    className: "bg-red-50 text-red-600 border-red-200",
+    className: "bg-red-50 text-red-600 border-red-200/80",
   },
   expired: {
     label: "Expired",
@@ -93,23 +90,19 @@ const PAYMENT_STATUS_META: Record<
   },
   refunded: {
     label: "Refunded",
-    className: "bg-violet-50 text-violet-700 border-violet-200",
+    className: "bg-violet-50 text-violet-700 border-violet-200/80",
   },
 };
 
 function formatIDR(value: number | null | undefined) {
   if (value == null) return "—";
-
   return `Rp ${value.toLocaleString("id-ID")}`;
 }
 
 function formatDateTime(value?: string | Date | null) {
   if (!value) return "—";
-
   const date = value instanceof Date ? value : new Date(value);
-
   if (Number.isNaN(date.getTime())) return "—";
-
   return date.toLocaleString("id-ID", {
     day: "numeric",
     month: "short",
@@ -135,7 +128,7 @@ function StatusBadge({
     <Badge
       variant="outline"
       className={cn(
-        "whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold",
+        "whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold",
         current.className,
       )}
     >
@@ -146,21 +139,39 @@ function StatusBadge({
 
 export function DataTable({ data }: { data: RecentOrder[] }) {
   return (
-    <Card className="border-slate-200 bg-white shadow-sm">
-      <CardHeader className="flex flex-col gap-3 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
+    <Card
+      className="bg-white shadow-sm"
+      style={{ borderColor: "var(--border-soft)" }}
+    >
+      <CardHeader
+        className="flex flex-col gap-3 border-b sm:flex-row sm:items-center sm:justify-between"
+        style={{ borderColor: "var(--border-soft)" }}
+      >
         <div>
-          <CardTitle className="flex items-center gap-2 text-base font-black text-slate-900">
-            <ShoppingBag className="size-4 text-indigo-600" />
+          <CardTitle
+            className="font-display flex items-center gap-2 text-[15px] font-bold"
+            style={{ color: "var(--text-main)" }}
+          >
+            <span
+              className="flex size-7 items-center justify-center rounded-lg"
+              style={{ background: "var(--surface-soft)", color: "var(--blue)" }}
+            >
+              <ListOrdered className="size-3.5" />
+            </span>
             Pesanan Terbaru
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="mt-1 text-[12.5px]">
             Order terbaru dari seluruh program dan status pembayarannya.
           </CardDescription>
         </div>
 
         <Link
           href="/dashboard/orders"
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+          className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[12px] font-bold transition-colors"
+          style={{
+            borderColor: "var(--border-soft)",
+            color: "var(--text-muted)",
+          }}
         >
           Lihat Semua
           <ArrowUpRight className="size-3.5" />
@@ -170,13 +181,15 @@ export function DataTable({ data }: { data: RecentOrder[] }) {
       <CardContent className="p-0">
         {data.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <Inbox className="size-8 text-slate-300" />
-
+            <Inbox className="size-8" style={{ color: "var(--border)" }} />
             <div>
-              <p className="text-sm font-black text-slate-600">
+              <p
+                className="font-display text-[13.5px] font-bold"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Belum ada pesanan
               </p>
-              <p className="mt-1 text-xs text-slate-400">
+              <p className="mt-1 text-[12px]" style={{ color: "var(--text-faint)" }}>
                 Pesanan akan muncul setelah ada pendaftaran program.
               </p>
             </div>
@@ -185,10 +198,10 @@ export function DataTable({ data }: { data: RecentOrder[] }) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50/80">
+                <TableRow style={{ background: "var(--bg-soft)" }}>
                   <TableHead className="min-w-[260px]">Customer</TableHead>
                   <TableHead className="min-w-[260px]">Program</TableHead>
-                  <TableHead className="min-w-[150px]">Amount</TableHead>
+                  <TableHead className="min-w-[150px]">Jumlah</TableHead>
                   <TableHead className="min-w-[190px]">Status</TableHead>
                   <TableHead className="min-w-[170px]">Tanggal</TableHead>
                 </TableRow>
@@ -199,20 +212,26 @@ export function DataTable({ data }: { data: RecentOrder[] }) {
                   const displayName = item.childName || item.customerName;
 
                   return (
-                    <TableRow key={item.id} className="hover:bg-slate-50/70">
+                    <TableRow key={item.id} className="hover:bg-[var(--bg-soft)]">
                       <TableCell>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-black text-slate-800">
+                          <p
+                            className="truncate text-[13px] font-bold"
+                            style={{ color: "var(--text-main)" }}
+                          >
                             {displayName}
                           </p>
 
                           {item.childName && (
-                            <p className="text-xs text-slate-400">
+                            <p className="text-[11.5px]" style={{ color: "var(--text-faint)" }}>
                               Wali: {item.customerName}
                             </p>
                           )}
 
-                          <div className="mt-1 flex flex-col gap-1 text-xs text-slate-400">
+                          <div
+                            className="mt-1 flex flex-col gap-1 text-[11.5px]"
+                            style={{ color: "var(--text-faint)" }}
+                          >
                             <span className="inline-flex items-center gap-1.5">
                               <Phone className="size-3.5" />
                               {item.phone}
@@ -233,25 +252,33 @@ export function DataTable({ data }: { data: RecentOrder[] }) {
                           {item.program.title ? (
                             <Link
                               href={`/dashboard/programs/${item.program.id}?tab=enrollments`}
-                              className="group inline-flex max-w-[240px] items-center gap-1 truncate text-sm font-bold text-slate-800 hover:text-indigo-600"
+                              className="group inline-flex max-w-[240px] items-center gap-1 truncate text-[13px] font-semibold transition-colors"
+                              style={{ color: "var(--text-main)" }}
                             >
-                              <span className="truncate">
-                                {item.program.title}
-                              </span>
-                              <ArrowUpRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                              <span className="truncate">{item.program.title}</span>
+                              <ArrowUpRight
+                                className="size-3 opacity-0 transition-opacity group-hover:opacity-100"
+                                style={{ color: "var(--blue)" }}
+                              />
                             </Link>
                           ) : (
-                            <p className="text-sm font-bold text-slate-800">
+                            <p className="text-[13px] font-semibold" style={{ color: "var(--text-main)" }}>
                               —
                             </p>
                           )}
 
-                          <p className="mt-1 truncate text-xs text-slate-400">
+                          <p
+                            className="mt-1 truncate text-[11.5px]"
+                            style={{ color: "var(--text-faint)" }}
+                          >
                             Paket: {item.package.title ?? "—"}
                           </p>
 
                           {item.batch && (
-                            <p className="truncate text-xs text-slate-400">
+                            <p
+                              className="truncate text-[11.5px]"
+                              style={{ color: "var(--text-faint)" }}
+                            >
                               Batch: {item.batch.title}
                             </p>
                           )}
@@ -259,12 +286,18 @@ export function DataTable({ data }: { data: RecentOrder[] }) {
                       </TableCell>
 
                       <TableCell>
-                        <p className="text-sm font-black text-slate-900">
+                        <p
+                          className="font-display text-[13.5px] font-bold"
+                          style={{ color: "var(--text-main)" }}
+                        >
                           {formatIDR(item.pricing.final)}
                         </p>
 
                         {item.payment?.invoiceNumber && (
-                          <p className="mt-1 inline-flex items-center gap-1 text-xs text-slate-400">
+                          <p
+                            className="mt-1 inline-flex items-center gap-1 text-[11px]"
+                            style={{ color: "var(--text-faint)" }}
+                          >
                             <CreditCard className="size-3" />
                             {item.payment.invoiceNumber}
                           </p>
@@ -273,22 +306,18 @@ export function DataTable({ data }: { data: RecentOrder[] }) {
 
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <StatusBadge
-                            status={item.status}
-                            meta={ENROLLMENT_STATUS_META}
-                          />
-
+                          <StatusBadge status={item.status} meta={ENROLLMENT_STATUS_META} />
                           {item.payment && (
-                            <StatusBadge
-                              status={item.payment.status}
-                              meta={PAYMENT_STATUS_META}
-                            />
+                            <StatusBadge status={item.payment.status} meta={PAYMENT_STATUS_META} />
                           )}
                         </div>
                       </TableCell>
 
                       <TableCell>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                        <span
+                          className="inline-flex items-center gap-1.5 text-[12px] font-medium"
+                          style={{ color: "var(--text-muted)" }}
+                        >
                           <Calendar className="size-3.5" />
                           {formatDateTime(item.createdAt)}
                         </span>

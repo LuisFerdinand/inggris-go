@@ -26,6 +26,7 @@ import {
   postCategory,
   postComment,
   postLike,
+  postSave,
   postTag,
   postView,
   tag,
@@ -201,6 +202,17 @@ async function getLikeCount(postId: string): Promise<number> {
 async function getUserLiked(postId: string, userId: string): Promise<boolean> {
   const row = await db.query.postLike.findFirst({
     where: and(eq(postLike.postId, postId), eq(postLike.userId, userId)),
+    columns: {
+      id: true,
+    },
+  });
+
+  return !!row;
+}
+
+async function getUserSaved(postId: string, userId: string): Promise<boolean> {
+  const row = await db.query.postSave.findFirst({
+    where: and(eq(postSave.postId, postId), eq(postSave.userId, userId)),
     columns: {
       id: true,
     },
@@ -837,7 +849,10 @@ export const blogRouter = createTRPCRouter({
       ]);
 
       const userId = getOptionalAuthUserId(ctx);
-      const userLiked = userId ? await getUserLiked(row.id, userId) : false;
+      const [userLiked, userSaved] = await Promise.all([
+        userId ? getUserLiked(row.id, userId) : Promise.resolve(false),
+        userId ? getUserSaved(row.id, userId) : Promise.resolve(false),
+      ]);
 
       return {
         ...row,
@@ -845,6 +860,7 @@ export const blogRouter = createTRPCRouter({
         category,
         likeCount,
         userLiked,
+        userSaved,
       };
     }),
 
@@ -1056,6 +1072,231 @@ export const blogRouter = createTRPCRouter({
         likeCount,
         userLiked,
       };
+    }),
+
+  /* ─────────────────────────────────────────────────────
+     USER DASHBOARD — "Koleksi Saya" (liked / saved posts)
+  ───────────────────────────────────────────────────── */
+
+  getMyLikedPosts: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        limit: z.number().int().min(1).max(50).default(12),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const userId = getRequiredAuthUserId(ctx);
+      const limit = input.limit;
+      const offset = (input.page - 1) * limit;
+
+      const likeRows = await db
+        .select({ postId: postLike.postId, likedAt: postLike.createdAt })
+        .from(postLike)
+        .where(eq(postLike.userId, userId))
+        .orderBy(desc(postLike.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      const [totalRow] = await db
+        .select({ count: count() })
+        .from(postLike)
+        .where(eq(postLike.userId, userId));
+
+      if (likeRows.length === 0) {
+        return { posts: [], total: totalRow?.count ?? 0, page: input.page, limit };
+      }
+
+      const postIds = likeRows.map((r) => r.postId);
+
+      const rows = await db
+        .select({
+          id: post.id,
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          coverImage: post.coverImage,
+          status: post.status,
+          publishedAt: post.publishedAt,
+          readTime: post.readTime,
+          viewCount: post.viewCount,
+          categoryId: post.categoryId,
+        })
+        .from(post)
+        .where(inArray(post.id, postIds));
+
+      const enriched = await Promise.all(rows.map(enrichPost));
+      const byId = new Map(enriched.map((p) => [p.id, p]));
+      const likedAtById = new Map(likeRows.map((r) => [r.postId, r.likedAt]));
+
+      // Preserve "most recently liked first" order, skip posts that
+      // may have been deleted since the like was recorded.
+      const posts = likeRows
+        .map((r) => {
+          const p = byId.get(r.postId);
+          if (!p) return null;
+          return { ...p, likedAt: likedAtById.get(r.postId) ?? null };
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null);
+
+      return { posts, total: totalRow?.count ?? 0, page: input.page, limit };
+    }),
+
+  getMySavedPosts: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        limit: z.number().int().min(1).max(50).default(12),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const userId = getRequiredAuthUserId(ctx);
+      const limit = input.limit;
+      const offset = (input.page - 1) * limit;
+
+      const saveRows = await db
+        .select({ postId: postSave.postId, savedAt: postSave.createdAt })
+        .from(postSave)
+        .where(eq(postSave.userId, userId))
+        .orderBy(desc(postSave.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      const [totalRow] = await db
+        .select({ count: count() })
+        .from(postSave)
+        .where(eq(postSave.userId, userId));
+
+      if (saveRows.length === 0) {
+        return { posts: [], total: totalRow?.count ?? 0, page: input.page, limit };
+      }
+
+      const postIds = saveRows.map((r) => r.postId);
+
+      const rows = await db
+        .select({
+          id: post.id,
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          coverImage: post.coverImage,
+          status: post.status,
+          publishedAt: post.publishedAt,
+          readTime: post.readTime,
+          viewCount: post.viewCount,
+          categoryId: post.categoryId,
+        })
+        .from(post)
+        .where(inArray(post.id, postIds));
+
+      const enriched = await Promise.all(rows.map(enrichPost));
+      const byId = new Map(enriched.map((p) => [p.id, p]));
+      const savedAtById = new Map(saveRows.map((r) => [r.postId, r.savedAt]));
+
+      const posts = saveRows
+        .map((r) => {
+          const p = byId.get(r.postId);
+          if (!p) return null;
+          return { ...p, savedAt: savedAtById.get(r.postId) ?? null };
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null);
+
+      return { posts, total: totalRow?.count ?? 0, page: input.page, limit };
+    }),
+
+  /**
+   * Toggle save/bookmark state — mirrors `toggleLike` but for
+   * `postSave`. Needed because "Koleksi Saya" tracks both liked
+   * AND saved posts as distinct lists.
+   */
+  toggleSave: protectedProcedure
+    .input(z.object({ postId: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = getRequiredAuthUserId(ctx);
+      await assertUserExists(userId);
+
+      const postRow = await db.query.post.findFirst({
+        where: and(eq(post.id, input.postId), eq(post.status, "published")),
+        columns: { id: true },
+      });
+
+      if (!postRow) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Artikel tidak ditemukan" });
+      }
+
+      const existing = await db.query.postSave.findFirst({
+        where: and(eq(postSave.postId, input.postId), eq(postSave.userId, userId)),
+        columns: { id: true },
+      });
+
+      if (existing) {
+        await db.delete(postSave).where(eq(postSave.id, existing.id));
+        return { saved: false };
+      }
+
+      await db.insert(postSave).values({
+        id: crypto.randomUUID(),
+        postId: input.postId,
+        userId,
+      });
+
+      return { saved: true };
+    }),
+
+  getMyComments: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        limit: z.number().int().min(1).max(50).default(12),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const userId = getRequiredAuthUserId(ctx);
+      const limit = input.limit;
+      const offset = (input.page - 1) * limit;
+
+      const conditions = [eq(postComment.userId, userId)];
+
+      const rows = await db
+        .select({
+          id: postComment.id,
+          content: postComment.content,
+          status: postComment.status,
+          createdAt: postComment.createdAt,
+
+          postId: postComment.postId,
+          postTitle: post.title,
+          postSlug: post.slug,
+          postCoverImage: post.coverImage,
+          postStatus: post.status,
+        })
+        .from(postComment)
+        .innerJoin(post, eq(postComment.postId, post.id))
+        .where(and(...conditions))
+        .orderBy(desc(postComment.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      const [totalRow] = await db
+        .select({ count: count() })
+        .from(postComment)
+        .where(and(...conditions));
+
+      const comments = rows.map((r) => ({
+        id: r.id,
+        content: r.content,
+        status: r.status,
+        createdAt: r.createdAt,
+        post: {
+          id: r.postId,
+          title: r.postTitle,
+          slug: r.postSlug,
+          coverImage: r.postCoverImage,
+          status: r.postStatus,
+        },
+      }));
+
+      return { comments, total: totalRow?.count ?? 0, page: input.page, limit };
     }),
 
   /* ─────────────────────────────────────────────────────

@@ -20,7 +20,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { logout } from "@/lib/auth/actions";
 import { useEffect, useRef, useState } from "react";
 
 import { BRAND } from "@/constants/brand";
@@ -62,9 +63,9 @@ export const NAV_MENU_ITEMS = [
   {
     label: "Program Saya",
     shortLabel: "Program",
-    href: "/dashboard/programs",
+    href: "/dashboard/program-saya",
     icon: BookOpen,
-    desc: "Akses semua kelas",
+    desc: "Akses kelas terdaftar",
     color: "#0a9e8a",
     bg: "rgba(10,158,138,0.08)",
   },
@@ -290,20 +291,18 @@ export function UserNav({ onOpenAuthModal }: UserNavProps) {
             </div>
 
             <div className="border-t border-[var(--border)] p-2">
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  signOut({ callbackUrl: "/" });
-                }}
-                className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600">
-                  <LogOut className="h-4 w-4" />
-                </span>
-                Logout
-              </button>
+              <form action={logout}>
+                <button
+                  type="submit"
+                  role="menuitem"
+                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"
+                >
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                    <LogOut className="h-4 w-4" />
+                  </span>
+                  Logout
+                </button>
+              </form>
             </div>
           </motion.div>
         )}
@@ -396,16 +395,14 @@ export function MobileUserSection({
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={() => {
-          onClose();
-          signOut({ callbackUrl: "/" });
-        }}
-        className="mt-2 w-full rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600"
-      >
-        Logout
-      </button>
+      <form action={logout} className="mt-2">
+        <button
+          type="submit"
+          className="w-full rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600"
+        >
+          Logout
+        </button>
+      </form>
     </div>
   );
 }
@@ -507,14 +504,16 @@ function AuthModal({ onClose, defaultTab = "login" }: AuthModalPortalProps) {
             </button>
           </div>
 
+          <GoogleAuthButton
+            label={tab === "login" ? "Login dengan Google" : "Register dengan Google"}
+          />
+
+          <AuthDivider />
+
           {tab === "login" ? (
             <LoginForm onSuccess={onClose} />
           ) : (
-            <RegisterForm
-              onSuccess={() => {
-                setTab("login");
-              }}
-            />
+            <RegisterForm onSuccess={onClose} />
           )}
         </div>
       </motion.div>
@@ -571,6 +570,49 @@ function ModalHeader({
             : "Daftar akun baru untuk mulai belajar."}
         </p>
       </div>
+    </div>
+  );
+}
+
+function GoogleAuthButton({ label }: { label: string }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleGoogleAuth() {
+    setLoading(true);
+
+    await signIn("google", {
+      callbackUrl: "/dashboard/program-saya",
+    });
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="brand-outline"
+      className="w-full py-3 font-bold"
+      disabled={loading}
+      onClick={handleGoogleAuth}
+    >
+      {loading ? (
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      ) : (
+        <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-black text-[var(--blue-navy)]">
+          G
+        </span>
+      )}
+      {label}
+    </Button>
+  );
+}
+
+function AuthDivider() {
+  return (
+    <div className="my-5 flex items-center gap-3">
+      <div className="h-px flex-1 bg-[var(--border)]" />
+      <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        atau
+      </span>
+      <div className="h-px flex-1 bg-[var(--border)]" />
     </div>
   );
 }
@@ -649,27 +691,22 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
 }
 
 function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
+  const router = useRouter();
+
   const [name, setName] = useState("");
-
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
 
   const [confirmPassword, setConfirmPassword] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
 
   const [error, setError] = useState("");
-
-  const [success, setSuccess] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
-    setSuccess("");
 
     if (password !== confirmPassword) {
       setError("Password dan konfirmasi password tidak sama.");
@@ -688,23 +725,27 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
     const data = await response.json().catch(() => null);
 
-    setLoading(false);
-
     if (!response.ok) {
+      setLoading(false);
       setError(data?.error ?? "Gagal membuat akun.");
       return;
     }
 
-    setName("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
+    const loginResult = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
-    setSuccess("Akun berhasil dibuat. Silakan login.");
+    setLoading(false);
 
-    window.setTimeout(() => {
-      onSuccess();
-    }, 650);
+    if (loginResult?.error) {
+      setError("Akun berhasil dibuat, tapi auto-login gagal. Silakan login manual.");
+      return;
+    }
+
+    onSuccess();
+    router.refresh();
   }
 
   return (
@@ -712,12 +753,6 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
       {error && (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          {success}
         </div>
       )}
 

@@ -23,7 +23,7 @@ export const DashboardView = () => {
   const data = dashboardQuery.data;
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen" style={{ background: "var(--bg-soft)" }}>
       <div className="flex flex-col gap-y-4 pt-2.5">
         <PageNav sticky>
           <PageHeader
@@ -40,21 +40,27 @@ export const DashboardView = () => {
 
         <div className="flex flex-col gap-4 px-4 pb-10 lg:px-6">
           {dashboardQuery.isLoading && !data ? (
-            <div className="flex min-h-[420px] items-center justify-center rounded-3xl border border-slate-200 bg-white text-slate-400 shadow-sm">
-              <div className="flex items-center gap-3">
-                <Loader2 className="size-5 animate-spin" />
-                <p className="text-sm font-semibold">Memuat dashboard…</p>
+            <div
+              className="flex min-h-[420px] items-center justify-center rounded-3xl border bg-white shadow-sm"
+              style={{ borderColor: "var(--border-soft)" }}
+            >
+              <div className="flex items-center gap-3" style={{ color: "var(--text-faint)" }}>
+                <Loader2 className="size-5 animate-spin" style={{ color: "var(--blue)" }} />
+                <p className="text-[13.5px] font-semibold">Memuat dashboard…</p>
               </div>
             </div>
           ) : dashboardQuery.isError ? (
-            <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-3xl border border-red-200 bg-red-50 text-center shadow-sm">
+            <div
+              className="flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-3xl border bg-red-50/60 text-center shadow-sm"
+              style={{ borderColor: "rgba(239,68,68,0.25)" }}
+            >
               <AlertCircle className="size-8 text-red-500" />
 
               <div>
-                <p className="text-sm font-black text-red-700">
+                <p className="font-display text-[14px] font-bold text-red-700">
                   Gagal memuat dashboard
                 </p>
-                <p className="mt-1 max-w-md text-xs font-medium text-red-500">
+                <p className="mt-1 max-w-md text-[12.5px] font-medium text-red-500">
                   {dashboardQuery.error.message}
                 </p>
               </div>
@@ -62,7 +68,8 @@ export const DashboardView = () => {
               <button
                 type="button"
                 onClick={() => dashboardQuery.refetch()}
-                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-black text-white transition-colors hover:bg-red-700"
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[12.5px] font-bold text-white transition-colors"
+                style={{ background: "var(--blue-navy)" }}
               >
                 <RefreshCcw className="size-3.5" />
                 Coba Lagi

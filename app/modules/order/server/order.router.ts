@@ -95,6 +95,7 @@ const registerOnlineInput = z.object({
 
 const getEnrollmentsByProgramInput = z.object({
   programId: z.string().min(1).optional(),
+  userId: z.string().min(1).optional(),
 
   status: z
     .enum(["pending_payment", "paid", "confirmed", "cancelled", "expired"])
@@ -127,6 +128,10 @@ async function buildEnrollmentList(
 
   if (input.programId) {
     conditions.push(eq(enrollments.programId, input.programId));
+  }
+
+  if (input.userId) {
+    conditions.push(eq(enrollments.userId, input.userId));
   }
 
   if (input.status) {
@@ -200,6 +205,7 @@ async function buildEnrollmentList(
         id: r.programId,
         title: r.programSnapshot?.title ?? null,
         slug: r.programSnapshot?.slug ?? null,
+        categorySlug: r.programSnapshot?.categorySlug ?? null,
         thumbnail: r.programSnapshot?.thumbnail ?? null,
         format: r.programSnapshot?.format ?? null,
         level: r.programSnapshot?.level ?? null,
@@ -547,6 +553,7 @@ export const orderRouter = createTRPCRouter({
           eq(programs.id, input.programId),
           eq(programs.status, "published"),
         ),
+        with: { category: true },
       });
 
       if (!program) {
@@ -763,6 +770,7 @@ export const orderRouter = createTRPCRouter({
           id: program.id,
           title: program.title,
           slug: program.slug,
+          categorySlug: program.category?.slug ?? undefined,
           format: program.format ?? undefined,
           level: program.level ?? undefined,
           thumbnail: program.thumbnailUrl ?? undefined,
@@ -893,6 +901,38 @@ export const orderRouter = createTRPCRouter({
   getEnrollmentById: protectedProcedure
     .input(getEnrollmentByIdInput)
     .query(async ({ input }) => buildEnrollmentDetail(input.id)),
+
+  /* ────────────────────────────────────────────────────────
+     MY ORDERS — "/dashboard/program-saya" (regular user view)
+  ───────────────────────────────────────────────────────── */
+
+  /**
+   * Orders/enrollments belonging to the currently logged-in user.
+   * `userId` is taken from the session, never from client input,
+   * so a user can only ever see their own data.
+   */
+  getMyOrders: protectedProcedure
+    .input(
+      z.object({
+        status: z
+          .enum(["pending_payment", "paid", "confirmed", "cancelled", "expired"])
+          .optional(),
+        limit: z.number().int().min(1).max(50).default(20),
+        offset: z.number().int().min(0).default(0),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      if (!ctx.auth?.userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      return buildEnrollmentList({
+        userId: ctx.auth.userId,
+        status: input.status,
+        limit: input.limit,
+        offset: input.offset,
+      });
+    }),
 
   /* ────────────────────────────────────────────────────────
      ORDERS — global "/dashboard/orders" page

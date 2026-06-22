@@ -5,8 +5,10 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/app/db/db";
 import { user } from "@/app/db/schema/auth-schema";
-import { role, userRole } from "@/app/db/schema/roles";
+import { ensureDefaultUserRole } from "@/lib/auth/default-role";
 import { generateId } from "@/lib/utils";
+
+export const runtime = "nodejs";
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
@@ -40,30 +42,6 @@ function normalizePassword(value: unknown) {
   return value;
 }
 
-async function getDefaultUserRoleId() {
-  const existingRole = await db
-    .select({
-      id: role.id,
-    })
-    .from(role)
-    .where(eq(role.name, "user"))
-    .limit(1);
-
-  if (existingRole[0]) {
-    return existingRole[0].id;
-  }
-
-  const roleId = generateId("role");
-
-  await db.insert(role).values({
-    id: roleId,
-    name: "user",
-    description: "Regular user",
-  });
-
-  return roleId;
-}
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -87,18 +65,26 @@ export async function POST(req: Request) {
     const existingUser = await db
       .select({
         id: user.id,
+        passwordHash: user.passwordHash,
       })
       .from(user)
       .where(eq(user.email, email))
       .limit(1);
 
     if (existingUser[0]) {
+      if (!existingUser[0].passwordHash) {
+        return jsonError(
+          "Email ini sudah terdaftar dengan Google. Silakan login menggunakan Google.",
+          409,
+        );
+      }
+
       return jsonError("Email is already registered.", 409);
     }
 
     const userId = generateId("user");
-
     const passwordHash = await bcrypt.hash(password, 12);
+    const now = new Date();
 
     await db.insert(user).values({
       id: userId,
@@ -106,15 +92,11 @@ export async function POST(req: Request) {
       email,
       passwordHash,
       emailVerified: true,
+      createdAt: now,
+      updatedAt: now,
     });
 
-    const roleId = await getDefaultUserRoleId();
-
-    await db.insert(userRole).values({
-      id: generateId("user-role"),
-      userId,
-      roleId,
-    });
+    await ensureDefaultUserRole(userId);
 
     return NextResponse.json({
       ok: true,

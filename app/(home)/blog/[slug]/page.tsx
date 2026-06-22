@@ -7,6 +7,8 @@ import {
   useRef,
   useState,
   useCallback,
+  createContext,
+  useContext,
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -15,6 +17,7 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  Bookmark,
   Calendar,
   ChevronRight,
   Clock,
@@ -33,6 +36,20 @@ import {
 } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
+import { AuthModalPortal } from "@/components/UserNav";
+
+/* =========================================================
+   AUTH MODAL — reuse the navbar's login modal anywhere
+========================================================= */
+
+type AuthTab = "login" | "signup";
+
+const RequireLoginContext = createContext<(tab?: AuthTab) => void>(() => {});
+
+/** Pops the same login modal the navbar uses. */
+function useRequireLogin() {
+  return useContext(RequireLoginContext);
+}
 
 /* =========================================================
    HELPERS
@@ -148,6 +165,7 @@ function LikeButton({
 }) {
   const { data: session } = useSession();
   const isLoggedIn = !!session?.user;
+  const requireLogin = useRequireLogin();
 
   const [optimisticLiked, setOptimisticLiked] = useState(initialLiked);
   const [optimisticCount, setOptimisticCount] = useState(initialCount);
@@ -176,8 +194,7 @@ function LikeButton({
 
   const handleClick = () => {
     if (!isLoggedIn) {
-      // Nudge toward login — could redirect or show modal
-      window.location.href = "/?modal=login";
+      requireLogin("login");
       return;
     }
     toggleLike.mutate({ postId });
@@ -204,6 +221,103 @@ function LikeButton({
         )}
       />
       <span>{optimisticCount > 0 ? formatViews(optimisticCount) : "Suka"}</span>
+      {!isLoggedIn && (
+        <span className="text-[10px] font-normal opacity-60">· Login dulu</span>
+      )}
+    </button>
+  );
+}
+
+/* =========================================================
+   SAVE BUTTON
+========================================================= */
+
+function SaveButton({
+  postId,
+  initialSaved,
+  variant = "default",
+}: {
+  postId: string;
+  initialSaved: boolean;
+  /** "default" = pill button for the engagement bar.
+   *  "block" = full-width stacked button for the sidebar widget. */
+  variant?: "default" | "block";
+}) {
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
+  const requireLogin = useRequireLogin();
+
+  const [optimisticSaved, setOptimisticSaved] = useState(initialSaved);
+
+  useEffect(() => { setOptimisticSaved(initialSaved); }, [initialSaved]);
+
+  const toggleSave = trpc.blog.toggleSave.useMutation({
+    onMutate: () => {
+      setOptimisticSaved((s) => !s);
+    },
+    onError: () => {
+      setOptimisticSaved(initialSaved);
+    },
+    onSuccess: (data) => {
+      setOptimisticSaved(data.saved);
+    },
+  });
+
+  const handleClick = () => {
+    if (!isLoggedIn) {
+      requireLogin("login");
+      return;
+    }
+    toggleSave.mutate({ postId });
+  };
+
+  if (variant === "block") {
+    return (
+      <button
+        onClick={handleClick}
+        disabled={toggleSave.isPending}
+        title={isLoggedIn ? (optimisticSaved ? "Hapus dari simpanan" : "Simpan artikel ini") : "Login untuk menyimpan"}
+        className={cn(
+          "group flex w-full items-center justify-center gap-2 px-5 py-2.5 rounded-full border font-bold text-[13px] transition-all duration-200 select-none",
+          optimisticSaved && isLoggedIn
+            ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200"
+            : "bg-white border-slate-200 text-slate-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50",
+          toggleSave.isPending && "opacity-70 cursor-not-allowed",
+        )}
+      >
+        <Bookmark
+          className={cn(
+            "size-4 transition-transform duration-150",
+            optimisticSaved && isLoggedIn && "fill-current scale-110",
+            "group-hover:scale-110",
+          )}
+        />
+        <span>{optimisticSaved && isLoggedIn ? "Tersimpan" : "Simpan"}</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={toggleSave.isPending}
+      title={isLoggedIn ? (optimisticSaved ? "Hapus dari simpanan" : "Simpan artikel ini") : "Login untuk menyimpan"}
+      className={cn(
+        "group flex items-center gap-2 px-5 py-2.5 rounded-full border font-bold text-[13px] transition-all duration-200 select-none",
+        optimisticSaved && isLoggedIn
+          ? "bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200"
+          : "bg-white border-slate-200 text-slate-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50",
+        toggleSave.isPending && "opacity-70 cursor-not-allowed",
+      )}
+    >
+      <Bookmark
+        className={cn(
+          "size-4 transition-transform duration-150",
+          optimisticSaved && isLoggedIn && "fill-current scale-110",
+          "group-hover:scale-110",
+        )}
+      />
+      <span>{optimisticSaved && isLoggedIn ? "Tersimpan" : "Simpan"}</span>
       {!isLoggedIn && (
         <span className="text-[10px] font-normal opacity-60">· Login dulu</span>
       )}
@@ -246,6 +360,7 @@ function CommentItem({ comment }: { comment: CommentType }) {
 function CommentSection({ postId }: { postId: string }) {
   const { data: session, status: sessionStatus } = useSession();
   const isLoggedIn = !!session?.user;
+  const requireLogin = useRequireLogin();
   const [content, setContent] = useState("");
   const [localComments, setLocalComments] = useState<CommentType[]>([]);
 
@@ -356,13 +471,14 @@ function CommentSection({ postId }: { postId: string }) {
               Login atau daftar untuk berbagi pendapatmu.
             </p>
           </div>
-          <a
-            href="/?modal=login"
+          <button
+            type="button"
+            onClick={() => requireLogin("login")}
             className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-[12px] font-bold hover:bg-blue-700 transition-colors"
           >
             <LogIn className="size-3.5" />
             Login
-          </a>
+          </button>
         </div>
       )}
 
@@ -524,6 +640,12 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = use(params);
   const router = useRouter();
   const { data: session } = useSession();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<AuthTab>("login");
+  const openModal = useCallback((tab: AuthTab = "login") => {
+    setAuthModalTab(tab);
+    setAuthModalOpen(true);
+  }, []);
 
   const { data: post, isLoading, error } = trpc.blog.getBySlug.useQuery(
     { slug },
@@ -578,7 +700,7 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
   const processedHtml = post.contentHtml ? injectHeadingIds(post.contentHtml) : "";
 
   return (
-    <>
+    <RequireLoginContext.Provider value={openModal}>
       <ReadingProgressBar color="#f7b500" />
 
       <div style={{ background: "var(--bg-soft, #f4f8ff)" }} className="min-h-screen">
@@ -720,6 +842,10 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                   <MessageCircle className="size-4" />
                   Komentar
                 </a>
+                <SaveButton
+                  postId={post.id}
+                  initialSaved={post.userSaved}
+                />
                 <CopyLinkButton />
               </div>
 
@@ -785,19 +911,26 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
                 <TableOfContents items={tocItems} activeId={activeId} />
               )}
 
-              {/* Like widget in sidebar */}
+              {/* Save widget in sidebar */}
               <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-4 flex flex-col items-center gap-2 text-center">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  Artikel ini membantu?
+                  Simpan untuk dibaca nanti
                 </p>
-                <LikeButton
+                <SaveButton
                   postId={post.id}
-                  initialLiked={post.userLiked}
-                  initialCount={post.likeCount}
+                  initialSaved={post.userSaved}
+                  variant="block"
                 />
                 {!session?.user && (
                   <p className="text-[10px] text-slate-400">
-                    <a href="/?modal=login" className="text-blue-500 hover:underline font-medium">Login</a> untuk menyukai artikel ini
+                    <button
+                      type="button"
+                      onClick={() => openModal("login")}
+                      className="text-blue-500 hover:underline font-medium"
+                    >
+                      Login
+                    </button>{" "}
+                    untuk menyimpan artikel ini
                   </p>
                 )}
               </div>
@@ -895,6 +1028,11 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
         .blog-prose h2 + p, .blog-prose h3 + p { margin-top: 0.4em; }
         @media (max-width: 640px) { .blog-prose h2 { font-size: 1.2rem; } .blog-prose h3 { font-size: 1rem; } }
       `}</style>
-    </>
+      <AuthModalPortal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        defaultTab={authModalTab}
+      />
+    </RequireLoginContext.Provider>
   );
 }
