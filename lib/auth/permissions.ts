@@ -59,17 +59,16 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
     roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
   },
 
-  // Account/security settings (change password) — same broad
-  // access as general settings, must be listed before the
-  // generic "/dashboard/settings" rule below since both would
-  // otherwise match "/dashboard/settings/account" and rule
-  // lookup takes the first match found.
   {
     path: "/dashboard/settings/account",
     roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
   },
   {
     path: "/dashboard/settings/header",
+    roles: ["admin", "super_admin"],
+  },
+  {
+    path: "/dashboard/settings/footer",
     roles: ["admin", "super_admin"],
   },
   {

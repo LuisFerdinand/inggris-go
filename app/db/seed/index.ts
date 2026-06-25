@@ -1,17 +1,12 @@
 // app/db/seed/index.ts
 
-import "dotenv/config"; // ✅ MUST be first, before ANY import
+import "dotenv/config";
 
-import {
-  seedAllPrograms,
-  seedCategories,
-} from "./programs.seed";
-
+import { seedAllPrograms, seedCategories } from "./programs.seed";
 import { seedRoles, seedUserRoles, seedUsers } from "./users.seed";
-
 import { seedAllBlog } from "./blog.seed";
-
 import { seedSiteHeaderSettings } from "./site-header.seed";
+import { seedFooterSettings } from "./site-footer.seed";
 
 async function main() {
   console.log("🌱 Seeding...\n");
@@ -24,13 +19,13 @@ async function main() {
 
     // ── Site Header / Layout CMS ───────────────────────────────────────────────
     await seedSiteHeaderSettings();
+    await seedFooterSettings();
 
     // ── Programs ───────────────────────────────────────────────────────────────
     await seedCategories();
     await seedAllPrograms();
 
     // ── Blog ───────────────────────────────────────────────────────────────────
-    // Note: seedPosts() looks up authors by email, so users must be seeded first.
     await seedAllBlog();
 
     console.log("\n✅  Seed complete.\n");

@@ -17,6 +17,7 @@ import {
   Globe2,
   Bookmark,
   KeyRound,
+  LayoutTemplate,
 } from "lucide-react";
 
 import {
@@ -89,6 +90,7 @@ export const routes = {
     root: "/dashboard/settings",
     account: "/dashboard/settings/account",
     header: "/dashboard/settings/header",
+    footer: "/dashboard/settings/footer",
   },
 };
 
@@ -173,7 +175,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           pathname === routes.settings.root ||
           (isActive(pathname, routes.settings.root) &&
             !isActive(pathname, routes.settings.account) &&
-            !isActive(pathname, routes.settings.header)),
+            !isActive(pathname, routes.settings.header) &&
+            !isActive(pathname, routes.settings.footer)),
         roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
       },
       {
@@ -272,6 +275,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Globe2,
         url: routes.settings.header,
         isActive: isActive(pathname, routes.settings.header),
+        roles: ["admin", "super_admin"],
+      },
+      {
+        title: "Footer",
+        icon: LayoutTemplate,
+        url: routes.settings.footer,
+        isActive: isActive(pathname, routes.settings.footer),
         roles: ["admin", "super_admin"],
       },
     ],

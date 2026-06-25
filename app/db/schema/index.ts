@@ -5,3 +5,4 @@ export * from "./roles";
 export * from "./blog";
 export * from "./orders";
 export * from "./site-header";
+export * from "./footer";
