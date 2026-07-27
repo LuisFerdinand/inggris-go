@@ -18,6 +18,8 @@ import {
   XCircle,
   AlertCircle,
   PackageSearch,
+  FileDown,
+  GraduationCap,
 } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
@@ -378,6 +380,58 @@ function Pager({
 }
 
 /* ─────────────────────────────────────────────────────────────
+   LAPORAN PERKEMBANGAN (finalized progress reports)
+───────────────────────────────────────────────────────────── */
+
+function ReportsSection() {
+  const reportsQuery = trpc.classScores.getMyReports.useQuery();
+  const reports = reportsQuery.data ?? [];
+
+  if (reportsQuery.isLoading || reports.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <GraduationCap className="size-4 text-indigo-600" />
+        <h2 className="text-[13px] font-bold text-slate-700">
+          Laporan Perkembangan
+        </h2>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {reports.map((report) => (
+          <div
+            key={report.scoreId}
+            className="flex items-center justify-between gap-3 rounded-xl border border-white bg-white px-3.5 py-2.5 shadow-sm"
+          >
+            <div className="min-w-0">
+              <p className="truncate text-[12.5px] font-semibold text-slate-800">
+                {report.programTitle}
+              </p>
+              <p className="truncate text-[11px] text-slate-400">
+                {report.classTitle}
+                {report.periodLabel ? ` · ${report.periodLabel}` : ""}
+              </p>
+            </div>
+
+            <a
+              href={`/api/reports/student-score/${report.scoreId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11.5px] font-bold text-white transition-colors hover:bg-indigo-700"
+            >
+              <FileDown className="size-3.5" /> Unduh
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
    SUMMARY STRIP (compact, mobile-friendly)
 ───────────────────────────────────────────────────────────── */
 
@@ -461,6 +515,8 @@ export function MyProgramsView() {
           Pantau status pendaftaran dan pembayaran programmu di sini.
         </p>
       </div>
+
+      <ReportsSection />
 
       {/* Loading */}
       {ordersQuery.isLoading && !data ? (

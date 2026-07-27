@@ -347,7 +347,9 @@ jwt: {
       session.user.id = token.id as string;
       session.user.role = activeRole;
       session.user.activeRole = activeRole;
+      session.user.realRole = role;
       session.user.roles = roles;
+      session.user.canSwitchRole = role === "super_admin";
 
       return session;
     },

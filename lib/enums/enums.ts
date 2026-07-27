@@ -278,6 +278,118 @@ export const PROGRAM_BATCH_MODE_LABEL: Record<ProgramBatchMode, string> = {
   hybrid: "Hybrid",
 };
 
+/* =========================================================
+   CLASS STATUS (Teaching LMS)
+========================================================= */
+
+export const CLASS_STATUS = [
+  "draft",
+  "active",
+  "completed",
+  "archived",
+] as const;
+
+export type ClassStatus = (typeof CLASS_STATUS)[number];
+
+export const classStatusEnum = z.enum(CLASS_STATUS);
+
+export const CLASS_STATUS_META = {
+  draft: {
+    label: "Draft",
+    icon: "file-edit",
+    shortDesc: "Kelas baru dibuat, roster belum berjalan",
+    color: "#94a3b8",
+    tone: "neutral",
+  },
+
+  active: {
+    label: "Berlangsung",
+    icon: "play-circle",
+    shortDesc: "Kelas sedang berjalan, sesi & kehadiran dapat dicatat",
+    color: "#22c55e",
+    tone: "success",
+  },
+
+  completed: {
+    label: "Selesai",
+    icon: "check-circle-2",
+    shortDesc: "Kelas selesai, penilaian & laporan dapat dibuat",
+    color: "#3b82f6",
+    tone: "primary",
+  },
+
+  archived: {
+    label: "Diarsipkan",
+    icon: "archive",
+    shortDesc: "Kelas disimpan dan tidak aktif",
+    color: "#64748b",
+    tone: "neutral",
+  },
+} satisfies EnumMetaRecord<ClassStatus>;
+
+export const CLASS_STATUS_LABEL = createLabelMap(CLASS_STATUS, CLASS_STATUS_META);
+
+export const CLASS_STATUS_OPTIONS = createOptions(CLASS_STATUS, CLASS_STATUS_META);
+
+/* =========================================================
+   ATTENDANCE STATUS (Teaching LMS)
+========================================================= */
+
+export const ATTENDANCE_STATUS = [
+  "present",
+  "absent",
+  "late",
+  "excused",
+] as const;
+
+export type AttendanceStatus = (typeof ATTENDANCE_STATUS)[number];
+
+export const attendanceStatusEnum = z.enum(ATTENDANCE_STATUS);
+
+export const ATTENDANCE_STATUS_META = {
+  present: {
+    label: "Hadir",
+    icon: "check-circle-2",
+    shortDesc: "Siswa hadir pada sesi ini",
+    color: "#22c55e",
+    tone: "success",
+  },
+
+  absent: {
+    label: "Tidak Hadir",
+    icon: "x-circle",
+    shortDesc: "Siswa tidak hadir tanpa keterangan",
+    color: "#ef4444",
+    tone: "danger",
+  },
+
+  late: {
+    label: "Terlambat",
+    icon: "clock",
+    shortDesc: "Siswa hadir namun terlambat",
+    color: "#f59e0b",
+    tone: "warning",
+  },
+
+  excused: {
+    label: "Izin",
+    icon: "file-check",
+    shortDesc: "Siswa tidak hadir dengan keterangan",
+    color: "#3b82f6",
+    tone: "info",
+  },
+} satisfies EnumMetaRecord<AttendanceStatus>;
+
+export const ATTENDANCE_STATUS_LABEL = createLabelMap(
+  ATTENDANCE_STATUS,
+  ATTENDANCE_STATUS_META,
+);
+
+export const ATTENDANCE_STATUS_OPTIONS = createOptions(
+  ATTENDANCE_STATUS,
+  ATTENDANCE_STATUS_META,
+);
+
 export const MATERIAL_TYPE = [
   "brochure",
   "guidebook",
@@ -296,3 +408,134 @@ export const MATERIAL_TYPE_LABEL: Record<MaterialType, string> = {
   rundown: "Rundown Acara",
   other: "Lainnya",
 };
+
+/* =========================================================
+   TASK STATUS (Team Task Board)
+========================================================= */
+
+export const TASK_STATUS = [
+  "pending_review",
+  "direncanakan",
+  "in_progress",
+  "review",
+  "done",
+  "rejected",
+] as const;
+
+export type TaskStatus = (typeof TASK_STATUS)[number];
+
+export const taskStatusEnum = z.enum(TASK_STATUS);
+
+export const TASK_STATUS_META = {
+  pending_review: {
+    label: "Menunggu Verifikasi",
+    shortLabel: "Menunggu",
+    icon: "hourglass",
+    shortDesc: "Tugas baru menunggu verifikasi super admin",
+    color: "#f59e0b",
+    tone: "warning",
+  },
+
+  direncanakan: {
+    label: "Direncanakan",
+    shortLabel: "Direncanakan",
+    icon: "circle-dashed",
+    shortDesc: "Tugas sudah diverifikasi dan siap dikerjakan",
+    color: "#3b82f6",
+    tone: "primary",
+  },
+
+  in_progress: {
+    label: "Sedang Dikerjakan",
+    shortLabel: "In Progress",
+    icon: "loader",
+    shortDesc: "Tugas sedang berjalan",
+    color: "#6366f1",
+    tone: "info",
+  },
+
+  review: {
+    label: "Menunggu Review",
+    shortLabel: "Review",
+    icon: "eye",
+    shortDesc: "Menunggu review super admin sebelum ditandai selesai",
+    color: "#14b8a6",
+    tone: "info",
+  },
+
+  done: {
+    label: "Selesai",
+    shortLabel: "Done",
+    icon: "check-circle-2",
+    shortDesc: "Tugas telah selesai dikerjakan",
+    color: "#22c55e",
+    tone: "success",
+  },
+
+  rejected: {
+    label: "Ditolak",
+    shortLabel: "Ditolak",
+    icon: "x-circle",
+    shortDesc: "Tugas ditolak oleh super admin",
+    color: "#ef4444",
+    tone: "danger",
+  },
+} satisfies EnumMetaRecord<TaskStatus>;
+
+export const TASK_STATUS_LABEL = createLabelMap(TASK_STATUS, TASK_STATUS_META);
+
+export const TASK_STATUS_OPTIONS = createOptions(TASK_STATUS, TASK_STATUS_META);
+
+/* =========================================================
+   TASK PRIORITY (Team Task Board)
+========================================================= */
+
+export const TASK_PRIORITY = ["low", "medium", "high", "urgent"] as const;
+
+export type TaskPriority = (typeof TASK_PRIORITY)[number];
+
+export const taskPriorityEnum = z.enum(TASK_PRIORITY);
+
+export const TASK_PRIORITY_META = {
+  low: {
+    label: "Rendah",
+    icon: "arrow-down",
+    shortDesc: "Tidak mendesak, bisa dikerjakan belakangan",
+    color: "#64748b",
+    tone: "neutral",
+  },
+
+  medium: {
+    label: "Sedang",
+    icon: "minus",
+    shortDesc: "Prioritas standar",
+    color: "#f59e0b",
+    tone: "warning",
+  },
+
+  high: {
+    label: "Tinggi",
+    icon: "arrow-up",
+    shortDesc: "Perlu dikerjakan lebih dulu",
+    color: "#f97316",
+    tone: "warning",
+  },
+
+  urgent: {
+    label: "Mendesak",
+    icon: "flame",
+    shortDesc: "Butuh perhatian segera",
+    color: "#ef4444",
+    tone: "danger",
+  },
+} satisfies EnumMetaRecord<TaskPriority>;
+
+export const TASK_PRIORITY_LABEL = createLabelMap(
+  TASK_PRIORITY,
+  TASK_PRIORITY_META,
+);
+
+export const TASK_PRIORITY_OPTIONS = createOptions(
+  TASK_PRIORITY,
+  TASK_PRIORITY_META,
+);

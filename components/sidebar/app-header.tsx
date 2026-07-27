@@ -16,7 +16,11 @@ import {
   Settings,
   UserPlus,
   Rocket,
+  ShieldCheck,
+  Undo2,
 } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import { ROLE_LABELS, canAccessPath, getDashboardHome } from "@/lib/auth/permissions";
 import { Separator } from "../ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
 import {
@@ -512,6 +516,66 @@ function UserNavSkeleton() {
   );
 }
 
+/* ─── Role preview banner ─────────────────────────────────────── */
+function RolePreviewBanner() {
+  const { data: session, update } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isSwitching, setIsSwitching] = useState(false);
+
+  if (!session?.user?.canSwitchRole) return null;
+
+  const activeRole = session.user.role;
+  const realRole = session.user.realRole ?? activeRole;
+
+  if (activeRole === realRole) return null;
+
+  async function handleReturn() {
+    setIsSwitching(true);
+
+    try {
+      await update({ activeRole: realRole });
+      router.refresh();
+
+      if (!canAccessPath(pathname, realRole)) {
+        router.replace(getDashboardHome(realRole));
+      }
+    } finally {
+      setIsSwitching(false);
+    }
+  }
+
+  return (
+    <div
+      className="flex items-center justify-center gap-2 px-4 py-1.5 text-xs font-medium"
+      style={{
+        background:
+          "linear-gradient(90deg, rgba(245,158,11,0.12), rgba(245,158,11,0.18), rgba(245,158,11,0.12))",
+        color: "#92400e",
+      }}
+    >
+      <ShieldCheck className="size-3.5 shrink-0" />
+      <span>
+        Melihat sebagai <strong>{ROLE_LABELS[activeRole]}</strong> — tampilan
+        pratinjau, tidak mengubah role di database.
+      </span>
+      <button
+        type="button"
+        onClick={handleReturn}
+        disabled={isSwitching}
+        className="ml-1 inline-flex items-center gap-1 rounded-full bg-white/70 px-2.5 py-0.5 font-semibold hover:bg-white transition-colors duration-150 disabled:opacity-60 cursor-pointer"
+      >
+        {isSwitching ? (
+          <Loader2 className="size-3 animate-spin" />
+        ) : (
+          <Undo2 className="size-3" />
+        )}
+        Kembali ke {ROLE_LABELS[realRole]}
+      </button>
+    </div>
+  );
+}
+
 export function AppHeader() {
   return (
     <header
@@ -522,6 +586,8 @@ export function AppHeader() {
         "transition-all duration-200",
       )}
     >
+      <RolePreviewBanner />
+
       <div className="flex h-(--header-height) items-center justify-between px-4 lg:px-6">
         <div className="flex items-center gap-3 min-w-0">
           <SidebarTrigger className="shrink-0" />

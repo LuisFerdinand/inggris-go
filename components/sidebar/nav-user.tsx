@@ -98,10 +98,9 @@ function DashboardAvatar({
   );
 }
 
-function RolePreviewSwitcher() {
+function RolePreviewSection() {
   const router = useRouter();
   const pathname = usePathname();
-
   const { data: session, update } = useSession();
   const [pendingRole, setPendingRole] = useState<Role | null>(null);
 
@@ -110,6 +109,8 @@ function RolePreviewSwitcher() {
   }
 
   const activeRole = session.user.role;
+  const realRole = session.user.realRole ?? activeRole;
+  const isPreviewing = activeRole !== realRole;
 
   async function handleSwitchRole(nextRole: Role) {
     if (nextRole === activeRole || pendingRole) return;
@@ -117,10 +118,7 @@ function RolePreviewSwitcher() {
     setPendingRole(nextRole);
 
     try {
-      await update({
-        activeRole: nextRole,
-      });
-
+      await update({ activeRole: nextRole });
       router.refresh();
 
       if (!canAccessPath(pathname, nextRole)) {
@@ -139,20 +137,56 @@ function RolePreviewSwitcher() {
 
       <DropdownMenuLabel className="px-4 py-2">
         <div className="flex items-center gap-2">
-          <ShieldCheck className="size-3.5 text-blue-700" />
+          <ShieldCheck
+            className="size-3.5"
+            style={{ color: isPreviewing ? "#b45309" : "var(--blue)" }}
+          />
 
-          <span className="text-[0.7rem] font-bold uppercase tracking-wide text-slate-500">
-            Mode Tampilan Role
+          <span
+            className="text-[0.7rem] font-bold uppercase tracking-wide"
+            style={{ color: isPreviewing ? "#b45309" : "#64748B" }}
+          >
+            {isPreviewing
+              ? `Pratinjau: ${ROLE_LABELS[activeRole]}`
+              : "Mode Pratinjau Role"}
           </span>
         </div>
 
         <p className="mt-1 text-[0.68rem] font-normal leading-relaxed text-slate-400">
-          Hanya untuk preview dashboard berdasarkan role. Tidak mengubah role di
-          database.
+          Hanya untuk melihat tampilan dashboard sesuai role. Tidak mengubah
+          role di database.
         </p>
       </DropdownMenuLabel>
 
       <DropdownMenuGroup className="space-y-0.5 px-2 py-1">
+        {isPreviewing && (
+          <DropdownMenuItem
+            disabled={!!pendingRole}
+            onClick={() => handleSwitchRole(realRole)}
+            className="cursor-pointer rounded-xl px-3 py-2 transition-colors duration-150 focus:bg-amber-50"
+            style={{ outline: "none" }}
+          >
+            <div className="flex w-full items-center gap-2.5">
+              <div
+                className="flex size-7 shrink-0 items-center justify-center rounded-lg"
+                style={{ background: "rgba(245,158,11,0.14)" }}
+              >
+                <ShieldCheck
+                  className="size-3.5"
+                  style={{ color: "#b45309" }}
+                />
+              </div>
+
+              <p
+                className="text-[0.8125rem] font-semibold"
+                style={{ color: "#b45309" }}
+              >
+                Kembali ke {ROLE_LABELS[realRole]}
+              </p>
+            </div>
+          </DropdownMenuItem>
+        )}
+
         {SWITCHABLE_ROLES.map((role) => {
           const isActive = activeRole === role;
           const isPending = pendingRole === role;
@@ -162,7 +196,7 @@ function RolePreviewSwitcher() {
               key={role}
               disabled={!!pendingRole}
               onClick={() => handleSwitchRole(role)}
-              className="cursor-pointer rounded-xl px-3 py-2 transition-all duration-150 focus:bg-blue-50/60"
+              className="cursor-pointer rounded-xl px-3 py-2 transition-colors duration-150 focus:bg-blue-50/60"
               style={{ outline: "none" }}
             >
               <div className="flex w-full items-center gap-2.5">
@@ -265,22 +299,11 @@ export function DashboardNavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="group relative overflow-hidden transition-all duration-200 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              style={{
-                background: "transparent",
-                border: "1px solid transparent",
-              }}
-              onMouseEnter={(event) => {
-                event.currentTarget.style.background = "rgba(10,45,135,0.06)";
-                event.currentTarget.style.border =
-                  "1px solid rgba(10,45,135,0.08)";
-              }}
-              onMouseLeave={(event) => {
-                if (!event.currentTarget.dataset.state) {
-                  event.currentTarget.style.background = "transparent";
-                  event.currentTarget.style.border = "1px solid transparent";
-                }
-              }}
+              className={[
+                "group relative rounded-lg transition-colors duration-150",
+                "hover:bg-[rgba(10,45,135,0.06)]",
+                "data-[state=open]:bg-[rgba(10,45,135,0.07)]",
+              ].join(" ")}
             >
               {isCollapsed ? (
                 <DashboardAvatar
@@ -457,7 +480,7 @@ export function DashboardNavUser() {
               </DropdownMenuGroup>
             )}
 
-            <RolePreviewSwitcher />
+            <RolePreviewSection />
 
             <DropdownMenuSeparator
               style={{ margin: "4px 0", background: "rgba(10,45,135,0.07)" }}

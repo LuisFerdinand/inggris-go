@@ -25,6 +25,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import {
+  SECTION_LABEL_CLASS,
+  SECTION_LABEL_STYLE,
+  navIconClass,
+  navItemClass,
+} from "./nav-styles";
 
 type SubItem = {
   title: string;
@@ -41,26 +47,13 @@ export type GroupNavItem = {
   items?: SubItem[];
 };
 
-// ── Shared style helpers ─────────────────────────────────────
-const btnBase = [
-  "relative rounded-lg font-medium transition-all duration-150 cursor-pointer",
-  "hover:bg-[rgba(10,45,135,0.07)] hover:text-[var(--blue-navy)]",
-].join(" ");
-
-const btnActive = "bg-[rgba(26,82,200,0.09)] text-[var(--blue)] font-semibold";
-const btnInactive = "text-[var(--text-muted)]";
-
-function iconCls(active?: boolean) {
-  return `!size-3.5 shrink-0 ${active ? "text-[var(--blue)]" : "text-[var(--text-faint)]"}`;
-}
-
 function subBtnCls(active?: boolean) {
   return [
-    "relative h-7 rounded-md text-[0.775rem] transition-all duration-150",
-    "hover:bg-[rgba(10,45,135,0.07)] hover:text-[var(--blue-navy)]",
+    "relative h-7 rounded-md text-[0.775rem] transition-colors duration-150",
+    "hover:bg-[rgba(10,45,135,0.06)] hover:text-[var(--blue-navy)]",
     active
       ? [
-          "bg-[rgba(26,82,200,0.1)] text-[var(--blue)] font-semibold",
+          "bg-[rgba(26,82,200,0.09)] text-[var(--blue)] font-semibold",
           "before:absolute before:left-[-9px] before:top-1/2 before:-translate-y-1/2",
           "before:h-3.5 before:w-[2px] before:rounded-r-full before:bg-[var(--blue)]",
         ].join(" ")
@@ -74,21 +67,16 @@ function CollapsedGroupItem({ item }: { item: GroupNavItem }) {
   const hasChildren = item.items && item.items.length > 0;
 
   if (!hasChildren) {
-    // Flat link — standard icon tooltip
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
           asChild
           tooltip={item.title}
           isActive={item.isActive}
-          className={[
-            "size-8 justify-center p-0",
-            btnBase,
-            item.isActive ? btnActive : btnInactive,
-          ].join(" ")}
+          className={`size-8 justify-center p-0 ${navItemClass(item.isActive)}`}
         >
           <Link href={item.url ?? "#"}>
-            <Icon className={iconCls(item.isActive)} />
+            <Icon className={navIconClass(item.isActive)} />
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -102,13 +90,9 @@ function CollapsedGroupItem({ item }: { item: GroupNavItem }) {
           <SidebarMenuButton
             tooltip={item.title}
             isActive={item.isActive}
-            className={[
-              "size-8 justify-center p-0",
-              btnBase,
-              item.isActive ? btnActive : btnInactive,
-            ].join(" ")}
+            className={`size-8 justify-center p-0 ${navItemClass(item.isActive)}`}
           >
-            <Icon className={iconCls(item.isActive)} />
+            <Icon className={navIconClass(item.isActive)} />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -123,7 +107,6 @@ function CollapsedGroupItem({ item }: { item: GroupNavItem }) {
             background: "white",
           }}
         >
-          {/* Section header */}
           <DropdownMenuLabel className="px-2 pt-0.5 pb-1.5">
             <div className="flex items-center gap-2">
               <div
@@ -154,7 +137,7 @@ function CollapsedGroupItem({ item }: { item: GroupNavItem }) {
                 key={sub.title}
                 asChild
                 className={[
-                  "rounded-lg px-2.5 py-2 cursor-pointer transition-all duration-150",
+                  "rounded-lg px-2.5 py-2 cursor-pointer transition-colors duration-150",
                   "focus:bg-[rgba(10,45,135,0.07)]",
                   sub.isActive
                     ? "bg-[rgba(26,82,200,0.09)] text-[var(--blue)]"
@@ -213,143 +196,104 @@ export function NavGroups({
   // ── COLLAPSED VIEW ───────────────────────────────────────
   if (isCollapsed) {
     return (
-      <SidebarGroup className="px-1.5 pb-1">
-        <div
-          className="rounded-xl overflow-hidden p-1"
-          style={{
-            border: "1px solid rgba(10,45,135,0.09)",
-            background: "rgba(10,45,135,0.02)",
-          }}
-        >
-          <SidebarMenu className="gap-0.5 items-center">
-            {items.map((item) => (
-              <CollapsedGroupItem key={item.title} item={item} />
-            ))}
-          </SidebarMenu>
-        </div>
+      <SidebarGroup className="px-2 py-1">
+        <SidebarMenu className="gap-0.5 items-center">
+          {items.map((item) => (
+            <CollapsedGroupItem key={item.title} item={item} />
+          ))}
+        </SidebarMenu>
       </SidebarGroup>
     );
   }
 
   // ── EXPANDED VIEW ────────────────────────────────────────
   return (
-    <SidebarGroup className="px-2 pb-1">
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          border: "1px solid rgba(10,45,135,0.09)",
-          background: "rgba(10,45,135,0.02)",
-        }}
-      >
-        {label && (
-          <div
-            className="px-3 py-1.5"
-            style={{ borderBottom: "1px solid rgba(10,45,135,0.07)" }}
-          >
-            <span
-              className="text-[10px] font-bold uppercase"
-              style={{ color: "var(--text-faint)", letterSpacing: "0.1em" }}
+    <SidebarGroup className="px-2 py-1.5">
+      {label && (
+        <div className={SECTION_LABEL_CLASS} style={SECTION_LABEL_STYLE}>
+          {label}
+        </div>
+      )}
+
+      <SidebarMenu className="gap-0.5">
+        {items.map((item) =>
+          item.items && item.items.length > 0 ? (
+            <Collapsible
+              key={item.title}
+              asChild
+              defaultOpen={item.isActive}
+              className="group/collapsible"
             >
-              {label}
-            </span>
-          </div>
-        )}
-        <div className="p-1">
-          <SidebarMenu className="gap-0.5">
-            {items.map((item) =>
-              item.items && item.items.length > 0 ? (
-                <Collapsible
-                  key={item.title}
-                  asChild
-                  defaultOpen={item.isActive}
-                  className="group/collapsible"
-                >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip={item.title}
-                        isActive={item.isActive}
-                        className={[
-                          "h-8 text-[0.8rem]",
-                          btnBase,
-                          item.isActive ? btnActive : btnInactive,
-                        ].join(" ")}
-                      >
-                        {item.icon ? (
-                          <item.icon className={iconCls(item.isActive)} />
-                        ) : (
-                          <LayoutDashboard className={iconCls()} />
-                        )}
-                        <span className="truncate">{item.title}</span>
-                        <ChevronRightIcon
-                          className={[
-                            "ml-auto !size-3 shrink-0 transition-transform duration-200",
-                            "group-data-[state=open]/collapsible:rotate-90",
-                            item.isActive
-                              ? "text-[var(--blue)]"
-                              : "text-[var(--text-faint)]",
-                          ].join(" ")}
-                        />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub
-                        className="ml-3.5 gap-0 border-l pl-2"
-                        style={{ borderColor: "rgba(10,45,135,0.12)" }}
-                      >
-                        {item.items.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton
-                              asChild
-                              isActive={subItem.isActive}
-                              className={subBtnCls(subItem.isActive)}
-                            >
-                              <Link href={subItem.url ?? "#"}>
-                                {subItem.icon && (
-                                  <subItem.icon className="!size-3 shrink-0" />
-                                )}
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </SidebarMenuItem>
-                </Collapsible>
-              ) : (
-                <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem>
+                <CollapsibleTrigger asChild>
                   <SidebarMenuButton
-                    asChild
                     tooltip={item.title}
                     isActive={item.isActive}
-                    className={[
-                      "h-8 text-[0.8rem]",
-                      btnBase,
-                      item.isActive
-                        ? [
-                            btnActive,
-                            "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2",
-                            "before:h-4 before:w-[3px] before:rounded-r-full before:bg-[var(--blue)]",
-                          ].join(" ")
-                        : btnInactive,
-                    ].join(" ")}
+                    className={navItemClass(item.isActive)}
                   >
-                    <Link href={item.url ?? "#"}>
-                      {item.icon ? (
-                        <item.icon className={iconCls(item.isActive)} />
-                      ) : (
-                        <LayoutDashboard className={iconCls()} />
-                      )}
-                      <span className="truncate">{item.title}</span>
-                    </Link>
+                    {item.icon ? (
+                      <item.icon className={navIconClass(item.isActive)} />
+                    ) : (
+                      <LayoutDashboard className={navIconClass()} />
+                    )}
+                    <span className="truncate">{item.title}</span>
+                    <ChevronRightIcon
+                      className={[
+                        "ml-auto !size-3 shrink-0 transition-transform duration-200",
+                        "group-data-[state=open]/collapsible:rotate-90",
+                        item.isActive
+                          ? "text-[var(--blue)]"
+                          : "text-[var(--text-faint)]",
+                      ].join(" ")}
+                    />
                   </SidebarMenuButton>
-                </SidebarMenuItem>
-              ),
-            )}
-          </SidebarMenu>
-        </div>
-      </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub
+                    className="ml-3.5 gap-0 border-l pl-2"
+                    style={{ borderColor: "rgba(10,45,135,0.12)" }}
+                  >
+                    {item.items.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={subItem.isActive}
+                          className={subBtnCls(subItem.isActive)}
+                        >
+                          <Link href={subItem.url ?? "#"}>
+                            {subItem.icon && (
+                              <subItem.icon className="!size-3 shrink-0" />
+                            )}
+                            <span>{subItem.title}</span>
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+          ) : (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={item.isActive}
+                className={navItemClass(item.isActive)}
+              >
+                <Link href={item.url ?? "#"}>
+                  {item.icon ? (
+                    <item.icon className={navIconClass(item.isActive)} />
+                  ) : (
+                    <LayoutDashboard className={navIconClass()} />
+                  )}
+                  <span className="truncate">{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ),
+        )}
+      </SidebarMenu>
     </SidebarGroup>
   );
 }

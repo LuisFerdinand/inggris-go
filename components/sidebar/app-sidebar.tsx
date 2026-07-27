@@ -18,6 +18,9 @@ import {
   Bookmark,
   KeyRound,
   LayoutTemplate,
+  GraduationCap,
+  ClipboardList,
+  KanbanSquare,
 } from "lucide-react";
 
 import {
@@ -47,6 +50,20 @@ export const routes = {
 
   koleksi: {
     root: "/dashboard/koleksi",
+  },
+
+  teaching: {
+    root: "/dashboard/teaching",
+
+    classes: {
+      root: "/dashboard/teaching/classes",
+      create: "/dashboard/teaching/classes/create",
+      detail: (id: string) => `/dashboard/teaching/classes/${id}`,
+    },
+  },
+
+  tasks: {
+    root: "/dashboard/tasks",
   },
 
   programs: {
@@ -190,6 +207,39 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     activeRole,
   );
 
+  const teamItems = filterGroupItems(
+    [
+      {
+        title: "Papan Tugas",
+        icon: KanbanSquare,
+        url: routes.tasks.root,
+        isActive: isActive(pathname, routes.tasks.root),
+        roles: ["user", "teacher", "author", "admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
+
+  const teachingItems = filterGroupItems(
+    [
+      {
+        title: "Dashboard Mengajar",
+        icon: GraduationCap,
+        url: routes.teaching.root,
+        isActive: pathname === routes.teaching.root,
+        roles: ["teacher", "admin", "super_admin"],
+      },
+      {
+        title: "Kelas Saya",
+        icon: ClipboardList,
+        url: routes.teaching.classes.root,
+        isActive: isActive(pathname, routes.teaching.classes.root),
+        roles: ["teacher", "admin", "super_admin"],
+      },
+    ],
+    activeRole,
+  );
+
   const programItems = filterGroupItems(
     [
       {
@@ -310,15 +360,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+      <SidebarHeader
+        style={{ borderBottom: "1px solid rgba(10,45,135,0.08)" }}
+      >
         <AppBrand />
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="py-1">
         {hasItems(mainItems) && <NavMain items={mainItems} />}
 
         {hasItems(accountItems) && (
           <NavGroups label="Akun" items={accountItems} />
+        )}
+
+        {hasItems(teamItems) && (
+          <NavGroups label="Tim" items={teamItems} />
+        )}
+
+        {hasItems(teachingItems) && (
+          <NavGroups label="Pengajaran" items={teachingItems} />
         )}
 
         {hasItems(programItems) && (
@@ -340,7 +400,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {showRecentPrograms && <NavProject items={recentPrograms} />}
       </SidebarContent>
 
-      <SidebarFooter>
+      <SidebarFooter style={{ borderTop: "1px solid rgba(10,45,135,0.08)" }}>
         <DashboardNavUser />
       </SidebarFooter>
 

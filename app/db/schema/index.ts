@@ -6,3 +6,5 @@ export * from "./blog";
 export * from "./orders";
 export * from "./site-header";
 export * from "./footer";
+export * from "./classes";
+export * from "./tasks";

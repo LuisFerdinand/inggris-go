@@ -15,8 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -27,6 +25,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { navItemClass, SECTION_LABEL_STYLE } from "./nav-styles";
 
 type RecentItem = {
   name: string;
@@ -43,26 +42,14 @@ function CollapsedNavProject({ items }: { items: RecentItem[] }) {
   const preview = items.slice(0, 5);
 
   return (
-    <SidebarGroup className="px-1.5 pb-1">
-      <div
-        className="rounded-xl overflow-hidden p-1"
-        style={{
-          border: "1px solid rgba(10,45,135,0.09)",
-          background: "rgba(10,45,135,0.02)",
-        }}
-      >
-        <SidebarMenu className="items-center">
+    <SidebarGroup className="px-2 py-1">
+      <SidebarMenu className="items-center">
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   tooltip="Terakhir Diperbarui"
-                  className={[
-                    "size-8 justify-center p-0 rounded-lg",
-                    "relative transition-all duration-150 cursor-pointer",
-                    "hover:bg-[rgba(10,45,135,0.07)] hover:text-[var(--blue-navy)]",
-                    "text-[var(--text-muted)]",
-                  ].join(" ")}
+                  className={`relative size-8 justify-center p-0 ${navItemClass(false)}`}
                 >
                   <ClockIcon className="!size-3.5 text-[var(--text-faint)]" />
                   {/* Badge dot showing item count */}
@@ -122,7 +109,7 @@ function CollapsedNavProject({ items }: { items: RecentItem[] }) {
 
                 {/* Items list */}
                 <div className="p-1.5">
-                  {preview.map((item, i) => (
+                  {preview.map((item) => (
                     <DropdownMenuItem
                       key={item.name}
                       asChild
@@ -187,13 +174,12 @@ function CollapsedNavProject({ items }: { items: RecentItem[] }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>
-        </SidebarMenu>
-      </div>
+      </SidebarMenu>
     </SidebarGroup>
   );
 }
 
-// ── Expanded view (unchanged from before) ────────────────────
+// ── Expanded view ─────────────────────────────────────────────
 export function NavProject({ items }: { items: RecentItem[] }) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -236,19 +222,19 @@ export function NavProject({ items }: { items: RecentItem[] }) {
   if (isCollapsed) return <CollapsedNavProject items={items} />;
 
   return (
-    <SidebarGroup className="px-2 pb-2">
+    <SidebarGroup className="px-2 py-1.5">
       {/* Header */}
-      <div className="flex items-center justify-between px-1 mb-1">
+      <div className="flex items-center justify-between pr-1">
         <SidebarGroupLabel
-          className="flex items-center gap-1.5 h-auto p-0 text-[10px] font-bold uppercase"
-          style={{ color: "var(--text-faint)", letterSpacing: "0.1em" }}
+          className="flex items-center gap-1.5 h-auto p-0 text-[10px] font-bold uppercase text-[var(--text-faint)]"
+          style={SECTION_LABEL_STYLE}
         >
           <ClockIcon className="w-3 h-3" />
           Terakhir Diperbarui
         </SidebarGroupLabel>
         <button
           onClick={handleToggleSearch}
-          className="flex items-center justify-center w-5 h-5 rounded-md transition-all duration-150 hover:bg-[rgba(10,45,135,0.08)]"
+          className="flex items-center justify-center w-5 h-5 rounded-md transition-colors duration-150 hover:bg-[rgba(10,45,135,0.08)]"
           style={{ color: "var(--text-faint)" }}
           title={searchOpen ? "Tutup pencarian" : "Cari program"}
         >
@@ -260,59 +246,48 @@ export function NavProject({ items }: { items: RecentItem[] }) {
         </button>
       </div>
 
-      {/* Bordered container */}
+      {/* Search slide-in */}
       <div
-        className="rounded-xl overflow-hidden"
+        className="overflow-hidden transition-all duration-200"
         style={{
-          border: "1px solid rgba(10,45,135,0.09)",
-          background: "rgba(10,45,135,0.02)",
+          maxHeight: searchOpen ? "40px" : "0px",
+          opacity: searchOpen ? 1 : 0,
         }}
       >
-        {/* Search slide-in */}
-        <div
-          className="overflow-hidden transition-all duration-200"
-          style={{
-            maxHeight: searchOpen ? "48px" : "0px",
-            opacity: searchOpen ? 1 : 0,
-          }}
-        >
+        <div className="px-1 pb-2 pt-1">
           <div
-            className="px-2.5 py-2"
-            style={{ borderBottom: "1px solid rgba(10,45,135,0.07)" }}
+            className="flex items-center gap-2 rounded-lg px-2.5 py-1.5"
+            style={{
+              background: "rgba(10,45,135,0.05)",
+              border: "1px solid rgba(10,45,135,0.09)",
+            }}
           >
-            <div
-              className="flex items-center gap-2 rounded-lg px-2.5 py-1.5"
-              style={{
-                background: "rgba(10,45,135,0.06)",
-                border: "1px solid rgba(10,45,135,0.1)",
-              }}
-            >
-              <SearchIcon
-                className="w-3 h-3 shrink-0"
-                style={{ color: "var(--text-faint)" }}
-              />
-              <input
-                ref={searchRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari program..."
-                className="flex-1 bg-transparent text-[0.75rem] outline-none placeholder:text-[var(--text-faint)]"
-                style={{ color: "var(--text-main)" }}
-              />
-              {query && (
-                <button onClick={() => setQuery("")} className="shrink-0">
-                  <XIcon
-                    className="w-3 h-3"
-                    style={{ color: "var(--text-faint)" }}
-                  />
-                </button>
-              )}
-            </div>
+            <SearchIcon
+              className="w-3 h-3 shrink-0"
+              style={{ color: "var(--text-faint)" }}
+            />
+            <input
+              ref={searchRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari program..."
+              className="flex-1 bg-transparent text-[0.75rem] outline-none placeholder:text-[var(--text-faint)]"
+              style={{ color: "var(--text-main)" }}
+            />
+            {query && (
+              <button onClick={() => setQuery("")} className="shrink-0">
+                <XIcon
+                  className="w-3 h-3"
+                  style={{ color: "var(--text-faint)" }}
+                />
+              </button>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Items */}
-        <div className="p-1">
+      {/* Items */}
+      <div>
           <SidebarMenu>
             {displayed.length === 0 ? (
               <div
@@ -395,7 +370,6 @@ export function NavProject({ items }: { items: RecentItem[] }) {
               </div>
             )}
           </SidebarMenu>
-        </div>
       </div>
     </SidebarGroup>
   );
