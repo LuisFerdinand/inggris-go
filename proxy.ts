@@ -1,11 +1,11 @@
-// middleware.ts
+// proxy.ts
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 import type { Role } from "@/app/db/schema/roles";
 import { canAccessPath, getDashboardHome } from "@/lib/auth/permissions";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (!pathname.startsWith("/dashboard")) {
