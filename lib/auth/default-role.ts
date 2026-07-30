@@ -5,11 +5,11 @@ import { db } from "@/app/db/db";
 import { role, userRole, type Role } from "@/app/db/schema/roles";
 import { generateId } from "@/lib/utils";
 
-export async function getDefaultUserRoleId() {
+export async function getDefaultStudentRoleId() {
   const existingRole = await db
     .select({ id: role.id })
     .from(role)
-    .where(eq(role.name, "user"))
+    .where(eq(role.name, "student"))
     .limit(1);
 
   if (existingRole[0]) {
@@ -20,15 +20,17 @@ export async function getDefaultUserRoleId() {
 
   await db.insert(role).values({
     id: roleId,
-    name: "user",
-    description: "Regular user",
+    name: "student",
+    description: "Registered student",
   });
 
   return roleId;
 }
 
-export async function ensureDefaultUserRole(userId: string) {
-  const roleId = await getDefaultUserRoleId();
+// Anyone signing up on the website — via the register form or Google —
+// lands as a "student" by default.
+export async function ensureDefaultStudentRole(userId: string) {
+  const roleId = await getDefaultStudentRoleId();
 
   await db
     .insert(userRole)
@@ -63,5 +65,5 @@ export function getPrimaryRole(roles: Role[]): Role {
     "guest",
   ];
 
-  return priority.find((item) => roles.includes(item)) ?? "user";
+  return priority.find((item) => roles.includes(item)) ?? "student";
 }

@@ -14,6 +14,7 @@
     "db:seed": "tsx app/db/seed/index.ts",
     "db:seed:site-header": "tsx app/db/seed/site-header.single.ts",
     "seed:site-footer": "tsx app/db/seed/site-footer.single.ts",
+    "db:seed:payment-gateway": "tsx app/db/seed/payment-settings.single.ts",
     "db:drop": "drizzle-kit drop",
     "db:reset": "tsx app/db/reset/index.ts"
   },

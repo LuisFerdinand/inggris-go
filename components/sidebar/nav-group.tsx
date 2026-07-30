@@ -45,7 +45,21 @@ export type GroupNavItem = {
   icon?: LucideIcon;
   isActive?: boolean;
   items?: SubItem[];
+  badge?: number;
 };
+
+function NavBadge({ count }: { count?: number }) {
+  if (!count) return null;
+
+  return (
+    <span
+      className="ml-auto inline-flex h-4.5 min-w-4.5 shrink-0 items-center justify-center rounded-full px-1 text-[10px] font-bold text-white"
+      style={{ background: "var(--blue)" }}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
 
 function subBtnCls(active?: boolean) {
   return [
@@ -73,10 +87,16 @@ function CollapsedGroupItem({ item }: { item: GroupNavItem }) {
           asChild
           tooltip={item.title}
           isActive={item.isActive}
-          className={`size-8 justify-center p-0 ${navItemClass(item.isActive)}`}
+          className={`relative size-8 justify-center p-0 ${navItemClass(item.isActive)}`}
         >
           <Link href={item.url ?? "#"}>
             <Icon className={navIconClass(item.isActive)} />
+            {!!item.badge && (
+              <span
+                className="absolute right-0.5 top-0.5 size-2 rounded-full"
+                style={{ background: "var(--blue)" }}
+              />
+            )}
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -288,6 +308,7 @@ export function NavGroups({
                     <LayoutDashboard className={navIconClass()} />
                   )}
                   <span className="truncate">{item.title}</span>
+                  <NavBadge count={item.badge} />
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

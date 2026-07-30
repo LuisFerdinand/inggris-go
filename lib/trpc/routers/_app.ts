@@ -14,6 +14,10 @@ import { classRouter } from "@/app/modules/class/server/class.router";
 import { sessionRouter } from "@/app/modules/class/server/session.router";
 import { scoreRouter } from "@/app/modules/class/server/score.router";
 import { taskBoardRouter } from "@/app/modules/task-board/server/task-board.router";
+import { paymentSettingsRouter } from "@/app/modules/payment-settings/server/payment-settings.router";
+import { merchantRouter } from "@/app/modules/merchant/server/merchant.router";
+import { dailyReportRouter } from "@/app/modules/daily-reports/server/daily-report.router";
+import { notificationRouter } from "@/app/modules/notifications/server/notification.router";
 
 export const appRouter = createTRPCRouter({
   users: userRouter,
@@ -30,6 +34,10 @@ export const appRouter = createTRPCRouter({
   classSessions: sessionRouter,
   classScores: scoreRouter,
   taskBoard: taskBoardRouter,
+  paymentSettings: paymentSettingsRouter,
+  merchant: merchantRouter,
+  dailyReports: dailyReportRouter,
+  notifications: notificationRouter,
 });
 
 export type AppRouter = typeof appRouter;

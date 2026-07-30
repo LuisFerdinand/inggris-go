@@ -18,6 +18,10 @@ export const createTaskInput = z.object({
   startDate: z.coerce.date().optional(),
   dueDate: z.coerce.date().optional(),
   coverImageUrl: z.string().url().optional(),
+  checklistItems: z
+    .array(z.object({ text: z.string().trim().min(1).max(300) }))
+    .max(20)
+    .optional(),
 });
 
 export const updateTaskInput = z.object({
@@ -29,6 +33,7 @@ export const updateTaskInput = z.object({
   startDate: z.coerce.date().nullable().optional(),
   dueDate: z.coerce.date().nullable().optional(),
   coverImageUrl: z.string().url().nullable().optional(),
+  progress: z.number().int().min(0).max(100).optional(),
 });
 
 export const moveTaskInput = z.object({
@@ -50,6 +55,10 @@ export const verifyTaskInput = z.discriminatedUnion("decision", [
 ]);
 
 export const resubmitTaskInput = z.object({
+  id: z.string().min(1),
+});
+
+export const escalateTaskInput = z.object({
   id: z.string().min(1),
 });
 
@@ -78,4 +87,18 @@ export const addCommentInput = z.object({
 
 export const deleteCommentInput = z.object({
   commentId: z.string().min(1),
+});
+
+export const addChecklistItemInput = z.object({
+  taskId: z.string().min(1),
+  text: z.string().trim().min(1, "Item checklist tidak boleh kosong").max(300),
+});
+
+export const toggleChecklistItemInput = z.object({
+  id: z.string().min(1),
+  done: z.boolean(),
+});
+
+export const deleteChecklistItemInput = z.object({
+  id: z.string().min(1),
 });

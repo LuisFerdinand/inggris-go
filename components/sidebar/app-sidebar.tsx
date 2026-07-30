@@ -12,7 +12,6 @@ import {
   CreditCard,
   Users,
   Newspaper,
-  Settings2,
   BarChart3,
   Globe2,
   Bookmark,
@@ -21,6 +20,14 @@ import {
   GraduationCap,
   ClipboardList,
   KanbanSquare,
+  Wallet,
+  Store,
+  ClipboardCheck,
+  Gauge,
+  NotebookPen,
+  ShieldCheck,
+  Gavel,
+  Users2,
 } from "lucide-react";
 
 import {
@@ -40,6 +47,7 @@ import { NavProject } from "./nav-projects";
 
 import type { Role } from "@/app/db/schema/roles";
 import { canUseRole } from "@/lib/auth/permissions";
+import { trpc } from "@/lib/trpc/client";
 
 export const routes = {
   dashboard: "/dashboard",
@@ -64,6 +72,8 @@ export const routes = {
 
   tasks: {
     root: "/dashboard/tasks",
+    approval: "/dashboard/tasks/persetujuan",
+    directorDecision: "/dashboard/tasks/keputusan-direktur",
   },
 
   programs: {
@@ -82,12 +92,12 @@ export const routes = {
     root: "/dashboard/users",
   },
 
-  orders: {
-    root: "/dashboard/orders",
+  students: {
+    root: "/dashboard/data-siswa",
   },
 
-  payments: {
-    root: "/dashboard/payments",
+  orders: {
+    root: "/dashboard/orders",
   },
 
   analitik: {
@@ -104,10 +114,23 @@ export const routes = {
   },
 
   settings: {
-    root: "/dashboard/settings",
     account: "/dashboard/settings/account",
     header: "/dashboard/settings/header",
     footer: "/dashboard/settings/footer",
+    paymentGateway: "/dashboard/settings/payment-gateway",
+    merchantRequests: "/dashboard/settings/merchant-requests",
+  },
+
+  merchant: {
+    root: "/dashboard/merchant",
+  },
+
+  tim: {
+    kinerja: "/dashboard/tim/kinerja",
+  },
+
+  dailyReport: {
+    root: "/dashboard/laporan-harian",
   },
 };
 
@@ -155,6 +178,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const activeRole: Role = session?.user.role ?? "guest";
 
+  const hasTaskBoardAccess = canUseRole(
+    ["user", "teacher", "author", "admin", "super_admin"],
+    activeRole,
+  );
+  const taskBadgeCounts = trpc.taskBoard.badgeCounts.useQuery(undefined, {
+    enabled: hasTaskBoardAccess,
+  });
+
   const mainItems = filterMainItems(
     [
       {
@@ -185,18 +216,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
       },
       {
-        title: "Pengaturan",
-        icon: Settings2,
-        url: routes.settings.root,
-        isActive:
-          pathname === routes.settings.root ||
-          (isActive(pathname, routes.settings.root) &&
-            !isActive(pathname, routes.settings.account) &&
-            !isActive(pathname, routes.settings.header) &&
-            !isActive(pathname, routes.settings.footer)),
-        roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
-      },
-      {
         title: "Ubah Password",
         icon: KeyRound,
         url: routes.settings.account,
@@ -213,8 +232,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Papan Tugas",
         icon: KanbanSquare,
         url: routes.tasks.root,
-        isActive: isActive(pathname, routes.tasks.root),
+        isActive:
+          isActive(pathname, routes.tasks.root) &&
+          !isActive(pathname, routes.tasks.approval) &&
+          !isActive(pathname, routes.tasks.directorDecision),
         roles: ["user", "teacher", "author", "admin", "super_admin"],
+      },
+      {
+        title: "Persetujuan Tugas",
+        icon: ShieldCheck,
+        url: routes.tasks.approval,
+        isActive: isActive(pathname, routes.tasks.approval),
+        roles: ["admin", "super_admin"],
+        badge: taskBadgeCounts.data?.pendingReview,
+      },
+      {
+        title: "Laporan Harian",
+        icon: NotebookPen,
+        url: routes.dailyReport.root,
+        isActive: isActive(pathname, routes.dailyReport.root),
+        roles: ["teacher", "author", "admin", "super_admin"],
+      },
+      {
+        title: "Kinerja Tim",
+        icon: Gauge,
+        url: routes.tim.kinerja,
+        isActive: isActive(pathname, routes.tim.kinerja),
+        roles: ["admin", "super_admin"],
       },
     ],
     activeRole,
@@ -227,14 +271,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: GraduationCap,
         url: routes.teaching.root,
         isActive: pathname === routes.teaching.root,
-        roles: ["teacher", "admin", "super_admin"],
+        roles: ["teacher", "author", "admin", "super_admin"],
       },
       {
         title: "Kelas Saya",
         icon: ClipboardList,
         url: routes.teaching.classes.root,
         isActive: isActive(pathname, routes.teaching.classes.root),
-        roles: ["teacher", "admin", "super_admin"],
+        roles: ["teacher", "author", "admin", "super_admin"],
       },
     ],
     activeRole,
@@ -291,21 +335,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: ShoppingCart,
         url: routes.orders.root,
         isActive: isActive(pathname, routes.orders.root),
-        roles: ["admin", "super_admin"],
+        roles: ["admin", "author", "super_admin"],
       },
       {
-        title: "Pembayaran",
-        icon: CreditCard,
-        url: routes.payments.root,
-        isActive: isActive(pathname, routes.payments.root),
-        roles: ["admin", "super_admin"],
-      },
-      {
-        title: "Pengguna",
-        icon: Users,
-        url: routes.users.root,
-        isActive: isActive(pathname, routes.users.root),
-        roles: ["admin", "super_admin"],
+        title: "Data Siswa",
+        icon: Users2,
+        url: routes.students.root,
+        isActive: isActive(pathname, routes.students.root),
+        roles: ["admin", "author", "super_admin"],
       },
     ],
     activeRole,
@@ -333,6 +370,48 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: routes.settings.footer,
         isActive: isActive(pathname, routes.settings.footer),
         roles: ["admin", "super_admin"],
+      },
+      {
+        title: "Daftar Merchant",
+        icon: Store,
+        url: routes.merchant.root,
+        isActive: isActive(pathname, routes.merchant.root),
+        roles: ["super_admin"],
+      },
+    ],
+    activeRole,
+  );
+
+  const directorItems = filterGroupItems(
+    [
+      {
+        title: "Pengguna",
+        icon: Users,
+        url: routes.users.root,
+        isActive: isActive(pathname, routes.users.root),
+        roles: ["super_admin"],
+      },
+      {
+        title: "Payment Gateway",
+        icon: Wallet,
+        url: routes.settings.paymentGateway,
+        isActive: isActive(pathname, routes.settings.paymentGateway),
+        roles: ["super_admin"],
+      },
+      {
+        title: "Permintaan Merchant",
+        icon: ClipboardCheck,
+        url: routes.settings.merchantRequests,
+        isActive: isActive(pathname, routes.settings.merchantRequests),
+        roles: ["super_admin"],
+      },
+      {
+        title: "Butuh Keputusan Direktur",
+        icon: Gavel,
+        url: routes.tasks.directorDecision,
+        isActive: isActive(pathname, routes.tasks.directorDecision),
+        roles: ["super_admin"],
+        badge: taskBadgeCounts.data?.butuhKeputusan,
       },
     ],
     activeRole,
@@ -395,6 +474,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         {hasItems(businessItems) && (
           <NavGroups label="Bisnis" items={businessItems} />
+        )}
+
+        {hasItems(directorItems) && (
+          <NavGroups label="Menu Direktur" items={directorItems} />
         )}
 
         {showRecentPrograms && <NavProject items={recentPrograms} />}

@@ -1,6 +1,6 @@
 // app/db/seed/site-header.single.ts
 
-import "dotenv/config";
+import "./load-env";
 
 import { seedSiteHeaderSettings } from "./site-header.seed";
 

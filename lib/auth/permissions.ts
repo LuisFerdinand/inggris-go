@@ -72,15 +72,26 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
     roles: ["admin", "super_admin"],
   },
   {
-    path: "/dashboard/settings",
-    roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+    path: "/dashboard/settings/payment-gateway",
+    roles: ["super_admin"],
+  },
+  {
+    path: "/dashboard/settings/merchant-requests",
+    roles: ["super_admin"],
+  },
+  {
+    path: "/dashboard/teaching",
+    roles: ["teacher", "author", "admin", "super_admin"],
   },
 
   {
-    path: "/dashboard/teaching",
-    roles: ["teacher", "admin", "super_admin"],
+    path: "/dashboard/tasks/persetujuan",
+    roles: ["admin", "super_admin"],
   },
-
+  {
+    path: "/dashboard/tasks/keputusan-direktur",
+    roles: ["super_admin"],
+  },
   {
     path: "/dashboard/tasks",
     roles: ["user", "teacher", "author", "admin", "super_admin"],
@@ -110,20 +121,35 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
 
   {
     path: "/dashboard/orders",
-    roles: ["admin", "super_admin"],
-  },
-  {
-    path: "/dashboard/payments",
-    roles: ["admin", "super_admin"],
+    roles: ["admin", "author", "super_admin"],
   },
   {
     path: "/dashboard/users",
-    roles: ["admin", "super_admin"],
+    roles: ["super_admin"],
+  },
+  {
+    path: "/dashboard/data-siswa",
+    roles: ["admin", "author", "super_admin"],
   },
 
   {
     path: "/dashboard/analitik",
     roles: ["admin", "super_admin"],
+  },
+
+  {
+    path: "/dashboard/merchant",
+    roles: ["super_admin"],
+  },
+
+  {
+    path: "/dashboard/tim/kinerja",
+    roles: ["admin", "super_admin"],
+  },
+
+  {
+    path: "/dashboard/laporan-harian",
+    roles: ["teacher", "author", "admin", "super_admin"],
   },
 ];
 

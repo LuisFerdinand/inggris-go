@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781335886200,
-      "tag": "0000_wide_garia",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1784355418098,
-      "tag": "0001_nifty_victor_mancha",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1785138218996,
-      "tag": "0002_panoramic_toad_men",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1785144678608,
-      "tag": "0003_cloudy_wild_pack",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1785145981021,
-      "tag": "0004_cuddly_romulus",
+      "when": 1785417809488,
+      "tag": "0000_heavy_wild_child",
       "breakpoints": true
     }
   ]

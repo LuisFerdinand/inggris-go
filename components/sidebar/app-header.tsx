@@ -7,19 +7,26 @@ import {
   BadgeCheck,
   Bell,
   BookOpen,
-  CalendarDays,
+  CheckCheck,
+  ClipboardList,
   CreditCard,
+  Hourglass,
   Home,
+  KanbanSquare,
   Library,
   Loader2,
   LogOut,
+  MessageCircle,
   Settings,
+  ShoppingCart,
   UserPlus,
-  Rocket,
+  XCircle,
   ShieldCheck,
   Undo2,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { trpc } from "@/lib/trpc/client";
+import type { RouterOutputs } from "@/lib/trpc/react";
 import { ROLE_LABELS, canAccessPath, getDashboardHome } from "@/lib/auth/permissions";
 import { Separator } from "../ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
@@ -87,113 +94,102 @@ function HeaderAvatar({
   );
 }
 
-type Notification = {
-  id: string;
-  title: string;
-  body: string;
-  time: string;
-  read: boolean;
-  icon: "enroll" | "payment" | "batch" | "publish";
+type NotificationItem = RouterOutputs["notifications"]["list"][number];
+type NotificationCategory = NotificationItem["category"];
+
+// Category owns the color family (task vs order must read as different at a
+// glance); the specific `type` within that category picks the icon shape.
+const CATEGORY_STYLE: Record<NotificationCategory, { bg: string; color: string }> = {
+  task: { bg: "bg-indigo-50", color: "text-indigo-600" },
+  order: { bg: "bg-emerald-50", color: "text-emerald-600" },
 };
-const DUMMY_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    title: "Pendaftar baru",
-    body: "Budi Santoso mendaftar ke English Intensive Batch 3",
-    time: "5 menit lalu",
-    read: false,
-    icon: "enroll",
-  },
-  {
-    id: "2",
-    title: "Pembayaran berhasil",
-    body: "Pembayaran dari Siti Rahayu telah dikonfirmasi — Rp 2.500.000",
-    time: "1 jam lalu",
-    read: false,
-    icon: "payment",
-  },
-  {
-    id: "3",
-    title: "Batch dimulai hari ini",
-    body: "IELTS Preparation Batch 2 dimulai pukul 09:00 WIB",
-    time: "3 jam lalu",
-    read: true,
-    icon: "batch",
-  },
-  {
-    id: "4",
-    title: "Program baru dipublikasi",
-    body: "Business Communication berhasil dipublikasi ke website",
-    time: "Kemarin",
-    read: true,
-    icon: "publish",
-  },
-] as const;
 
-type NotificationIcon = Notification["icon"];
+const CATEGORY_FALLBACK_ICON: Record<NotificationCategory, React.ElementType> = {
+  task: KanbanSquare,
+  order: ShoppingCart,
+};
 
-function NotifIconBox({ icon }: { icon: NotificationIcon }) {
-  const map: Record<
-    NotificationIcon,
-    {
-      bg: string;
-      color: string;
-      icon: React.ElementType;
-    }
-  > = {
-    enroll: {
-      bg: "bg-blue-50",
-      color: "text-blue-600",
-      icon: UserPlus,
-    },
-    payment: {
-      bg: "bg-green-50",
-      color: "text-green-600",
-      icon: CreditCard,
-    },
-    batch: {
-      bg: "bg-amber-50",
-      color: "text-amber-600",
-      icon: CalendarDays,
-    },
-    publish: {
-      bg: "bg-purple-50",
-      color: "text-purple-600",
-      icon: Rocket,
-    },
-  };
+const TYPE_ICON: Record<string, React.ElementType> = {
+  task_pending_review: Hourglass,
+  task_assigned: ClipboardList,
+  task_verified: CheckCheck,
+  task_rejected: XCircle,
+  task_done: CheckCheck,
+  task_comment: MessageCircle,
+  order_new: UserPlus,
+  order_paid: CreditCard,
+};
 
-  const cfg = map[icon];
-  const Icon = cfg.icon;
+function NotifIconBox({
+  category,
+  type,
+}: {
+  category: NotificationCategory;
+  type: string;
+}) {
+  const style = CATEGORY_STYLE[category];
+  const Icon = TYPE_ICON[type] ?? CATEGORY_FALLBACK_ICON[category];
 
   return (
     <div
       className={cn(
         "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-        cfg.bg,
+        style.bg,
       )}
     >
-      <Icon className={cn("w-4 h-4", cfg.color)} />
+      <Icon className={cn("w-4 h-4", style.color)} />
     </div>
   );
 }
 
+function formatRelativeTime(date: Date | string) {
+  const d = new Date(date);
+  const diffMs = Date.now() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+
+  if (diffMin < 1) return "Baru saja";
+  if (diffMin < 60) return `${diffMin} menit lalu`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} jam lalu`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay === 1) return "Kemarin";
+  if (diffDay < 7) return `${diffDay} hari lalu`;
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+}
+
 /* ─── Notification Popover ───────────────────────────────────── */
 function NotificationBell() {
-  const [notifications, setNotifications] = useState(
-    DUMMY_NOTIFICATIONS.map((n) => ({ ...n })),
+  const router = useRouter();
+  const utils = trpc.useUtils();
+
+  const listQuery = trpc.notifications.list.useQuery(
+    { limit: 20 },
+    { refetchInterval: 30000 },
   );
+  const unreadCountQuery = trpc.notifications.unreadCount.useQuery(undefined, {
+    refetchInterval: 30000,
+  });
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const notifications = listQuery.data ?? [];
+  const unreadCount = unreadCountQuery.data ?? 0;
 
-  function markAllRead() {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }
+  const markRead = trpc.notifications.markRead.useMutation({
+    onSuccess: () => {
+      void utils.notifications.list.invalidate();
+      void utils.notifications.unreadCount.invalidate();
+    },
+  });
 
-  function markRead(id: string) {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+  const markAllRead = trpc.notifications.markAllRead.useMutation({
+    onSuccess: () => {
+      void utils.notifications.list.invalidate();
+      void utils.notifications.unreadCount.invalidate();
+    },
+  });
+
+  function handleNotificationClick(n: NotificationItem) {
+    if (!n.isRead) markRead.mutate({ id: n.id });
+    if (n.link) router.push(n.link);
   }
 
   return (
@@ -234,8 +230,9 @@ function NotificationBell() {
           </div>
           {unreadCount > 0 && (
             <button
-              onClick={markAllRead}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => markAllRead.mutate()}
+              disabled={markAllRead.isPending}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
             >
               Tandai semua dibaca
             </button>
@@ -244,7 +241,11 @@ function NotificationBell() {
 
         {/* List */}
         <div className="divide-y divide-border/40 max-h-[360px] overflow-y-auto">
-          {notifications.length === 0 ? (
+          {listQuery.isLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/50" />
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Bell className="h-8 w-8 text-muted-foreground/30 mb-2" />
               <p className="text-sm text-muted-foreground">
@@ -255,50 +256,42 @@ function NotificationBell() {
             notifications.map((n) => (
               <button
                 key={n.id}
-                onClick={() => markRead(n.id)}
+                onClick={() => handleNotificationClick(n)}
                 className={cn(
                   "w-full flex items-start gap-3 px-4 py-3 text-left",
                   "hover:bg-muted/50 transition-colors duration-100",
-                  !n.read && "bg-blue-50/40",
+                  !n.isRead && "bg-blue-50/40",
                 )}
               >
-                <NotifIconBox icon={n.icon} />
+                <NotifIconBox category={n.category} type={n.type} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <p
                       className={cn(
                         "text-xs leading-snug",
-                        n.read
+                        n.isRead
                           ? "font-normal text-foreground"
                           : "font-semibold text-foreground",
                       )}
                     >
                       {n.title}
                     </p>
-                    {!n.read && (
+                    {!n.isRead && (
                       <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500 shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
-                    {n.body}
-                  </p>
+                  {n.body && (
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
+                      {n.body}
+                    </p>
+                  )}
                   <p className="text-[10px] text-muted-foreground/60 mt-1">
-                    {n.time}
+                    {formatRelativeTime(n.createdAt)}
                   </p>
                 </div>
               </button>
             ))
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-border/60 px-4 py-2.5">
-          <Link
-            href="/dashboard/notifications"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Lihat semua notifikasi →
-          </Link>
         </div>
       </PopoverContent>
     </Popover>

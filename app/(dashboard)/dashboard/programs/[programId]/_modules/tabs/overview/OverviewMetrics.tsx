@@ -8,6 +8,7 @@ import {
   Users,
   FileText,
   DollarSign,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ interface MetricsProps {
     enrollmentsCount: number;
     startingPrice: number | null;
     startingOriginalPrice: number | null;
+    budget: number | null;
   };
 }
 
@@ -99,6 +101,7 @@ function MetricCard({
 
 export function OverviewMetrics({ metrics }: MetricsProps) {
   const price = formatIDR(metrics.startingPrice);
+  const budget = formatIDR(metrics.budget);
 
   const configs: MetricConfig[] = [
     {
@@ -173,6 +176,16 @@ export function OverviewMetrics({ metrics }: MetricsProps) {
       value: price ?? "—",
       sub: price ? "Harga terendah" : "Belum ada paket",
       subColor: !price ? "text-neutral-400 italic" : undefined,
+    },
+    {
+      icon: <Wallet className="size-4" />,
+      iconBg: "bg-teal-50",
+      iconColor: "text-teal-600",
+      accentColor: "#0d9488",
+      label: "Anggaran",
+      value: budget ?? "—",
+      sub: budget ? "Alokasi internal" : "Belum diatur",
+      subColor: !budget ? "text-neutral-400 italic" : undefined,
     },
   ];
 

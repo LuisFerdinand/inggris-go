@@ -2,18 +2,24 @@
 
 "use client";
 
+import { useState } from "react";
 import { AlertCircle, LayoutDashboard, Loader2, RefreshCcw } from "lucide-react";
 
-import { ChartAreaInteractive } from "@/components/sidebar/chart-area-interactive";
+import {
+  ChartAreaInteractive,
+  type ChartGranularity,
+} from "@/components/sidebar/chart-area-interactive";
 import { DataTable } from "@/components/sidebar/data-table";
 import { SectionCards } from "@/components/sidebar/section-cards";
 import { trpc } from "@/lib/trpc/client";
 import { PageHeader, PageNav } from "@/components/PageHeader";
 
 export const DashboardView = () => {
+  const [granularity, setGranularity] = useState<ChartGranularity>("month");
+
   const dashboardQuery = trpc.orders.getDashboardOverview.useQuery(
     {
-      months: 12,
+      granularity,
     },
     {
       placeholderData: (prev) => prev,
@@ -79,7 +85,12 @@ export const DashboardView = () => {
             <>
               <SectionCards data={data.summary} />
 
-              <ChartAreaInteractive data={data.chart} />
+              <ChartAreaInteractive
+                data={data.chart}
+                granularity={granularity}
+                onGranularityChange={setGranularity}
+                isRefetching={dashboardQuery.isFetching}
+              />
 
               <DataTable data={data.recentOrders} />
             </>

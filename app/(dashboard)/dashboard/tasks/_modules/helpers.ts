@@ -3,6 +3,7 @@ import type { TaskStatus } from "@/lib/enums/enums";
 
 export const ALL_TASK_STATUSES: TaskStatus[] = [
   "pending_review",
+  "butuh_keputusan",
   "direncanakan",
   "in_progress",
   "review",

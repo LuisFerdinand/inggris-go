@@ -45,6 +45,7 @@ export function ProgramFormScreen({ programId }: ProgramFormScreenProps) {
         duration: p.duration ?? undefined,
         startingPrice: p.startingPrice ?? undefined,
         startingOriginalPrice: p.startingOriginalPrice ?? undefined,
+        budget: p.budget ?? undefined,
         badge: p.badge ?? "",
         highlight: p.highlight ?? "",
         thumbnailUrl: p.thumbnailUrl ?? "",

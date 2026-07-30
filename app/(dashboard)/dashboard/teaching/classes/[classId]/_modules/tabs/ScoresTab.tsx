@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import {
   BookOpenText,
@@ -187,12 +188,14 @@ function StudentScoreFormInner({
   classEnrollmentId,
   studentName,
   existingScore,
+  canApprove,
   onClose,
 }: {
   classId: string;
   classEnrollmentId: string;
   studentName: string;
   existingScore: ExistingScore | null;
+  canApprove: boolean;
   onClose: () => void;
 }) {
   const utils = trpc.useUtils();
@@ -202,6 +205,9 @@ function StudentScoreFormInner({
   );
 
   const isFinalized = !!existingScore?.finalizedAt;
+  // Once finalized, only an oversight role (author/admin/super_admin) can
+  // still approve/edit the teacher's marking — everyone else is locked out.
+  const isLocked = isFinalized && !canApprove;
 
   const saveMutation = trpc.classScores.save.useMutation({
     onSuccess: async () => {
@@ -237,8 +243,10 @@ function StudentScoreFormInner({
     >
       {isFinalized && (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-[12px] font-semibold text-emerald-700">
-          <Lock className="size-3.5" /> Laporan sudah difinalisasi dan
-          terkunci.
+          <Lock className="size-3.5" />
+          {isLocked
+            ? "Laporan sudah difinalisasi dan terkunci."
+            : "Laporan sudah difinalisasi. Anda dapat menyetujui atau mengedit sebagai atasan."}
         </div>
       )}
 
@@ -297,7 +305,7 @@ function StudentScoreFormInner({
                     <button
                       key={n}
                       type="button"
-                      disabled={isFinalized}
+                      disabled={isLocked}
                       onClick={() =>
                         setDraft((prev) => ({ ...prev, [field.key]: n }))
                       }
@@ -332,7 +340,7 @@ function StudentScoreFormInner({
           </label>
           <Textarea
             rows={2}
-            disabled={isFinalized}
+            disabled={isLocked}
             value={draft[key as keyof ScoreDraft] as string}
             onChange={(e) =>
               setDraft((prev) => ({ ...prev, [key]: e.target.value }))
@@ -346,7 +354,7 @@ function StudentScoreFormInner({
           Nama Tutor Coordinator
         </label>
         <Input
-          disabled={isFinalized}
+          disabled={isLocked}
           value={draft.tutorCoordinatorName}
           onChange={(e) =>
             setDraft((prev) => ({
@@ -357,7 +365,7 @@ function StudentScoreFormInner({
         />
       </div>
 
-      {!isFinalized && (
+      {!isLocked && (
         <div className="flex gap-2">
           <button
             type="button"
@@ -370,6 +378,7 @@ function StudentScoreFormInner({
             )}
             Simpan
           </button>
+          {!isFinalized && (
           <button
             type="button"
             disabled={saveMutation.isPending || finalizeMutation.isPending}
@@ -391,6 +400,7 @@ function StudentScoreFormInner({
             )}
             Simpan &amp; Finalisasi
           </button>
+          )}
         </div>
       )}
     </div>
@@ -401,11 +411,13 @@ function StudentScoreForm({
   classId,
   classEnrollmentId,
   studentName,
+  canApprove,
   onClose,
 }: {
   classId: string;
   classEnrollmentId: string;
   studentName: string;
+  canApprove: boolean;
   onClose: () => void;
 }) {
   const scoreQuery = trpc.classScores.getByClassEnrollment.useQuery({
@@ -426,10 +438,13 @@ function StudentScoreForm({
       classEnrollmentId={classEnrollmentId}
       studentName={studentName}
       existingScore={scoreQuery.data ?? null}
+      canApprove={canApprove}
       onClose={onClose}
     />
   );
 }
+
+const SCORE_OVERSIGHT_ROLES = new Set(["author", "admin", "super_admin"]);
 
 export function ScoresTab({
   classId,
@@ -440,6 +455,8 @@ export function ScoresTab({
   classStatus: ClassStatus;
   roster: RosterRow[];
 }) {
+  const { data: session } = useSession();
+  const canApprove = SCORE_OVERSIGHT_ROLES.has(session?.user.role ?? "");
   const [openId, setOpenId] = useState<string | null>(null);
 
   if (classStatus !== "completed") {
@@ -533,6 +550,7 @@ export function ScoresTab({
                   classId={classId}
                   classEnrollmentId={student.id}
                   studentName={student.studentName}
+                  canApprove={canApprove}
                   onClose={() => setOpenId(null)}
                 />
               )}

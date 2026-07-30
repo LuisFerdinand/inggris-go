@@ -7,7 +7,8 @@ import { tasks } from "@/app/db/schema/tasks";
 import { requireRole } from "@/lib/auth/roles";
 import type { Role } from "@/app/db/schema/roles";
 
-// Everyone except students (and guests, who never reach the dashboard).
+// Everyone except students (and guests, who never reach the dashboard)
+// can create tasks; approval stays exclusive to admin/super_admin.
 export const TASK_BOARD_ROLES: Role[] = [
   "user",
   "teacher",
@@ -22,6 +23,18 @@ export function genId(prefix: string) {
 
 export function isSuperAdmin(role: Role) {
   return role === "super_admin";
+}
+
+// Admins and super admins both act as approvers on the task board (verify,
+// confirm-done, self-approved creation).
+export function canApproveTasks(role: Role) {
+  return role === "admin" || role === "super_admin";
+}
+
+// Only a plain admin escalates to the director tier — a super_admin can
+// already decide directly, so escalating to themselves makes no sense.
+export function canEscalateToDirector(role: Role) {
+  return role === "admin";
 }
 
 export function requireTaskBoardAccess(userId: string | null, role: Role) {

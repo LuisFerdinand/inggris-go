@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { ImageIcon, Loader2, X } from "lucide-react";
+import { ImageIcon, Loader2, Plus, Trash2, X } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
@@ -36,7 +36,7 @@ export function CreateTaskSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const { data: session } = useSession();
-  const isSuperAdmin = session?.user?.role === "super_admin";
+  const isAdmin = session?.user?.role === "admin" || session?.user?.role === "super_admin";
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -45,6 +45,8 @@ export function CreateTaskSheet({
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
+  const [checklistDraft, setChecklistDraft] = useState<string[]>([]);
+  const [newChecklistText, setNewChecklistText] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { upload, isUploading } = useCloudinaryUpload();
@@ -54,11 +56,14 @@ export function CreateTaskSheet({
 
   const createMutation = trpc.taskBoard.create.useMutation({
     onSuccess: async () => {
-      await utils.taskBoard.list.invalidate();
+      await Promise.all([
+        utils.taskBoard.list.invalidate(),
+        utils.taskBoard.badgeCounts.invalidate(),
+      ]);
       toast.success(
-        isSuperAdmin
+        isAdmin
           ? "Tugas berhasil dibuat dan otomatis disetujui"
-          : "Tugas berhasil dibuat, menunggu verifikasi super admin",
+          : "Tugas berhasil dibuat, menunggu verifikasi admin",
       );
       reset();
       onOpenChange(false);
@@ -76,6 +81,19 @@ export function CreateTaskSheet({
     setStartDate("");
     setDueDate("");
     setCoverImageUrl("");
+    setChecklistDraft([]);
+    setNewChecklistText("");
+  }
+
+  function addChecklistDraftItem() {
+    const text = newChecklistText.trim();
+    if (!text) return;
+    setChecklistDraft((prev) => [...prev, text]);
+    setNewChecklistText("");
+  }
+
+  function removeChecklistDraftItem(index: number) {
+    setChecklistDraft((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleFile(file: File | undefined | null) {
@@ -102,6 +120,9 @@ export function CreateTaskSheet({
       startDate: startDate ? new Date(startDate) : undefined,
       dueDate: dueDate ? new Date(dueDate) : undefined,
       coverImageUrl: coverImageUrl || undefined,
+      checklistItems: checklistDraft.length
+        ? checklistDraft.map((text) => ({ text }))
+        : undefined,
     });
   }
 
@@ -188,6 +209,49 @@ export function CreateTaskSheet({
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
+            </div>
+          </div>
+
+          <div>
+            <label className={fieldLabelClass}>Checklist (opsional)</label>
+            <div className="flex flex-col gap-1.5">
+              {checklistDraft.map((text, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5"
+                >
+                  <span className="flex-1 text-[12.5px] text-slate-600">{text}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeChecklistDraftItem(index)}
+                    className="text-slate-300 hover:text-red-500"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 flex gap-2">
+              <Input
+                value={newChecklistText}
+                onChange={(e) => setNewChecklistText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addChecklistDraftItem();
+                  }
+                }}
+                placeholder="Tambah item checklist…"
+                className="h-9 text-[12.5px]"
+              />
+              <button
+                type="button"
+                disabled={!newChecklistText.trim()}
+                onClick={addChecklistDraftItem}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 text-[12px] font-semibold text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+              >
+                <Plus className="size-3.5" /> Tambah
+              </button>
             </div>
           </div>
 

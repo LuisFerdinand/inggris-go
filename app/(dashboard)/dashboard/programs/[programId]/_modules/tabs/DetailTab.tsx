@@ -11,6 +11,7 @@ import { Icon } from "@/components/Icon";
 import { TabSkeleton } from "../ui/sections/ProgramDetailSection";
 
 import {
+  BudgetSection,
   CommercePreviewSection,
   PublishingSection,
 } from "./detail/CommercePreviewSection";
@@ -519,6 +520,11 @@ export default function DetailTab({ programId }: DetailTabProps) {
         {/* 6 — Commerce Preview (read-only) */}
         <motion.div variants={itemVariants}>
           <CommercePreviewSection data={data} programId={programId} />
+        </motion.div>
+
+        {/* 7 — Budget (internal, editable) */}
+        <motion.div variants={itemVariants}>
+          <BudgetSection data={data} programId={programId} />
         </motion.div>
       </div>
 

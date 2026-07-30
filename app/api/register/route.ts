@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/app/db/db";
 import { user } from "@/app/db/schema/auth-schema";
-import { ensureDefaultUserRole } from "@/lib/auth/default-role";
+import { ensureDefaultStudentRole } from "@/lib/auth/default-role";
 import { generateId } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       updatedAt: now,
     });
 
-    await ensureDefaultUserRole(userId);
+    await ensureDefaultStudentRole(userId);
 
     return NextResponse.json({
       ok: true,

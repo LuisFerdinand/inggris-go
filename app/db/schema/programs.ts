@@ -98,6 +98,10 @@ export const programs = pgTable("programs", {
   startingPrice: integer("starting_price"),
   startingOriginalPrice: integer("starting_original_price"),
 
+  // Internal budget allocation (IDR) for running this program — not shown
+  // to customers, unrelated to the customer-facing prices above.
+  budget: integer("budget"),
+
   badge: text("badge"),
   highlight: text("highlight"),
   tags: jsonb("tags").$type<string[]>(),

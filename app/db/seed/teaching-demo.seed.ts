@@ -6,7 +6,7 @@
 //
 // Run with: npx tsx app/db/seed/teaching-demo.seed.ts
 
-import "dotenv/config";
+import "./load-env";
 
 import bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";

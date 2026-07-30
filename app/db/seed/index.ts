@@ -1,6 +1,6 @@
 // app/db/seed/index.ts
 
-import "dotenv/config";
+import "./load-env";
 
 import { seedAllPrograms, seedCategories } from "./programs.seed";
 import { seedRoles, seedUserRoles, seedUsers } from "./users.seed";

@@ -6,6 +6,7 @@
 
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   index,
   integer,
   pgEnum,
@@ -64,6 +65,9 @@ export const tasks = pgTable(
     // Ordering within a kanban column, for drag-and-drop reordering.
     position: integer("position").default(0).notNull(),
 
+    // Manually-tracked completion percentage (0-100), independent of status.
+    progress: integer("progress").default(0).notNull(),
+
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
   },
@@ -98,6 +102,31 @@ export const taskComments = pgTable(
   },
   (table) => ({
     taskIdx: index("task_comments_task_id_idx").on(table.taskId),
+  }),
+);
+
+/* =========================================================
+   TASK CHECKLIST ITEMS (sub-tasks)
+========================================================= */
+
+export const taskChecklistItems = pgTable(
+  "task_checklist_items",
+  {
+    id: text("id").primaryKey(),
+
+    taskId: text("task_id")
+      .references(() => tasks.id, { onDelete: "cascade" })
+      .notNull(),
+
+    text: text("text").notNull(),
+    done: boolean("done").default(false).notNull(),
+
+    position: integer("position").default(0).notNull(),
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    taskIdx: index("task_checklist_items_task_id_idx").on(table.taskId),
   }),
 );
 
@@ -156,7 +185,18 @@ export const taskRelations = relations(tasks, ({ one, many }) => ({
   }),
   comments: many(taskComments),
   attachments: many(taskAttachments),
+  checklistItems: many(taskChecklistItems),
 }));
+
+export const taskChecklistItemRelations = relations(
+  taskChecklistItems,
+  ({ one }) => ({
+    task: one(tasks, {
+      fields: [taskChecklistItems.taskId],
+      references: [tasks.id],
+    }),
+  }),
+);
 
 export const taskCommentRelations = relations(
   taskComments,

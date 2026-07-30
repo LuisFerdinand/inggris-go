@@ -3,7 +3,7 @@
 "use client";
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { TrendingUp } from "lucide-react";
+import { Loader2, TrendingUp } from "lucide-react";
 
 import {
   Card,
@@ -18,10 +18,25 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
 
 import type { OrderDashboardOverview } from "@/app/modules/order/server/order.router";
 
 type ChartPoint = OrderDashboardOverview["chart"][number];
+
+export type ChartGranularity = "day" | "week" | "month";
+
+const GRANULARITY_OPTIONS: { value: ChartGranularity; label: string }[] = [
+  { value: "day", label: "Harian" },
+  { value: "week", label: "Mingguan" },
+  { value: "month", label: "Bulanan" },
+];
+
+const GRANULARITY_DESCRIPTION: Record<ChartGranularity, string> = {
+  day: "Perbandingan revenue lunas dan belum dibayar, 30 hari terakhir.",
+  week: "Perbandingan revenue lunas dan belum dibayar, 12 minggu terakhir.",
+  month: "Perbandingan revenue lunas dan belum dibayar, 12 bulan terakhir.",
+};
 
 // Brand-aligned chart colors: paid uses the primary blue (the
 // money that's actually in), unpaid uses gold (pending, not yet
@@ -51,14 +66,24 @@ function formatCompactIDR(value: number) {
   return `Rp ${value}`;
 }
 
-export function ChartAreaInteractive({ data }: { data: ChartPoint[] }) {
+export function ChartAreaInteractive({
+  data,
+  granularity,
+  onGranularityChange,
+  isRefetching,
+}: {
+  data: ChartPoint[];
+  granularity: ChartGranularity;
+  onGranularityChange: (value: ChartGranularity) => void;
+  isRefetching?: boolean;
+}) {
   return (
     <Card
       className="overflow-hidden bg-white shadow-sm"
       style={{ borderColor: "var(--border-soft)" }}
     >
       <CardHeader
-        className="flex flex-col gap-2 border-b sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 border-b lg:flex-row lg:items-center lg:justify-between"
         style={{ borderColor: "var(--border-soft)" }}
       >
         <div>
@@ -73,30 +98,65 @@ export function ChartAreaInteractive({ data }: { data: ChartPoint[] }) {
               <TrendingUp className="size-3.5" />
             </span>
             Tren Pendapatan
+            {isRefetching && (
+              <Loader2
+                className="size-3.5 animate-spin"
+                style={{ color: "var(--text-faint)" }}
+              />
+            )}
           </CardTitle>
           <CardDescription className="mt-1 text-[12.5px]">
-            Perbandingan revenue lunas dan belum dibayar, 12 bulan terakhir.
+            {GRANULARITY_DESCRIPTION[granularity]}
           </CardDescription>
         </div>
 
-        <div
-          className="flex items-center gap-3 rounded-xl border px-3 py-2 text-[12px] font-semibold"
-          style={{ borderColor: "var(--border-soft)", background: "var(--bg-soft)" }}
-        >
-          <span className="flex items-center gap-1.5" style={{ color: "var(--blue-navy)" }}>
-            <span
-              className="size-2 rounded-full"
-              style={{ background: "var(--blue)" }}
-            />
-            Lunas
-          </span>
-          <span className="flex items-center gap-1.5" style={{ color: "var(--blue-navy)" }}>
-            <span
-              className="size-2 rounded-full"
-              style={{ background: "var(--gold)" }}
-            />
-            Belum Dibayar
-          </span>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div
+            className="flex items-center gap-1 rounded-xl border p-1"
+            style={{ borderColor: "var(--border-soft)", background: "var(--bg-soft)" }}
+          >
+            {GRANULARITY_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => onGranularityChange(option.value)}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-[12px] font-bold transition-colors",
+                  granularity === option.value
+                    ? "bg-white shadow-sm"
+                    : "hover:bg-white/60",
+                )}
+                style={{
+                  color:
+                    granularity === option.value
+                      ? "var(--blue-navy)"
+                      : "var(--text-faint)",
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <div
+            className="flex items-center gap-3 rounded-xl border px-3 py-2 text-[12px] font-semibold"
+            style={{ borderColor: "var(--border-soft)", background: "var(--bg-soft)" }}
+          >
+            <span className="flex items-center gap-1.5" style={{ color: "var(--blue-navy)" }}>
+              <span
+                className="size-2 rounded-full"
+                style={{ background: "var(--blue)" }}
+              />
+              Lunas
+            </span>
+            <span className="flex items-center gap-1.5" style={{ color: "var(--blue-navy)" }}>
+              <span
+                className="size-2 rounded-full"
+                style={{ background: "var(--gold)" }}
+              />
+              Belum Dibayar
+            </span>
+          </div>
         </div>
       </CardHeader>
 

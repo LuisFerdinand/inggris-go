@@ -57,11 +57,13 @@ export function TaskBoardColumns({
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const role = session?.user?.role;
-  const isSuperAdmin = role === "super_admin";
-  const isAdmin = role === "admin" || isSuperAdmin;
+  const isAdmin = role === "admin" || role === "super_admin";
 
   const utils = trpc.useUtils();
-  const invalidate = () => utils.taskBoard.list.invalidate();
+  const invalidate = () => {
+    utils.taskBoard.list.invalidate();
+    utils.taskBoard.badgeCounts.invalidate();
+  };
 
   const moveMutation = trpc.taskBoard.move.useMutation({
     onSuccess: invalidate,
@@ -142,8 +144,8 @@ export function TaskBoardColumns({
 
     // Dragging a pending task into "Direncanakan" approves it.
     if (task.status === "pending_review" && targetStatus === "direncanakan") {
-      if (!isSuperAdmin) {
-        toast.error("Hanya super admin yang dapat menyetujui tugas");
+      if (!isAdmin) {
+        toast.error("Hanya admin atau super admin yang dapat menyetujui tugas");
         return;
       }
       verifyMutation.mutate({ id: task.id, decision: "approve" });
@@ -163,8 +165,8 @@ export function TaskBoardColumns({
 
     // Dragging a task under review into "Selesai" confirms it's done.
     if (task.status === "review" && targetStatus === "done") {
-      if (!isSuperAdmin) {
-        toast.error("Hanya super admin yang dapat menandai tugas selesai");
+      if (!isAdmin) {
+        toast.error("Hanya admin atau super admin yang dapat menandai tugas selesai");
         return;
       }
       confirmDoneMutation.mutate({ id: task.id });

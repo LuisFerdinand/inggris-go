@@ -9,7 +9,7 @@ import { classEnrollments, classes, studentScores } from "@/app/db/schema/classe
 import { programs } from "@/app/db/schema/programs";
 
 import { scoreInput } from "../class.schema";
-import { assertClassAccess, genId } from "./access";
+import { assertClassAccess, genId, isOversightRole } from "./access";
 import { computeAverageScore, getProgressLabel } from "@/lib/lms/scoring";
 
 async function loadClassEnrollmentOrThrow(classEnrollmentId: string) {
@@ -42,7 +42,10 @@ export const scoreRouter = createTRPCRouter({
         where: eq(studentScores.classEnrollmentId, input.classEnrollmentId),
       });
 
-      if (existing?.finalizedAt) {
+      // Once finalized, only an oversight role (author/admin/super_admin)
+      // can still approve/edit the teacher's marking — the teacher who
+      // submitted it is locked out.
+      if (existing?.finalizedAt && !isOversightRole(ctx.auth.role)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Nilai sudah difinalisasi dan tidak dapat diubah",

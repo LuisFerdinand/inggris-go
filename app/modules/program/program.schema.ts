@@ -65,6 +65,10 @@ export const programInsertSchema = z.object({
     emptyToNull,
     z.coerce.number().int().nonnegative().nullable().optional(),
   ),
+  budget: z.preprocess(
+    emptyToNull,
+    z.coerce.number().int().nonnegative().nullable().optional(),
+  ),
 
   badge: z.preprocess(emptyToNull, z.string().nullable().optional()),
   highlight: z.preprocess(emptyToNull, z.string().nullable().optional()),

@@ -449,6 +449,9 @@ export const payments = pgTable(
     // DOKU invoice/payment reference
     dokuInvoiceId: text("doku_invoice_id"),
 
+    // Provider-agnostic gateway reference (e.g. Tripay's `reference`).
+    gatewayReference: text("gateway_reference"),
+
     // Session/payment URL
     paymentUrl: text("payment_url"),
 

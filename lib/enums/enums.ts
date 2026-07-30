@@ -415,6 +415,7 @@ export const MATERIAL_TYPE_LABEL: Record<MaterialType, string> = {
 
 export const TASK_STATUS = [
   "pending_review",
+  "butuh_keputusan",
   "direncanakan",
   "in_progress",
   "review",
@@ -431,9 +432,18 @@ export const TASK_STATUS_META = {
     label: "Menunggu Verifikasi",
     shortLabel: "Menunggu",
     icon: "hourglass",
-    shortDesc: "Tugas baru menunggu verifikasi super admin",
+    shortDesc: "Tugas baru menunggu verifikasi admin atau super admin",
     color: "#f59e0b",
     tone: "warning",
+  },
+
+  butuh_keputusan: {
+    label: "Butuh Keputusan Direktur",
+    shortLabel: "Keputusan Direktur",
+    icon: "gavel",
+    shortDesc: "Diajukan admin untuk keputusan super admin (direktur)",
+    color: "#8b5cf6",
+    tone: "info",
   },
 
   direncanakan: {
@@ -458,7 +468,7 @@ export const TASK_STATUS_META = {
     label: "Menunggu Review",
     shortLabel: "Review",
     icon: "eye",
-    shortDesc: "Menunggu review super admin sebelum ditandai selesai",
+    shortDesc: "Menunggu review admin atau super admin sebelum ditandai selesai",
     color: "#14b8a6",
     tone: "info",
   },
@@ -476,7 +486,7 @@ export const TASK_STATUS_META = {
     label: "Ditolak",
     shortLabel: "Ditolak",
     icon: "x-circle",
-    shortDesc: "Tugas ditolak oleh super admin",
+    shortDesc: "Tugas ditolak",
     color: "#ef4444",
     tone: "danger",
   },

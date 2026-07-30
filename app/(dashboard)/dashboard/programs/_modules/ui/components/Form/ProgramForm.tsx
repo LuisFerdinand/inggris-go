@@ -149,6 +149,7 @@ export function ProgramForm({
       duration: undefined,
       startingPrice: undefined,
       startingOriginalPrice: undefined,
+      budget: undefined,
       badge: "",
       highlight: "",
       thumbnailUrl: "",
@@ -423,6 +424,27 @@ export function ProgramForm({
               >
                 <Input
                   id="startingOriginalPrice"
+                  type="number"
+                  min={0}
+                  {...field}
+                  value={field.value ?? ""}
+                />
+              </Field>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="budget"
+            render={({ field }) => (
+              <Field
+                label="Anggaran Program (Rp)"
+                htmlFor="budget"
+                error={errors.budget?.message}
+                description="Alokasi anggaran internal — tidak ditampilkan ke pelanggan."
+              >
+                <Input
+                  id="budget"
                   type="number"
                   min={0}
                   {...field}

@@ -13,7 +13,7 @@ import {
 import type { Role } from "@/app/db/schema/roles";
 import { isSwitchableRole,} from "@/lib/auth/permissions";
 import {
-  ensureDefaultUserRole,
+  ensureDefaultStudentRole,
   getPrimaryRole,
   getUserRoles,
 } from "@/lib/auth/default-role";
@@ -111,7 +111,7 @@ async function upsertGoogleUser(params: {
       .where(eq(userTable.id, existingUser.id));
   }
 
-  await ensureDefaultUserRole(existingUser.id);
+  await ensureDefaultStudentRole(existingUser.id);
 
   await db
     .insert(accountTable)

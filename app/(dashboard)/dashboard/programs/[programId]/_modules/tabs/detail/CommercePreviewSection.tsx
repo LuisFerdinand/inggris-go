@@ -22,6 +22,7 @@ import {
   TrendingDown,
   CalendarDays,
   RefreshCw,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { trpc } from "@/lib/trpc/client";
@@ -31,6 +32,7 @@ import {
   DetailData,
   FieldWrap,
   formatDateShort,
+  inputCls,
   InfoNotice,
   ReadField,
   SectionCard,
@@ -409,6 +411,129 @@ export function PublishingSection({ data, programId }: PublishingSectionProps) {
             isDirty={isDirty}
             isSubmitting={isPending}
             sectionTitle="Publishing"
+            onCancel={handleCancel}
+            onSave={form.handleSubmit(onSubmit)}
+          />
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUDGET (ANGGARAN) — internal, editable
+═══════════════════════════════════════════════════════════════ */
+
+const budgetSchema = z.object({
+  budget: z
+    .union([z.coerce.number().int().nonnegative(), z.literal("")])
+    .optional(),
+});
+type BudgetFormValues = z.infer<typeof budgetSchema>;
+
+interface BudgetSectionProps {
+  data: DetailData;
+  programId: string;
+}
+
+function BudgetReadMode({ budget }: { budget: number | null }) {
+  return (
+    <ReadField label="Anggaran Program" empty={budget == null}>
+      {budget != null ? formatIDR(budget) : null}
+    </ReadField>
+  );
+}
+
+function BudgetEditMode({
+  form,
+}: {
+  form: ReturnType<typeof useForm<BudgetFormValues>>;
+}) {
+  const { register, formState } = form;
+
+  return (
+    <FieldWrap
+      label="Anggaran Program (Rp)"
+      hint="Alokasi anggaran internal untuk menjalankan program ini — tidak ditampilkan ke pelanggan."
+      error={formState.errors.budget?.message}
+    >
+      <input
+        type="number"
+        min={0}
+        placeholder="0"
+        {...register("budget")}
+        className={inputCls}
+      />
+    </FieldWrap>
+  );
+}
+
+export function BudgetSection({ data, programId }: BudgetSectionProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const utils = trpc.useUtils();
+
+  const form = useForm<BudgetFormValues>({
+    resolver: zodResolver(budgetSchema),
+    defaultValues: { budget: data.budget ?? "" },
+  });
+
+  const updateBudget = trpc.programs.update.useMutation({
+    onSuccess: async () => {
+      await Promise.all([
+        utils.programs.getDetail.invalidate({ id: programId }),
+        utils.programs.getFiltered.invalidate(),
+      ]);
+
+      toast.success("Anggaran program berhasil disimpan");
+      setIsEditing(false);
+      form.reset(form.getValues());
+    },
+    onError: (err) => {
+      toast.error(err.message ?? "Gagal menyimpan anggaran");
+    },
+  });
+
+  const { isDirty, isSubmitting } = form.formState;
+  const isPending = isSubmitting || updateBudget.isPending;
+
+  async function onSubmit(values: BudgetFormValues) {
+    await updateBudget.mutateAsync({
+      id: programId,
+      budget: values.budget === "" ? null : values.budget,
+    });
+  }
+
+  function handleCancel() {
+    form.reset();
+    setIsEditing(false);
+  }
+
+  return (
+    <>
+      <SectionCard
+        icon={<Wallet className="size-4" />}
+        title="Anggaran Program"
+        description="Alokasi anggaran internal untuk menjalankan program ini."
+        isEditing={isEditing}
+        isDirty={isDirty}
+        isSubmitting={isPending}
+        onEdit={() => setIsEditing(true)}
+        onSave={form.handleSubmit(onSubmit)}
+        onCancel={handleCancel}
+      >
+        {isEditing ? (
+          <BudgetEditMode form={form} />
+        ) : (
+          <BudgetReadMode budget={data.budget} />
+        )}
+      </SectionCard>
+
+      <AnimatePresence>
+        {isEditing && (
+          <StickySaveBar
+            isDirty={isDirty}
+            isSubmitting={isPending}
+            sectionTitle="Anggaran Program"
             onCancel={handleCancel}
             onSave={form.handleSubmit(onSubmit)}
           />

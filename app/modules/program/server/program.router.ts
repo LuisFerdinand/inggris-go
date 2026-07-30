@@ -508,6 +508,7 @@ async function buildDetail(id: string) {
 
     startingPrice: program.startingPrice,
     startingOriginalPrice: program.startingOriginalPrice,
+    budget: program.budget,
 
     packagesCount: counts.packagesCount,
     activePackagesCount: counts.packagesCount,
@@ -611,6 +612,7 @@ async function buildOverview(id: string) {
       enrollmentsCount: counts.enrollmentsCount,
       startingPrice: program.startingPrice,
       startingOriginalPrice: program.startingOriginalPrice,
+      budget: program.budget,
     },
 
     configuration: {

@@ -7,8 +7,10 @@ import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import {
   CheckCircle2,
+  Gavel,
   ImageIcon,
   Loader2,
+  Plus,
   Send,
   Trash2,
   X,
@@ -70,8 +72,11 @@ export function TaskDetailSheet({
   const { data: session } = useSession();
   const userId = session?.user?.id;
   const role = session?.user?.role;
-  const isSuperAdmin = role === "super_admin";
-  const isAdmin = role === "admin" || isSuperAdmin;
+  const isAdmin = role === "admin" || role === "super_admin";
+  const isSuperAdminRole = role === "super_admin";
+  // Only a plain admin escalates to the director tier — super_admin can
+  // already decide directly.
+  const isPlainAdmin = role === "admin";
 
   const utils = trpc.useUtils();
 
@@ -100,6 +105,8 @@ export function TaskDetailSheet({
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [commentBody, setCommentBody] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<string[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [newChecklistText, setNewChecklistText] = useState("");
 
   const syncedTaskId = useRef<string | null>(null);
 
@@ -118,10 +125,13 @@ export function TaskDetailSheet({
     setRejectNote("");
     setCommentBody("");
     setPendingAttachments([]);
+    setProgress(task.progress);
+    setNewChecklistText("");
   }, [task]);
 
   function invalidateAll() {
     utils.taskBoard.list.invalidate();
+    utils.taskBoard.badgeCounts.invalidate();
     if (taskId) utils.taskBoard.getById.invalidate({ id: taskId });
   }
 
@@ -141,6 +151,14 @@ export function TaskDetailSheet({
       toast.success(row?.status === "direncanakan" ? "Tugas disetujui" : "Tugas ditolak");
     },
     onError: (err) => toast.error(err.message || "Gagal memverifikasi tugas"),
+  });
+
+  const escalateMutation = trpc.taskBoard.escalate.useMutation({
+    onSuccess: () => {
+      invalidateAll();
+      toast.success("Tugas diajukan untuk keputusan direktur");
+    },
+    onError: (err) => toast.error(err.message || "Gagal mengajukan ke direktur"),
   });
 
   const confirmDoneMutation = trpc.taskBoard.confirmDone.useMutation({
@@ -167,6 +185,7 @@ export function TaskDetailSheet({
   const deleteMutation = trpc.taskBoard.delete.useMutation({
     onSuccess: () => {
       utils.taskBoard.list.invalidate();
+      utils.taskBoard.badgeCounts.invalidate();
       toast.success("Tugas dihapus");
       onOpenChange(false);
     },
@@ -185,6 +204,24 @@ export function TaskDetailSheet({
   const deleteCommentMutation = trpc.taskBoard.deleteComment.useMutation({
     onSuccess: () => invalidateAll(),
     onError: (err) => toast.error(err.message || "Gagal menghapus komentar"),
+  });
+
+  const addChecklistItemMutation = trpc.taskBoard.addChecklistItem.useMutation({
+    onSuccess: () => {
+      invalidateAll();
+      setNewChecklistText("");
+    },
+    onError: (err) => toast.error(err.message || "Gagal menambah item checklist"),
+  });
+
+  const toggleChecklistItemMutation = trpc.taskBoard.toggleChecklistItem.useMutation({
+    onSuccess: () => invalidateAll(),
+    onError: (err) => toast.error(err.message || "Gagal memperbarui item checklist"),
+  });
+
+  const deleteChecklistItemMutation = trpc.taskBoard.deleteChecklistItem.useMutation({
+    onSuccess: () => invalidateAll(),
+    onError: (err) => toast.error(err.message || "Gagal menghapus item checklist"),
   });
 
   const coverUpload = useCloudinaryUpload();
@@ -250,6 +287,20 @@ export function TaskDetailSheet({
     });
   }
 
+  function commitProgress() {
+    if (!task) return;
+    const clamped = Math.min(100, Math.max(0, Math.round(progress)));
+    setProgress(clamped);
+    if (clamped === task.progress) return;
+    updateMutation.mutate({ id: task.id, progress: clamped });
+  }
+
+  function submitChecklistItem() {
+    if (!task) return;
+    if (!newChecklistText.trim()) return;
+    addChecklistItemMutation.mutate({ taskId: task.id, text: newChecklistText.trim() });
+  }
+
   const open = !!taskId;
 
   return (
@@ -289,10 +340,91 @@ export function TaskDetailSheet({
             <div className="flex flex-col gap-4 p-4">
               {/* Verification banner */}
               {task.status === "pending_review" &&
-                (isSuperAdmin ? (
+                (isAdmin ? (
                   <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
                     <p className="text-[12px] font-semibold text-amber-700">
-                      Tugas ini menunggu verifikasi Anda sebagai super admin.
+                      Tugas ini menunggu verifikasi Anda.
+                    </p>
+                    {!showRejectForm ? (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={verifyMutation.isPending}
+                          onClick={() =>
+                            verifyMutation.mutate({ id: task.id, decision: "approve" })
+                          }
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-emerald-700 disabled:opacity-60"
+                        >
+                          <CheckCircle2 className="size-3.5" /> Setujui
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowRejectForm(true)}
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-[12px] font-bold text-red-600 hover:bg-red-50"
+                        >
+                          <XCircle className="size-3.5" /> Tolak
+                        </button>
+                      </div>
+                    ) : null}
+                    {isPlainAdmin && !showRejectForm && (
+                      <button
+                        type="button"
+                        disabled={escalateMutation.isPending}
+                        onClick={() => escalateMutation.mutate({ id: task.id })}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-violet-200 bg-white px-3 py-2 text-[12px] font-bold text-violet-600 hover:bg-violet-50 disabled:opacity-60"
+                      >
+                        <Gavel className="size-3.5" /> Ajukan ke Direktur
+                      </button>
+                    )}
+                    {showRejectForm && (
+                      <div className="flex flex-col gap-2">
+                        <Textarea
+                          value={rejectNote}
+                          onChange={(e) => setRejectNote(e.target.value)}
+                          placeholder="Alasan penolakan…"
+                          rows={2}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={verifyMutation.isPending}
+                            onClick={() => {
+                              if (!rejectNote.trim()) {
+                                toast.error("Alasan penolakan wajib diisi");
+                                return;
+                              }
+                              verifyMutation.mutate({
+                                id: task.id,
+                                decision: "reject",
+                                reviewNote: rejectNote.trim(),
+                              });
+                            }}
+                            className="inline-flex flex-1 items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-red-700 disabled:opacity-60"
+                          >
+                            Konfirmasi Tolak
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowRejectForm(false)}
+                            className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-[12px] font-semibold text-slate-500 hover:bg-slate-50"
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[12px] font-medium text-amber-700">
+                    Menunggu verifikasi admin sebelum tugas ini dapat dikerjakan.
+                  </div>
+                ))}
+
+              {task.status === "butuh_keputusan" &&
+                (isSuperAdminRole ? (
+                  <div className="flex flex-col gap-2 rounded-xl border border-violet-200 bg-violet-50 p-3">
+                    <p className="text-[12px] font-semibold text-violet-700">
+                      Tugas ini diajukan untuk keputusan Anda sebagai direktur.
                     </p>
                     {!showRejectForm ? (
                       <div className="flex gap-2">
@@ -353,8 +485,8 @@ export function TaskDetailSheet({
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-[12px] font-medium text-amber-700">
-                    Menunggu verifikasi super admin sebelum tugas ini dapat dikerjakan.
+                  <div className="rounded-xl border border-violet-200 bg-violet-50 p-3 text-[12px] font-medium text-violet-700">
+                    Diajukan untuk keputusan direktur — menunggu keputusan super admin.
                   </div>
                 ))}
 
@@ -382,12 +514,12 @@ export function TaskDetailSheet({
               {task.status === "review" && (
                 <div className="flex flex-col gap-2 rounded-xl border border-teal-200 bg-teal-50 p-3">
                   <p className="text-[12px] font-semibold text-teal-700">
-                    {isSuperAdmin
+                    {isAdmin
                       ? "Tugas ini menunggu review Anda sebelum ditandai selesai."
-                      : "Menunggu review super admin sebelum tugas ini ditandai selesai."}
+                      : "Menunggu review admin sebelum tugas ini ditandai selesai."}
                   </p>
                   <div className="flex gap-2">
-                    {isSuperAdmin && (
+                    {isAdmin && (
                       <button
                         type="button"
                         disabled={confirmDoneMutation.isPending}
@@ -510,6 +642,114 @@ export function TaskDetailSheet({
                 Dibuat oleh {task.creator?.name ?? "—"} · {formatDateTime(task.createdAt)}
                 {task.verifier ? ` · Diverifikasi oleh ${task.verifier.name}` : ""}
               </p>
+
+              {/* Progress */}
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className={cn(fieldLabelClass, "mb-0")}>Progres</label>
+                  <span className="text-[11.5px] font-bold text-slate-500">{progress}%</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full bg-indigo-500 transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                {canEdit && (
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={progress}
+                    onChange={(e) => setProgress(Number(e.target.value))}
+                    onMouseUp={commitProgress}
+                    onTouchEnd={commitProgress}
+                    onBlur={commitProgress}
+                    className="mt-2 w-full accent-indigo-600"
+                  />
+                )}
+              </div>
+
+              {/* Checklist */}
+              <div>
+                <label className={fieldLabelClass}>
+                  Checklist
+                  {task.checklistItems.length > 0 && (
+                    <span className="ml-1 font-normal text-slate-400">
+                      ({task.checklistItems.filter((i) => i.done).length}/
+                      {task.checklistItems.length})
+                    </span>
+                  )}
+                </label>
+                <div className="flex flex-col gap-1.5">
+                  {task.checklistItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={item.done}
+                        disabled={!canEdit}
+                        onChange={(e) =>
+                          toggleChecklistItemMutation.mutate({
+                            id: item.id,
+                            done: e.target.checked,
+                          })
+                        }
+                        className="size-3.5 accent-indigo-600"
+                      />
+                      <span
+                        className={cn(
+                          "flex-1 text-[12.5px] text-slate-600",
+                          item.done && "text-slate-400 line-through",
+                        )}
+                      >
+                        {item.text}
+                      </span>
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            deleteChecklistItemMutation.mutate({ id: item.id })
+                          }
+                          className="text-slate-300 hover:text-red-500"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {task.checklistItems.length === 0 && (
+                    <p className="text-[12px] text-slate-400">Belum ada checklist.</p>
+                  )}
+                </div>
+                {canEdit && (
+                  <div className="mt-2 flex gap-2">
+                    <Input
+                      value={newChecklistText}
+                      onChange={(e) => setNewChecklistText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          submitChecklistItem();
+                        }
+                      }}
+                      placeholder="Tambah item checklist…"
+                      className="h-8 text-[12.5px]"
+                    />
+                    <button
+                      type="button"
+                      disabled={addChecklistItemMutation.isPending || !newChecklistText.trim()}
+                      onClick={submitChecklistItem}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 text-[12px] font-semibold text-slate-500 hover:bg-slate-50 disabled:opacity-40"
+                    >
+                      <Plus className="size-3.5" /> Tambah
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {/* Description */}
               <div>

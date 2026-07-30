@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { KanbanSquare, List, Loader2, Plus } from "lucide-react";
+import { CalendarDays, KanbanSquare, List, Loader2, Plus } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
@@ -17,15 +17,16 @@ import { TASK_PRIORITY, TASK_PRIORITY_LABEL } from "@/lib/enums/enums";
 
 import { TaskBoardColumns } from "./TaskBoardColumns";
 import { TaskListView } from "./TaskListView";
-import { CreateTaskSheet } from "./CreateTaskSheet";
+import { TaskCalendarView } from "./TaskCalendarView";
 import { TaskDetailSheet } from "./TaskDetailSheet";
+import { CreateTaskSheet } from "./CreateTaskSheet";
 
-type ViewMode = "board" | "list";
+type ViewMode = "board" | "list" | "calendar";
 
 export function TaskBoardView() {
   const [viewMode, setViewMode] = useState<ViewMode>("board");
-  const [createOpen, setCreateOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [assigneeFilter, setAssigneeFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [onlyMine, setOnlyMine] = useState(false);
@@ -79,6 +80,18 @@ export function TaskBoardView() {
             >
               <List className="size-3.5" /> List
             </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("calendar")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors",
+                viewMode === "calendar"
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-slate-400 hover:text-slate-600",
+              )}
+            >
+              <CalendarDays className="size-3.5" /> Kalender
+            </button>
           </div>
 
           <button
@@ -86,7 +99,7 @@ export function TaskBoardView() {
             onClick={() => setCreateOpen(true)}
             className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-[12.5px] font-bold text-white shadow-sm shadow-indigo-200 transition-colors hover:bg-indigo-700"
           >
-            <Plus className="size-3.5" /> Tugas Baru
+            <Plus className="size-3.5" /> Buat Tugas
           </button>
         </div>
       </div>
@@ -141,12 +154,14 @@ export function TaskBoardView() {
         </div>
       ) : viewMode === "board" ? (
         <TaskBoardColumns tasks={tasks} onOpen={setSelectedTaskId} />
-      ) : (
+      ) : viewMode === "list" ? (
         <TaskListView tasks={tasks} onOpen={setSelectedTaskId} />
+      ) : (
+        <TaskCalendarView tasks={tasks} onOpen={setSelectedTaskId} />
       )}
 
-      <CreateTaskSheet open={createOpen} onOpenChange={setCreateOpen} />
       <TaskDetailSheet taskId={selectedTaskId} onOpenChange={(open) => !open && setSelectedTaskId(null)} />
+      <CreateTaskSheet open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

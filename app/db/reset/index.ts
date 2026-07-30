@@ -2,10 +2,14 @@
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
-import { sql } from "drizzle-orm";
-import { db } from "@/app/db/db";
-
 async function main() {
+  // Deferred to a dynamic import so it only runs after dotenv.config()
+  // above has already populated process.env — a static `import` here would
+  // get hoisted above dotenv.config() and make app/db/db.ts throw before
+  // DATABASE_URL is ever loaded.
+  const { sql } = await import("drizzle-orm");
+  const { db } = await import("@/app/db/db");
+
   console.log("🧹 Resetting database...");
 
   /**

@@ -15,6 +15,7 @@ import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { db } from "@/app/db/db";
 import { user } from "@/app/db/schema/auth-schema";
 import { role, userRole, ROLES } from "@/app/db/schema/roles";
+import { requireDbRole } from "@/lib/auth/roles";
 
 /* =========================================================
    HELPERS
@@ -206,7 +207,7 @@ function pickPrimaryRole(roles: (typeof ROLES)[number][]): (typeof ROLES)[number
   for (const candidate of ROLE_PRIORITY) {
     if (roles.includes(candidate)) return candidate;
   }
-  return "user";
+  return "student";
 }
 
 /* =========================================================
@@ -220,11 +221,17 @@ export const userRouter = createTRPCRouter({
 
   getAll: protectedProcedure
     .input(getAllUsersInput)
-    .query(async ({ input }) => buildUserList(input)),
+    .query(async ({ input, ctx }) => {
+      await requireDbRole(ctx.auth?.userId, ["super_admin"]);
+
+      return buildUserList(input);
+    }),
 
   getById: protectedProcedure
     .input(getUserByIdInput)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      await requireDbRole(ctx.auth?.userId, ["super_admin"]);
+
       const account = await db.query.user.findFirst({
         where: eq(user.id, input.id),
         columns: {
@@ -264,6 +271,22 @@ export const userRouter = createTRPCRouter({
     return ROLES.map((name) => ({ value: name, label: name }));
   }),
 
+  /* ────────────────────────────────────────────────────────
+     STUDENT DATA — "/dashboard/data-siswa" (admin/author, read-only)
+
+     A narrower, read-only view of the student roster — no role or
+     verification-status mutation here, that stays exclusive to
+     "/dashboard/users" (super_admin only).
+  ───────────────────────────────────────────────────────── */
+
+  getStudents: protectedProcedure
+    .input(getAllUsersInput.omit({ role: true }))
+    .query(async ({ input, ctx }) => {
+      await requireDbRole(ctx.auth?.userId, ["admin", "author", "super_admin"]);
+
+      return buildUserList({ ...input, role: "student" });
+    }),
+
   /**
    * Replace a user's role assignment with a single role.
    * (Simplest model: one effective role per user. If you need
@@ -273,6 +296,8 @@ export const userRouter = createTRPCRouter({
   updateUserRole: protectedProcedure
     .input(updateUserRoleInput)
     .mutation(async ({ input, ctx }) => {
+      await requireDbRole(ctx.auth?.userId, ["super_admin"]);
+
       const account = await db.query.user.findFirst({
         where: eq(user.id, input.userId),
         columns: { id: true },
@@ -321,7 +346,9 @@ export const userRouter = createTRPCRouter({
    */
   updateUserStatus: protectedProcedure
     .input(updateUserStatusInput)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      await requireDbRole(ctx.auth?.userId, ["super_admin"]);
+
       const [row] = await db
         .update(user)
         .set({

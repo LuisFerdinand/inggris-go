@@ -16,8 +16,12 @@ import {
 import { enrollments, payments } from "@/app/db/schema/orders";
 import { user } from "@/app/db/schema/auth-schema";
 import { role, userRole } from "@/app/db/schema/roles";
+import {
+  getAdminUserIds,
+  notifyUsers,
+} from "@/app/modules/notifications/server/create-notification";
 
-const DEFAULT_REGISTERED_ROLE_NAME = "user" as const;
+const DEFAULT_REGISTERED_ROLE_NAME = "student" as const;
 const REGISTRABLE_BATCH_STATUSES = new Set(["open", "ongoing"]);
 
 function normalizeEmail(value: string) {
@@ -42,7 +46,7 @@ function isBatchAtCapacity(batch: typeof programBatches.$inferSelect) {
   return enrolledCount >= batch.capacity;
 }
 
-async function getOrCreateDefaultUserRole() {
+async function getOrCreateDefaultStudentRole() {
   const existingRole = await db.query.role.findFirst({
     where: eq(role.name, DEFAULT_REGISTERED_ROLE_NAME),
   });
@@ -54,7 +58,7 @@ async function getOrCreateDefaultUserRole() {
     .values({
       id: genId("role"),
       name: DEFAULT_REGISTERED_ROLE_NAME,
-      description: "Default registered user",
+      description: "Default registered student",
     })
     .returning();
 
@@ -63,7 +67,7 @@ async function getOrCreateDefaultUserRole() {
   if (!createdRole) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: "Gagal membuat role default user.",
+      message: "Gagal membuat role default student.",
     });
   }
 
@@ -353,9 +357,48 @@ async function buildEnrollmentDetail(id: string) {
    DASHBOARD ANALYTICS
 ========================================================= */
 
+const chartGranularityEnum = z.enum(["day", "week", "month"]);
+
+const GRANULARITY_DEFAULT_RANGE: Record<z.infer<typeof chartGranularityEnum>, number> = {
+  day: 30,
+  week: 12,
+  month: 12,
+};
+
+const GRANULARITY_MAX_RANGE: Record<z.infer<typeof chartGranularityEnum>, number> = {
+  day: 90,
+  week: 26,
+  month: 24,
+};
+
 const dashboardOverviewInput = z.object({
-  months: z.number().int().min(3).max(24).default(12),
+  granularity: chartGranularityEnum.default("month"),
+  // Number of buckets to show. Defaults/caps depend on granularity
+  // (e.g. 30 days vs 12 weeks vs 12 months) — see GRANULARITY_*_RANGE.
+  range: z.number().int().min(1).max(90).optional(),
 });
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date: Date, amount: number) {
+  const result = new Date(date);
+  result.setDate(result.getDate() + amount);
+  return result;
+}
+
+function startOfWeek(date: Date) {
+  // Monday-based week start.
+  const d = startOfDay(date);
+  const day = d.getDay(); // 0 = Sunday
+  const diff = (day === 0 ? -6 : 1) - day;
+  return addDays(d, diff);
+}
 
 function startOfMonth(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -363,6 +406,32 @@ function startOfMonth(date: Date) {
 
 function addMonths(date: Date, amount: number) {
   return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function getDayKey(date: Date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function getDayLabel(date: Date) {
+  return date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+}
+
+function getWeekKey(date: Date) {
+  return getDayKey(startOfWeek(date));
+}
+
+function getWeekLabel(date: Date) {
+  const start = startOfWeek(date);
+  const end = addDays(start, 6);
+  const sameMonth = start.getMonth() === end.getMonth();
+
+  const startLabel = start.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: sameMonth ? undefined : "short",
+  });
+  const endLabel = end.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+
+  return `${startLabel}–${endLabel}`;
 }
 
 function getMonthKey(date: Date) {
@@ -379,6 +448,36 @@ function getMonthLabel(date: Date) {
   });
 }
 
+// Bucket-key / bucket-label / next-bucket-start, keyed by granularity.
+const BUCKET_STRATEGY = {
+  day: {
+    bucketStart: startOfDay,
+    key: getDayKey,
+    label: getDayLabel,
+    advance: (date: Date) => addDays(date, 1),
+  },
+  week: {
+    bucketStart: startOfWeek,
+    key: getWeekKey,
+    label: getWeekLabel,
+    advance: (date: Date) => addDays(date, 7),
+  },
+  month: {
+    bucketStart: startOfMonth,
+    key: getMonthKey,
+    label: getMonthLabel,
+    advance: (date: Date) => addMonths(date, 1),
+  },
+} satisfies Record<
+  z.infer<typeof chartGranularityEnum>,
+  {
+    bucketStart: (date: Date) => Date;
+    key: (date: Date) => string;
+    label: (date: Date) => string;
+    advance: (date: Date) => Date;
+  }
+>;
+
 function isPaidEnrollmentStatus(status: string) {
   return status === "paid" || status === "confirmed";
 }
@@ -387,11 +486,36 @@ function isUnpaidEnrollmentStatus(status: string) {
   return status === "pending_payment";
 }
 
+// Steps a bucket-start date backward by one bucket — the inverse of
+// each strategy's `advance`.
+const BUCKET_RETREAT: Record<
+  z.infer<typeof chartGranularityEnum>,
+  (date: Date) => Date
+> = {
+  day: (date) => addDays(date, -1),
+  week: (date) => addDays(date, -7),
+  month: (date) => addMonths(date, -1),
+};
+
 async function buildDashboardOverview(
   input: z.infer<typeof dashboardOverviewInput>,
 ) {
   const now = new Date();
-  const fromDate = addMonths(startOfMonth(now), -(input.months - 1));
+  const strategy = BUCKET_STRATEGY[input.granularity];
+  const retreat = BUCKET_RETREAT[input.granularity];
+
+  const range = Math.min(
+    input.range ?? GRANULARITY_DEFAULT_RANGE[input.granularity],
+    GRANULARITY_MAX_RANGE[input.granularity],
+  );
+
+  // Walk back `range - 1` buckets from the current bucket to get the
+  // window start — e.g. range=30 with granularity="day" means "today
+  // and the 29 days before it".
+  let fromDate = strategy.bucketStart(now);
+  for (let i = 0; i < range - 1; i++) {
+    fromDate = retreat(fromDate);
+  }
 
   const [summaryRow] = await db
     .select({
@@ -455,13 +579,13 @@ async function buildDashboardOverview(
     }
   >();
 
-  for (let i = 0; i < input.months; i++) {
-    const date = addMonths(fromDate, i);
-    const key = getMonthKey(date);
+  let cursor = fromDate;
+  for (let i = 0; i < range; i++) {
+    const key = strategy.key(cursor);
 
     chartMap.set(key, {
       month: key,
-      label: getMonthLabel(date),
+      label: strategy.label(cursor),
       paid: 0,
       unpaid: 0,
       total: 0,
@@ -469,10 +593,12 @@ async function buildDashboardOverview(
       unpaidOrders: 0,
       totalOrders: 0,
     });
+
+    cursor = strategy.advance(cursor);
   }
 
   for (const row of chartRows) {
-    const key = getMonthKey(row.createdAt);
+    const key = strategy.key(row.createdAt);
     const point = chartMap.get(key);
 
     if (!point) continue;
@@ -644,7 +770,7 @@ export const orderRouter = createTRPCRouter({
       const finalPrice = Math.max(subtotal - discount, 0);
       const invoiceNumber = genInvoiceNumber();
 
-      const defaultUserRole = await getOrCreateDefaultUserRole();
+      const defaultStudentRole = await getOrCreateDefaultStudentRole();
 
       let account: typeof user.$inferSelect | undefined;
 
@@ -731,7 +857,7 @@ export const orderRouter = createTRPCRouter({
       const existingUserRole = await db.query.userRole.findFirst({
         where: and(
           eq(userRole.userId, account.id),
-          eq(userRole.roleId, defaultUserRole.id),
+          eq(userRole.roleId, defaultStudentRole.id),
         ),
       });
 
@@ -739,7 +865,7 @@ export const orderRouter = createTRPCRouter({
         await db.insert(userRole).values({
           id: genId("urole"),
           userId: account.id,
-          roleId: defaultUserRole.id,
+          roleId: defaultStudentRole.id,
         });
       }
 
@@ -822,40 +948,85 @@ export const orderRouter = createTRPCRouter({
 
       const paymentId = genId("pay");
 
+      const { getActiveGatewayCredentials, TRIPAY_PROVIDER } = await import(
+        "@/app/modules/payment-settings/server/payment-settings.service"
+      );
+
+      const tripayCredentials = await getActiveGatewayCredentials(TRIPAY_PROVIDER);
+      const provider = tripayCredentials ? "tripay" : "doku";
+
       await db.insert(payments).values({
         id: paymentId,
         enrollmentId,
-        provider: "doku",
+        provider,
         invoiceNumber,
         amount: finalPrice,
         currency: "IDR",
         status: "pending",
       });
 
-      const { createDokuInvoice } = await import("@/lib/payments/doku");
+      let paymentUrl: string;
 
-      const doku = await createDokuInvoice({
-        invoiceNumber,
-        amount: finalPrice,
-        customer: {
-          name: fullName,
-          email: enrollmentEmail,
-          phone: whatsapp,
-        },
+      if (tripayCredentials) {
+        const { createTripayTransaction } = await import("@/lib/payments/tripay");
+
+        const tripay = await createTripayTransaction({
+          invoiceNumber,
+          amount: finalPrice,
+          itemName: program.title,
+          customer: {
+            name: fullName,
+            email: enrollmentEmail,
+            phone: whatsapp,
+          },
+        });
+
+        await db
+          .update(payments)
+          .set({
+            gatewayReference: tripay.reference,
+            paymentUrl: tripay.paymentUrl,
+          })
+          .where(eq(payments.id, paymentId));
+
+        paymentUrl = tripay.paymentUrl;
+      } else {
+        const { createDokuInvoice } = await import("@/lib/payments/doku");
+
+        const doku = await createDokuInvoice({
+          invoiceNumber,
+          amount: finalPrice,
+          customer: {
+            name: fullName,
+            email: enrollmentEmail,
+            phone: whatsapp,
+          },
+        });
+
+        await db
+          .update(payments)
+          .set({
+            dokuInvoiceId: doku.dokuInvoiceId,
+            paymentUrl: doku.paymentUrl,
+          })
+          .where(eq(payments.id, paymentId));
+
+        paymentUrl = doku.paymentUrl;
+      }
+
+      const adminIds = await getAdminUserIds();
+      await notifyUsers(adminIds, {
+        category: "order",
+        type: "order_new",
+        title: "Pendaftaran baru",
+        body: `${fullName} mendaftar ke ${program.title}`,
+        link: "/dashboard/orders",
       });
-
-      await db
-        .update(payments)
-        .set({
-          dokuInvoiceId: doku.dokuInvoiceId,
-          paymentUrl: doku.paymentUrl,
-        })
-        .where(eq(payments.id, paymentId));
 
       return {
         enrollmentId,
         invoiceNumber,
-        paymentUrl: doku.paymentUrl,
+        paymentUrl,
       };
     }),
 
@@ -1047,10 +1218,22 @@ export const orderRouter = createTRPCRouter({
 
       // Keep enrollment status in sync for the common "mark as paid" case.
       if (input.status === "paid") {
-        await db
+        const [enrollment] = await db
           .update(enrollments)
           .set({ status: "paid", updatedAt: new Date() })
-          .where(eq(enrollments.id, row.enrollmentId));
+          .where(eq(enrollments.id, row.enrollmentId))
+          .returning();
+
+        const adminIds = await getAdminUserIds();
+        await notifyUsers(adminIds, {
+          category: "order",
+          type: "order_paid",
+          title: "Pembayaran berhasil",
+          body: enrollment
+            ? `Pembayaran dari ${enrollment.customerName} telah dikonfirmasi — ${row.invoiceNumber}`
+            : `Pembayaran ${row.invoiceNumber} telah dikonfirmasi`,
+          link: "/dashboard/orders",
+        });
       }
 
       return row;

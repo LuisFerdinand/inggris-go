@@ -7,14 +7,16 @@ import { classes } from "@/app/db/schema/classes";
 import { requireRole } from "@/lib/auth/roles";
 import type { Role } from "@/app/db/schema/roles";
 
-export const TEACHING_ROLES: Role[] = ["teacher", "admin"];
+// "author" acts as the teacher manager in this company and gets the same
+// oversight as admin over every class, not just their own.
+export const TEACHING_ROLES: Role[] = ["teacher", "author", "admin"];
 
 export function genId(prefix: string) {
   return `${prefix}_${crypto.randomUUID()}`;
 }
 
 export function isOversightRole(role: Role) {
-  return role === "admin" || role === "super_admin";
+  return role === "author" || role === "admin" || role === "super_admin";
 }
 
 export function requireTeachingAccess(userId: string | null, role: Role) {

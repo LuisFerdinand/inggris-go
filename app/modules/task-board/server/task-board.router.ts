@@ -1,30 +1,48 @@
 // app/modules/task-board/server/task-board.router.ts
 import { z } from "zod";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
+import { requireDbRole } from "@/lib/auth/roles";
 import { db } from "@/app/db/db";
-import { tasks, taskComments, taskAttachments } from "@/app/db/schema/tasks";
+import {
+  getAdminUserIds,
+  getSuperAdminUserIds,
+  notifyUser,
+  notifyUsers,
+} from "@/app/modules/notifications/server/create-notification";
+import {
+  tasks,
+  taskComments,
+  taskAttachments,
+  taskChecklistItems,
+} from "@/app/db/schema/tasks";
 import { user } from "@/app/db/schema/auth-schema";
 import { role, userRole } from "@/app/db/schema/roles";
 
 import {
+  addChecklistItemInput,
   addCommentInput,
   BOARD_COLUMN_STATUS,
   confirmDoneInput,
   createTaskInput,
+  deleteChecklistItemInput,
   deleteCommentInput,
   deleteTaskInput,
+  escalateTaskInput,
   listTasksInput,
   moveTaskInput,
   resubmitTaskInput,
+  toggleChecklistItemInput,
   updateTaskInput,
   verifyTaskInput,
 } from "../task-board.schema";
 import {
   TASK_BOARD_ROLES,
   assertTaskOwnerAccess,
+  canApproveTasks,
+  canEscalateToDirector,
   genId,
   isSuperAdmin,
   loadTaskOrThrow,
@@ -86,6 +104,9 @@ export const taskBoardRouter = createTRPCRouter({
             where: (attachment, { isNull }) => isNull(attachment.commentId),
             orderBy: (attachment, { asc }) => [asc(attachment.createdAt)],
           },
+          checklistItems: {
+            orderBy: (item, { asc }) => [asc(item.position), asc(item.createdAt)],
+          },
           comments: {
             orderBy: (comment, { asc }) => [asc(comment.createdAt)],
             with: {
@@ -109,9 +130,9 @@ export const taskBoardRouter = createTRPCRouter({
       requireTaskBoardAccess(ctx.auth.userId, ctx.auth.role);
 
       const id = genId("task");
-      // A super_admin's own tasks skip verification and land straight in
-      // "Direncanakan" — they're already the one who'd approve it anyway.
-      const selfApproved = isSuperAdmin(ctx.auth.role);
+      // An admin/super_admin's own tasks skip verification and land straight
+      // in "Direncanakan" — they're already the one who'd approve it anyway.
+      const selfApproved = canApproveTasks(ctx.auth.role);
 
       await db.insert(tasks).values({
         id,
@@ -128,13 +149,47 @@ export const taskBoardRouter = createTRPCRouter({
         verifiedAt: selfApproved ? new Date() : null,
       });
 
+      if (input.checklistItems?.length) {
+        await db.insert(taskChecklistItems).values(
+          input.checklistItems.map((item, index) => ({
+            id: genId("tchk"),
+            taskId: id,
+            text: item.text,
+            position: index,
+          })),
+        );
+      }
+
+      const actorName = ctx.session?.user?.name ?? "Seseorang";
+
+      if (!selfApproved) {
+        const adminIds = await getAdminUserIds();
+        await notifyUsers(adminIds, {
+          category: "task",
+          type: "task_pending_review",
+          title: "Tugas baru menunggu verifikasi",
+          body: `${actorName} mengajukan "${input.title}"`,
+          link: "/dashboard/tasks",
+        });
+      }
+
+      if (input.assigneeId && input.assigneeId !== ctx.auth.userId) {
+        await notifyUser(input.assigneeId, {
+          category: "task",
+          type: "task_assigned",
+          title: "Anda ditugaskan pada tugas baru",
+          body: `"${input.title}" — ditugaskan oleh ${actorName}`,
+          link: "/dashboard/tasks",
+        });
+      }
+
       return db.query.tasks.findFirst({ where: eq(tasks.id, id) });
     }),
 
   update: protectedProcedure
     .input(updateTaskInput)
     .mutation(async ({ ctx, input }) => {
-      await assertTaskOwnerAccess(input.id, ctx.auth.userId, ctx.auth.role);
+      const existing = await assertTaskOwnerAccess(input.id, ctx.auth.userId, ctx.auth.role);
 
       const { id, ...rest } = input;
 
@@ -143,6 +198,21 @@ export const taskBoardRouter = createTRPCRouter({
         .set(rest)
         .where(eq(tasks.id, id))
         .returning();
+
+      if (
+        input.assigneeId &&
+        input.assigneeId !== existing.assigneeId &&
+        input.assigneeId !== ctx.auth.userId
+      ) {
+        const actorName = ctx.session?.user?.name ?? "Seseorang";
+        await notifyUser(input.assigneeId, {
+          category: "task",
+          type: "task_assigned",
+          title: "Anda ditugaskan pada sebuah tugas",
+          body: `"${row?.title ?? existing.title}" — ditugaskan oleh ${actorName}`,
+          link: "/dashboard/tasks",
+        });
+      }
 
       return row;
     }),
@@ -171,19 +241,30 @@ export const taskBoardRouter = createTRPCRouter({
   verify: protectedProcedure
     .input(verifyTaskInput)
     .mutation(async ({ ctx, input }) => {
-      if (!isSuperAdmin(ctx.auth.role)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Hanya super admin yang dapat memverifikasi tugas",
-        });
-      }
-
       const existing = await loadTaskOrThrow(input.id);
 
-      if (existing.status !== "pending_review") {
+      if (existing.status !== "pending_review" && existing.status !== "butuh_keputusan") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Tugas ini sudah diverifikasi sebelumnya",
+        });
+      }
+
+      // A task an admin escalated to "butuh keputusan direktur" can only be
+      // decided by a super_admin — the first tier (admin or super_admin) is
+      // only for plain "pending_review" tasks.
+      const canDecide =
+        existing.status === "butuh_keputusan"
+          ? isSuperAdmin(ctx.auth.role)
+          : canApproveTasks(ctx.auth.role);
+
+      if (!canDecide) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            existing.status === "butuh_keputusan"
+              ? "Hanya super admin yang dapat memutuskan tugas ini"
+              : "Hanya admin atau super admin yang dapat memverifikasi tugas",
         });
       }
 
@@ -198,6 +279,62 @@ export const taskBoardRouter = createTRPCRouter({
         .where(eq(tasks.id, input.id))
         .returning();
 
+      if (existing.createdBy !== ctx.auth.userId) {
+        await notifyUser(existing.createdBy, {
+          category: "task",
+          type: input.decision === "approve" ? "task_verified" : "task_rejected",
+          title: input.decision === "approve" ? "Tugas disetujui" : "Tugas ditolak",
+          body:
+            input.decision === "approve"
+              ? `"${existing.title}" telah disetujui dan siap dikerjakan`
+              : `"${existing.title}" ditolak — ${input.reviewNote}`,
+          link: "/dashboard/tasks",
+        });
+      }
+
+      return row;
+    }),
+
+  /**
+   * A plain admin escalates a pending task to the director (super_admin)
+   * tier when it needs a higher-stakes decision. Only super_admin can then
+   * approve/reject it (via `verify`, once status is "butuh_keputusan").
+   */
+  escalate: protectedProcedure
+    .input(escalateTaskInput)
+    .mutation(async ({ ctx, input }) => {
+      if (!canEscalateToDirector(ctx.auth.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Hanya admin yang dapat mengajukan tugas ke direktur",
+        });
+      }
+
+      const existing = await loadTaskOrThrow(input.id);
+
+      if (existing.status !== "pending_review") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Hanya tugas yang menunggu verifikasi yang dapat diajukan ke direktur",
+        });
+      }
+
+      const [row] = await db
+        .update(tasks)
+        .set({ status: "butuh_keputusan" })
+        .where(eq(tasks.id, input.id))
+        .returning();
+
+      const actorName = ctx.session?.user?.name ?? "Admin";
+      const superAdminIds = await getSuperAdminUserIds();
+      await notifyUsers(superAdminIds, {
+        category: "task",
+        type: "task_escalated",
+        title: "Butuh keputusan direktur",
+        body: `${actorName} mengajukan "${existing.title}" untuk keputusan direktur`,
+        link: "/dashboard/tasks/keputusan-direktur",
+      });
+
       return row;
     }),
 
@@ -209,10 +346,10 @@ export const taskBoardRouter = createTRPCRouter({
   confirmDone: protectedProcedure
     .input(confirmDoneInput)
     .mutation(async ({ ctx, input }) => {
-      if (!isSuperAdmin(ctx.auth.role)) {
+      if (!canApproveTasks(ctx.auth.role)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Hanya super admin yang dapat menandai tugas selesai",
+          message: "Hanya admin atau super admin yang dapat menandai tugas selesai",
         });
       }
 
@@ -230,6 +367,18 @@ export const taskBoardRouter = createTRPCRouter({
         .set({ status: "done" })
         .where(eq(tasks.id, input.id))
         .returning();
+
+      const recipients = [existing.createdBy, existing.assigneeId].filter(
+        (recipientId): recipientId is string =>
+          !!recipientId && recipientId !== ctx.auth.userId,
+      );
+      await notifyUsers(recipients, {
+        category: "task",
+        type: "task_done",
+        title: "Tugas ditandai selesai",
+        body: `"${existing.title}" telah selesai`,
+        link: "/dashboard/tasks",
+      });
 
       return row;
     }),
@@ -264,6 +413,16 @@ export const taskBoardRouter = createTRPCRouter({
         .where(eq(tasks.id, input.id))
         .returning();
 
+      const actorName = ctx.session?.user?.name ?? "Seseorang";
+      const adminIds = await getAdminUserIds();
+      await notifyUsers(adminIds, {
+        category: "task",
+        type: "task_pending_review",
+        title: "Tugas diajukan ulang",
+        body: `${actorName} mengajukan ulang "${existing.title}"`,
+        link: "/dashboard/tasks",
+      });
+
       return row;
     }),
 
@@ -293,7 +452,7 @@ export const taskBoardRouter = createTRPCRouter({
     .input(addCommentInput)
     .mutation(async ({ ctx, input }) => {
       requireTaskBoardAccess(ctx.auth.userId, ctx.auth.role);
-      await loadTaskOrThrow(input.taskId);
+      const task = await loadTaskOrThrow(input.taskId);
 
       const commentId = genId("tcmt");
 
@@ -315,6 +474,19 @@ export const taskBoardRouter = createTRPCRouter({
           })),
         );
       }
+
+      const actorName = ctx.session?.user?.name ?? "Seseorang";
+      const commentRecipients = [task.createdBy, task.assigneeId].filter(
+        (recipientId): recipientId is string =>
+          !!recipientId && recipientId !== ctx.auth.userId,
+      );
+      await notifyUsers(commentRecipients, {
+        category: "task",
+        type: "task_comment",
+        title: "Komentar baru pada tugas",
+        body: `${actorName} pada "${task.title}": ${input.body.slice(0, 80)}`,
+        link: "/dashboard/tasks",
+      });
 
       return db.query.taskComments.findFirst({
         where: eq(taskComments.id, commentId),
@@ -350,6 +522,101 @@ export const taskBoardRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  addChecklistItem: protectedProcedure
+    .input(addChecklistItemInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertTaskOwnerAccess(input.taskId, ctx.auth.userId, ctx.auth.role);
+
+      const [maxPositionRow] = await db
+        .select({ max: sql<number>`coalesce(max(${taskChecklistItems.position}), -1)`.mapWith(Number) })
+        .from(taskChecklistItems)
+        .where(eq(taskChecklistItems.taskId, input.taskId));
+
+      const id = genId("tchk");
+
+      await db.insert(taskChecklistItems).values({
+        id,
+        taskId: input.taskId,
+        text: input.text,
+        position: (maxPositionRow?.max ?? -1) + 1,
+      });
+
+      return db.query.taskChecklistItems.findFirst({
+        where: eq(taskChecklistItems.id, id),
+      });
+    }),
+
+  toggleChecklistItem: protectedProcedure
+    .input(toggleChecklistItemInput)
+    .mutation(async ({ ctx, input }) => {
+      const item = await db.query.taskChecklistItems.findFirst({
+        where: eq(taskChecklistItems.id, input.id),
+      });
+
+      if (!item) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Item checklist tidak ditemukan" });
+      }
+
+      await assertTaskOwnerAccess(item.taskId, ctx.auth.userId, ctx.auth.role);
+
+      const [row] = await db
+        .update(taskChecklistItems)
+        .set({ done: input.done })
+        .where(eq(taskChecklistItems.id, input.id))
+        .returning();
+
+      return row;
+    }),
+
+  deleteChecklistItem: protectedProcedure
+    .input(deleteChecklistItemInput)
+    .mutation(async ({ ctx, input }) => {
+      const item = await db.query.taskChecklistItems.findFirst({
+        where: eq(taskChecklistItems.id, input.id),
+      });
+
+      if (!item) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Item checklist tidak ditemukan" });
+      }
+
+      await assertTaskOwnerAccess(item.taskId, ctx.auth.userId, ctx.auth.role);
+
+      await db.delete(taskChecklistItems).where(eq(taskChecklistItems.id, input.id));
+
+      return { success: true };
+    }),
+
+  /**
+   * Sidebar badge counts for the two approval queues — zeroed out for
+   * roles that can't act on that queue rather than erroring, so the
+   * sidebar can call this unconditionally for any task-board role.
+   */
+  badgeCounts: protectedProcedure.query(async ({ ctx }) => {
+    requireTaskBoardAccess(ctx.auth.userId, ctx.auth.role);
+
+    const canSeeApprovals = canApproveTasks(ctx.auth.role);
+    const canSeeDirector = isSuperAdmin(ctx.auth.role);
+
+    const [pendingReviewRow] = canSeeApprovals
+      ? await db
+          .select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(tasks)
+          .where(eq(tasks.status, "pending_review"))
+      : [{ count: 0 }];
+
+    const [butuhKeputusanRow] = canSeeDirector
+      ? await db
+          .select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(tasks)
+          .where(eq(tasks.status, "butuh_keputusan"))
+      : [{ count: 0 }];
+
+    return {
+      pendingReview: pendingReviewRow?.count ?? 0,
+      butuhKeputusan: butuhKeputusanRow?.count ?? 0,
+    };
+  }),
+
   listAssignableUsers: protectedProcedure.query(async ({ ctx }) => {
     requireTaskBoardAccess(ctx.auth.userId, ctx.auth.role);
 
@@ -365,5 +632,55 @@ export const taskBoardRouter = createTRPCRouter({
       .innerJoin(role, eq(role.id, userRole.roleId))
       .where(inArray(role.name, TASK_BOARD_ROLES))
       .orderBy(user.name);
+  }),
+
+  /**
+   * Simple per-member kinerja (performance) summary for the "Tim" dashboard —
+   * admin/super_admin only. Aggregates each assignee's tasks into a rough
+   * 1-5 score, the same kind of formula the reference prototype used
+   * (penalize overdue and rejected tasks), without any historical trend.
+   */
+  teamPerformance: protectedProcedure.query(async ({ ctx }) => {
+    await requireDbRole(ctx.auth.userId, ["admin", "super_admin"]);
+
+    const members = await db
+      .selectDistinct({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+      })
+      .from(user)
+      .innerJoin(userRole, eq(userRole.userId, user.id))
+      .innerJoin(role, eq(role.id, userRole.roleId))
+      .where(inArray(role.name, TASK_BOARD_ROLES))
+      .orderBy(user.name);
+
+    const stats = await db
+      .select({
+        assigneeId: tasks.assigneeId,
+        total: sql<number>`count(*)`.mapWith(Number),
+        done: sql<number>`count(*) filter (where ${tasks.status} = 'done')`.mapWith(Number),
+        rejected: sql<number>`count(*) filter (where ${tasks.status} = 'rejected')`.mapWith(Number),
+        overdue: sql<number>`count(*) filter (where ${tasks.dueDate} is not null and ${tasks.dueDate} < now() and ${tasks.status} not in ('done', 'rejected'))`.mapWith(Number),
+      })
+      .from(tasks)
+      .where(isNotNull(tasks.assigneeId))
+      .groupBy(tasks.assigneeId);
+
+    const statsByAssignee = new Map(stats.map((row) => [row.assigneeId, row]));
+
+    return members.map((member) => {
+      const row = statsByAssignee.get(member.id);
+      const total = row?.total ?? 0;
+      const done = row?.done ?? 0;
+      const rejected = row?.rejected ?? 0;
+      const overdue = row?.overdue ?? 0;
+      const active = Math.max(0, total - done - rejected);
+      const score =
+        Math.round(Math.max(1, Math.min(5, 5 - overdue * 0.6 - rejected * 0.3)) * 10) / 10;
+
+      return { ...member, total, active, done, rejected, overdue, score };
+    });
   }),
 });
