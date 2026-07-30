@@ -12,9 +12,14 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // getToken()'s auto-detection of the "__Secure-" cookie prefix relies on
+  // reading the request's protocol; on a real https production domain this
+  // must be forced explicitly rather than trusting that detection, or a
+  // genuinely-set session cookie can silently fail to be read back here.
   const token = await getToken({
     req,
     secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === "production",
   });
 
   if (!token) {

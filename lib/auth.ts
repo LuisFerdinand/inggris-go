@@ -162,6 +162,10 @@ async function upsertGoogleUser(params: {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  // Forced explicitly (rather than left to auto-detection) so the cookie
+  // this sets and the "__Secure-" prefix getToken() looks for in proxy.ts
+  // can never disagree about whether the deployment is HTTPS.
+  useSecureCookies: process.env.NODE_ENV === "production",
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
 
   session: {
