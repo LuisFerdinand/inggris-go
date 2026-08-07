@@ -222,10 +222,12 @@ function StudentScoreFormInner({
 
   function invalidateScore() {
     return Promise.all([
+      utils.classes.getById.invalidate({ id: classId }),
       utils.classScores.listByClass.invalidate({ classId }),
       utils.classScores.getByClassEnrollment.invalidate({
         classEnrollmentId,
       }),
+      utils.classScores.listPendingReview.invalidate(),
     ]);
   }
 

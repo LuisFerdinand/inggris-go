@@ -61,10 +61,40 @@ export const sessionRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       await assertClassAccess(input.classId, ctx.auth.userId, ctx.auth.role);
 
-      return db.query.classSessions.findMany({
+      const sessions = await db.query.classSessions.findMany({
         where: eq(classSessions.classId, input.classId),
         orderBy: [asc(classSessions.order), asc(classSessions.sessionDate)],
       });
+
+      const roster = await db.query.classEnrollments.findMany({
+        where: and(
+          eq(classEnrollments.classId, input.classId),
+          eq(classEnrollments.isRemoved, false),
+        ),
+      });
+
+      const totalStudents = roster.length;
+      const sessionIds = sessions.map((session) => session.id);
+
+      const records = sessionIds.length
+        ? await db.query.attendanceRecords.findMany({
+            where: (fields, { inArray }) =>
+              inArray(fields.classSessionId, sessionIds),
+          })
+        : [];
+
+      const filledBySession = new Map<string, Set<string>>();
+      for (const record of records) {
+        const filled = filledBySession.get(record.classSessionId) ?? new Set();
+        filled.add(record.classEnrollmentId);
+        filledBySession.set(record.classSessionId, filled);
+      }
+
+      return sessions.map((session) => ({
+        ...session,
+        totalStudents,
+        filledCount: filledBySession.get(session.id)?.size ?? 0,
+      }));
     }),
 
   remove: protectedProcedure

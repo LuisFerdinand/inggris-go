@@ -10,18 +10,19 @@ import {
   ChevronDown,
   Eye,
   EyeOff,
+  GraduationCap,
   LayoutDashboard,
   Loader2,
   LogIn,
   LogOut,
   Mail,
+  Newspaper,
   Settings,
   Sparkles,
   UserRound,
   X,
 } from "lucide-react";
-import { signIn, useSession } from "next-auth/react";
-import { logout } from "@/lib/auth/actions";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 
 import { BRAND } from "@/constants/brand";
@@ -50,17 +51,32 @@ type UserNavProps = {
   onOpenAuthModal: () => void;
 };
 
-export const NAV_MENU_ITEMS = [
-  {
-    label: "Dashboard",
-    shortLabel: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-    desc: "Ringkasan aktivitas",
-    color: "#1a52c8",
-    bg: "rgba(26,82,200,0.08)",
-  },
-  {
+function getPrimaryNavItem(role?: string | null) {
+  if (role === "teacher") {
+    return {
+      label: "Dashboard Mengajar",
+      shortLabel: "Mengajar",
+      href: "/dashboard/teaching",
+      icon: GraduationCap,
+      desc: "Kelola kelas & penilaian",
+      color: "#0a9e8a",
+      bg: "rgba(10,158,138,0.08)",
+    };
+  }
+
+  if (role === "author") {
+    return {
+      label: "Blog",
+      shortLabel: "Blog",
+      href: "/dashboard/blog",
+      icon: Newspaper,
+      desc: "Kelola artikel & konten",
+      color: "#0a9e8a",
+      bg: "rgba(10,158,138,0.08)",
+    };
+  }
+
+  return {
     label: "Program Saya",
     shortLabel: "Program",
     href: "/dashboard/program-saya",
@@ -68,17 +84,32 @@ export const NAV_MENU_ITEMS = [
     desc: "Akses kelas terdaftar",
     color: "#0a9e8a",
     bg: "rgba(10,158,138,0.08)",
-  },
-  {
-    label: "Pengaturan",
-    shortLabel: "Pengaturan",
-    href: "/dashboard/settings",
-    icon: Settings,
-    desc: "Akun & preferensi",
-    color: "#7c5fcf",
-    bg: "rgba(124,95,207,0.08)",
-  },
-] as const;
+  };
+}
+
+function getNavMenuItems(role?: string | null) {
+  return [
+    {
+      label: "Dashboard",
+      shortLabel: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      desc: "Ringkasan aktivitas",
+      color: "#1a52c8",
+      bg: "rgba(26,82,200,0.08)",
+    },
+    getPrimaryNavItem(role),
+    {
+      label: "Pengaturan",
+      shortLabel: "Pengaturan",
+      href: "/dashboard/settings",
+      icon: Settings,
+      desc: "Akun & preferensi",
+      color: "#7c5fcf",
+      bg: "rgba(124,95,207,0.08)",
+    },
+  ];
+}
 
 function getInitials(name?: string | null): string {
   if (!name) return "U";
@@ -143,10 +174,16 @@ export function UserNav({ onOpenAuthModal }: UserNavProps) {
   const { data: session, status } = useSession();
 
   const [open, setOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const loading = status === "loading";
   const user = session?.user as AuthUser | undefined;
+
+  async function handleSignOut() {
+    setIsSigningOut(true);
+    await signOut({ callbackUrl: "/" });
+  }
 
   useEffect(() => {
     const handler = (event: MouseEvent) => {
@@ -251,7 +288,7 @@ export function UserNav({ onOpenAuthModal }: UserNavProps) {
             </div>
 
             <div className="border-t border-[var(--border)] p-2">
-              {NAV_MENU_ITEMS.map((item) => {
+              {getNavMenuItems(user.role).map((item) => {
                 if (
                   item.href === "/dashboard" &&
                   !canOpenDashboard(user.role)
@@ -291,18 +328,22 @@ export function UserNav({ onOpenAuthModal }: UserNavProps) {
             </div>
 
             <div className="border-t border-[var(--border)] p-2">
-              <form action={logout}>
-                <button
-                  type="submit"
-                  role="menuitem"
-                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50"
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <button
+                type="button"
+                role="menuitem"
+                disabled={isSigningOut}
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  {isSigningOut ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
                     <LogOut className="h-4 w-4" />
-                  </span>
-                  Logout
-                </button>
-              </form>
+                  )}
+                </span>
+                {isSigningOut ? "Keluar..." : "Logout"}
+              </button>
             </div>
           </motion.div>
         )}
@@ -322,6 +363,12 @@ export function MobileUserSection({
 
   const user = session?.user as AuthUser | undefined;
   const loading = status === "loading";
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setIsSigningOut(true);
+    await signOut({ callbackUrl: "/" });
+  }
 
   if (loading) {
     return (
@@ -369,11 +416,11 @@ export function MobileUserSection({
 
       <div className="grid grid-cols-2 gap-2">
         <Link
-          href="/dashboard/programs"
+          href={getPrimaryNavItem(user.role).href}
           onClick={onClose}
           className="rounded-xl bg-[var(--surface-soft)] px-3 py-2 text-center text-xs font-bold text-[var(--blue-navy)]"
         >
-          Program
+          {getPrimaryNavItem(user.role).shortLabel}
         </Link>
 
         {canOpenDashboard(user.role) ? (
@@ -395,14 +442,14 @@ export function MobileUserSection({
         )}
       </div>
 
-      <form action={logout} className="mt-2">
-        <button
-          type="submit"
-          className="w-full rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600"
-        >
-          Logout
-        </button>
-      </form>
+      <button
+        type="button"
+        disabled={isSigningOut}
+        onClick={handleSignOut}
+        className="mt-2 w-full rounded-xl bg-red-50 px-3 py-2 text-center text-xs font-bold text-red-600 disabled:opacity-60"
+      >
+        {isSigningOut ? "Keluar..." : "Logout"}
+      </button>
     </div>
   );
 }

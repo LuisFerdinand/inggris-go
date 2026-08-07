@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -21,7 +21,6 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { logout } from "@/lib/auth/actions";
 import { getDashboardHome } from "@/lib/auth/permissions";
 import type { Role } from "@/app/db/schema/roles";
 
@@ -489,6 +488,13 @@ function AuthedPanel({
   user: AuthedPanelUser;
   continueHref: string;
 }) {
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    setIsSigningOut(true);
+    await signOut({ callbackUrl: "/" });
+  }
+
   return (
     <div className="text-center">
       <div
@@ -519,15 +525,19 @@ function AuthedPanel({
           Lanjut ke Dashboard
         </Link>
 
-        <form action={logout}>
-          <button
-            type="submit"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
-          >
+        <button
+          type="button"
+          disabled={isSigningOut}
+          onClick={handleSignOut}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-70"
+        >
+          {isSigningOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
             <LogOut className="h-4 w-4" />
-            Logout
-          </button>
-        </form>
+          )}
+          {isSigningOut ? "Keluar..." : "Logout"}
+        </button>
       </div>
     </div>
   );

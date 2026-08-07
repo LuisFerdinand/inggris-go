@@ -5,6 +5,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import {
   CalendarPlus,
+  CheckCircle2,
   ClipboardCheck,
   Link2,
   Loader2,
@@ -134,9 +135,16 @@ function AttendancePanelInner({
           {roster.map((student) => (
             <div key={student.classEnrollmentId} className="flex flex-col gap-1.5 py-2">
               <div className="flex items-center justify-between gap-3">
-                <p className="truncate text-[12.5px] font-medium text-slate-700">
-                  {student.studentName}
-                </p>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <p className="truncate text-[12.5px] font-medium text-slate-700">
+                    {student.studentName}
+                  </p>
+                  {student.status !== null && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9.5px] font-bold text-emerald-600">
+                      <CheckCircle2 className="size-2.5" /> Sudah diisi
+                    </span>
+                  )}
+                </div>
                 <div className="flex shrink-0 gap-1">
                   {ATTENDANCE_STATUS.map((status) => {
                     const active =
@@ -331,6 +339,16 @@ export function SessionsTab({ classId }: { classId: string }) {
                   </div>
 
                   <div className="flex shrink-0 items-center gap-2">
+                    {session.totalStudents > 0 &&
+                      (session.filledCount === session.totalStudents ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[10.5px] font-bold text-emerald-600">
+                          <CheckCircle2 className="size-3" /> Lengkap
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[10.5px] font-bold text-amber-600">
+                          {session.filledCount}/{session.totalStudents} diisi
+                        </span>
+                      ))}
                     <button
                       type="button"
                       onClick={() =>

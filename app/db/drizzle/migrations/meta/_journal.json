@@ -8,6 +8,13 @@
       "when": 1785422911523,
       "tag": "0000_steady_demogoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786068807078,
+      "tag": "0001_rapid_captain_america",
+      "breakpoints": true
     }
   ]
 }
