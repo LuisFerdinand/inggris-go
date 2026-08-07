@@ -20,7 +20,7 @@ import { user } from "./auth-schema";
 import { programs, programBatches } from "./programs";
 import { enrollments } from "./orders";
 
-import { ATTENDANCE_STATUS, CLASS_STATUS } from "@/lib/enums/enums";
+import { ATTENDANCE_STATUS, CLASS_STATUS, SCORE_STATUS } from "@/lib/enums/enums";
 
 /* =========================================================
    ENUMS
@@ -31,6 +31,7 @@ export const attendanceStatusEnum = pgEnum(
   "attendance_status",
   ATTENDANCE_STATUS,
 );
+export const scoreStatusEnum = pgEnum("score_status", SCORE_STATUS);
 
 /* =========================================================
    CLASSES
@@ -229,7 +230,21 @@ export const studentScores = pgTable(
 
     tutorCoordinatorName: text("tutor_coordinator_name"),
 
-    // Set once the teacher finalizes the report; locks further edits.
+    /* -----------------------------------------
+       Approval workflow: a teacher submits a score for
+       review, an oversight role (author/admin/super_admin)
+       approves or rejects it. Only "approved" scores reach
+       the student's dashboard.
+    ----------------------------------------- */
+    status: scoreStatusEnum("status").default("draft").notNull(),
+    submittedAt: timestamp("submitted_at"),
+    reviewedBy: text("reviewed_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: timestamp("reviewed_at"),
+    reviewNote: text("review_note"),
+
+    // Set once an oversight role approves the report; locks further edits.
     finalizedAt: timestamp("finalized_at"),
 
     createdAt: timestamp("created_at").defaultNow().notNull(),

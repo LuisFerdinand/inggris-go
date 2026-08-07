@@ -1,6 +1,6 @@
 // app/db/schema/notifications.ts
 // Per-user notification feed. `category` drives the icon/color family in the
-// UI (task vs order); `type` is the specific event within that category.
+// UI (task vs order vs class); `type` is the specific event within that category.
 
 import { relations } from "drizzle-orm";
 import {
@@ -17,6 +17,7 @@ import { user } from "./auth-schema";
 export const notificationCategoryEnum = pgEnum("notification_category", [
   "task",
   "order",
+  "class",
 ]);
 
 export const notifications = pgTable(

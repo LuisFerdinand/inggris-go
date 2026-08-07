@@ -8,15 +8,18 @@ import {
   BookOpenText,
   ChevronDown,
   ClipboardCheck,
+  Clock,
   Ear,
   Loader2,
   Lock,
   Mic2,
   MessagesSquare,
   PartyPopper,
+  ShieldCheck,
   Sparkles,
   SpellCheck,
   Users2,
+  XCircle,
 } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
@@ -30,12 +33,13 @@ import {
   getProgressLabel,
   type CompetencyKey,
 } from "@/lib/lms/scoring";
-import type { ClassStatus } from "@/lib/enums/enums";
+import type { ClassStatus, ScoreStatus } from "@/lib/enums/enums";
 
 type RosterRow = {
   id: string;
   studentName: string;
   score?: {
+    status: ScoreStatus;
     finalizedAt: string | Date | null;
     [key: string]: unknown;
   } | null;
@@ -147,7 +151,9 @@ function emptyDraft(): ScoreDraft {
 }
 
 type ExistingScore = {
+  status: ScoreStatus;
   finalizedAt: string | Date | null;
+  reviewNote: string | null;
   grammarAccuracy: number;
   pronunciation: number;
   vocabulary: number;
@@ -203,30 +209,56 @@ function StudentScoreFormInner({
   const [draft, setDraft] = useState<ScoreDraft>(() =>
     draftFromScore(existingScore),
   );
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [rejectNote, setRejectNote] = useState("");
 
-  const isFinalized = !!existingScore?.finalizedAt;
-  // Once finalized, only an oversight role (author/admin/super_admin) can
-  // still approve/edit the teacher's marking — everyone else is locked out.
-  const isLocked = isFinalized && !canApprove;
+  const status = existingScore?.status ?? "draft";
+  const isApproved = status === "approved";
+  const isPendingReview = status === "pending_review";
+  const isRejected = status === "rejected";
+  // Once submitted for review (or approved), only an oversight role
+  // (author/admin/super_admin) can still edit — everyone else is locked out.
+  const isLocked = (isPendingReview || isApproved) && !canApprove;
+
+  function invalidateScore() {
+    return Promise.all([
+      utils.classScores.listByClass.invalidate({ classId }),
+      utils.classScores.getByClassEnrollment.invalidate({
+        classEnrollmentId,
+      }),
+    ]);
+  }
 
   const saveMutation = trpc.classScores.save.useMutation({
     onSuccess: async () => {
-      await utils.classScores.listByClass.invalidate({ classId });
-      await utils.classScores.getByClassEnrollment.invalidate({
-        classEnrollmentId,
-      });
+      await invalidateScore();
       toast.success("Nilai tersimpan");
     },
     onError: (err) => toast.error(err.message || "Gagal menyimpan nilai"),
   });
 
-  const finalizeMutation = trpc.classScores.finalize.useMutation({
+  const submitMutation = trpc.classScores.submitForApproval.useMutation({
     onSuccess: async () => {
-      await utils.classScores.listByClass.invalidate({ classId });
-      toast.success(`Laporan ${studentName} difinalisasi`);
+      await invalidateScore();
+      toast.success(
+        canApprove
+          ? `Nilai ${studentName} disetujui`
+          : `Nilai ${studentName} diajukan untuk persetujuan`,
+      );
       onClose();
     },
-    onError: (err) => toast.error(err.message || "Gagal finalisasi"),
+    onError: (err) => toast.error(err.message || "Gagal mengajukan nilai"),
+  });
+
+  const reviewMutation = trpc.classScores.review.useMutation({
+    onSuccess: async () => {
+      await invalidateScore();
+      setShowRejectForm(false);
+      setRejectNote("");
+      toast.success("Keputusan tersimpan");
+      onClose();
+    },
+    onError: (err) => toast.error(err.message || "Gagal memproses persetujuan"),
   });
 
   const average = computeAverageScore(draft);
@@ -236,17 +268,62 @@ function StudentScoreFormInner({
     saveMutation.mutate({ classEnrollmentId, ...draft });
   }
 
+  function handleSubmit() {
+    saveMutation.mutate(
+      { classEnrollmentId, ...draft },
+      { onSuccess: () => submitMutation.mutate({ classEnrollmentId }) },
+    );
+  }
+
+  function handleApprove() {
+    reviewMutation.mutate({ classEnrollmentId, decision: "approve" });
+  }
+
+  function handleReject() {
+    if (!rejectNote.trim()) {
+      toast.error("Alasan penolakan wajib diisi");
+      return;
+    }
+    reviewMutation.mutate({
+      classEnrollmentId,
+      decision: "reject",
+      reviewNote: rejectNote.trim(),
+    });
+  }
+
   return (
     <div
       className="flex flex-col gap-5 border-t p-5"
       style={{ borderColor: "#f1f5f9", background: "#fafbff" }}
     >
-      {isFinalized && (
+      {isApproved && (
         <div className="flex items-center gap-2 rounded-xl bg-emerald-50 px-3.5 py-2.5 text-[12px] font-semibold text-emerald-700">
           <Lock className="size-3.5" />
-          {isLocked
-            ? "Laporan sudah difinalisasi dan terkunci."
-            : "Laporan sudah difinalisasi. Anda dapat menyetujui atau mengedit sebagai atasan."}
+          {canApprove
+            ? "Nilai sudah disetujui. Anda dapat mengedit sebagai atasan."
+            : "Nilai sudah disetujui dan terkunci."}
+        </div>
+      )}
+
+      {isPendingReview && (
+        <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3.5 py-2.5 text-[12px] font-semibold text-amber-700">
+          <Clock className="size-3.5" />
+          {canApprove
+            ? "Menunggu keputusan Anda — setujui atau tolak di bawah."
+            : "Menunggu persetujuan author, admin, atau super admin."}
+        </div>
+      )}
+
+      {isRejected && (
+        <div className="flex flex-col gap-1 rounded-xl bg-red-50 px-3.5 py-2.5 text-[12px] font-semibold text-red-700">
+          <span className="inline-flex items-center gap-2">
+            <XCircle className="size-3.5" /> Nilai ditolak, silakan perbaiki dan ajukan ulang.
+          </span>
+          {existingScore?.reviewNote && (
+            <p className="font-normal text-red-600">
+              &ldquo;{existingScore.reviewNote}&rdquo;
+            </p>
+          )}
         </div>
       )}
 
@@ -365,8 +442,8 @@ function StudentScoreFormInner({
         />
       </div>
 
-      {!isLocked && (
-        <div className="flex gap-2">
+      {!isLocked && !showRejectForm && (
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             disabled={saveMutation.isPending}
@@ -378,29 +455,86 @@ function StudentScoreFormInner({
             )}
             Simpan
           </button>
-          {!isFinalized && (
-          <button
-            type="button"
-            disabled={saveMutation.isPending || finalizeMutation.isPending}
-            onClick={() => {
-              saveMutation.mutate(
-                { classEnrollmentId, ...draft },
-                {
-                  onSuccess: () =>
-                    finalizeMutation.mutate({ classEnrollmentId }),
-                },
-              );
-            }}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-[12.5px] font-bold text-white shadow-sm shadow-emerald-200 transition-colors hover:bg-emerald-700 disabled:opacity-50"
-          >
-            {finalizeMutation.isPending ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <PartyPopper className="size-3.5" />
-            )}
-            Simpan &amp; Finalisasi
-          </button>
+
+          {isPendingReview && canApprove && (
+            <>
+              <button
+                type="button"
+                disabled={reviewMutation.isPending}
+                onClick={handleApprove}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-[12.5px] font-bold text-white shadow-sm shadow-emerald-200 transition-colors hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {reviewMutation.isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <ShieldCheck className="size-3.5" />
+                )}
+                Setujui
+              </button>
+              <button
+                type="button"
+                disabled={reviewMutation.isPending}
+                onClick={() => setShowRejectForm(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 px-4 py-2 text-[12.5px] font-bold text-white shadow-sm shadow-red-200 transition-colors hover:bg-red-700 disabled:opacity-50"
+              >
+                <XCircle className="size-3.5" />
+                Tolak
+              </button>
+            </>
           )}
+
+          {(status === "draft" || status === "rejected") && (
+            <button
+              type="button"
+              disabled={saveMutation.isPending || submitMutation.isPending}
+              onClick={handleSubmit}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-[12.5px] font-bold text-white shadow-sm shadow-emerald-200 transition-colors hover:bg-emerald-700 disabled:opacity-50"
+            >
+              {submitMutation.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <PartyPopper className="size-3.5" />
+              )}
+              {canApprove ? "Simpan & Setujui" : "Ajukan Persetujuan"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {showRejectForm && (
+        <div className="flex flex-col gap-2 rounded-xl border border-red-200 bg-red-50 p-3">
+          <label className="text-[12px] font-semibold text-red-700">
+            Alasan penolakan
+          </label>
+          <Textarea
+            rows={3}
+            value={rejectNote}
+            onChange={(e) => setRejectNote(e.target.value)}
+            placeholder="Jelaskan apa yang perlu diperbaiki…"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={reviewMutation.isPending}
+              onClick={handleReject}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-red-700 disabled:opacity-60"
+            >
+              {reviewMutation.isPending && (
+                <Loader2 className="size-3.5 animate-spin" />
+              )}
+              Kirim Penolakan
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowRejectForm(false);
+                setRejectNote("");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] font-bold text-slate-600 hover:bg-slate-50"
+            >
+              Batal
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -484,7 +618,7 @@ export function ScoresTab({
     );
   }
 
-  const finalizedCount = roster.filter((s) => s.score?.finalizedAt).length;
+  const finalizedCount = roster.filter((s) => s.score?.status === "approved").length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -503,7 +637,7 @@ export function ScoresTab({
       <div className="flex flex-col gap-2.5">
         {roster.map((student) => {
           const isOpen = openId === student.id;
-          const isFinalized = !!student.score?.finalizedAt;
+          const scoreStatus = student.score?.status;
 
           return (
             <div
@@ -523,12 +657,20 @@ export function ScoresTab({
                   {student.studentName}
                 </p>
                 <div className="flex shrink-0 items-center gap-2">
-                  {isFinalized ? (
+                  {scoreStatus === "approved" ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10.5px] font-bold text-emerald-600">
                       <Sparkles className="size-3" /> Selesai
                     </span>
+                  ) : scoreStatus === "pending_review" ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10.5px] font-bold text-amber-600">
+                      <Clock className="size-3" /> Menunggu Persetujuan
+                    </span>
+                  ) : scoreStatus === "rejected" ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-[10.5px] font-bold text-red-600">
+                      <XCircle className="size-3" /> Ditolak
+                    </span>
                   ) : student.score ? (
-                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10.5px] font-bold text-amber-600">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10.5px] font-bold text-slate-500">
                       Draf
                     </span>
                   ) : (

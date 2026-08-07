@@ -38,7 +38,9 @@ function ClassStatusBadge({ status }: { status: ClassStatus }) {
 export function ClassesListView() {
   const { data: session } = useSession();
   const isOversight =
-    session?.user?.role === "admin" || session?.user?.role === "super_admin";
+    session?.user?.role === "author" ||
+    session?.user?.role === "admin" ||
+    session?.user?.role === "super_admin";
 
   const [teacherId, setTeacherId] = useState<string>("");
 
@@ -68,12 +70,14 @@ export function ClassesListView() {
           </p>
         </div>
 
-        <Link
-          href="/dashboard/teaching"
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-[12.5px] font-bold text-white shadow-sm shadow-indigo-200 transition-colors hover:bg-indigo-700"
-        >
-          <Plus className="size-3.5" /> Buat Kelas Baru
-        </Link>
+        {isOversight && (
+          <Link
+            href="/dashboard/teaching/classes/create"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-[12.5px] font-bold text-white shadow-sm shadow-indigo-200 transition-colors hover:bg-indigo-700"
+          >
+            <Plus className="size-3.5" /> Buat Kelas Baru
+          </Link>
+        )}
       </div>
 
       {isOversight && (teacherOptionsQuery.data?.length ?? 0) > 0 && (

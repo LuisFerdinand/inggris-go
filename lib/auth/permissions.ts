@@ -80,6 +80,14 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
     roles: ["super_admin"],
   },
   {
+    path: "/dashboard/teaching/classes/persetujuan",
+    roles: ["author", "admin", "super_admin"],
+  },
+  {
+    path: "/dashboard/teaching/classes/create",
+    roles: ["author", "admin", "super_admin"],
+  },
+  {
     path: "/dashboard/teaching",
     roles: ["teacher", "author", "admin", "super_admin"],
   },

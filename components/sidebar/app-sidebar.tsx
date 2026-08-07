@@ -66,6 +66,7 @@ export const routes = {
     classes: {
       root: "/dashboard/teaching/classes",
       create: "/dashboard/teaching/classes/create",
+      approval: "/dashboard/teaching/classes/persetujuan",
       detail: (id: string) => `/dashboard/teaching/classes/${id}`,
     },
   },
@@ -279,6 +280,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: routes.teaching.classes.root,
         isActive: isActive(pathname, routes.teaching.classes.root),
         roles: ["teacher", "author", "admin", "super_admin"],
+      },
+      {
+        title: "Persetujuan Nilai",
+        icon: ShieldCheck,
+        url: routes.teaching.classes.approval,
+        isActive: isActive(pathname, routes.teaching.classes.approval),
+        roles: ["author", "admin", "super_admin"],
       },
     ],
     activeRole,

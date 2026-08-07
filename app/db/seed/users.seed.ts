@@ -1,6 +1,6 @@
 // app/db/seed/users.ts
 import bcrypt from "bcryptjs";
-import { sql } from "drizzle-orm";
+import { inArray, sql } from "drizzle-orm";
 
 import { db } from "@/app/db/db";
 import { user } from "../schema/auth-schema";
@@ -36,6 +36,9 @@ const ROLES = [
   },
 ] as const;
 
+/**
+ * Super admins
+ */
 const SUPER_ADMIN_EMAIL =
   process.env.SEED_SUPER_ADMIN_EMAIL ?? "ferdinandluis88@gmail.com";
 
@@ -47,6 +50,27 @@ const NINA_SUPER_ADMIN_EMAIL =
 
 const NINA_SUPER_ADMIN_PASSWORD =
   process.env.SEED_NINA_SUPER_ADMIN_PASSWORD ?? SUPER_ADMIN_PASSWORD;
+
+/**
+ * Staff users
+ */
+const TYAS_EMAIL =
+  process.env.SEED_TYAS_EMAIL ?? "inggrisgo.cs@gmail.com";
+
+const TYAS_PASSWORD =
+  process.env.SEED_TYAS_PASSWORD ?? "TyasAdmin123!";
+
+const VIVI_EMAIL =
+  process.env.SEED_VIVI_EMAIL ?? "inggrisgo.vivi@gmail.com";
+
+const VIVI_PASSWORD =
+  process.env.SEED_VIVI_PASSWORD ?? "ViviAuthor123!";
+
+const GITA_EMAIL =
+  process.env.SEED_GITA_EMAIL ?? "jinggagita14@gmail.com";
+
+const GITA_PASSWORD =
+  process.env.SEED_GITA_PASSWORD ?? "GitaAuthor123!";
 
 const USERS = [
   {
@@ -61,6 +85,24 @@ const USERS = [
     password: NINA_SUPER_ADMIN_PASSWORD,
     roles: ["super_admin"],
   },
+  {
+    name: "Tyas",
+    email: TYAS_EMAIL,
+    password: TYAS_PASSWORD,
+    roles: ["user", "admin"],
+  },
+  {
+    name: "Vivi",
+    email: VIVI_EMAIL,
+    password: VIVI_PASSWORD,
+    roles: ["user", "author"],
+  },
+  {
+    name: "Gita",
+    email: GITA_EMAIL,
+    password: GITA_PASSWORD,
+    roles: ["user", "author"],
+  },
 ] as const;
 
 export async function seedRoles() {
@@ -69,24 +111,26 @@ export async function seedRoles() {
   await db
     .insert(role)
     .values(
-      ROLES.map((r) => ({
+      ROLES.map((roleData) => ({
         id: generateId("role"),
-        name: r.name,
-        description: r.description,
+        name: roleData.name,
+        description: roleData.description,
       })),
     )
     .onConflictDoNothing();
+
+  console.log("Roles seeded successfully.");
 }
 
 export async function seedUsers() {
   console.log("Seeding Users...");
 
   const data: UserInsert[] = await Promise.all(
-    USERS.map(async (u) => ({
+    USERS.map(async (seedUser) => ({
       id: generateId("user"),
-      name: u.name,
-      email: u.email.toLowerCase(),
-      passwordHash: await bcrypt.hash(u.password, 12),
+      name: seedUser.name,
+      email: seedUser.email.trim().toLowerCase(),
+      passwordHash: await bcrypt.hash(seedUser.password, 12),
       emailVerified: true,
     })),
   );
@@ -103,25 +147,63 @@ export async function seedUsers() {
         updatedAt: new Date(),
       },
     });
+
+  console.log("Users seeded successfully.");
 }
 
 export async function seedUserRoles() {
   console.log("Seeding User Roles...");
 
-  const users = await db.select().from(user);
-  const roles = await db.select().from(role);
+  const databaseUsers = await db.select().from(user);
+  const databaseRoles = await db.select().from(role);
 
-  const userMap = new Map(users.map((u) => [u.email, u.id]));
-  const roleMap = new Map(roles.map((r) => [r.name, r.id]));
+  const userMap = new Map(
+    databaseUsers.map((databaseUser) => [
+      databaseUser.email.trim().toLowerCase(),
+      databaseUser.id,
+    ]),
+  );
 
-  const data = USERS.flatMap((u) => {
-    const userId = userMap.get(u.email.toLowerCase());
+  const roleMap = new Map(
+    databaseRoles.map((databaseRole) => [
+      databaseRole.name,
+      databaseRole.id,
+    ]),
+  );
+
+  const seededUserIds = USERS.map((seedUser) => {
+    const normalizedEmail = seedUser.email.trim().toLowerCase();
+    const userId = userMap.get(normalizedEmail);
 
     if (!userId) {
-      throw new Error(`User not found: ${u.email}`);
+      throw new Error(`User not found after seeding: ${normalizedEmail}`);
     }
 
-    return u.roles.map((roleName) => {
+    return userId;
+  });
+
+  /*
+   * Remove existing roles belonging to the seeded users.
+   *
+   * This ensures that rerunning the seeder updates their roles correctly.
+   * For example, if Vivi previously had the teacher role, it will be replaced
+   * with the configured user + author roles.
+   */
+  if (seededUserIds.length > 0) {
+    await db
+      .delete(userRole)
+      .where(inArray(userRole.userId, seededUserIds));
+  }
+
+  const data = USERS.flatMap((seedUser) => {
+    const normalizedEmail = seedUser.email.trim().toLowerCase();
+    const userId = userMap.get(normalizedEmail);
+
+    if (!userId) {
+      throw new Error(`User not found: ${normalizedEmail}`);
+    }
+
+    return seedUser.roles.map((roleName) => {
       const roleId = roleMap.get(roleName);
 
       if (!roleId) {
@@ -137,10 +219,14 @@ export async function seedUserRoles() {
   });
 
   await db.insert(userRole).values(data).onConflictDoNothing();
+
+  console.log("User roles seeded successfully.");
 }
 
 export async function seedAuth() {
   await seedRoles();
   await seedUsers();
   await seedUserRoles();
+
+  console.log("Authentication seed completed successfully.");
 }

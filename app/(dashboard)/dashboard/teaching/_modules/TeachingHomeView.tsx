@@ -105,7 +105,13 @@ type BatchWithProgram = {
   program: { title: string } | null;
 };
 
-function BatchCard({ batch }: { batch: BatchWithProgram }) {
+function BatchCard({
+  batch,
+  canCreateClass,
+}: {
+  batch: BatchWithProgram;
+  canCreateClass: boolean;
+}) {
   const studentsQuery = trpc.classes.getRegisteredStudents.useQuery({
     batchId: batch.id,
   });
@@ -159,12 +165,14 @@ function BatchCard({ batch }: { batch: BatchWithProgram }) {
         )}
       </div>
 
-      <Link
-        href={`/dashboard/teaching/classes/create?batchId=${batch.id}`}
-        className="mt-3.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2.5 text-[12.5px] font-bold text-white shadow-sm shadow-indigo-200 transition-colors hover:bg-indigo-700"
-      >
-        <Plus className="size-3.5" /> Buat Kelas
-      </Link>
+      {canCreateClass && (
+        <Link
+          href={`/dashboard/teaching/classes/create?batchId=${batch.id}`}
+          className="mt-3.5 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2.5 text-[12.5px] font-bold text-white shadow-sm shadow-indigo-200 transition-colors hover:bg-indigo-700"
+        >
+          <Plus className="size-3.5" /> Buat Kelas
+        </Link>
+      )}
     </div>
   );
 }
@@ -175,6 +183,10 @@ function BatchCard({ batch }: { batch: BatchWithProgram }) {
 
 export function TeachingHomeView() {
   const { data: session } = useSession();
+  const isOversight =
+    session?.user?.role === "author" ||
+    session?.user?.role === "admin" ||
+    session?.user?.role === "super_admin";
   const batchesQuery = trpc.classes.listMyBatches.useQuery();
   const classesQuery = trpc.classes.listMine.useQuery(undefined);
 
@@ -282,7 +294,11 @@ export function TeachingHomeView() {
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {batches.map((batch) => (
-              <BatchCard key={batch.id} batch={batch} />
+              <BatchCard
+                key={batch.id}
+                batch={batch}
+                canCreateClass={isOversight}
+              />
             ))}
           </div>
         )}

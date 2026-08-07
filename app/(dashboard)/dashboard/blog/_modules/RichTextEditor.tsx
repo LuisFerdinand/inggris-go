@@ -1,9 +1,10 @@
 // app/(dashboard)/dashboard/blog/_modules/RichTextEditor.tsx
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import Underline from "@tiptap/extension-underline";
@@ -22,11 +23,13 @@ import {
   Link2,
   Link2Off,
   Image as ImageIcon,
+  Loader2,
   Undo2,
   Redo2,
   Code2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 
 /* =========================================================
    TOOLBAR BUTTON
@@ -84,6 +87,9 @@ export function RichTextEditor({
   placeholder = "Mulai menulis artikel…",
   minHeight = 400,
 }: RichTextEditorProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { upload, isUploading } = useCloudinaryUpload();
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -96,6 +102,9 @@ export function RichTextEditor({
       Link.configure({
         openOnClick: false,
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
+      }),
+      Image.configure({
+        HTMLAttributes: { class: "tiptap-image" },
       }),
       Placeholder.configure({
         placeholder,
@@ -137,22 +146,30 @@ export function RichTextEditor({
     editor.chain().focus().setLink({ href: url }).run();
   }, [editor]);
 
-  // Image is inserted as plain HTML via insertContent since
-  // @tiptap/extension-image has a peer-dep version conflict with the
-  // already-installed @tiptap/core@3.25.x. This approach needs no extra package.
-  const addImage = useCallback(() => {
-    if (!editor) return;
-    const url = window.prompt("URL gambar:");
-    if (!url) return;
-    const alt = window.prompt("Teks alt gambar (opsional):") ?? "";
-    editor
-      .chain()
-      .focus()
-      .insertContent(
-        `<img src="${url}" alt="${alt}" class="tiptap-image" />`,
-      )
-      .run();
-  }, [editor]);
+  const insertImage = useCallback(
+    (url: string, alt: string) => {
+      if (!editor) return;
+      editor.chain().focus().setImage({ src: url, alt }).run();
+    },
+    [editor],
+  );
+
+  const triggerImageUpload = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleImageFileChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = ""; // allow re-selecting the same file
+      if (!file) return;
+      const url = await upload(file);
+      if (!url) return; // useCloudinaryUpload already tracks the error
+      const alt = file.name.replace(/\.[^/.]+$/, "");
+      insertImage(url, alt);
+    },
+    [upload, insertImage],
+  );
 
   if (!editor) return null;
 
@@ -300,10 +317,25 @@ export function RichTextEditor({
           </ToolBtn>
         )}
 
-        {/* Image — no @tiptap/extension-image needed */}
-        <ToolBtn title="Sisipkan gambar (URL)" onClick={addImage}>
-          <ImageIcon className="size-3.5" />
+        {/* Image upload */}
+        <ToolBtn
+          title="Unggah gambar"
+          onClick={triggerImageUpload}
+          disabled={isUploading}
+        >
+          {isUploading ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <ImageIcon className="size-3.5" />
+          )}
         </ToolBtn>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageFileChange}
+        />
 
         {/* Word count */}
         <span className="ml-auto text-[10px] text-neutral-400">

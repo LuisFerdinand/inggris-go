@@ -390,6 +390,59 @@ export const ATTENDANCE_STATUS_OPTIONS = createOptions(
   ATTENDANCE_STATUS_META,
 );
 
+/* =========================================================
+   SCORE STATUS (Teaching LMS — approval workflow)
+========================================================= */
+
+export const SCORE_STATUS = [
+  "draft",
+  "pending_review",
+  "approved",
+  "rejected",
+] as const;
+
+export type ScoreStatus = (typeof SCORE_STATUS)[number];
+
+export const scoreStatusEnum = z.enum(SCORE_STATUS);
+
+export const SCORE_STATUS_META = {
+  draft: {
+    label: "Draf",
+    icon: "file-edit",
+    shortDesc: "Nilai sedang disusun oleh guru",
+    color: "#94a3b8",
+    tone: "neutral",
+  },
+
+  pending_review: {
+    label: "Menunggu Persetujuan",
+    icon: "clock",
+    shortDesc: "Nilai menunggu persetujuan author/admin/super admin",
+    color: "#f59e0b",
+    tone: "warning",
+  },
+
+  approved: {
+    label: "Disetujui",
+    icon: "check-circle-2",
+    shortDesc: "Nilai disetujui dan tampil di dashboard siswa",
+    color: "#22c55e",
+    tone: "success",
+  },
+
+  rejected: {
+    label: "Ditolak",
+    icon: "x-circle",
+    shortDesc: "Nilai ditolak dan dikembalikan ke guru",
+    color: "#ef4444",
+    tone: "danger",
+  },
+} satisfies EnumMetaRecord<ScoreStatus>;
+
+export const SCORE_STATUS_LABEL = createLabelMap(SCORE_STATUS, SCORE_STATUS_META);
+
+export const SCORE_STATUS_OPTIONS = createOptions(SCORE_STATUS, SCORE_STATUS_META);
+
 export const MATERIAL_TYPE = [
   "brochure",
   "guidebook",

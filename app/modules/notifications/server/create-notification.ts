@@ -10,7 +10,7 @@ import { user } from "@/app/db/schema/auth-schema";
 import { role, userRole } from "@/app/db/schema/roles";
 import { generateId } from "@/lib/utils";
 
-type NotificationCategory = "task" | "order";
+type NotificationCategory = "task" | "order" | "class";
 
 type NotifyPayload = {
   category: NotificationCategory;
@@ -72,6 +72,21 @@ export async function getSuperAdminUserIds(): Promise<string[]> {
     .innerJoin(userRole, eq(userRole.userId, user.id))
     .innerJoin(role, eq(role.id, userRole.roleId))
     .where(inArray(role.name, ["super_admin"]));
+
+  return rows.map((row) => row.id);
+}
+
+/**
+ * Every author/admin/super_admin user id — the recipients for class-scoring
+ * events (e.g. a teacher submitting a score for approval).
+ */
+export async function getOversightUserIds(): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ id: user.id })
+    .from(user)
+    .innerJoin(userRole, eq(userRole.userId, user.id))
+    .innerJoin(role, eq(role.id, userRole.roleId))
+    .where(inArray(role.name, ["author", "admin", "super_admin"]));
 
   return rows.map((row) => row.id);
 }

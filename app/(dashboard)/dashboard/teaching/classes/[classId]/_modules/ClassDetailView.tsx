@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { ArrowLeft, CheckCircle2, GraduationCap, Loader2 } from "lucide-react";
 
@@ -13,9 +15,18 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CLASS_STATUS_LABEL, CLASS_STATUS_META } from "@/lib/enums/enums";
 import type { ClassStatus } from "@/lib/enums/enums";
 import { classDetailRegistry } from "@/lib/dashboard/tabs/classes";
+
+const OVERSIGHT_ROLES = new Set(["author", "admin", "super_admin"]);
 
 import { RosterTab } from "./tabs/RosterTab";
 import { SessionsTab } from "./tabs/SessionsTab";
@@ -40,9 +51,20 @@ function ClassStatusBadge({ status }: { status: ClassStatus }) {
 }
 
 export function ClassDetailView({ classId }: { classId: string }) {
-  const [tab, setTab] = useState<string>(classDetailRegistry.defaultTab);
+  const searchParams = useSearchParams();
+  const preselectedTab = searchParams.get("tab");
+  const [tab, setTab] = useState<string>(
+    preselectedTab ?? classDetailRegistry.defaultTab,
+  );
+
+  const { data: session } = useSession();
+  const isOversight = OVERSIGHT_ROLES.has(session?.user?.role ?? "");
 
   const classQuery = trpc.classes.getById.useQuery({ id: classId });
+  const teachersQuery = trpc.classes.listAssignableTeachers.useQuery(
+    undefined,
+    { enabled: isOversight },
+  );
   const utils = trpc.useUtils();
 
   const finishMutation = trpc.classes.finish.useMutation({
@@ -51,6 +73,14 @@ export function ClassDetailView({ classId }: { classId: string }) {
       toast.success("Kelas diselesaikan. Penilaian sekarang dapat diisi.");
     },
     onError: (err) => toast.error(err.message || "Gagal menyelesaikan kelas"),
+  });
+
+  const reassignMutation = trpc.classes.update.useMutation({
+    onSuccess: async () => {
+      await utils.classes.getById.invalidate({ id: classId });
+      toast.success("Guru kelas berhasil diubah");
+    },
+    onError: (err) => toast.error(err.message || "Gagal mengubah guru kelas"),
   });
 
   if (classQuery.isLoading) {
@@ -99,8 +129,43 @@ export function ClassDetailView({ classId }: { classId: string }) {
             <p className="mt-0.5 text-[12.5px] text-slate-400">
               {data.program?.title} · {data.batch?.title}
               {data.periodLabel ? ` · ${data.periodLabel}` : ""}
-              {data.teacher ? ` · ${data.teacher.name}` : ""}
+              {!isOversight && data.teacher ? ` · ${data.teacher.name}` : ""}
             </p>
+
+            {isOversight && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[11.5px] font-semibold text-slate-500">
+                  Guru:
+                </span>
+                <Select
+                  value={data.teacherId}
+                  onValueChange={(teacherId) =>
+                    reassignMutation.mutate({ id: classId, teacherId })
+                  }
+                >
+                  <SelectTrigger className="h-8 w-48 text-[12px]">
+                    <SelectValue placeholder="Pilih guru" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data.teacher && (
+                      <SelectItem value={data.teacher.id}>
+                        {data.teacher.name}
+                      </SelectItem>
+                    )}
+                    {teachersQuery.data
+                      ?.filter((t) => t.id !== data.teacher?.id)
+                      .map((teacher) => (
+                        <SelectItem key={teacher.id} value={teacher.id}>
+                          {teacher.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                {reassignMutation.isPending && (
+                  <Loader2 className="size-3.5 animate-spin text-slate-400" />
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">

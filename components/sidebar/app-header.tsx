@@ -9,7 +9,9 @@ import {
   BookOpen,
   CheckCheck,
   ClipboardList,
+  Clock,
   CreditCard,
+  GraduationCap,
   Hourglass,
   Home,
   KanbanSquare,
@@ -102,11 +104,13 @@ type NotificationCategory = NotificationItem["category"];
 const CATEGORY_STYLE: Record<NotificationCategory, { bg: string; color: string }> = {
   task: { bg: "bg-indigo-50", color: "text-indigo-600" },
   order: { bg: "bg-emerald-50", color: "text-emerald-600" },
+  class: { bg: "bg-purple-50", color: "text-purple-600" },
 };
 
 const CATEGORY_FALLBACK_ICON: Record<NotificationCategory, React.ElementType> = {
   task: KanbanSquare,
   order: ShoppingCart,
+  class: GraduationCap,
 };
 
 const TYPE_ICON: Record<string, React.ElementType> = {
@@ -118,6 +122,10 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   task_comment: MessageCircle,
   order_new: UserPlus,
   order_paid: CreditCard,
+  class_assigned: GraduationCap,
+  score_pending_review: Clock,
+  score_approved: ShieldCheck,
+  score_rejected: XCircle,
 };
 
 function NotifIconBox({

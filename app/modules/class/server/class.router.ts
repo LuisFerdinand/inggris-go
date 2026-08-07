@@ -9,6 +9,7 @@ import { classes, classEnrollments } from "@/app/db/schema/classes";
 import { programBatches } from "@/app/db/schema/programs";
 import { enrollments } from "@/app/db/schema/orders";
 import { user } from "@/app/db/schema/auth-schema";
+import { role, userRole } from "@/app/db/schema/roles";
 
 import {
   addStudentsInput,
@@ -19,8 +20,10 @@ import {
   assertClassAccess,
   genId,
   isOversightRole,
+  requireClassManageAccess,
   requireTeachingAccess,
 } from "./access";
+import { notifyUser } from "@/app/modules/notifications/server/create-notification";
 
 const REGISTERED_STATUSES = ["paid", "confirmed"] as const;
 
@@ -95,7 +98,7 @@ export const classRouter = createTRPCRouter({
   create: protectedProcedure
     .input(createClassInput)
     .mutation(async ({ input, ctx }) => {
-      requireTeachingAccess(ctx.auth.userId, ctx.auth.role);
+      requireClassManageAccess(ctx.auth.userId, ctx.auth.role);
 
       const batch = await db.query.programBatches.findFirst({
         where: eq(programBatches.id, input.batchId),
@@ -105,18 +108,13 @@ export const classRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Batch tidak ditemukan" });
       }
 
-      if (!isOversightRole(ctx.auth.role) && batch.teacherId !== ctx.auth.userId) {
-        throw new TRPCError({ code: "FORBIDDEN", message: "Anda tidak ditugaskan pada batch ini" });
-      }
-
-      const teacherId = batch.teacherId ?? ctx.auth.userId;
       const classId = genId("class");
 
       await db.insert(classes).values({
         id: classId,
         batchId: batch.id,
         programId: batch.programId,
-        teacherId,
+        teacherId: input.teacherId,
         title: input.title,
         periodLabel: input.periodLabel,
         startDate: input.startDate,
@@ -142,6 +140,17 @@ export const classRouter = createTRPCRouter({
         }
       }
 
+      if (input.teacherId !== ctx.auth.userId) {
+        const actorName = ctx.session?.user?.name ?? "Admin";
+        await notifyUser(input.teacherId, {
+          category: "class",
+          type: "class_assigned",
+          title: "Anda ditugaskan mengajar kelas baru",
+          body: `"${input.title}" — ditugaskan oleh ${actorName}`,
+          link: `/dashboard/teaching/classes/${classId}`,
+        });
+      }
+
       const created = await db.query.classes.findFirst({
         where: eq(classes.id, classId),
       });
@@ -154,13 +163,31 @@ export const classRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       await assertClassAccess(input.id, ctx.auth.userId, ctx.auth.role);
 
-      const { id, ...rest } = input;
+      if (input.teacherId && !isOversightRole(ctx.auth.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Hanya author/admin/super admin yang dapat mengubah guru kelas",
+        });
+      }
+
+      const { id, teacherId, ...rest } = input;
 
       const [row] = await db
         .update(classes)
-        .set(rest)
+        .set(teacherId ? { ...rest, teacherId } : rest)
         .where(eq(classes.id, id))
         .returning();
+
+      if (teacherId && teacherId !== ctx.auth.userId) {
+        const actorName = ctx.session?.user?.name ?? "Admin";
+        await notifyUser(teacherId, {
+          category: "class",
+          type: "class_assigned",
+          title: "Anda ditugaskan mengajar sebuah kelas",
+          body: `"${row?.title ?? ""}" — ditugaskan oleh ${actorName}`,
+          link: `/dashboard/teaching/classes/${id}`,
+        });
+      }
 
       return row;
     }),
@@ -318,5 +345,23 @@ export const classRouter = createTRPCRouter({
       .selectDistinct({ id: user.id, name: user.name })
       .from(classes)
       .innerJoin(user, eq(classes.teacherId, user.id));
+  }),
+
+  /**
+   * Every user who can run/mark a class — teachers, plus author/admin/
+   * super_admin who also get full teaching oversight (see isOversightRole)
+   * and may want to be the teacher-of-record themselves. Populates the
+   * teacher-picker used by author/admin/super_admin when creating a class
+   * or reassigning an existing one.
+   */
+  listAssignableTeachers: protectedProcedure.query(async ({ ctx }) => {
+    requireClassManageAccess(ctx.auth.userId, ctx.auth.role);
+
+    return db
+      .selectDistinct({ id: user.id, name: user.name, email: user.email })
+      .from(user)
+      .innerJoin(userRole, eq(userRole.userId, user.id))
+      .innerJoin(role, eq(role.id, userRole.roleId))
+      .where(inArray(role.name, ["teacher", "author", "admin", "super_admin"]));
   }),
 });

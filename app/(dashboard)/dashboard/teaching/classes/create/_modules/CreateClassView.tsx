@@ -1,7 +1,7 @@
 // app/(dashboard)/dashboard/teaching/classes/create/_modules/CreateClassView.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { GraduationCap, Loader2, Users } from "lucide-react";
@@ -25,6 +25,7 @@ export function CreateClassView() {
   const preselectedBatchId = searchParams.get("batchId") ?? "";
 
   const [batchId, setBatchId] = useState(preselectedBatchId);
+  const [teacherId, setTeacherId] = useState("");
   const [title, setTitle] = useState("");
   const [periodLabel, setPeriodLabel] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -35,6 +36,7 @@ export function CreateClassView() {
   >(new Set());
 
   const batchesQuery = trpc.classes.listMyBatches.useQuery();
+  const teachersQuery = trpc.classes.listAssignableTeachers.useQuery();
   const studentsQuery = trpc.classes.getRegisteredStudents.useQuery(
     { batchId },
     { enabled: !!batchId },
@@ -60,6 +62,14 @@ export function CreateClassView() {
     [batchesQuery.data, batchId],
   );
 
+  // Default the teacher picker to the batch's assigned teacher (if any),
+  // but leave it overridable — oversight explicitly chooses who teaches.
+  useEffect(() => {
+    if (selectedBatch?.teacherId) {
+      setTeacherId(selectedBatch.teacherId);
+    }
+  }, [selectedBatch]);
+
   function toggleStudent(id: string) {
     setSelectedEnrollmentIds((prev) => {
       const next = new Set(prev);
@@ -78,9 +88,14 @@ export function CreateClassView() {
       toast.error("Judul kelas wajib diisi");
       return;
     }
+    if (!teacherId) {
+      toast.error("Pilih guru untuk kelas ini");
+      return;
+    }
 
     createMutation.mutate({
       batchId,
+      teacherId,
       title: title.trim(),
       periodLabel: periodLabel.trim() || undefined,
       startDate: startDate ? new Date(startDate) : undefined,
@@ -123,6 +138,29 @@ export function CreateClassView() {
           {batchesQuery.data?.length === 0 && (
             <p className="mt-1.5 text-[11.5px] text-amber-600">
               Kamu belum ditugaskan pada batch manapun.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-[12.5px] font-semibold text-slate-700">
+            Guru Pengajar
+          </label>
+          <Select value={teacherId} onValueChange={setTeacherId}>
+            <SelectTrigger className="h-10 text-[13px]">
+              <SelectValue placeholder="Pilih guru" />
+            </SelectTrigger>
+            <SelectContent>
+              {teachersQuery.data?.map((teacher) => (
+                <SelectItem key={teacher.id} value={teacher.id}>
+                  {teacher.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {teachersQuery.data?.length === 0 && (
+            <p className="mt-1.5 text-[11.5px] text-amber-600">
+              Belum ada pengguna dengan peran guru.
             </p>
           )}
         </div>

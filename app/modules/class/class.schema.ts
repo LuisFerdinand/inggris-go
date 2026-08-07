@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const createClassInput = z.object({
   batchId: z.string().min(1),
+  teacherId: z.string().min(1),
   title: z.string().min(1),
   periodLabel: z.string().optional(),
   startDate: z.coerce.date().optional(),
@@ -13,6 +14,7 @@ export const createClassInput = z.object({
 
 export const updateClassInput = z.object({
   id: z.string().min(1),
+  teacherId: z.string().min(1).optional(),
   title: z.string().min(1).optional(),
   periodLabel: z.string().optional(),
   startDate: z.coerce.date().optional(),
@@ -62,3 +64,19 @@ export const scoreInput = z.object({
   parentRecommendation: z.string().optional(),
   tutorCoordinatorName: z.string().optional(),
 });
+
+export const reviewScoreInput = z.discriminatedUnion("decision", [
+  z.object({
+    classEnrollmentId: z.string().min(1),
+    decision: z.literal("approve"),
+  }),
+  z.object({
+    classEnrollmentId: z.string().min(1),
+    decision: z.literal("reject"),
+    reviewNote: z
+      .string()
+      .trim()
+      .min(1, "Alasan penolakan wajib diisi")
+      .max(1000),
+  }),
+]);
