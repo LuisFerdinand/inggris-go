@@ -37,6 +37,8 @@ import {
 
 import { trpc } from "@/lib/trpc/client";
 import { AuthModalPortal } from "@/components/UserNav";
+import { getTheme } from "../blog-theme";
+import "../blog-prose.css";
 
 /* =========================================================
    AUTH MODAL — reuse the navbar's login modal anywhere
@@ -70,36 +72,6 @@ function formatViews(n: number): string {
 
 function cn(...classes: (string | boolean | undefined | null)[]): string {
   return classes.filter(Boolean).join(" ");
-}
-
-/* =========================================================
-   CATEGORY / TAG THEME
-========================================================= */
-
-const TAG_THEME: Record<
-  string,
-  { gradient: string; border: string; accent: string; text: string; pill: string }
-> = {
-  beginner:          { gradient: "from-blue-600 to-indigo-700",    border: "border-l-blue-500",   accent: "#1e6eee", text: "text-blue-600",   pill: "bg-blue-50 text-blue-700 border-blue-200" },
-  "daily-conversation": { gradient: "from-teal-500 to-cyan-700",   border: "border-l-teal-500",   accent: "#2db8b0", text: "text-teal-600",   pill: "bg-teal-50 text-teal-700 border-teal-200" },
-  "grammar-basics":  { gradient: "from-teal-500 to-cyan-700",      border: "border-l-teal-500",   accent: "#2db8b0", text: "text-teal-600",   pill: "bg-teal-50 text-teal-700 border-teal-200" },
-  confidence:        { gradient: "from-violet-500 to-purple-700",  border: "border-l-violet-500", accent: "#8b5cf6", text: "text-violet-600", pill: "bg-violet-50 text-violet-700 border-violet-200" },
-  vocabulary:        { gradient: "from-orange-500 to-red-600",     border: "border-l-orange-500", accent: "#ff6b35", text: "text-orange-600", pill: "bg-orange-50 text-orange-700 border-orange-200" },
-  "speaking-tips":   { gradient: "from-blue-600 to-indigo-700",    border: "border-l-blue-500",   accent: "#1e6eee", text: "text-blue-600",   pill: "bg-blue-50 text-blue-700 border-blue-200" },
-  "study-habits":    { gradient: "from-emerald-500 to-teal-600",   border: "border-l-emerald-500",accent: "#10b981", text: "text-emerald-600",pill: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-};
-
-const DEFAULT_THEME = {
-  gradient: "from-slate-600 to-slate-800",
-  border: "border-l-slate-400",
-  accent: "#64748b",
-  text: "text-slate-600",
-  pill: "bg-slate-50 text-slate-600 border-slate-200",
-};
-
-function getTheme(slug?: string) {
-  if (!slug) return DEFAULT_THEME;
-  return TAG_THEME[slug] ?? DEFAULT_THEME;
 }
 
 /* =========================================================
@@ -1004,30 +976,6 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
         </div>
       </div>
 
-      {/* ── PROSE STYLES ──────────────────────────────────────────── */}
-      <style>{`
-        .blog-prose { color: #1e293b; font-size: 1rem; line-height: 1.8; font-family: var(--font-sans, sans-serif); }
-        .blog-prose p { margin-bottom: 1.4em; }
-        .blog-prose h2 { font-size: 1.35rem; font-weight: 800; color: #0f172a; margin-top: 2.2em; margin-bottom: 0.75em; line-height: 1.25; letter-spacing: -0.01em; font-family: var(--font-display, sans-serif); scroll-margin-top: 80px; }
-        .blog-prose h3 { font-size: 1.1rem; font-weight: 700; color: #1e293b; margin-top: 1.8em; margin-bottom: 0.5em; line-height: 1.3; scroll-margin-top: 80px; }
-        .blog-prose ul, .blog-prose ol { padding-left: 1.5em; margin-bottom: 1.4em; }
-        .blog-prose ul { list-style-type: disc; }
-        .blog-prose ol { list-style-type: decimal; }
-        .blog-prose li { margin-bottom: 0.5em; line-height: 1.7; }
-        .blog-prose li::marker { color: #1e6eee; }
-        .blog-prose strong { font-weight: 700; color: #0f172a; }
-        .blog-prose em { font-style: italic; color: #334155; }
-        .blog-prose a { color: #1a52c8; text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
-        .blog-prose a:hover { color: #1e6eee; }
-        .blog-prose blockquote { border-left: 3px solid #1e6eee; padding: 0.8em 1em 0.8em 1.1rem; margin: 1.8em 0; color: #475569; font-style: italic; background: #f4f8ff; border-radius: 0 0.75rem 0.75rem 0; }
-        .blog-prose code { background: #f1f5f9; border-radius: 0.3rem; padding: 0.15em 0.4em; font-size: 0.875em; color: #0f172a; font-family: var(--font-mono, monospace); }
-        .blog-prose pre { background: #0f172a; color: #e2e8f0; border-radius: 0.75rem; padding: 1.2rem; overflow-x: auto; margin: 1.5em 0; font-size: 0.875rem; }
-        .blog-prose pre code { background: transparent; padding: 0; color: inherit; }
-        .blog-prose hr { border: none; border-top: 1px solid #e2e8f0; margin: 2.5em 0; }
-        .blog-prose img { border-radius: 0.75rem; width: 100%; height: auto; margin: 1.5em 0; }
-        .blog-prose h2 + p, .blog-prose h3 + p { margin-top: 0.4em; }
-        @media (max-width: 640px) { .blog-prose h2 { font-size: 1.2rem; } .blog-prose h3 { font-size: 1rem; } }
-      `}</style>
       <AuthModalPortal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}

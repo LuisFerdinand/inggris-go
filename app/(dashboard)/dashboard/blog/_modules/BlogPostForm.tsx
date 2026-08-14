@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Check,
   ChevronDown,
+  Eye,
   FolderOpen,
   Globe,
   Hash,
@@ -35,6 +36,7 @@ import {
   type PostStatus,
 } from "@/app/modules/blog/blog.schema";
 import { RichTextEditor } from "./RichTextEditor";
+import { BlogPreviewModal } from "./BlogPreviewModal";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
 
 /* =========================================================
@@ -695,6 +697,16 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
   const slug = watch("slug");
   const status = watch("status");
   const isFeatured = watch("isFeatured");
+  const excerpt = watch("excerpt");
+  const coverImage = watch("coverImage");
+  const contentHtml = watch("contentHtml");
+  const readTime = watch("readTime");
+  const tagIds = watch("tagIds");
+
+  /* ── Preview modal ──────────────────────────────────── */
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const { data: allTags = [] } = trpc.blog.getTags.useQuery();
+  const previewTags = allTags.filter((t) => (tagIds ?? []).includes(t.id));
 
   /* ── Slug auto-gen ─────────────────────────────────── */
   const isSlugManual = useRef(false);
@@ -849,6 +861,16 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
                   )}
                 />
               </div>
+            </button>
+
+            {/* Preview */}
+            <button
+              type="button"
+              onClick={() => setPreviewOpen(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-[12px] font-bold text-neutral-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+            >
+              <Eye className="size-3.5" />
+              Pratinjau
             </button>
 
             {/* Save */}
@@ -1019,6 +1041,17 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
           )}
         </div>
       </div>
+
+      <BlogPreviewModal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title={title}
+        excerpt={excerpt}
+        coverImage={coverImage}
+        contentHtml={contentHtml}
+        readTime={readTime}
+        tags={previewTags}
+      />
     </form>
   );
 }
