@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { ImageIcon, Loader2, Plus, Trash2, X } from "lucide-react";
+import { ImageIcon, Link2, Loader2, Plus, Trash2, X } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
 import { useCloudinaryUpload } from "@/lib/hooks/useCloudinaryUpload";
@@ -45,6 +45,7 @@ export function CreateTaskSheet({
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
+  const [link, setLink] = useState<string>("");
   const [checklistDraft, setChecklistDraft] = useState<string[]>([]);
   const [newChecklistText, setNewChecklistText] = useState("");
 
@@ -81,6 +82,7 @@ export function CreateTaskSheet({
     setStartDate("");
     setDueDate("");
     setCoverImageUrl("");
+    setLink("");
     setChecklistDraft([]);
     setNewChecklistText("");
   }
@@ -120,6 +122,7 @@ export function CreateTaskSheet({
       startDate: startDate ? new Date(startDate) : undefined,
       dueDate: dueDate ? new Date(dueDate) : undefined,
       coverImageUrl: coverImageUrl || undefined,
+      link: link.trim() || undefined,
       checklistItems: checklistDraft.length
         ? checklistDraft.map((text) => ({ text }))
         : undefined,
@@ -292,6 +295,23 @@ export function CreateTaskSheet({
               className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
+          </div>
+
+          <div>
+            <label className={fieldLabelClass}>Link Tugas (opsional)</label>
+            <div className="relative">
+              <Link2 className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
+              <Input
+                type="url"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="https://docs.google.com/…"
+                className="pl-8"
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-slate-400">
+              URL referensi atau dokumen untuk tugas ini
+            </p>
           </div>
 
           <button

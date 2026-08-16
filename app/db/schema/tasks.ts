@@ -61,6 +61,7 @@ export const tasks = pgTable(
     dueDate: timestamp("due_date"),
 
     coverImageUrl: text("cover_image_url"),
+    link: text("link"),
 
     // Ordering within a kanban column, for drag-and-drop reordering.
     position: integer("position").default(0).notNull(),

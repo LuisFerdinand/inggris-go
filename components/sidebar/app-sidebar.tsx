@@ -75,6 +75,7 @@ export const routes = {
     root: "/dashboard/tasks",
     approval: "/dashboard/tasks/persetujuan",
     directorDecision: "/dashboard/tasks/keputusan-direktur",
+    doneApproval: "/dashboard/tasks/persetujuan-done",
   },
 
   programs: {
@@ -236,7 +237,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive:
           isActive(pathname, routes.tasks.root) &&
           !isActive(pathname, routes.tasks.approval) &&
-          !isActive(pathname, routes.tasks.directorDecision),
+          !isActive(pathname, routes.tasks.directorDecision) &&
+          !isActive(pathname, routes.tasks.doneApproval),
         roles: ["user", "teacher", "author", "admin", "super_admin"],
       },
       {
@@ -420,6 +422,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive: isActive(pathname, routes.tasks.directorDecision),
         roles: ["super_admin"],
         badge: taskBadgeCounts.data?.butuhKeputusan,
+      },
+      {
+        title: "Persetujuan Done Direktur",
+        icon: ShieldCheck,
+        url: routes.tasks.doneApproval,
+        isActive: isActive(pathname, routes.tasks.doneApproval),
+        roles: ["super_admin"],
+        badge: taskBadgeCounts.data?.pendingDoneApproval,
       },
     ],
     activeRole,

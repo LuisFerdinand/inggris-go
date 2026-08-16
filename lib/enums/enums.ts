@@ -472,6 +472,8 @@ export const TASK_STATUS = [
   "direncanakan",
   "in_progress",
   "review",
+  "needs_fixing",
+  "pending_director_approval",
   "done",
   "rejected",
 ] as const;
@@ -523,6 +525,24 @@ export const TASK_STATUS_META = {
     icon: "eye",
     shortDesc: "Menunggu review admin atau super admin sebelum ditandai selesai",
     color: "#14b8a6",
+    tone: "info",
+  },
+
+  needs_fixing: {
+    label: "Perlu Perbaikan",
+    shortLabel: "Perlu Perbaikan",
+    icon: "wrench",
+    shortDesc: "Dikembalikan oleh admin atau super admin untuk diperbaiki sebelum direview lagi",
+    color: "#f97316",
+    tone: "warning",
+  },
+
+  pending_director_approval: {
+    label: "Butuh Persetujuan Done Direktur",
+    shortLabel: "Persetujuan Direktur",
+    icon: "gavel",
+    shortDesc: "Diajukan admin untuk persetujuan direktur sebelum ditandai selesai",
+    color: "#a855f7",
     tone: "info",
   },
 

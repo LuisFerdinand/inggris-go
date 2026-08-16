@@ -32,7 +32,10 @@ import {
   deleteTaskInput,
   escalateTaskInput,
   listTasksInput,
+  markNeedsFixingInput,
   moveTaskInput,
+  requestDoneApprovalInput,
+  resubmitReviewInput,
   resubmitTaskInput,
   toggleChecklistItemInput,
   updateTaskInput,
@@ -43,6 +46,7 @@ import {
   assertTaskOwnerAccess,
   canApproveTasks,
   canEscalateToDirector,
+  canRequestDoneApproval,
   genId,
   isSuperAdmin,
   loadTaskOrThrow,
@@ -144,6 +148,7 @@ export const taskBoardRouter = createTRPCRouter({
         startDate: input.startDate,
         dueDate: input.dueDate,
         coverImageUrl: input.coverImageUrl,
+        link: input.link,
         status: selfApproved ? "direncanakan" : "pending_review",
         verifiedBy: selfApproved ? ctx.auth.userId : null,
         verifiedAt: selfApproved ? new Date() : null,
@@ -339,23 +344,26 @@ export const taskBoardRouter = createTRPCRouter({
     }),
 
   /**
-   * Super_admin confirms a task under review as actually done. The only
-   * way into "done" — dragging or editing your way in is blocked so every
-   * completed task has passed a review.
+   * Super_admin confirms a task as actually done — either straight from
+   * "review", or after an admin routed it through director approval
+   * ("pending_director_approval"). This is the only way into "done":
+   * dragging or editing your way in is blocked, and a plain admin can no
+   * longer confirm done directly — they must go through
+   * requestDoneApproval instead.
    */
   confirmDone: protectedProcedure
     .input(confirmDoneInput)
     .mutation(async ({ ctx, input }) => {
-      if (!canApproveTasks(ctx.auth.role)) {
+      if (!isSuperAdmin(ctx.auth.role)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Hanya admin atau super admin yang dapat menandai tugas selesai",
+          message: "Hanya super admin yang dapat menandai tugas selesai",
         });
       }
 
       const existing = await loadTaskOrThrow(input.id);
 
-      if (existing.status !== "review") {
+      if (existing.status !== "review" && existing.status !== "pending_director_approval") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Tugas ini belum diajukan untuk review",
@@ -364,7 +372,7 @@ export const taskBoardRouter = createTRPCRouter({
 
       const [row] = await db
         .update(tasks)
-        .set({ status: "done" })
+        .set({ status: "done", reviewNote: null })
         .where(eq(tasks.id, input.id))
         .returning();
 
@@ -377,6 +385,132 @@ export const taskBoardRouter = createTRPCRouter({
         type: "task_done",
         title: "Tugas ditandai selesai",
         body: `"${existing.title}" telah selesai`,
+        link: "/dashboard/tasks",
+      });
+
+      return row;
+    }),
+
+  /**
+   * A plain admin routes a reviewed task to the director (super_admin) for
+   * final done approval, instead of confirming it done themselves. Mirrors
+   * `escalate` (pending_review -> butuh_keputusan) but for the review ->
+   * done transition.
+   */
+  requestDoneApproval: protectedProcedure
+    .input(requestDoneApprovalInput)
+    .mutation(async ({ ctx, input }) => {
+      if (!canRequestDoneApproval(ctx.auth.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Hanya admin yang dapat mengajukan persetujuan direktur",
+        });
+      }
+
+      const existing = await loadTaskOrThrow(input.id);
+
+      if (existing.status !== "review") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Hanya tugas yang sedang direview yang dapat diajukan untuk persetujuan direktur",
+        });
+      }
+
+      const [row] = await db
+        .update(tasks)
+        .set({ status: "pending_director_approval" })
+        .where(eq(tasks.id, input.id))
+        .returning();
+
+      const actorName = ctx.session?.user?.name ?? "Admin";
+      const superAdminIds = await getSuperAdminUserIds();
+      await notifyUsers(superAdminIds, {
+        category: "task",
+        type: "task_pending_director_approval",
+        title: "Butuh persetujuan direktur",
+        body: `${actorName} mengajukan "${existing.title}" untuk persetujuan penyelesaian`,
+        link: "/dashboard/tasks/persetujuan-done",
+      });
+
+      return row;
+    }),
+
+  /**
+   * Admin or super_admin sends a "review" / "pending_director_approval"
+   * task back to the assignee/creator for fixes, instead of approving it.
+   */
+  markNeedsFixing: protectedProcedure
+    .input(markNeedsFixingInput)
+    .mutation(async ({ ctx, input }) => {
+      if (!canApproveTasks(ctx.auth.role)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Hanya admin atau super admin yang dapat menandai tugas perlu perbaikan",
+        });
+      }
+
+      const existing = await loadTaskOrThrow(input.id);
+
+      if (existing.status !== "review" && existing.status !== "pending_director_approval") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Tugas ini tidak sedang dalam status review",
+        });
+      }
+
+      const [row] = await db
+        .update(tasks)
+        .set({ status: "needs_fixing", reviewNote: input.reviewNote ?? null })
+        .where(eq(tasks.id, input.id))
+        .returning();
+
+      const actorName = ctx.session?.user?.name ?? "Seseorang";
+      const recipients = [existing.createdBy, existing.assigneeId].filter(
+        (recipientId): recipientId is string =>
+          !!recipientId && recipientId !== ctx.auth.userId,
+      );
+      await notifyUsers(recipients, {
+        category: "task",
+        type: "task_needs_fixing",
+        title: "Tugas perlu perbaikan",
+        body: input.reviewNote
+          ? `"${existing.title}" perlu perbaikan — ${input.reviewNote}`
+          : `"${existing.title}" perlu perbaikan sebelum ditandai selesai`,
+        link: "/dashboard/tasks",
+      });
+
+      return row;
+    }),
+
+  /**
+   * The creator/assignee (or admin) re-submits a "needs_fixing" task for
+   * review, once the requested fixes are done.
+   */
+  resubmitForReview: protectedProcedure
+    .input(resubmitReviewInput)
+    .mutation(async ({ ctx, input }) => {
+      const existing = await assertTaskOwnerAccess(input.id, ctx.auth.userId, ctx.auth.role);
+
+      if (existing.status !== "needs_fixing") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Hanya tugas berstatus perlu perbaikan yang dapat diajukan review ulang",
+        });
+      }
+
+      const [row] = await db
+        .update(tasks)
+        .set({ status: "review", reviewNote: null })
+        .where(eq(tasks.id, input.id))
+        .returning();
+
+      const actorName = ctx.session?.user?.name ?? "Seseorang";
+      const adminIds = await getAdminUserIds();
+      await notifyUsers(adminIds, {
+        category: "task",
+        type: "task_review_again",
+        title: "Tugas diajukan review ulang",
+        body: `${actorName} mengajukan ulang "${existing.title}" untuk direview`,
         link: "/dashboard/tasks",
       });
 
@@ -611,9 +745,17 @@ export const taskBoardRouter = createTRPCRouter({
           .where(eq(tasks.status, "butuh_keputusan"))
       : [{ count: 0 }];
 
+    const [pendingDoneApprovalRow] = canSeeDirector
+      ? await db
+          .select({ count: sql<number>`count(*)`.mapWith(Number) })
+          .from(tasks)
+          .where(eq(tasks.status, "pending_director_approval"))
+      : [{ count: 0 }];
+
     return {
       pendingReview: pendingReviewRow?.count ?? 0,
       butuhKeputusan: butuhKeputusanRow?.count ?? 0,
+      pendingDoneApproval: pendingDoneApprovalRow?.count ?? 0,
     };
   }),
 

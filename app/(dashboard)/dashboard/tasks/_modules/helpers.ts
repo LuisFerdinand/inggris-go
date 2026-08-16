@@ -7,6 +7,8 @@ export const ALL_TASK_STATUSES: TaskStatus[] = [
   "direncanakan",
   "in_progress",
   "review",
+  "needs_fixing",
+  "pending_director_approval",
   "done",
   "rejected",
 ];

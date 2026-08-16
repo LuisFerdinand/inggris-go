@@ -5,7 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
-import { CalendarClock, MessageCircle } from "lucide-react";
+import { CalendarClock, Link2, MessageCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -70,12 +70,19 @@ function TaskCardBody({ task }: { task: BoardTask }) {
           </span>
         </div>
 
-        {task.commentCount > 0 && (
-          <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
-            <MessageCircle className="size-3" />
-            {task.commentCount}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {task.link && (
+            <span className="inline-flex items-center text-slate-400">
+              <Link2 className="size-3" />
+            </span>
+          )}
+          {task.commentCount > 0 && (
+            <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
+              <MessageCircle className="size-3" />
+              {task.commentCount}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

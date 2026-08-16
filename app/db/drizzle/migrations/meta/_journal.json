@@ -15,6 +15,20 @@
       "when": 1786068807078,
       "tag": "0001_rapid_captain_america",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786695592908,
+      "tag": "0002_huge_sersi",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786696495673,
+      "tag": "0003_hard_pretty_boy",
+      "breakpoints": true
     }
   ]
 }

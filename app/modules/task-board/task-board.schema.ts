@@ -3,6 +3,9 @@ import { z } from "zod";
 
 import { TASK_PRIORITY, TASK_STATUS } from "@/lib/enums/enums";
 
+const emptyToUndefined = (v: unknown) => (v === "" ? undefined : v);
+const emptyToNull = (v: unknown) => (v === "" ? null : v);
+
 // Only these three columns are freely draggable both ways — moving into
 // "pending_review" (from rejected) or approving into "direncanakan" goes
 // through verify/resubmit, and moving "review" -> "done" goes through
@@ -18,6 +21,7 @@ export const createTaskInput = z.object({
   startDate: z.coerce.date().optional(),
   dueDate: z.coerce.date().optional(),
   coverImageUrl: z.string().url().optional(),
+  link: z.preprocess(emptyToUndefined, z.string().trim().url("Link harus berupa URL yang valid").optional()),
   checklistItems: z
     .array(z.object({ text: z.string().trim().min(1).max(300) }))
     .max(20)
@@ -33,6 +37,7 @@ export const updateTaskInput = z.object({
   startDate: z.coerce.date().nullable().optional(),
   dueDate: z.coerce.date().nullable().optional(),
   coverImageUrl: z.string().url().nullable().optional(),
+  link: z.preprocess(emptyToNull, z.string().trim().url("Link harus berupa URL yang valid").nullable().optional()),
   progress: z.number().int().min(0).max(100).optional(),
 });
 
@@ -63,6 +68,24 @@ export const escalateTaskInput = z.object({
 });
 
 export const confirmDoneInput = z.object({
+  id: z.string().min(1),
+});
+
+// Plain admin asks the director (super_admin) to approve a reviewed task as
+// done — super_admin can already confirm done directly via confirmDone.
+export const requestDoneApprovalInput = z.object({
+  id: z.string().min(1),
+});
+
+// Admin or super_admin sends a "review" / "pending_director_approval" task
+// back to the assignee/creator for fixes.
+export const markNeedsFixingInput = z.object({
+  id: z.string().min(1),
+  reviewNote: z.string().trim().max(1000).optional(),
+});
+
+// The creator/assignee (or admin) re-submits a "needs_fixing" task for review.
+export const resubmitReviewInput = z.object({
   id: z.string().min(1),
 });
 

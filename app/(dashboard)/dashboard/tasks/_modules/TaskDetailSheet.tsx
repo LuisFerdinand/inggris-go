@@ -9,10 +9,13 @@ import {
   CheckCircle2,
   Gavel,
   ImageIcon,
+  Link2,
   Loader2,
   Plus,
+  RefreshCw,
   Send,
   Trash2,
+  Wrench,
   X,
   XCircle,
 } from "lucide-react";
@@ -101,8 +104,11 @@ export function TaskDetailSheet({
   const [assigneeId, setAssigneeId] = useState("");
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [link, setLink] = useState("");
   const [rejectNote, setRejectNote] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
+  const [fixNote, setFixNote] = useState("");
+  const [showFixForm, setShowFixForm] = useState(false);
   const [commentBody, setCommentBody] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
@@ -121,8 +127,11 @@ export function TaskDetailSheet({
     setAssigneeId(task.assigneeId ?? "");
     setStartDate(toDateInputValue(task.startDate));
     setDueDate(toDateInputValue(task.dueDate));
+    setLink(task.link ?? "");
     setShowRejectForm(false);
     setRejectNote("");
+    setShowFixForm(false);
+    setFixNote("");
     setCommentBody("");
     setPendingAttachments([]);
     setProgress(task.progress);
@@ -172,6 +181,32 @@ export function TaskDetailSheet({
   const moveMutation = trpc.taskBoard.move.useMutation({
     onSuccess: () => invalidateAll(),
     onError: (err) => toast.error(err.message || "Gagal memindahkan tugas"),
+  });
+
+  const requestDoneApprovalMutation = trpc.taskBoard.requestDoneApproval.useMutation({
+    onSuccess: () => {
+      invalidateAll();
+      toast.success("Tugas diajukan untuk persetujuan direktur");
+    },
+    onError: (err) => toast.error(err.message || "Gagal mengajukan persetujuan direktur"),
+  });
+
+  const markNeedsFixingMutation = trpc.taskBoard.markNeedsFixing.useMutation({
+    onSuccess: () => {
+      invalidateAll();
+      setShowFixForm(false);
+      setFixNote("");
+      toast.success("Tugas ditandai perlu perbaikan");
+    },
+    onError: (err) => toast.error(err.message || "Gagal menandai tugas perlu perbaikan"),
+  });
+
+  const resubmitForReviewMutation = trpc.taskBoard.resubmitForReview.useMutation({
+    onSuccess: () => {
+      invalidateAll();
+      toast.success("Tugas diajukan ulang untuk review");
+    },
+    onError: (err) => toast.error(err.message || "Gagal mengajukan review ulang"),
   });
 
   const resubmitMutation = trpc.taskBoard.resubmit.useMutation({
@@ -244,6 +279,7 @@ export function TaskDetailSheet({
       assigneeId: assigneeId || null,
       startDate: startDate ? new Date(startDate) : null,
       dueDate: dueDate ? new Date(dueDate) : null,
+      link: link.trim() || null,
     });
   }
 
@@ -511,37 +547,132 @@ export function TaskDetailSheet({
                 </div>
               )}
 
-              {task.status === "review" && (
-                <div className="flex flex-col gap-2 rounded-xl border border-teal-200 bg-teal-50 p-3">
-                  <p className="text-[12px] font-semibold text-teal-700">
-                    {isAdmin
-                      ? "Tugas ini menunggu review Anda sebelum ditandai selesai."
-                      : "Menunggu review admin sebelum tugas ini ditandai selesai."}
+              {(task.status === "review" || task.status === "pending_director_approval") && (
+                <div
+                  className={cn(
+                    "flex flex-col gap-2 rounded-xl border p-3",
+                    task.status === "review"
+                      ? "border-teal-200 bg-teal-50"
+                      : "border-violet-200 bg-violet-50",
+                  )}
+                >
+                  <p
+                    className={cn(
+                      "text-[12px] font-semibold",
+                      task.status === "review" ? "text-teal-700" : "text-violet-700",
+                    )}
+                  >
+                    {task.status === "pending_director_approval"
+                      ? isSuperAdminRole
+                        ? "Tugas ini diajukan admin untuk persetujuan Anda sebagai direktur."
+                        : "Diajukan untuk persetujuan direktur sebelum ditandai selesai."
+                      : isSuperAdminRole
+                        ? "Tugas ini menunggu review Anda sebelum ditandai selesai."
+                        : isPlainAdmin
+                          ? "Tugas ini menunggu review Anda — ajukan persetujuan direktur untuk menandainya selesai."
+                          : "Menunggu review admin sebelum tugas ini ditandai selesai."}
                   </p>
-                  <div className="flex gap-2">
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        disabled={confirmDoneMutation.isPending}
-                        onClick={() => confirmDoneMutation.mutate({ id: task.id })}
-                        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-emerald-700 disabled:opacity-60"
-                      >
-                        <CheckCircle2 className="size-3.5" /> Tandai Selesai
-                      </button>
-                    )}
-                    {canEdit && (
-                      <button
-                        type="button"
-                        disabled={moveMutation.isPending}
-                        onClick={() =>
-                          moveMutation.mutate({ id: task.id, status: "in_progress", position: 0 })
-                        }
-                        className="inline-flex flex-1 items-center justify-center rounded-lg border border-teal-200 bg-white px-3 py-2 text-[12px] font-bold text-teal-700 hover:bg-teal-100"
-                      >
-                        Kembalikan ke Dikerjakan
-                      </button>
-                    )}
-                  </div>
+
+                  {!showFixForm ? (
+                    <div className="flex flex-wrap gap-2">
+                      {isSuperAdminRole && (
+                        <button
+                          type="button"
+                          disabled={confirmDoneMutation.isPending}
+                          onClick={() => confirmDoneMutation.mutate({ id: task.id })}
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-emerald-700 disabled:opacity-60"
+                        >
+                          <CheckCircle2 className="size-3.5" /> Tandai Selesai
+                        </button>
+                      )}
+                      {isPlainAdmin && task.status === "review" && (
+                        <button
+                          type="button"
+                          disabled={requestDoneApprovalMutation.isPending}
+                          onClick={() => requestDoneApprovalMutation.mutate({ id: task.id })}
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-violet-700 disabled:opacity-60"
+                        >
+                          <Gavel className="size-3.5" /> Ajukan Persetujuan Direktur
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => setShowFixForm(true)}
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-orange-200 bg-white px-3 py-2 text-[12px] font-bold text-orange-600 hover:bg-orange-50"
+                        >
+                          <Wrench className="size-3.5" /> Perlu Perbaikan
+                        </button>
+                      )}
+                      {task.status === "review" && canEdit && (
+                        <button
+                          type="button"
+                          disabled={moveMutation.isPending}
+                          onClick={() =>
+                            moveMutation.mutate({ id: task.id, status: "in_progress", position: 0 })
+                          }
+                          className="inline-flex flex-1 items-center justify-center rounded-lg border border-teal-200 bg-white px-3 py-2 text-[12px] font-bold text-teal-700 hover:bg-teal-100"
+                        >
+                          Kembalikan ke Dikerjakan
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <Textarea
+                        value={fixNote}
+                        onChange={(e) => setFixNote(e.target.value)}
+                        placeholder="Apa yang perlu diperbaiki? (opsional)"
+                        rows={2}
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={markNeedsFixingMutation.isPending}
+                          onClick={() =>
+                            markNeedsFixingMutation.mutate({
+                              id: task.id,
+                              reviewNote: fixNote.trim() || undefined,
+                            })
+                          }
+                          className="inline-flex flex-1 items-center justify-center rounded-lg bg-orange-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-orange-700 disabled:opacity-60"
+                        >
+                          Konfirmasi Perlu Perbaikan
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowFixForm(false);
+                            setFixNote("");
+                          }}
+                          className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-[12px] font-semibold text-slate-500 hover:bg-slate-50"
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {task.status === "needs_fixing" && (
+                <div className="flex flex-col gap-2 rounded-xl border border-orange-200 bg-orange-50 p-3">
+                  <p className="text-[12px] font-semibold text-orange-700">
+                    Tugas ini perlu perbaikan sebelum direview kembali.
+                  </p>
+                  {task.reviewNote && (
+                    <p className="text-[12px] text-orange-600">&ldquo;{task.reviewNote}&rdquo;</p>
+                  )}
+                  {(isCreator || isAssignee || isAdmin) && (
+                    <button
+                      type="button"
+                      disabled={resubmitForReviewMutation.isPending}
+                      onClick={() => resubmitForReviewMutation.mutate({ id: task.id })}
+                      className="mt-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-[12px] font-bold text-white hover:bg-indigo-700 disabled:opacity-60"
+                    >
+                      <RefreshCw className="size-3.5" /> Ajukan Review Ulang
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -815,6 +946,36 @@ export function TaskDetailSheet({
                   className="hidden"
                   onChange={(e) => handleCoverFile(e.target.files?.[0])}
                 />
+              </div>
+
+              {/* Link */}
+              <div>
+                <label className={fieldLabelClass}>Link Tugas</label>
+                {canEdit ? (
+                  <div className="relative">
+                    <Link2 className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      type="url"
+                      value={link}
+                      onChange={(e) => setLink(e.target.value)}
+                      onBlur={saveDetails}
+                      placeholder="https://docs.google.com/…"
+                      className="pl-8"
+                    />
+                  </div>
+                ) : task.link ? (
+                  <a
+                    href={task.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-indigo-600 hover:underline"
+                  >
+                    <Link2 className="size-3.5" />
+                    {task.link}
+                  </a>
+                ) : (
+                  <p className="text-[12.5px] text-slate-600">—</p>
+                )}
               </div>
 
               {canDelete && (

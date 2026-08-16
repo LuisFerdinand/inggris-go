@@ -37,6 +37,13 @@ export function canEscalateToDirector(role: Role) {
   return role === "admin";
 }
 
+// Same reasoning as canEscalateToDirector, applied to the "mark done"
+// approval tier: only a plain admin requests the director's sign-off —
+// a super_admin can already confirm done directly.
+export function canRequestDoneApproval(role: Role) {
+  return role === "admin";
+}
+
 export function requireTaskBoardAccess(userId: string | null, role: Role) {
   requireRole({ userId, roles: [role], allowedRoles: TASK_BOARD_ROLES });
 }

@@ -58,6 +58,8 @@ export function TaskBoardColumns({
   const userId = session?.user?.id;
   const role = session?.user?.role;
   const isAdmin = role === "admin" || role === "super_admin";
+  const isSuperAdminRole = role === "super_admin";
+  const isPlainAdmin = role === "admin";
 
   const utils = trpc.useUtils();
   const invalidate = () => {
@@ -80,6 +82,18 @@ export function TaskBoardColumns({
   const confirmDoneMutation = trpc.taskBoard.confirmDone.useMutation({
     onSuccess: invalidate,
     onError: (err) => toast.error(err.message || "Gagal menandai tugas selesai"),
+  });
+  const requestDoneApprovalMutation = trpc.taskBoard.requestDoneApproval.useMutation({
+    onSuccess: invalidate,
+    onError: (err) => toast.error(err.message || "Gagal mengajukan persetujuan direktur"),
+  });
+  const markNeedsFixingMutation = trpc.taskBoard.markNeedsFixing.useMutation({
+    onSuccess: invalidate,
+    onError: (err) => toast.error(err.message || "Gagal menandai tugas perlu perbaikan"),
+  });
+  const resubmitForReviewMutation = trpc.taskBoard.resubmitForReview.useMutation({
+    onSuccess: invalidate,
+    onError: (err) => toast.error(err.message || "Gagal mengajukan review ulang"),
   });
 
   const [activeTask, setActiveTask] = useState<BoardTask | null>(null);
@@ -163,13 +177,51 @@ export function TaskBoardColumns({
       return;
     }
 
-    // Dragging a task under review into "Selesai" confirms it's done.
-    if (task.status === "review" && targetStatus === "done") {
-      if (!isAdmin) {
-        toast.error("Hanya admin atau super admin yang dapat menandai tugas selesai");
+    // Dragging a task under review into "Selesai" confirms it's done —
+    // only super_admin can finalize done directly.
+    if (
+      (task.status === "review" || task.status === "pending_director_approval") &&
+      targetStatus === "done"
+    ) {
+      if (!isSuperAdminRole) {
+        toast.error("Hanya super admin yang dapat menandai tugas selesai");
         return;
       }
       confirmDoneMutation.mutate({ id: task.id });
+      return;
+    }
+
+    // A plain admin routes a reviewed task to the director for done approval.
+    if (task.status === "review" && targetStatus === "pending_director_approval") {
+      if (!isPlainAdmin) {
+        toast.error("Hanya admin yang dapat mengajukan persetujuan direktur");
+        return;
+      }
+      requestDoneApprovalMutation.mutate({ id: task.id });
+      return;
+    }
+
+    // Admin or super_admin sends a reviewed task back for fixes.
+    if (
+      (task.status === "review" || task.status === "pending_director_approval") &&
+      targetStatus === "needs_fixing"
+    ) {
+      if (!isAdmin) {
+        toast.error("Hanya admin atau super admin yang dapat menandai tugas perlu perbaikan");
+        return;
+      }
+      markNeedsFixingMutation.mutate({ id: task.id });
+      return;
+    }
+
+    // The creator/assignee (or admin) re-submits a fixed task for review.
+    if (task.status === "needs_fixing" && targetStatus === "review") {
+      const isOwner = task.createdBy === userId || task.assigneeId === userId;
+      if (!isOwner && !isAdmin) {
+        toast.error("Hanya pembuat atau penanggung jawab tugas yang dapat mengajukan review ulang");
+        return;
+      }
+      resubmitForReviewMutation.mutate({ id: task.id });
       return;
     }
 
