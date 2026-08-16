@@ -58,7 +58,6 @@ export function TaskBoardColumns({
   const userId = session?.user?.id;
   const role = session?.user?.role;
   const isAdmin = role === "admin" || role === "super_admin";
-  const isSuperAdminRole = role === "super_admin";
   const isPlainAdmin = role === "admin";
 
   const utils = trpc.useUtils();
@@ -178,13 +177,13 @@ export function TaskBoardColumns({
     }
 
     // Dragging a task under review into "Selesai" confirms it's done —
-    // only super_admin can finalize done directly.
+    // admin or super_admin can finalize done directly.
     if (
       (task.status === "review" || task.status === "pending_director_approval") &&
       targetStatus === "done"
     ) {
-      if (!isSuperAdminRole) {
-        toast.error("Hanya super admin yang dapat menandai tugas selesai");
+      if (!isAdmin) {
+        toast.error("Hanya admin atau super admin yang dapat menandai tugas selesai");
         return;
       }
       confirmDoneMutation.mutate({ id: task.id });

@@ -110,6 +110,11 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
   },
 
   {
+    path: "/dashboard/projects",
+    roles: ["user", "teacher", "author", "admin", "super_admin"],
+  },
+
+  {
     path: "/dashboard/programs",
     roles: ["admin", "super_admin"],
   },

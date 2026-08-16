@@ -3,10 +3,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import {
   CheckCircle2,
+  FolderKanban,
   Gavel,
   ImageIcon,
   Link2,
@@ -357,6 +359,15 @@ export function TaskDetailSheet({
         ) : (
           <>
             <SheetHeader className="gap-2 border-b border-slate-100">
+              {task.project && (
+                <Link
+                  href={`/dashboard/projects/${task.project.id}`}
+                  className="inline-flex w-fit items-center gap-1 text-[11.5px] font-semibold text-indigo-500 hover:text-indigo-700 hover:underline"
+                >
+                  <FolderKanban className="size-3" />
+                  {task.project.name}
+                </Link>
+              )}
               <div className="flex flex-wrap items-center gap-1.5 pr-6">
                 <TaskStatusBadge status={task.status} />
                 <TaskPriorityBadge priority={task.priority} />
@@ -547,35 +558,45 @@ export function TaskDetailSheet({
                 </div>
               )}
 
-              {(task.status === "review" || task.status === "pending_director_approval") && (
-                <div
-                  className={cn(
-                    "flex flex-col gap-2 rounded-xl border p-3",
-                    task.status === "review"
-                      ? "border-teal-200 bg-teal-50"
-                      : "border-violet-200 bg-violet-50",
-                  )}
-                >
-                  <p
-                    className={cn(
-                      "text-[12px] font-semibold",
-                      task.status === "review" ? "text-teal-700" : "text-violet-700",
-                    )}
-                  >
-                    {task.status === "pending_director_approval"
-                      ? isSuperAdminRole
-                        ? "Tugas ini diajukan admin untuk persetujuan Anda sebagai direktur."
-                        : "Diajukan untuk persetujuan direktur sebelum ditandai selesai."
-                      : isSuperAdminRole
-                        ? "Tugas ini menunggu review Anda sebelum ditandai selesai."
-                        : isPlainAdmin
-                          ? "Tugas ini menunggu review Anda — ajukan persetujuan direktur untuk menandainya selesai."
-                          : "Menunggu review admin sebelum tugas ini ditandai selesai."}
-                  </p>
+              {(task.status === "review" || task.status === "pending_director_approval") &&
+                (() => {
+                  // Once an admin routes a task to the director
+                  // ("pending_director_approval"), only super_admin can
+                  // decide it from there — same deferral rule as
+                  // "butuh_keputusan". A plain "review" task can be decided
+                  // by admin or super_admin directly.
+                  const canDecide =
+                    task.status === "pending_director_approval" ? isSuperAdminRole : isAdmin;
+
+                  return (
+                    <div
+                      className={cn(
+                        "flex flex-col gap-2 rounded-xl border p-3",
+                        task.status === "review"
+                          ? "border-teal-200 bg-teal-50"
+                          : "border-violet-200 bg-violet-50",
+                      )}
+                    >
+                      <p
+                        className={cn(
+                          "text-[12px] font-semibold",
+                          task.status === "review" ? "text-teal-700" : "text-violet-700",
+                        )}
+                      >
+                        {task.status === "pending_director_approval"
+                          ? isSuperAdminRole
+                            ? "Tugas ini diajukan admin untuk persetujuan Anda sebagai direktur."
+                            : "Diajukan untuk persetujuan direktur sebelum ditandai selesai."
+                          : isAdmin
+                            ? isPlainAdmin
+                              ? "Tugas ini menunggu review Anda — tandai selesai langsung, atau ajukan persetujuan direktur untuk tugas ini."
+                              : "Tugas ini menunggu review Anda sebelum ditandai selesai."
+                            : "Menunggu review admin sebelum tugas ini ditandai selesai."}
+                      </p>
 
                   {!showFixForm ? (
                     <div className="flex flex-wrap gap-2">
-                      {isSuperAdminRole && (
+                      {canDecide && (
                         <button
                           type="button"
                           disabled={confirmDoneMutation.isPending}
@@ -595,7 +616,7 @@ export function TaskDetailSheet({
                           <Gavel className="size-3.5" /> Ajukan Persetujuan Direktur
                         </button>
                       )}
-                      {isAdmin && (
+                      {canDecide && (
                         <button
                           type="button"
                           onClick={() => setShowFixForm(true)}
@@ -652,8 +673,9 @@ export function TaskDetailSheet({
                       </div>
                     </div>
                   )}
-                </div>
-              )}
+                    </div>
+                  );
+                })()}
 
               {task.status === "needs_fixing" && (
                 <div className="flex flex-col gap-2 rounded-xl border border-orange-200 bg-orange-50 p-3">

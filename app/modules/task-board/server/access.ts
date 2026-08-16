@@ -37,11 +37,17 @@ export function canEscalateToDirector(role: Role) {
   return role === "admin";
 }
 
-// Same reasoning as canEscalateToDirector, applied to the "mark done"
-// approval tier: only a plain admin requests the director's sign-off —
-// a super_admin can already confirm done directly.
+// Admin and super_admin can both confirm a reviewed task as "done" directly
+// (see canApproveTasks) — requestDoneApproval is an admin's *optional* path
+// to route a specific task to the director instead of deciding themselves.
 export function canRequestDoneApproval(role: Role) {
   return role === "admin";
+}
+
+// Projects are managed by the same tier that approves tasks: admin (manager)
+// and super_admin (direktur) can both create/edit/change a project's status.
+export function canManageProjects(role: Role) {
+  return role === "admin" || role === "super_admin";
 }
 
 export function requireTaskBoardAccess(userId: string | null, role: Role) {

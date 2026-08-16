@@ -44,6 +44,7 @@ import { GroupNavItem, NavGroups } from "./nav-group";
 import { AppBrand } from "./app-brand";
 import { DashboardNavUser } from "./nav-user";
 import { NavProject } from "./nav-projects";
+import { NavTeamProjects } from "./nav-team-projects";
 
 import type { Role } from "@/app/db/schema/roles";
 import { canUseRole } from "@/lib/auth/permissions";
@@ -76,6 +77,12 @@ export const routes = {
     approval: "/dashboard/tasks/persetujuan",
     directorDecision: "/dashboard/tasks/keputusan-direktur",
     doneApproval: "/dashboard/tasks/persetujuan-done",
+    mine: "/dashboard/tasks/tugas-saya",
+  },
+
+  projects: {
+    root: "/dashboard/projects",
+    detail: (id: string) => `/dashboard/projects/${id}`,
   },
 
   programs: {
@@ -184,6 +191,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ["user", "teacher", "author", "admin", "super_admin"],
     activeRole,
   );
+  const canManageProjects = canUseRole(["admin", "super_admin"], activeRole);
   const taskBadgeCounts = trpc.taskBoard.badgeCounts.useQuery(undefined, {
     enabled: hasTaskBoardAccess,
   });
@@ -239,6 +247,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           !isActive(pathname, routes.tasks.approval) &&
           !isActive(pathname, routes.tasks.directorDecision) &&
           !isActive(pathname, routes.tasks.doneApproval),
+        roles: ["user", "teacher", "author", "admin", "super_admin"],
+      },
+      {
+        title: "Tugas Saya",
+        icon: ClipboardList,
+        url: routes.tasks.mine,
+        isActive: isActive(pathname, routes.tasks.mine),
         roles: ["user", "teacher", "author", "admin", "super_admin"],
       },
       {
@@ -473,6 +488,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {hasItems(teamItems) && (
           <NavGroups label="Tim" items={teamItems} />
         )}
+
+        <NavTeamProjects enabled={hasTaskBoardAccess} canCreate={canManageProjects} />
 
         {hasItems(teachingItems) && (
           <NavGroups label="Pengajaran" items={teachingItems} />

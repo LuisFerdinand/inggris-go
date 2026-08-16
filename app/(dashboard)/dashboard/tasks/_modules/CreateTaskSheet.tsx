@@ -31,15 +31,21 @@ const fieldLabelClass = "mb-1.5 block text-[12.5px] font-semibold text-slate-700
 export function CreateTaskSheet({
   open,
   onOpenChange,
+  projectId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // When set, the task is created directly inside this project (e.g. from
+  // the project's own board) and the project picker is hidden. When unset,
+  // the user must pick an active project from the dropdown.
+  projectId?: string;
 }) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin" || session?.user?.role === "super_admin";
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [assigneeId, setAssigneeId] = useState<string>("");
   const [startDate, setStartDate] = useState("");
@@ -53,13 +59,20 @@ export function CreateTaskSheet({
   const { upload, isUploading } = useCloudinaryUpload();
 
   const usersQuery = trpc.taskBoard.listAssignableUsers.useQuery();
+  const projectsQuery = trpc.projects.list.useQuery(
+    { status: "active" },
+    { enabled: !projectId && open },
+  );
   const utils = trpc.useUtils();
+
+  const effectiveProjectId = projectId || selectedProjectId;
 
   const createMutation = trpc.taskBoard.create.useMutation({
     onSuccess: async () => {
       await Promise.all([
         utils.taskBoard.list.invalidate(),
         utils.taskBoard.badgeCounts.invalidate(),
+        utils.projects.list.invalidate(),
       ]);
       toast.success(
         isAdmin
@@ -77,6 +90,7 @@ export function CreateTaskSheet({
   function reset() {
     setTitle("");
     setDescription("");
+    setSelectedProjectId("");
     setPriority("medium");
     setAssigneeId("");
     setStartDate("");
@@ -114,7 +128,13 @@ export function CreateTaskSheet({
       return;
     }
 
+    if (!effectiveProjectId) {
+      toast.error("Proyek wajib dipilih");
+      return;
+    }
+
     createMutation.mutate({
+      projectId: effectiveProjectId,
       title: title.trim(),
       description: description.trim() || undefined,
       priority,
@@ -139,6 +159,30 @@ export function CreateTaskSheet({
         </SheetHeader>
 
         <div className="flex flex-col gap-4 p-4">
+          {!projectId && (
+            <div>
+              <label className={fieldLabelClass}>Proyek</label>
+              <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+                <SelectTrigger className="h-9 w-full text-[12.5px]">
+                  <SelectValue placeholder="Pilih proyek" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projectsQuery.data?.length ? (
+                    projectsQuery.data.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-3 text-center text-[12px] text-slate-400">
+                      Belum ada proyek aktif
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
             <label className={fieldLabelClass}>Judul</label>
             <Input

@@ -18,6 +18,7 @@ import {
   taskAttachments,
   taskChecklistItems,
 } from "@/app/db/schema/tasks";
+import { projects } from "@/app/db/schema/projects";
 import { user } from "@/app/db/schema/auth-schema";
 import { role, userRole } from "@/app/db/schema/roles";
 
@@ -63,12 +64,14 @@ export const taskBoardRouter = createTRPCRouter({
     if (input?.status) conditions.push(eq(tasks.status, input.status));
     if (input?.priority) conditions.push(eq(tasks.priority, input.priority));
     if (input?.assigneeId) conditions.push(eq(tasks.assigneeId, input.assigneeId));
+    if (input?.projectId) conditions.push(eq(tasks.projectId, input.projectId));
     if (input?.mine) conditions.push(eq(tasks.createdBy, ctx.auth.userId));
 
     const rows = await db.query.tasks.findMany({
       where: conditions.length ? and(...conditions) : undefined,
       orderBy: (row, { asc, desc }) => [asc(row.position), desc(row.createdAt)],
       with: {
+        project: { columns: { id: true, name: true, status: true } },
         creator: { columns: USER_COLUMNS },
         assignee: { columns: USER_COLUMNS },
         verifier: { columns: USER_COLUMNS },
@@ -101,6 +104,7 @@ export const taskBoardRouter = createTRPCRouter({
       const row = await db.query.tasks.findFirst({
         where: eq(tasks.id, input.id),
         with: {
+          project: { columns: { id: true, name: true, status: true } },
           creator: { columns: USER_COLUMNS },
           assignee: { columns: USER_COLUMNS },
           verifier: { columns: USER_COLUMNS },
@@ -133,6 +137,21 @@ export const taskBoardRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       requireTaskBoardAccess(ctx.auth.userId, ctx.auth.role);
 
+      const project = await db.query.projects.findFirst({
+        where: eq(projects.id, input.projectId),
+      });
+
+      if (!project) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Proyek tidak ditemukan" });
+      }
+
+      if (project.status !== "active") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Proyek ini tidak sedang berjalan — tugas baru tidak dapat ditambahkan",
+        });
+      }
+
       const id = genId("task");
       // An admin/super_admin's own tasks skip verification and land straight
       // in "Direncanakan" — they're already the one who'd approve it anyway.
@@ -140,6 +159,7 @@ export const taskBoardRouter = createTRPCRouter({
 
       await db.insert(tasks).values({
         id,
+        projectId: input.projectId,
         title: input.title,
         description: input.description,
         priority: input.priority,
@@ -344,29 +364,39 @@ export const taskBoardRouter = createTRPCRouter({
     }),
 
   /**
-   * Super_admin confirms a task as actually done — either straight from
-   * "review", or after an admin routed it through director approval
-   * ("pending_director_approval"). This is the only way into "done":
-   * dragging or editing your way in is blocked, and a plain admin can no
-   * longer confirm done directly — they must go through
-   * requestDoneApproval instead.
+   * Admin or super_admin confirms a task as actually done straight from
+   * "review" — the normal path, matching the manager sign-off in the
+   * workflow doc. But once an admin has specifically routed a task to
+   * "pending_director_approval" via requestDoneApproval, only super_admin
+   * can decide it from there — same reasoning as `verify`'s
+   * "butuh_keputusan" tier: the admin already deferred that call, so they
+   * shouldn't be able to bypass their own escalation. This is the only way
+   * into "done": dragging or editing your way in is blocked.
    */
   confirmDone: protectedProcedure
     .input(confirmDoneInput)
     .mutation(async ({ ctx, input }) => {
-      if (!isSuperAdmin(ctx.auth.role)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Hanya super admin yang dapat menandai tugas selesai",
-        });
-      }
-
       const existing = await loadTaskOrThrow(input.id);
 
       if (existing.status !== "review" && existing.status !== "pending_director_approval") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Tugas ini belum diajukan untuk review",
+        });
+      }
+
+      const canDecide =
+        existing.status === "pending_director_approval"
+          ? isSuperAdmin(ctx.auth.role)
+          : canApproveTasks(ctx.auth.role);
+
+      if (!canDecide) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            existing.status === "pending_director_approval"
+              ? "Hanya super admin yang dapat memutuskan tugas ini"
+              : "Hanya admin atau super admin yang dapat menandai tugas selesai",
         });
       }
 
@@ -436,25 +466,35 @@ export const taskBoardRouter = createTRPCRouter({
     }),
 
   /**
-   * Admin or super_admin sends a "review" / "pending_director_approval"
-   * task back to the assignee/creator for fixes, instead of approving it.
+   * Admin or super_admin sends a "review" task back to the assignee/creator
+   * for fixes. For "pending_director_approval" the same deferral logic as
+   * confirmDone applies: only super_admin decides once an admin has routed
+   * it to the director.
    */
   markNeedsFixing: protectedProcedure
     .input(markNeedsFixingInput)
     .mutation(async ({ ctx, input }) => {
-      if (!canApproveTasks(ctx.auth.role)) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Hanya admin atau super admin yang dapat menandai tugas perlu perbaikan",
-        });
-      }
-
       const existing = await loadTaskOrThrow(input.id);
 
       if (existing.status !== "review" && existing.status !== "pending_director_approval") {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Tugas ini tidak sedang dalam status review",
+        });
+      }
+
+      const canDecide =
+        existing.status === "pending_director_approval"
+          ? isSuperAdmin(ctx.auth.role)
+          : canApproveTasks(ctx.auth.role);
+
+      if (!canDecide) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            existing.status === "pending_director_approval"
+              ? "Hanya super admin yang dapat memutuskan tugas ini"
+              : "Hanya admin atau super admin yang dapat menandai tugas perlu perbaikan",
         });
       }
 

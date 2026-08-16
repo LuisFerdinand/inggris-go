@@ -622,3 +622,66 @@ export const TASK_PRIORITY_OPTIONS = createOptions(
   TASK_PRIORITY,
   TASK_PRIORITY_META,
 );
+
+/* =========================================================
+   PROJECT STATUS (Papan Tugas — Projects)
+========================================================= */
+
+export const PROJECT_STATUS = [
+  "draft",
+  "active",
+  "completed",
+  "archived",
+] as const;
+
+export type ProjectStatus = (typeof PROJECT_STATUS)[number];
+
+export const projectStatusEnum = z.enum(PROJECT_STATUS);
+
+export const PROJECT_STATUS_META = {
+  draft: {
+    label: "Draft",
+    shortLabel: "Draft",
+    icon: "file-edit",
+    shortDesc: "Proyek baru dibuat, belum berjalan",
+    color: "#94a3b8",
+    tone: "neutral",
+  },
+
+  active: {
+    label: "Berjalan",
+    shortLabel: "Aktif",
+    icon: "play-circle",
+    shortDesc: "Proyek sedang berjalan, tugas dapat ditambahkan",
+    color: "#22c55e",
+    tone: "success",
+  },
+
+  completed: {
+    label: "Selesai",
+    shortLabel: "Selesai",
+    icon: "check-circle-2",
+    shortDesc: "Proyek telah selesai dikerjakan",
+    color: "#3b82f6",
+    tone: "primary",
+  },
+
+  archived: {
+    label: "Diarsipkan",
+    shortLabel: "Arsip",
+    icon: "archive",
+    shortDesc: "Proyek disimpan dan tidak aktif",
+    color: "#64748b",
+    tone: "neutral",
+  },
+} satisfies EnumMetaRecord<ProjectStatus>;
+
+export const PROJECT_STATUS_LABEL = createLabelMap(
+  PROJECT_STATUS,
+  PROJECT_STATUS_META,
+);
+
+export const PROJECT_STATUS_OPTIONS = createOptions(
+  PROJECT_STATUS,
+  PROJECT_STATUS_META,
+);

@@ -14,6 +14,7 @@ export const BOARD_COLUMN_STATUS = ["direncanakan", "in_progress", "review"] as 
 export const boardColumnStatusEnum = z.enum(BOARD_COLUMN_STATUS);
 
 export const createTaskInput = z.object({
+  projectId: z.string().min(1, "Proyek wajib dipilih"),
   title: z.string().trim().min(1, "Judul wajib diisi").max(200),
   description: z.string().trim().max(5000).optional(),
   priority: z.enum(TASK_PRIORITY).default("medium"),
@@ -95,6 +96,7 @@ export const deleteTaskInput = z.object({
 
 export const listTasksInput = z
   .object({
+    projectId: z.string().min(1).optional(),
     assigneeId: z.string().min(1).optional(),
     priority: z.enum(TASK_PRIORITY).optional(),
     status: z.enum(TASK_STATUS).optional(),

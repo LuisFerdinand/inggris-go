@@ -23,7 +23,17 @@ import { CreateTaskSheet } from "./CreateTaskSheet";
 
 type ViewMode = "board" | "list" | "calendar";
 
-export function TaskBoardView() {
+export function TaskBoardView({
+  projectId,
+  title = "Papan Tugas",
+  subtitle = "Kelola tugas tim — buat, verifikasi, dan pantau progres bersama.",
+}: {
+  // When set, the board is scoped to a single project (task creation is
+  // locked to it too). When unset, this is the all-projects overview board.
+  projectId?: string;
+  title?: string;
+  subtitle?: string;
+} = {}) {
   const [viewMode, setViewMode] = useState<ViewMode>("board");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -32,6 +42,7 @@ export function TaskBoardView() {
   const [onlyMine, setOnlyMine] = useState(false);
 
   const filterInput = {
+    projectId,
     assigneeId: assigneeFilter || undefined,
     priority: (priorityFilter || undefined) as (typeof TASK_PRIORITY)[number] | undefined,
     mine: onlyMine || undefined,
@@ -47,11 +58,9 @@ export function TaskBoardView() {
         <div>
           <h1 className="flex items-center gap-2 text-[18px] font-extrabold text-slate-800 sm:text-[20px]">
             <KanbanSquare className="size-5 text-indigo-600" />
-            Papan Tugas
+            {title}
           </h1>
-          <p className="mt-0.5 text-[12.5px] text-slate-400">
-            Kelola tugas tim — buat, verifikasi, dan pantau progres bersama.
-          </p>
+          <p className="mt-0.5 text-[12.5px] text-slate-400">{subtitle}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -161,7 +170,7 @@ export function TaskBoardView() {
       )}
 
       <TaskDetailSheet taskId={selectedTaskId} onOpenChange={(open) => !open && setSelectedTaskId(null)} />
-      <CreateTaskSheet open={createOpen} onOpenChange={setCreateOpen} />
+      <CreateTaskSheet open={createOpen} onOpenChange={setCreateOpen} projectId={projectId} />
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { user } from "./auth-schema";
+import { projects } from "./projects";
 
 import { TASK_PRIORITY, TASK_STATUS } from "@/lib/enums/enums";
 
@@ -34,6 +35,10 @@ export const tasks = pgTable(
   "tasks",
   {
     id: text("id").primaryKey(),
+
+    projectId: text("project_id")
+      .references(() => projects.id, { onDelete: "restrict" })
+      .notNull(),
 
     title: text("title").notNull(),
     description: text("description"),
@@ -76,6 +81,7 @@ export const tasks = pgTable(
     statusIdx: index("tasks_status_idx").on(table.status),
     createdByIdx: index("tasks_created_by_idx").on(table.createdBy),
     assigneeIdx: index("tasks_assignee_id_idx").on(table.assigneeId),
+    projectIdx: index("tasks_project_id_idx").on(table.projectId),
   }),
 );
 
@@ -169,6 +175,10 @@ export const taskAttachments = pgTable(
 ========================================================= */
 
 export const taskRelations = relations(tasks, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [tasks.projectId],
+    references: [projects.id],
+  }),
   creator: one(user, {
     fields: [tasks.createdBy],
     references: [user.id],
