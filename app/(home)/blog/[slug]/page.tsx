@@ -37,6 +37,7 @@ import {
 
 import { trpc } from "@/lib/trpc/client";
 import { AuthModalPortal } from "@/components/UserNav";
+import { COVER_IMAGE_HEIGHT_DEFAULT } from "@/app/modules/blog/blog.schema";
 import { getTheme } from "../blog-theme";
 import "../blog-prose.css";
 
@@ -678,14 +679,39 @@ export default function BlogDetailPage({ params }: BlogDetailPageProps) {
       <div style={{ background: "var(--bg-soft, #f4f8ff)" }} className="min-h-screen">
 
         {/* ── COVER HERO ──────────────────────────────────────────── */}
-        <div className="relative w-full overflow-hidden" style={{ height: "clamp(240px, 40vh, 420px)" }}>
+        <div
+          className="relative w-full overflow-hidden"
+          style={
+            post.coverImage && post.coverImageLayout === "auto"
+              ? undefined
+              : {
+                  height:
+                    post.coverImage && post.coverImageLayout === "custom"
+                      ? `${post.coverImageHeight ?? COVER_IMAGE_HEIGHT_DEFAULT}px`
+                      : "clamp(240px, 40vh, 420px)",
+                }
+          }
+        >
           {post.coverImage ? (
-            <>
-              <img src={post.coverImage} alt={post.title} className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-              <div className="absolute inset-0 opacity-30"
-                style={{ background: `linear-gradient(135deg, ${theme.accent}60 0%, transparent 60%)` }} />
-            </>
+            post.coverImageLayout === "auto" ? (
+              <>
+                <img src={post.coverImage} alt={post.title} className="block h-auto w-full" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                <div className="absolute inset-0 opacity-30"
+                  style={{ background: `linear-gradient(135deg, ${theme.accent}60 0%, transparent 60%)` }} />
+              </>
+            ) : (
+              <>
+                <img
+                  src={post.coverImage}
+                  alt={post.title}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                <div className="absolute inset-0 opacity-30"
+                  style={{ background: `linear-gradient(135deg, ${theme.accent}60 0%, transparent 60%)` }} />
+              </>
+            )
           ) : (
             <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient}`} />
           )}

@@ -43,6 +43,20 @@
       "when": 1786861447992,
       "tag": "0005_luxuriant_dreaming_celestial",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786941461239,
+      "tag": "0006_post_cover_image_layout",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786943143293,
+      "tag": "0007_post_cover_image_height",
+      "breakpoints": true
     }
   ]
 }

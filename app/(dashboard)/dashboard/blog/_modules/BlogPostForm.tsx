@@ -12,16 +12,19 @@ import {
   AlertCircle,
   Check,
   ChevronDown,
+  Crop,
   Eye,
   FolderOpen,
   Globe,
   Hash,
   Loader2,
   Pencil,
+  Ratio,
   Plus,
   RefreshCw,
   Save,
   Search,
+  SlidersHorizontal,
   Star,
   Trash2,
   UploadCloud,
@@ -32,8 +35,12 @@ import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import {
   postInsertSchema,
+  COVER_IMAGE_HEIGHT_MIN,
+  COVER_IMAGE_HEIGHT_MAX,
+  COVER_IMAGE_HEIGHT_DEFAULT,
   type PostFormValues,
   type PostStatus,
+  type CoverImageLayout,
 } from "@/app/modules/blog/blog.schema";
 import { RichTextEditor } from "./RichTextEditor";
 import { BlogPreviewModal } from "./BlogPreviewModal";
@@ -661,6 +668,107 @@ function CoverImageUploader({
 }
 
 /* =========================================================
+   COVER IMAGE LAYOUT SELECTOR
+========================================================= */
+
+const COVER_IMAGE_LAYOUT_OPTIONS: {
+  value: CoverImageLayout;
+  label: string;
+  hint: string;
+  icon: typeof Crop;
+}[] = [
+  {
+    value: "cover",
+    label: "Penuh",
+    hint: "Gambar dipotong mengisi banner",
+    icon: Crop,
+  },
+  {
+    value: "auto",
+    label: "Natural",
+    hint: "Tinggi mengikuti rasio gambar asli",
+    icon: Ratio,
+  },
+  {
+    value: "custom",
+    label: "Kustom",
+    hint: "Atur sendiri tinggi banner",
+    icon: SlidersHorizontal,
+  },
+];
+
+function CoverImageLayoutSelector({
+  value,
+  onChange,
+  height,
+  onHeightChange,
+}: {
+  value: CoverImageLayout;
+  onChange: (value: CoverImageLayout) => void;
+  height: number | null | undefined;
+  onHeightChange: (height: number) => void;
+}) {
+  const heightValue = height ?? COVER_IMAGE_HEIGHT_DEFAULT;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1.5">
+        <p className="text-[10px] font-semibold text-neutral-500">
+          Tampilan cover di halaman detail
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {COVER_IMAGE_LAYOUT_OPTIONS.map((option) => {
+            const Icon = option.icon;
+            const active = value === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => onChange(option.value)}
+                className={cn(
+                  "flex flex-col items-start gap-1 rounded-lg border px-3 py-2 text-left transition-colors",
+                  active
+                    ? "border-blue-400 bg-blue-50 text-blue-700"
+                    : "border-neutral-200 bg-white text-neutral-500 hover:border-blue-300 hover:bg-blue-50/60",
+                )}
+              >
+                <Icon className="size-3.5" />
+                <span className="text-[11px] font-semibold">{option.label}</span>
+                <span className="text-[10px] font-normal text-neutral-400">
+                  {option.hint}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {value === "custom" && (
+        <div className="flex flex-col gap-1.5 rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-blue-700">
+              Tinggi banner
+            </span>
+            <span className="text-[11px] font-bold text-blue-700">
+              {heightValue}px
+            </span>
+          </div>
+          <input
+            type="range"
+            min={COVER_IMAGE_HEIGHT_MIN}
+            max={COVER_IMAGE_HEIGHT_MAX}
+            step={10}
+            value={heightValue}
+            onChange={(e) => onHeightChange(Number(e.target.value))}
+            className="h-1.5 w-full cursor-pointer accent-blue-600"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    MAIN FORM
 ========================================================= */
 
@@ -683,6 +791,8 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
       excerpt: "",
       contentHtml: "",
       coverImage: "",
+      coverImageLayout: "cover",
+      coverImageHeight: undefined,
       status: "draft",
       isFeatured: false,
       categoryId: null,
@@ -699,6 +809,8 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
   const isFeatured = watch("isFeatured");
   const excerpt = watch("excerpt");
   const coverImage = watch("coverImage");
+  const coverImageLayout = watch("coverImageLayout");
+  const coverImageHeight = watch("coverImageHeight");
   const contentHtml = watch("contentHtml");
   const readTime = watch("readTime");
   const tagIds = watch("tagIds");
@@ -927,6 +1039,23 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
                 />
               )}
             />
+
+            {coverImage && (
+              <Controller
+                control={control}
+                name="coverImageLayout"
+                render={({ field }) => (
+                  <CoverImageLayoutSelector
+                    value={(field.value as CoverImageLayout) ?? "cover"}
+                    onChange={field.onChange}
+                    height={coverImageHeight}
+                    onHeightChange={(h) =>
+                      setValue("coverImageHeight", h, { shouldDirty: true })
+                    }
+                  />
+                )}
+              />
+            )}
           </div>
 
           {/* ── Category & Tags ───────────────────────── */}
@@ -1048,6 +1177,8 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
         title={title}
         excerpt={excerpt}
         coverImage={coverImage}
+        coverImageLayout={coverImageLayout}
+        coverImageHeight={coverImageHeight}
         contentHtml={contentHtml}
         readTime={readTime}
         tags={previewTags}

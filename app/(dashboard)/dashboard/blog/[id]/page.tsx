@@ -47,6 +47,9 @@ function EditBlogPostContent({ id }: { id: string }) {
         excerpt: post.excerpt ?? "",
         contentHtml: post.contentHtml ?? "",
         coverImage: post.coverImage ?? "",
+        coverImageLayout:
+          (post.coverImageLayout as "cover" | "auto" | "custom") ?? "cover",
+        coverImageHeight: post.coverImageHeight ?? undefined,
         status: (post.status as "draft" | "published" | "archived") ?? "draft",
         readTime: post.readTime ?? undefined,
         authorId: post.authorId,

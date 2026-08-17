@@ -12,6 +12,10 @@ import {
 } from "lucide-react";
 
 import { getTheme } from "@/app/(home)/blog/blog-theme";
+import {
+  COVER_IMAGE_HEIGHT_DEFAULT,
+  type CoverImageLayout,
+} from "@/app/modules/blog/blog.schema";
 import "@/app/(home)/blog/blog-prose.css";
 
 function formatDate(date: Date | string): string {
@@ -34,6 +38,8 @@ interface BlogPreviewModalProps {
   title: string;
   excerpt?: string | null;
   coverImage?: string | null;
+  coverImageLayout?: CoverImageLayout;
+  coverImageHeight?: number | null;
   contentHtml?: string | null;
   readTime?: number | null;
   tags: PreviewTag[];
@@ -45,6 +51,8 @@ export function BlogPreviewModal({
   title,
   excerpt,
   coverImage,
+  coverImageLayout = "cover",
+  coverImageHeight,
   contentHtml,
   readTime,
   tags,
@@ -91,16 +99,43 @@ export function BlogPreviewModal({
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div style={{ background: "var(--bg-soft, #f4f8ff)" }} className="min-h-full">
           {/* Cover hero */}
-          <div className="relative w-full overflow-hidden" style={{ height: "clamp(200px, 34vh, 380px)" }}>
+          <div
+            className="relative w-full overflow-hidden"
+            style={
+              coverImage && coverImageLayout === "auto"
+                ? undefined
+                : {
+                    height:
+                      coverImage && coverImageLayout === "custom"
+                        ? `${coverImageHeight ?? COVER_IMAGE_HEIGHT_DEFAULT}px`
+                        : "clamp(200px, 34vh, 380px)",
+                  }
+            }
+          >
             {coverImage ? (
-              <>
-                <img src={coverImage} alt={title} className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-                <div
-                  className="absolute inset-0 opacity-30"
-                  style={{ background: `linear-gradient(135deg, ${theme.accent}60 0%, transparent 60%)` }}
-                />
-              </>
+              coverImageLayout === "auto" ? (
+                <>
+                  <img src={coverImage} alt={title} className="block h-auto w-full" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                  <div
+                    className="absolute inset-0 opacity-30"
+                    style={{ background: `linear-gradient(135deg, ${theme.accent}60 0%, transparent 60%)` }}
+                  />
+                </>
+              ) : (
+                <>
+                  <img
+                    src={coverImage}
+                    alt={title}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                  <div
+                    className="absolute inset-0 opacity-30"
+                    style={{ background: `linear-gradient(135deg, ${theme.accent}60 0%, transparent 60%)` }}
+                  />
+                </>
+              )
             ) : (
               <div className={`absolute inset-0 bg-gradient-to-br ${theme.gradient}`} />
             )}

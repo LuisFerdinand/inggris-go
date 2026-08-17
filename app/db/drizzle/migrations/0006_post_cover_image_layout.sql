@@ -1,0 +1,1 @@
+ALTER TABLE "post" ADD COLUMN "cover_image_layout" text DEFAULT 'cover' NOT NULL;

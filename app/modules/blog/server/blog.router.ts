@@ -66,6 +66,8 @@ export type PostRow = {
   content: unknown;
   contentHtml: string | null;
   coverImage: string | null;
+  coverImageLayout: string;
+  coverImageHeight: number | null;
   status: string | null;
   isFeatured: boolean;
   publishedAt: Date | null;
@@ -445,6 +447,8 @@ export const blogRouter = createTRPCRouter({
         content: true,
         contentHtml: true,
         coverImage: true,
+        coverImageLayout: true,
+        coverImageHeight: true,
 
         authorId: true,
         categoryId: true,

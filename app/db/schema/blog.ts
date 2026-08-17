@@ -34,6 +34,10 @@ export const post = pgTable("post", {
   contentHtml: text("content_html"),
 
   coverImage: text("cover_image"),
+  // How the cover image is displayed on the detail page hero: cover | auto | custom
+  coverImageLayout: text("cover_image_layout").default("cover").notNull(),
+  // Banner height in px, used only when coverImageLayout = "custom"
+  coverImageHeight: integer("cover_image_height"),
 
   authorId: text("author_id")
     .notNull()

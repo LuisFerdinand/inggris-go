@@ -6,6 +6,17 @@ const emptyToNull = (v: unknown) => (v === "" ? null : v);
 export const POST_STATUS = ["draft", "published", "archived"] as const;
 export type PostStatus = (typeof POST_STATUS)[number];
 
+// How the cover image is displayed on the detail page hero.
+// "cover" crops the image to fill a fixed banner height (default); "auto"
+// sizes the hero to the image's own aspect ratio; "custom" crops the image
+// to fill a banner height the author picks (see coverImageHeight).
+export const COVER_IMAGE_LAYOUTS = ["cover", "auto", "custom"] as const;
+export type CoverImageLayout = (typeof COVER_IMAGE_LAYOUTS)[number];
+
+export const COVER_IMAGE_HEIGHT_MIN = 160;
+export const COVER_IMAGE_HEIGHT_MAX = 720;
+export const COVER_IMAGE_HEIGHT_DEFAULT = 320;
+
 export const postInsertSchema = z.object({
   title: z.string().min(3, "Judul minimal 3 karakter").max(200),
   slug: z
@@ -18,6 +29,17 @@ export const postInsertSchema = z.object({
   content: z.any().optional(),
   contentHtml: z.preprocess(emptyToNull, z.string().nullable().optional()),
   coverImage: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  coverImageLayout: z.enum(COVER_IMAGE_LAYOUTS).default("cover"),
+  coverImageHeight: z.preprocess(
+    emptyToNull,
+    z.coerce
+      .number()
+      .int()
+      .min(COVER_IMAGE_HEIGHT_MIN)
+      .max(COVER_IMAGE_HEIGHT_MAX)
+      .nullable()
+      .optional(),
+  ),
 
   authorId: z.string().min(1, "Penulis wajib dipilih"),
 
