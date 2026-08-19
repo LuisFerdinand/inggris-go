@@ -27,7 +27,11 @@ export async function GET(
   }
 
   const role = session.user.role;
-  const isOversight = role === "author" || role === "admin" || role === "super_admin";
+  const isOversight =
+    role === "author" ||
+    role === "operational_manager" ||
+    role === "admin" ||
+    role === "super_admin";
 
   if (!isOversight && classRow.teacherId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

@@ -7,6 +7,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   student: "Student",
   teacher: "Teacher",
   author: "Author",
+  operational_manager: "Operasional Manager",
   admin: "Admin",
   super_admin: "Super Admin",
 };
@@ -16,6 +17,7 @@ export const SWITCHABLE_ROLES = [
   "student",
   "teacher",
   "author",
+  "operational_manager",
   "admin",
   "super_admin",
 ] as const satisfies readonly Role[];
@@ -32,6 +34,7 @@ export const ROLE_HOME_PATH: Record<Role, string> = {
   student: "/dashboard/program-saya",
   teacher: "/dashboard/program-saya",
   author: "/dashboard/blog",
+  operational_manager: "/dashboard/blog",
   admin: "/dashboard",
   super_admin: "/dashboard",
 };
@@ -56,12 +59,28 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
 
   {
     path: "/dashboard/koleksi",
-    roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+    roles: [
+      "user",
+      "student",
+      "teacher",
+      "author",
+      "operational_manager",
+      "admin",
+      "super_admin",
+    ],
   },
 
   {
     path: "/dashboard/settings/account",
-    roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+    roles: [
+      "user",
+      "student",
+      "teacher",
+      "author",
+      "operational_manager",
+      "admin",
+      "super_admin",
+    ],
   },
   {
     path: "/dashboard/settings/header",
@@ -81,15 +100,15 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
   },
   {
     path: "/dashboard/teaching/classes/persetujuan",
-    roles: ["author", "admin", "super_admin"],
+    roles: ["author", "operational_manager", "admin", "super_admin"],
   },
   {
     path: "/dashboard/teaching/classes/create",
-    roles: ["author", "admin", "super_admin"],
+    roles: ["author", "operational_manager", "admin", "super_admin"],
   },
   {
     path: "/dashboard/teaching",
-    roles: ["teacher", "author", "admin", "super_admin"],
+    roles: ["teacher", "author", "operational_manager", "admin", "super_admin"],
   },
 
   {
@@ -106,12 +125,12 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
   },
   {
     path: "/dashboard/tasks",
-    roles: ["user", "teacher", "author", "admin", "super_admin"],
+    roles: ["user", "teacher", "author", "operational_manager", "admin", "super_admin"],
   },
 
   {
     path: "/dashboard/projects",
-    roles: ["user", "teacher", "author", "admin", "super_admin"],
+    roles: ["user", "teacher", "author", "operational_manager", "admin", "super_admin"],
   },
 
   {
@@ -129,16 +148,16 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
 
   {
     path: "/dashboard/blog/comments",
-    roles: ["author", "admin", "super_admin"],
+    roles: ["author", "operational_manager", "admin", "super_admin"],
   },
   {
     path: "/dashboard/blog",
-    roles: ["author", "admin", "super_admin"],
+    roles: ["author", "operational_manager", "admin", "super_admin"],
   },
 
   {
     path: "/dashboard/orders",
-    roles: ["admin", "author", "super_admin"],
+    roles: ["admin", "author", "operational_manager", "super_admin"],
   },
   {
     path: "/dashboard/users",
@@ -146,7 +165,7 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
   },
   {
     path: "/dashboard/data-siswa",
-    roles: ["admin", "author", "super_admin"],
+    roles: ["admin", "author", "operational_manager", "super_admin"],
   },
 
   {
@@ -166,7 +185,7 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
 
   {
     path: "/dashboard/laporan-harian",
-    roles: ["teacher", "author", "admin", "super_admin"],
+    roles: ["teacher", "author", "operational_manager", "admin", "super_admin"],
   },
 ];
 

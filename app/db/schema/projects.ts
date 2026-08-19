@@ -1,7 +1,7 @@
 // app/db/schema/projects.ts
-// Projects wrap the team task board: admin/super_admin create a project,
-// every task belongs to exactly one, and the project carries its own
-// draft -> active -> completed/archived lifecycle.
+// Projects wrap the team task board: admin/super_admin/operational_manager
+// create a project, every task belongs to exactly one, and the project
+// carries its own draft -> active -> completed/archived lifecycle.
 
 import { relations } from "drizzle-orm";
 import { pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";

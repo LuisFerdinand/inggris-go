@@ -21,7 +21,8 @@ type StatusFilter = "all" | ProjectStatus;
 export function ProjectsListView() {
   const { data: session } = useSession();
   const role = session?.user?.role;
-  const canManage = role === "admin" || role === "super_admin";
+  const canManage =
+    role === "admin" || role === "super_admin" || role === "operational_manager";
 
   const searchParams = useSearchParams();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");

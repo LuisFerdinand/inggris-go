@@ -13,6 +13,7 @@ export const TASK_BOARD_ROLES: Role[] = [
   "user",
   "teacher",
   "author",
+  "operational_manager",
   "admin",
   "super_admin",
 ];
@@ -46,8 +47,12 @@ export function canRequestDoneApproval(role: Role) {
 
 // Projects are managed by the same tier that approves tasks: admin (manager)
 // and super_admin (direktur) can both create/edit/change a project's status.
+// operational_manager gets the same project-management privilege as an
+// author, plus this one extra capability.
 export function canManageProjects(role: Role) {
-  return role === "admin" || role === "super_admin";
+  return (
+    role === "admin" || role === "super_admin" || role === "operational_manager"
+  );
 }
 
 export function requireTaskBoardAccess(userId: string | null, role: Role) {

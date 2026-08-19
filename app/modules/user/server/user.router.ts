@@ -282,7 +282,12 @@ export const userRouter = createTRPCRouter({
   getStudents: protectedProcedure
     .input(getAllUsersInput.omit({ role: true }))
     .query(async ({ input, ctx }) => {
-      await requireDbRole(ctx.auth?.userId, ["admin", "author", "super_admin"]);
+      await requireDbRole(ctx.auth?.userId, [
+        "admin",
+        "author",
+        "operational_manager",
+        "super_admin",
+      ]);
 
       return buildUserList({ ...input, role: "student" });
     }),

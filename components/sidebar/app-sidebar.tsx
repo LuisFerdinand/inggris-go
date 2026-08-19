@@ -188,10 +188,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const activeRole: Role = session?.user.role ?? "guest";
 
   const hasTaskBoardAccess = canUseRole(
-    ["user", "teacher", "author", "admin", "super_admin"],
+    ["user", "teacher", "author", "operational_manager", "admin", "super_admin"],
     activeRole,
   );
-  const canManageProjects = canUseRole(["admin", "super_admin"], activeRole);
+  const canManageProjects = canUseRole(
+    ["admin", "super_admin", "operational_manager"],
+    activeRole,
+  );
   const taskBadgeCounts = trpc.taskBoard.badgeCounts.useQuery(undefined, {
     enabled: hasTaskBoardAccess,
   });
@@ -223,14 +226,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Bookmark,
         url: routes.koleksi.root,
         isActive: isActive(pathname, routes.koleksi.root),
-        roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+        roles: [
+          "user",
+          "student",
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ],
       },
       {
         title: "Ubah Password",
         icon: KeyRound,
         url: routes.settings.account,
         isActive: isActive(pathname, routes.settings.account),
-        roles: ["user", "student", "teacher", "author", "admin", "super_admin"],
+        roles: [
+          "user",
+          "student",
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ],
       },
     ],
     activeRole,
@@ -247,14 +266,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           !isActive(pathname, routes.tasks.approval) &&
           !isActive(pathname, routes.tasks.directorDecision) &&
           !isActive(pathname, routes.tasks.doneApproval),
-        roles: ["user", "teacher", "author", "admin", "super_admin"],
+        roles: [
+          "user",
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ],
       },
       {
         title: "Tugas Saya",
         icon: ClipboardList,
         url: routes.tasks.mine,
         isActive: isActive(pathname, routes.tasks.mine),
-        roles: ["user", "teacher", "author", "admin", "super_admin"],
+        roles: [
+          "user",
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ],
       },
       {
         title: "Persetujuan Tugas",
@@ -269,7 +302,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: NotebookPen,
         url: routes.dailyReport.root,
         isActive: isActive(pathname, routes.dailyReport.root),
-        roles: ["teacher", "author", "admin", "super_admin"],
+        roles: [
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ],
       },
       {
         title: "Kinerja Tim",
@@ -289,21 +328,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: GraduationCap,
         url: routes.teaching.root,
         isActive: pathname === routes.teaching.root,
-        roles: ["teacher", "author", "admin", "super_admin"],
+        roles: [
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ],
       },
       {
         title: "Kelas Saya",
         icon: ClipboardList,
         url: routes.teaching.classes.root,
         isActive: isActive(pathname, routes.teaching.classes.root),
-        roles: ["teacher", "author", "admin", "super_admin"],
+        roles: [
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ],
       },
       {
         title: "Persetujuan Nilai",
         icon: ShieldCheck,
         url: routes.teaching.classes.approval,
         isActive: isActive(pathname, routes.teaching.classes.approval),
-        roles: ["author", "admin", "super_admin"],
+        roles: ["author", "operational_manager", "admin", "super_admin"],
       },
     ],
     activeRole,
@@ -340,14 +391,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         isActive:
           isActive(pathname, routes.blog.root) &&
           !isActive(pathname, routes.comments.root),
-        roles: ["author", "admin", "super_admin"],
+        roles: ["author", "operational_manager", "admin", "super_admin"],
       },
       {
         title: "Comments",
         icon: CreditCard,
         url: routes.comments.root,
         isActive: isActive(pathname, routes.comments.root),
-        roles: ["author", "admin", "super_admin"],
+        roles: ["author", "operational_manager", "admin", "super_admin"],
       },
     ],
     activeRole,
@@ -360,14 +411,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: ShoppingCart,
         url: routes.orders.root,
         isActive: isActive(pathname, routes.orders.root),
-        roles: ["admin", "author", "super_admin"],
+        roles: ["admin", "author", "operational_manager", "super_admin"],
       },
       {
         title: "Data Siswa",
         icon: Users2,
         url: routes.students.root,
         isActive: isActive(pathname, routes.students.root),
-        roles: ["admin", "author", "super_admin"],
+        roles: ["admin", "author", "operational_manager", "super_admin"],
       },
     ],
     activeRole,

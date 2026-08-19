@@ -24,7 +24,11 @@ export async function GET(
   }
 
   const role = session.user.role;
-  const isOversight = role === "author" || role === "admin" || role === "super_admin";
+  const isOversight =
+    role === "author" ||
+    role === "operational_manager" ||
+    role === "admin" ||
+    role === "super_admin";
   const isOwningTeacher = data.classTeacherId === session.user.id;
   const isOwningStudent =
     !!data.finalizedAt && data.studentUserId === session.user.id;

@@ -166,7 +166,8 @@ export const classRouter = createTRPCRouter({
       if (input.teacherId && !isOversightRole(ctx.auth.role)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Hanya author/admin/super admin yang dapat mengubah guru kelas",
+          message:
+            "Hanya author/operational manager/admin/super admin yang dapat mengubah guru kelas",
         });
       }
 
@@ -362,6 +363,14 @@ export const classRouter = createTRPCRouter({
       .from(user)
       .innerJoin(userRole, eq(userRole.userId, user.id))
       .innerJoin(role, eq(role.id, userRole.roleId))
-      .where(inArray(role.name, ["teacher", "author", "admin", "super_admin"]));
+      .where(
+        inArray(role.name, [
+          "teacher",
+          "author",
+          "operational_manager",
+          "admin",
+          "super_admin",
+        ]),
+      );
   }),
 });

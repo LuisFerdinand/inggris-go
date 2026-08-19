@@ -57,6 +57,13 @@
       "when": 1786943143293,
       "tag": "0007_post_cover_image_height",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787131856916,
+      "tag": "0008_stiff_the_fallen",
+      "breakpoints": true
     }
   ]
 }

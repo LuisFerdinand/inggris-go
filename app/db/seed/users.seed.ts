@@ -27,6 +27,10 @@ const ROLES = [
     description: "Content author",
   },
   {
+    name: "operational_manager",
+    description: "Operasional manager — author privileges plus project creation",
+  },
+  {
     name: "admin",
     description: "Administrator",
   },
@@ -101,7 +105,7 @@ const USERS = [
     name: "Gita",
     email: GITA_EMAIL,
     password: GITA_PASSWORD,
-    roles: ["user", "author"],
+    roles: ["user", "operational_manager"],
   },
 ] as const;
 

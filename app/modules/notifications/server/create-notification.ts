@@ -86,7 +86,14 @@ export async function getOversightUserIds(): Promise<string[]> {
     .from(user)
     .innerJoin(userRole, eq(userRole.userId, user.id))
     .innerJoin(role, eq(role.id, userRole.roleId))
-    .where(inArray(role.name, ["author", "admin", "super_admin"]));
+    .where(
+      inArray(role.name, [
+        "author",
+        "operational_manager",
+        "admin",
+        "super_admin",
+      ]),
+    );
 
   return rows.map((row) => row.id);
 }

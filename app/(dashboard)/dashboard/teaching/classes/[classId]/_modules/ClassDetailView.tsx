@@ -26,7 +26,12 @@ import { CLASS_STATUS_LABEL, CLASS_STATUS_META } from "@/lib/enums/enums";
 import type { ClassStatus } from "@/lib/enums/enums";
 import { classDetailRegistry } from "@/lib/dashboard/tabs/classes";
 
-const OVERSIGHT_ROLES = new Set(["author", "admin", "super_admin"]);
+const OVERSIGHT_ROLES = new Set([
+  "author",
+  "operational_manager",
+  "admin",
+  "super_admin",
+]);
 
 import { RosterTab } from "./tabs/RosterTab";
 import { SessionsTab } from "./tabs/SessionsTab";

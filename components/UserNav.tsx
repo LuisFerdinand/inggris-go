@@ -64,7 +64,7 @@ function getPrimaryNavItem(role?: string | null) {
     };
   }
 
-  if (role === "author") {
+  if (role === "author" || role === "operational_manager") {
     return {
       label: "Blog",
       shortLabel: "Blog",

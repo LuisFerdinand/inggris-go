@@ -39,6 +39,7 @@ export function ClassesListView() {
   const { data: session } = useSession();
   const isOversight =
     session?.user?.role === "author" ||
+    session?.user?.role === "operational_manager" ||
     session?.user?.role === "admin" ||
     session?.user?.role === "super_admin";
 

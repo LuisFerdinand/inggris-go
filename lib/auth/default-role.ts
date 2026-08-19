@@ -58,6 +58,7 @@ export function getPrimaryRole(roles: Role[]): Role {
   const priority: Role[] = [
     "super_admin",
     "admin",
+    "operational_manager",
     "author",
     "teacher",
     "student",

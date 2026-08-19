@@ -82,7 +82,8 @@ export const projectRouter = createTRPCRouter({
     if (!canManageProjects(ctx.auth.role)) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "Hanya admin atau super admin yang dapat membuat proyek",
+        message:
+          "Hanya admin, super admin, atau operational manager yang dapat membuat proyek",
       });
     }
 
@@ -115,7 +116,8 @@ export const projectRouter = createTRPCRouter({
     if (!canManageProjects(ctx.auth.role)) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "Hanya admin atau super admin yang dapat mengubah proyek",
+        message:
+          "Hanya admin, super admin, atau operational manager yang dapat mengubah proyek",
       });
     }
 
@@ -148,7 +150,8 @@ export const projectRouter = createTRPCRouter({
       if (!canManageProjects(ctx.auth.role)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Hanya admin atau super admin yang dapat mengubah status proyek",
+          message:
+            "Hanya admin, super admin, atau operational manager yang dapat mengubah status proyek",
         });
       }
 
@@ -170,7 +173,8 @@ export const projectRouter = createTRPCRouter({
     if (!canManageProjects(ctx.auth.role)) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "Hanya admin atau super admin yang dapat menghapus proyek",
+        message:
+          "Hanya admin, super admin, atau operational manager yang dapat menghapus proyek",
       });
     }
 

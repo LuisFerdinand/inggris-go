@@ -40,6 +40,7 @@ type RoleName =
   | "student"
   | "teacher"
   | "author"
+  | "operational_manager"
   | "admin"
   | "super_admin";
 
@@ -69,6 +70,10 @@ const ROLE_META: Record<
   author: {
     label: "Author",
     className: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  operational_manager: {
+    label: "Operasional Manager",
+    className: "bg-teal-50 text-teal-700 border-teal-200",
   },
   admin: {
     label: "Admin",

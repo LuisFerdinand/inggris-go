@@ -24,7 +24,8 @@ import { initials } from "../../../tasks/_modules/helpers";
 export function ProjectDetailView({ projectId }: { projectId: string }) {
   const { data: session } = useSession();
   const role = session?.user?.role;
-  const canManage = role === "admin" || role === "super_admin";
+  const canManage =
+    role === "admin" || role === "super_admin" || role === "operational_manager";
 
   const utils = trpc.useUtils();
   const projectQuery = trpc.projects.getById.useQuery({ id: projectId });

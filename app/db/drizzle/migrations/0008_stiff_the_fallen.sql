@@ -1,0 +1,1 @@
+ALTER TYPE "public"."role" ADD VALUE 'operational_manager' BEFORE 'admin';

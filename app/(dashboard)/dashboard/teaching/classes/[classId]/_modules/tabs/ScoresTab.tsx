@@ -312,7 +312,7 @@ function StudentScoreFormInner({
           <Clock className="size-3.5" />
           {canApprove
             ? "Menunggu keputusan Anda — setujui atau tolak di bawah."
-            : "Menunggu persetujuan author, admin, atau super admin."}
+            : "Menunggu persetujuan author, operational manager, admin, atau super admin."}
         </div>
       )}
 
@@ -580,7 +580,12 @@ function StudentScoreForm({
   );
 }
 
-const SCORE_OVERSIGHT_ROLES = new Set(["author", "admin", "super_admin"]);
+const SCORE_OVERSIGHT_ROLES = new Set([
+  "author",
+  "operational_manager",
+  "admin",
+  "super_admin",
+]);
 
 export function ScoresTab({
   classId,

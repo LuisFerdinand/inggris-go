@@ -159,7 +159,8 @@ export const scoreRouter = createTRPCRouter({
       if (!isOversightRole(ctx.auth.role)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Hanya author, admin, atau super admin yang dapat menyetujui nilai",
+          message:
+            "Hanya author, operational manager, admin, atau super admin yang dapat menyetujui nilai",
         });
       }
 
@@ -221,7 +222,8 @@ export const scoreRouter = createTRPCRouter({
     if (!isOversightRole(ctx.auth.role)) {
       throw new TRPCError({
         code: "FORBIDDEN",
-        message: "Hanya author, admin, atau super admin yang dapat melihat antrean ini",
+        message:
+          "Hanya author, operational manager, admin, atau super admin yang dapat melihat antrean ini",
       });
     }
 
