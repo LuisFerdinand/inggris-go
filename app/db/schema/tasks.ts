@@ -37,7 +37,7 @@ export const tasks = pgTable(
     id: text("id").primaryKey(),
 
     projectId: text("project_id")
-      .references(() => projects.id, { onDelete: "restrict" })
+      .references(() => projects.id, { onDelete: "cascade" })
       .notNull(),
 
     title: text("title").notNull(),

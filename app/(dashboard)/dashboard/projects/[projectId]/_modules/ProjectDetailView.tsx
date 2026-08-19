@@ -2,9 +2,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { ArrowLeft, Loader2, Users } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, Users } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,6 +28,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
   const canManage =
     role === "admin" || role === "super_admin" || role === "operational_manager";
 
+  const router = useRouter();
   const utils = trpc.useUtils();
   const projectQuery = trpc.projects.getById.useQuery({ id: projectId });
   const project = projectQuery.data;
@@ -40,6 +42,15 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
       toast.success("Status proyek diperbarui");
     },
     onError: (err) => toast.error(err.message || "Gagal mengubah status proyek"),
+  });
+
+  const deleteMutation = trpc.projects.delete.useMutation({
+    onSuccess: async () => {
+      await utils.projects.list.invalidate();
+      toast.success("Proyek berhasil dihapus");
+      router.push("/dashboard/projects");
+    },
+    onError: (err) => toast.error(err.message || "Gagal menghapus proyek"),
   });
 
   if (projectQuery.isLoading) {
@@ -121,6 +132,30 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
                   ))}
                 </SelectContent>
               </Select>
+            )}
+
+            {canManage && (
+              <button
+                type="button"
+                disabled={deleteMutation.isPending}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `Hapus proyek "${project.name}"? Semua tugas di dalamnya akan ikut terhapus dan tindakan ini tidak dapat dibatalkan.`,
+                    )
+                  ) {
+                    deleteMutation.mutate({ id: project.id });
+                  }
+                }}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[12px] font-semibold text-red-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleteMutation.isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="size-3.5" />
+                )}
+                Hapus
+              </button>
             )}
           </div>
         </div>

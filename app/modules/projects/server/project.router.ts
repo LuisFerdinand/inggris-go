@@ -183,18 +183,9 @@ export const projectRouter = createTRPCRouter({
       throw new TRPCError({ code: "NOT_FOUND", message: "Proyek tidak ditemukan" });
     }
 
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)`.mapWith(Number) })
-      .from(tasks)
-      .where(eq(tasks.projectId, input.id));
-
-    if (count > 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Proyek masih memiliki tugas dan tidak dapat dihapus",
-      });
-    }
-
+    // Deleting a project cascades to every task inside it (and each task's
+    // comments/checklist items/attachments cascade from there in turn) —
+    // see tasks.projectId's onDelete: "cascade" foreign key.
     await db.delete(projects).where(eq(projects.id, input.id));
 
     return { success: true };
