@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   UserCog,
+  UserPlus,
   Users,
   X,
 } from "lucide-react";
@@ -27,63 +28,14 @@ import { cn } from "@/lib/utils";
 import { PageHeader, PageNav } from "@/components/PageHeader";
 
 import type { UserListItem } from "@/app/modules/user/server/user.router";
+import { PromoteStaffModal } from "./PromoteStaffModal";
+import { ROLE_META, isStaffRole, type RoleName } from "./role-meta";
 
 /* =========================================================
    CONSTANTS
 ========================================================= */
 
 const PAGE_SIZE = 20;
-
-type RoleName =
-  | "guest"
-  | "user"
-  | "student"
-  | "teacher"
-  | "author"
-  | "operational_manager"
-  | "admin"
-  | "super_admin";
-
-const ROLE_META: Record<
-  RoleName,
-  {
-    label: string;
-    className: string;
-  }
-> = {
-  guest: {
-    label: "Guest",
-    className: "bg-slate-100 text-slate-500 border-slate-200",
-  },
-  user: {
-    label: "User",
-    className: "bg-blue-50 text-blue-700 border-blue-200",
-  },
-  student: {
-    label: "Student",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  teacher: {
-    label: "Teacher",
-    className: "bg-violet-50 text-violet-700 border-violet-200",
-  },
-  author: {
-    label: "Author",
-    className: "bg-orange-50 text-orange-700 border-orange-200",
-  },
-  operational_manager: {
-    label: "Operasional Manager",
-    className: "bg-teal-50 text-teal-700 border-teal-200",
-  },
-  admin: {
-    label: "Admin",
-    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  },
-  super_admin: {
-    label: "Super Admin",
-    className: "bg-rose-50 text-rose-700 border-rose-200",
-  },
-};
 
 /* =========================================================
    HELPERS
@@ -517,6 +469,7 @@ export function UsersView() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const [page, setPage] = useState(1);
+  const [promoteOpen, setPromoteOpen] = useState(false);
 
   const deferredSearch = useDeferredValue(search.trim());
 
@@ -539,7 +492,11 @@ const roleOptionsQuery = trpc.users.getRoleOptions.useQuery();
   const total = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const roleOptions = roleOptionsQuery.data ?? [];
+  // "/dashboard/users" is the staff roster — "student" is never a
+  // valid filter or reassignment target here.
+  const roleOptions = (roleOptionsQuery.data ?? []).filter((option) =>
+    isStaffRole(option.value),
+  );
 
   function refetch() {
     void utils.users.getAll.invalidate();
@@ -567,7 +524,17 @@ const roleOptionsQuery = trpc.users.getRoleOptions.useQuery();
             },
           ]}
           title="Manajemen Pengguna"
-          description="Kelola akun, role, dan status verifikasi pengguna platform."
+          description="Kelola akun, role, dan status verifikasi staff platform."
+          actions={
+            <button
+              type="button"
+              onClick={() => setPromoteOpen(true)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 text-[12px] font-black text-white transition-colors hover:bg-indigo-700"
+            >
+              <UserPlus className="size-3.5" />
+              Promosikan ke Staff
+            </button>
+          }
         />
       </PageNav>
 
@@ -663,6 +630,13 @@ const roleOptionsQuery = trpc.users.getRoleOptions.useQuery();
           </>
         )}
       </div>
+
+      <PromoteStaffModal
+        open={promoteOpen}
+        onClose={() => setPromoteOpen(false)}
+        staffRoleOptions={roleOptions}
+        onPromoted={refetch}
+      />
     </div>
   );
 }

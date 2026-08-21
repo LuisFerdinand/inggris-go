@@ -132,6 +132,21 @@ async function buildUserList(input: z.infer<typeof getAllUsersInput>) {
           and ${role.name} = ${input.role}
       )`,
     );
+  } else {
+    // No explicit role filter — this is the staff-management view
+    // ("/dashboard/users"), so students (the default role every new
+    // registration lands in) are excluded unless a caller opts in by
+    // passing role: "student" explicitly (used by the "promote to
+    // staff" search modal). Students otherwise live exclusively on
+    // "/dashboard/data-siswa".
+    conditions.push(
+      sql`not exists (
+        select 1 from ${userRole}
+        inner join ${role} on ${role.id} = ${userRole.roleId}
+        where ${userRole.userId} = ${user.id}
+          and ${role.name} = ${"student"}
+      )`,
+    );
   }
 
   const [{ count }] = await db
