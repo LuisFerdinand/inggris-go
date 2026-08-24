@@ -127,3 +127,8 @@ export const toggleChecklistItemInput = z.object({
 export const deleteChecklistItemInput = z.object({
   id: z.string().min(1),
 });
+
+export const reorderChecklistItemsInput = z.object({
+  taskId: z.string().min(1),
+  orderedIds: z.array(z.string().min(1)).min(1),
+});

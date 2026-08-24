@@ -35,6 +35,7 @@ import {
   listTasksInput,
   markNeedsFixingInput,
   moveTaskInput,
+  reorderChecklistItemsInput,
   requestDoneApprovalInput,
   resubmitReviewInput,
   resubmitTaskInput,
@@ -756,6 +757,43 @@ export const taskBoardRouter = createTRPCRouter({
       await assertTaskOwnerAccess(item.taskId, ctx.auth.userId, ctx.auth.role);
 
       await db.delete(taskChecklistItems).where(eq(taskChecklistItems.id, input.id));
+
+      return { success: true };
+    }),
+
+  reorderChecklistItems: protectedProcedure
+    .input(reorderChecklistItemsInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertTaskOwnerAccess(input.taskId, ctx.auth.userId, ctx.auth.role);
+
+      const existing = await db.query.taskChecklistItems.findMany({
+        where: eq(taskChecklistItems.taskId, input.taskId),
+        columns: { id: true },
+      });
+
+      const existingIds = new Set(existing.map((row) => row.id));
+      const orderedIds = [...new Set(input.orderedIds)];
+
+      if (
+        orderedIds.length !== existingIds.size ||
+        !orderedIds.every((id) => existingIds.has(id))
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Urutan checklist tidak valid",
+        });
+      }
+
+      await db.transaction(async (tx) => {
+        await Promise.all(
+          orderedIds.map((id, index) =>
+            tx
+              .update(taskChecklistItems)
+              .set({ position: index })
+              .where(eq(taskChecklistItems.id, id)),
+          ),
+        );
+      });
 
       return { success: true };
     }),

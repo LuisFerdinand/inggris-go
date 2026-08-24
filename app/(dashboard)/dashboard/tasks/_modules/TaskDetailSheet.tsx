@@ -7,9 +7,20 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   CheckCircle2,
   FolderKanban,
   Gavel,
+  GripVertical,
   ImageIcon,
   Link2,
   Loader2,
@@ -67,6 +78,69 @@ function formatDateTime(date: Date | string) {
   });
 }
 
+function SortableChecklistItem({
+  item,
+  canEdit,
+  onToggle,
+  onDelete,
+}: {
+  item: { id: string; text: string; done: boolean };
+  canEdit: boolean;
+  onToggle: (done: boolean) => void;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+    disabled: !canEdit,
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        "flex items-center gap-2 rounded-lg border border-slate-100 bg-white px-2.5 py-1.5",
+        isDragging && "z-10 shadow-md",
+      )}
+    >
+      {canEdit && (
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="cursor-grab touch-none text-slate-300 hover:text-slate-400 active:cursor-grabbing"
+        >
+          <GripVertical className="size-3.5" />
+        </button>
+      )}
+      <input
+        type="checkbox"
+        checked={item.done}
+        disabled={!canEdit}
+        onChange={(e) => onToggle(e.target.checked)}
+        className="size-3.5 accent-indigo-600"
+      />
+      <span
+        className={cn(
+          "flex-1 text-[12.5px] text-slate-600",
+          item.done && "text-slate-400 line-through",
+        )}
+      >
+        {item.text}
+      </span>
+      {canEdit && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="text-slate-300 hover:text-red-500"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function TaskDetailSheet({
   taskId,
   onOpenChange,
@@ -115,6 +189,19 @@ export function TaskDetailSheet({
   const [pendingAttachments, setPendingAttachments] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [newChecklistText, setNewChecklistText] = useState("");
+  const [checklistItems, setChecklistItems] = useState<NonNullable<typeof task>["checklistItems"]>([]);
+  const [syncedChecklist, setSyncedChecklist] = useState<NonNullable<typeof task>["checklistItems"] | undefined>(
+    undefined,
+  );
+
+  const checklistSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
+
+  if (task?.checklistItems !== syncedChecklist) {
+    setSyncedChecklist(task?.checklistItems);
+    setChecklistItems(task?.checklistItems ?? []);
+  }
 
   const syncedTaskId = useRef<string | null>(null);
 
@@ -260,6 +347,31 @@ export function TaskDetailSheet({
     onSuccess: () => invalidateAll(),
     onError: (err) => toast.error(err.message || "Gagal menghapus item checklist"),
   });
+
+  const reorderChecklistItemsMutation = trpc.taskBoard.reorderChecklistItems.useMutation({
+    onSuccess: () => invalidateAll(),
+    onError: (err) => {
+      toast.error(err.message || "Gagal mengurutkan checklist");
+      invalidateAll();
+    },
+  });
+
+  function handleChecklistDragEnd(event: DragEndEvent) {
+    if (!task) return;
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = checklistItems.findIndex((item) => item.id === active.id);
+    const newIndex = checklistItems.findIndex((item) => item.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(checklistItems, oldIndex, newIndex);
+    setChecklistItems(reordered);
+    reorderChecklistItemsMutation.mutate({
+      taskId: task.id,
+      orderedIds: reordered.map((item) => item.id),
+    });
+  }
 
   const coverUpload = useCloudinaryUpload();
   const commentUpload = useCloudinaryUpload();
@@ -828,56 +940,40 @@ export function TaskDetailSheet({
               <div>
                 <label className={fieldLabelClass}>
                   Checklist
-                  {task.checklistItems.length > 0 && (
+                  {checklistItems.length > 0 && (
                     <span className="ml-1 font-normal text-slate-400">
-                      ({task.checklistItems.filter((i) => i.done).length}/
-                      {task.checklistItems.length})
+                      ({checklistItems.filter((i) => i.done).length}/
+                      {checklistItems.length})
                     </span>
                   )}
                 </label>
-                <div className="flex flex-col gap-1.5">
-                  {task.checklistItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center gap-2 rounded-lg border border-slate-100 px-2.5 py-1.5"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={item.done}
-                        disabled={!canEdit}
-                        onChange={(e) =>
-                          toggleChecklistItemMutation.mutate({
-                            id: item.id,
-                            done: e.target.checked,
-                          })
-                        }
-                        className="size-3.5 accent-indigo-600"
-                      />
-                      <span
-                        className={cn(
-                          "flex-1 text-[12.5px] text-slate-600",
-                          item.done && "text-slate-400 line-through",
-                        )}
-                      >
-                        {item.text}
-                      </span>
-                      {canEdit && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            deleteChecklistItemMutation.mutate({ id: item.id })
+                <DndContext
+                  sensors={checklistSensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleChecklistDragEnd}
+                >
+                  <SortableContext
+                    items={checklistItems.map((item) => item.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="flex flex-col gap-1.5">
+                      {checklistItems.map((item) => (
+                        <SortableChecklistItem
+                          key={item.id}
+                          item={item}
+                          canEdit={canEdit}
+                          onToggle={(done) =>
+                            toggleChecklistItemMutation.mutate({ id: item.id, done })
                           }
-                          className="text-slate-300 hover:text-red-500"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
+                          onDelete={() => deleteChecklistItemMutation.mutate({ id: item.id })}
+                        />
+                      ))}
+                      {checklistItems.length === 0 && (
+                        <p className="text-[12px] text-slate-400">Belum ada checklist.</p>
                       )}
                     </div>
-                  ))}
-                  {task.checklistItems.length === 0 && (
-                    <p className="text-[12px] text-slate-400">Belum ada checklist.</p>
-                  )}
-                </div>
+                  </SortableContext>
+                </DndContext>
                 {canEdit && (
                   <div className="mt-2 flex gap-2">
                     <Input
