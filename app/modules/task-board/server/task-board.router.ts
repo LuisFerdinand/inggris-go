@@ -40,6 +40,7 @@ import {
   resubmitReviewInput,
   resubmitTaskInput,
   toggleChecklistItemInput,
+  updateChecklistItemInput,
   updateTaskInput,
   verifyTaskInput,
 } from "../task-board.schema";
@@ -737,6 +738,35 @@ export const taskBoardRouter = createTRPCRouter({
       const [row] = await db
         .update(taskChecklistItems)
         .set({ done: input.done })
+        .where(eq(taskChecklistItems.id, input.id))
+        .returning();
+
+      return row;
+    }),
+
+  updateChecklistItem: protectedProcedure
+    .input(updateChecklistItemInput)
+    .mutation(async ({ ctx, input }) => {
+      const item = await db.query.taskChecklistItems.findFirst({
+        where: eq(taskChecklistItems.id, input.id),
+      });
+
+      if (!item) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Item checklist tidak ditemukan" });
+      }
+
+      await assertTaskOwnerAccess(item.taskId, ctx.auth.userId, ctx.auth.role);
+
+      if (item.done) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Item checklist yang sudah selesai tidak bisa diubah",
+        });
+      }
+
+      const [row] = await db
+        .update(taskChecklistItems)
+        .set({ text: input.text })
         .where(eq(taskChecklistItems.id, input.id))
         .returning();
 

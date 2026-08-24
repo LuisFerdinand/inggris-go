@@ -82,17 +82,38 @@ function SortableChecklistItem({
   item,
   canEdit,
   onToggle,
+  onUpdateText,
   onDelete,
 }: {
   item: { id: string; text: string; done: boolean };
   canEdit: boolean;
   onToggle: (done: boolean) => void;
+  onUpdateText: (text: string) => void;
   onDelete: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
     disabled: !canEdit,
   });
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftText, setDraftText] = useState(item.text);
+
+  useEffect(() => {
+    if (!isEditing) setDraftText(item.text);
+  }, [item.text, isEditing]);
+
+  const canEditText = canEdit && !item.done;
+
+  function commitEdit() {
+    setIsEditing(false);
+    const trimmed = draftText.trim();
+    if (!trimmed) {
+      setDraftText(item.text);
+      return;
+    }
+    if (trimmed !== item.text) onUpdateText(trimmed);
+  }
 
   return (
     <div
@@ -120,14 +141,35 @@ function SortableChecklistItem({
         onChange={(e) => onToggle(e.target.checked)}
         className="size-3.5 accent-indigo-600"
       />
-      <span
-        className={cn(
-          "flex-1 text-[12.5px] text-slate-600",
-          item.done && "text-slate-400 line-through",
-        )}
-      >
-        {item.text}
-      </span>
+      {isEditing ? (
+        <input
+          autoFocus
+          value={draftText}
+          onChange={(e) => setDraftText(e.target.value)}
+          onBlur={commitEdit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              commitEdit();
+            } else if (e.key === "Escape") {
+              setDraftText(item.text);
+              setIsEditing(false);
+            }
+          }}
+          className="flex-1 rounded border border-indigo-200 px-1.5 py-0.5 text-[12.5px] text-slate-600 outline-none focus:border-indigo-400"
+        />
+      ) : (
+        <span
+          onClick={() => canEditText && setIsEditing(true)}
+          className={cn(
+            "flex-1 text-[12.5px] text-slate-600",
+            item.done && "text-slate-400 line-through",
+            canEditText && "cursor-text hover:text-slate-800",
+          )}
+        >
+          {item.text}
+        </span>
+      )}
       {canEdit && (
         <button
           type="button"
@@ -341,6 +383,11 @@ export function TaskDetailSheet({
   const toggleChecklistItemMutation = trpc.taskBoard.toggleChecklistItem.useMutation({
     onSuccess: () => invalidateAll(),
     onError: (err) => toast.error(err.message || "Gagal memperbarui item checklist"),
+  });
+
+  const updateChecklistItemMutation = trpc.taskBoard.updateChecklistItem.useMutation({
+    onSuccess: () => invalidateAll(),
+    onError: (err) => toast.error(err.message || "Gagal mengubah item checklist"),
   });
 
   const deleteChecklistItemMutation = trpc.taskBoard.deleteChecklistItem.useMutation({
@@ -964,6 +1011,9 @@ export function TaskDetailSheet({
                           canEdit={canEdit}
                           onToggle={(done) =>
                             toggleChecklistItemMutation.mutate({ id: item.id, done })
+                          }
+                          onUpdateText={(text) =>
+                            updateChecklistItemMutation.mutate({ id: item.id, text })
                           }
                           onDelete={() => deleteChecklistItemMutation.mutate({ id: item.id })}
                         />

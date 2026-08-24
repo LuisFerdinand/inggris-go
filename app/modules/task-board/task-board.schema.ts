@@ -124,6 +124,11 @@ export const toggleChecklistItemInput = z.object({
   done: z.boolean(),
 });
 
+export const updateChecklistItemInput = z.object({
+  id: z.string().min(1),
+  text: z.string().trim().min(1, "Item checklist tidak boleh kosong").max(300),
+});
+
 export const deleteChecklistItemInput = z.object({
   id: z.string().min(1),
 });
