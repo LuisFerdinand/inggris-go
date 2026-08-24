@@ -814,16 +814,24 @@ export const taskBoardRouter = createTRPCRouter({
         });
       }
 
-      await db.transaction(async (tx) => {
-        await Promise.all(
-          orderedIds.map((id, index) =>
-            tx
-              .update(taskChecklistItems)
-              .set({ position: index })
-              .where(eq(taskChecklistItems.id, id)),
+      // neon-http driver does not support db.transaction(), so update all
+      // positions in a single atomic statement instead. Params are cast
+      // explicitly because neon-http can't infer types inside a bare CASE.
+      const positionCase = sql.join(
+        [
+          sql`(case ${taskChecklistItems.id}`,
+          ...orderedIds.map(
+            (id, index) => sql`when ${id}::text then ${index}::int`,
           ),
-        );
-      });
+          sql`end)`,
+        ],
+        sql` `,
+      );
+
+      await db
+        .update(taskChecklistItems)
+        .set({ position: positionCase })
+        .where(inArray(taskChecklistItems.id, orderedIds));
 
       return { success: true };
     }),
