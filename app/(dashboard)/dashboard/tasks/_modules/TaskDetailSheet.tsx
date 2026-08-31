@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -149,6 +150,7 @@ export function TaskDetailSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const { data: session } = useSession();
+  const confirm = useConfirm();
   const userId = session?.user?.id;
   const role = session?.user?.role;
   const isAdmin = role === "admin" || role === "super_admin";
@@ -1088,8 +1090,14 @@ export function TaskDetailSheet({
               {canDelete && (
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm("Hapus tugas ini? Tindakan ini tidak dapat dibatalkan.")) {
+                  onClick={async () => {
+                    if (
+                      await confirm({
+                        title: "Hapus tugas ini?",
+                        description: "Tindakan ini tidak dapat dibatalkan.",
+                        confirmText: "Hapus Tugas",
+                      })
+                    ) {
                       deleteMutation.mutate({ id: task.id });
                     }
                   }}

@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { ArrowLeft, Loader2, Trash2, Users } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
@@ -24,6 +25,7 @@ import { initials } from "../../../tasks/_modules/helpers";
 
 export function ProjectDetailView({ projectId }: { projectId: string }) {
   const { data: session } = useSession();
+  const confirm = useConfirm();
   const role = session?.user?.role;
   const canManage =
     role === "admin" || role === "super_admin" || role === "operational_manager";
@@ -138,11 +140,14 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
               <button
                 type="button"
                 disabled={deleteMutation.isPending}
-                onClick={() => {
+                onClick={async () => {
                   if (
-                    window.confirm(
-                      `Hapus proyek "${project.name}"? Semua tugas di dalamnya akan ikut terhapus dan tindakan ini tidak dapat dibatalkan.`,
-                    )
+                    await confirm({
+                      title: `Hapus proyek "${project.name}"?`,
+                      description:
+                        "Semua tugas di dalamnya akan ikut terhapus dan tindakan ini tidak dapat dibatalkan.",
+                      confirmText: "Hapus Proyek",
+                    })
                   ) {
                     deleteMutation.mutate({ id: project.id });
                   }

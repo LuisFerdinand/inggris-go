@@ -21,6 +21,7 @@ import toast from "react-hot-toast";
 
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 /* ─────────────────────────────────────────────────────────────
    HELPERS
@@ -422,6 +423,7 @@ function EmptyState({ hasFilter }: { hasFilter: boolean }) {
 
 export function CommentsManager() {
   const utils = trpc.useUtils();
+  const confirm = useConfirm();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<CommentStatus | "">("");
@@ -595,8 +597,15 @@ export function CommentsManager() {
                 Tolak
               </button>
               <button
-                onClick={() => {
-                  if (window.confirm(`Hapus permanen ${selectedIds.size} komentar?`)) {
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      title: `Hapus permanen ${selectedIds.size} komentar?`,
+                      description:
+                        "Komentar yang dipilih akan dihapus permanen dan tidak bisa dikembalikan.",
+                      confirmText: "Hapus Permanen",
+                    })
+                  ) {
                     bulkRemove.mutate({ ids: [...selectedIds] });
                   }
                 }}
@@ -648,8 +657,15 @@ export function CommentsManager() {
                 onToggleSelect={() => toggleSelect(comment.id)}
                 busy={busyId(comment.id)}
                 onSetStatus={(status) => setStatus.mutate({ id: comment.id, status })}
-                onDelete={() => {
-                  if (window.confirm("Hapus komentar ini secara permanen?")) {
+                onDelete={async () => {
+                  if (
+                    await confirm({
+                      title: "Hapus komentar ini secara permanen?",
+                      description:
+                        "Komentar akan dihapus permanen dan tidak bisa dikembalikan.",
+                      confirmText: "Hapus Permanen",
+                    })
+                  ) {
                     remove.mutate({ id: comment.id });
                   }
                 }}

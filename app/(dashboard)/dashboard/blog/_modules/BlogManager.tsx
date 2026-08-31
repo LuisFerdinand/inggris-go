@@ -46,6 +46,7 @@ function timeAgo(date: Date): string {
 
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 import type { PostStatus } from "@/app/modules/blog/blog.schema";
 
@@ -348,6 +349,7 @@ function EmptyState({ hasFilter }: { hasFilter: boolean }) {
 export function BlogManager() {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const confirm = useConfirm();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<PostStatus | "">("");
@@ -598,11 +600,13 @@ export function BlogManager() {
                           onStatusChange={(status) =>
                             setStatus.mutate({ id: p.id, status })
                           }
-                          onDelete={() => {
+                          onDelete={async () => {
                             if (
-                              window.confirm(
-                                `Hapus artikel "${p.title}"? Tindakan ini tidak bisa dibatalkan.`,
-                              )
+                              await confirm({
+                                title: `Hapus artikel "${p.title}"?`,
+                                description: "Tindakan ini tidak bisa dibatalkan.",
+                                confirmText: "Hapus Artikel",
+                              })
                             ) {
                               remove.mutate({ id: p.id });
                             }

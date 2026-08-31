@@ -11,6 +11,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { AuthProvider } from "@/components/AuthProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { TRPCProvider } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { getSiteHeaderSettings } from "@/app/modules/site-header/server/site-header.service";
@@ -204,59 +205,61 @@ export default async function RootLayout({
           <TRPCProvider>
             <NuqsAdapter>
               <TooltipProvider delayDuration={0}>
-                <main>
-                  {children}
+                <ConfirmProvider>
+                  <main>
+                    {children}
 
-                  <Toaster
-                    position="bottom-right"
-                    gutter={10}
-                    toastOptions={{
-                      duration: 4000,
-                      style: {
-                        borderRadius: "16px",
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        padding: "14px 16px",
-                        backdropFilter: "blur(10px)",
-                        boxShadow:
-                          "0 10px 30px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06)",
-                      },
-                      success: {
-                        iconTheme: {
-                          primary: "#1a52c8",
-                          secondary: "#ffffff",
-                        },
+                    <Toaster
+                      position="bottom-right"
+                      gutter={10}
+                      toastOptions={{
+                        duration: 4000,
                         style: {
-                          background: "#f8fbff",
-                          color: "#163b8f",
-                          border: "1px solid #d7e5ff",
+                          borderRadius: "16px",
+                          fontSize: "13px",
+                          fontWeight: 500,
+                          padding: "14px 16px",
+                          backdropFilter: "blur(10px)",
+                          boxShadow:
+                            "0 10px 30px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06)",
                         },
-                      },
-                      error: {
-                        iconTheme: {
-                          primary: "#dc2626",
-                          secondary: "#ffffff",
+                        success: {
+                          iconTheme: {
+                            primary: "#1a52c8",
+                            secondary: "#ffffff",
+                          },
+                          style: {
+                            background: "#f8fbff",
+                            color: "#163b8f",
+                            border: "1px solid #d7e5ff",
+                          },
                         },
-                        style: {
-                          background: "#fff7f7",
-                          color: "#991b1b",
-                          border: "1px solid #ffd5d5",
+                        error: {
+                          iconTheme: {
+                            primary: "#dc2626",
+                            secondary: "#ffffff",
+                          },
+                          style: {
+                            background: "#fff7f7",
+                            color: "#991b1b",
+                            border: "1px solid #ffd5d5",
+                          },
                         },
-                      },
-                      loading: {
-                        iconTheme: {
-                          primary: "#1a52c8",
-                          secondary: "#ffffff",
+                        loading: {
+                          iconTheme: {
+                            primary: "#1a52c8",
+                            secondary: "#ffffff",
+                          },
+                          style: {
+                            background: "#ffffff",
+                            color: "#334155",
+                            border: "1px solid #e2e8f0",
+                          },
                         },
-                        style: {
-                          background: "#ffffff",
-                          color: "#334155",
-                          border: "1px solid #e2e8f0",
-                        },
-                      },
-                    }}
-                  />
-                </main>
+                      }}
+                    />
+                  </main>
+                </ConfirmProvider>
               </TooltipProvider>
             </NuqsAdapter>
           </TRPCProvider>

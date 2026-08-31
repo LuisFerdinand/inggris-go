@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Icon } from "@/components/Icon";
 import type { FilteredCategory } from "@/app/modules/program/server/category.router";
 
@@ -282,6 +283,7 @@ export function CategoriesManager({
   onEdit: (id: string) => void;
 }) {
   const utils = trpc.useUtils();
+  const confirm = useConfirm();
   const { data = [], isLoading } = trpc.categories.getFiltered.useQuery({});
 
   const invalidate = () => utils.categories.getFiltered.invalidate();
@@ -337,11 +339,13 @@ export function CategoriesManager({
                   onMove={(direction) =>
                     move.mutate({ id: category.id, direction })
                   }
-                  onDelete={() => {
+                  onDelete={async () => {
                     if (
-                      window.confirm(
-                        `Hapus kategori "${category.label}"? Tindakan ini tidak bisa dibatalkan.`,
-                      )
+                      await confirm({
+                        title: `Hapus kategori "${category.label}"?`,
+                        description: "Tindakan ini tidak bisa dibatalkan.",
+                        confirmText: "Hapus Kategori",
+                      })
                     ) {
                       remove.mutate({ id: category.id });
                     }

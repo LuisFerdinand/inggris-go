@@ -25,6 +25,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { FilteredProgram } from "@/app/modules/program/server/program.router";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -170,6 +171,7 @@ function SortHeader({
 function ProgramRowActions({ program }: { program: FilteredProgram }) {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const confirm = useConfirm();
 
   const publicUrl = program.category?.slug
     ? `/programs/${program.category.slug}/${program.slug}`
@@ -231,10 +233,12 @@ function ProgramRowActions({ program }: { program: FilteredProgram }) {
     duplicateProgram.mutate({ id: program.id });
   }
 
-  function handleRemove() {
-    const confirmed = window.confirm(
-      `Hapus program "${program.title}"? Tindakan ini tidak bisa dibatalkan.`,
-    );
+  async function handleRemove() {
+    const confirmed = await confirm({
+      title: `Hapus program "${program.title}"?`,
+      description: "Tindakan ini tidak bisa dibatalkan.",
+      confirmText: "Hapus Program",
+    });
 
     if (!confirmed) return;
 

@@ -24,6 +24,7 @@ import toast from "react-hot-toast";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { trpc } from "@/lib/trpc/client";
 import { cn, generateTheme } from "@/lib/utils";
 
@@ -1521,6 +1522,7 @@ export default function CommerceTab({ programId }: { programId: string }) {
   const searchParams = useSearchParams();
   const [drawer, setDrawer] = useState<DrawerState>(null);
   const utils = trpc.useUtils();
+  const confirm = useConfirm();
 
   const detailQuery = trpc.programs.getDetail.useQuery(
     { id: programId },
@@ -1779,11 +1781,14 @@ export default function CommerceTab({ programId }: { programId: string }) {
                           id: batch.id,
                         })
                       }
-                      onDeleteBatch={() => {
+                      onDeleteBatch={async () => {
                         if (
-                          window.confirm(
-                            "Hapus batch ini? Paket di dalamnya juga akan ikut terhapus.",
-                          )
+                          await confirm({
+                            title: "Hapus batch ini?",
+                            description:
+                              "Paket di dalamnya juga akan ikut terhapus.",
+                            confirmText: "Hapus Batch",
+                          })
                         ) {
                           removeBatch.mutate({ id: batch.id });
                         }
@@ -1803,8 +1808,14 @@ export default function CommerceTab({ programId }: { programId: string }) {
                           batchId: batch.id,
                         })
                       }
-                      onDeletePackage={(pkg) => {
-                        if (window.confirm("Hapus paket ini?")) {
+                      onDeletePackage={async (pkg) => {
+                        if (
+                          await confirm({
+                            title: "Hapus paket ini?",
+                            description: "Tindakan ini tidak bisa dibatalkan.",
+                            confirmText: "Hapus Paket",
+                          })
+                        ) {
                           removePackage.mutate({ id: pkg.id });
                         }
                       }}
@@ -1843,8 +1854,14 @@ export default function CommerceTab({ programId }: { programId: string }) {
                         batchId: null,
                       })
                     }
-                    onDelete={() => {
-                      if (window.confirm("Hapus paket ini?")) {
+                    onDelete={async () => {
+                      if (
+                        await confirm({
+                          title: "Hapus paket ini?",
+                          description: "Tindakan ini tidak bisa dibatalkan.",
+                          confirmText: "Hapus Paket",
+                        })
+                      ) {
                         removePackage.mutate({ id: pkg.id });
                       }
                     }}

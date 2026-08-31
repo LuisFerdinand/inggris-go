@@ -33,6 +33,7 @@ import {
 
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import {
   postInsertSchema,
   COVER_IMAGE_HEIGHT_MIN,
@@ -775,6 +776,7 @@ function CoverImageLayoutSelector({
 export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps) {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const confirm = useConfirm();
 
   const {
     register,
@@ -1003,11 +1005,13 @@ export function BlogPostForm({ mode, postId, defaultValues }: BlogPostFormProps)
             {mode === "edit" && postId && (
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (
-                    window.confirm(
-                      "Hapus artikel ini? Tindakan ini tidak bisa dibatalkan.",
-                    )
+                    await confirm({
+                      title: "Hapus artikel ini?",
+                      description: "Tindakan ini tidak bisa dibatalkan.",
+                      confirmText: "Hapus Artikel",
+                    })
                   ) {
                     remove.mutate({ id: postId });
                   }

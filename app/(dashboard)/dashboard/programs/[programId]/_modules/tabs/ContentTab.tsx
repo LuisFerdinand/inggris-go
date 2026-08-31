@@ -42,6 +42,7 @@ import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { trpc } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
@@ -208,6 +209,7 @@ function SectionRow({
   onChangeContent: (c: unknown) => void;
   onGoCommerce: () => void;
 }) {
+  const confirm = useConfirm();
   const meta = getSectionMeta(section.type);
   const Icon = meta.icon;
   const hidden = section.visible === false;
@@ -286,8 +288,16 @@ function SectionRow({
           <IconBtn
             danger
             title="Hapus"
-            onClick={() => {
-              if (confirm(`Hapus section "${meta.label}"?`)) onRemove();
+            onClick={async () => {
+              if (
+                await confirm({
+                  title: `Hapus section "${meta.label}"?`,
+                  description: "Section ini akan dihapus dari halaman program.",
+                  confirmText: "Hapus Section",
+                })
+              ) {
+                onRemove();
+              }
             }}
           >
             <Trash2 className="size-3.5" />
