@@ -19,6 +19,7 @@ import { paymentSettingsRouter } from "@/app/modules/payment-settings/server/pay
 import { merchantRouter } from "@/app/modules/merchant/server/merchant.router";
 import { dailyReportRouter } from "@/app/modules/daily-reports/server/daily-report.router";
 import { notificationRouter } from "@/app/modules/notifications/server/notification.router";
+import { analyticsRouter } from "@/app/modules/analytics/server/analytics.router";
 
 export const appRouter = createTRPCRouter({
   users: userRouter,
@@ -40,6 +41,7 @@ export const appRouter = createTRPCRouter({
   merchant: merchantRouter,
   dailyReports: dailyReportRouter,
   notifications: notificationRouter,
+  analytics: analyticsRouter,
 });
 
 export type AppRouter = typeof appRouter;

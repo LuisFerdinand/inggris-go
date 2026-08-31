@@ -110,6 +110,31 @@ const SCHEDULE_CONFIG: Record<
   scheduled: { label: "Terjadwal", Icon: CalendarClock },
 };
 
+function getSetupProgressColor(progress: number) {
+  if (progress >= 80) return "bg-emerald-500";
+  if (progress >= 50) return "bg-amber-400";
+  return "bg-red-400";
+}
+
+function SetupProgressCell({ progress }: { progress: number }) {
+  return (
+    <div className="flex min-w-[84px] flex-col gap-1">
+      <span className="text-[11px] font-semibold tabular-nums text-neutral-600">
+        {progress}%
+      </span>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+        <div
+          className={cn(
+            "h-full rounded-full transition-all",
+            getSetupProgressColor(progress),
+          )}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SortHeader({
@@ -430,6 +455,15 @@ export function getProgramColumns(): ColumnDef<FilteredProgram>[] {
           (order[b.original.status as keyof typeof order] ?? 9)
         );
       },
+    },
+
+    // ── Setup progress ──
+    {
+      accessorKey: "setupProgress",
+      header: ({ column }) => <SortHeader column={column} label="Progress" />,
+      cell: ({ row }) => (
+        <SetupProgressCell progress={row.original.setupProgress} />
+      ),
     },
 
     // ── Batches ──

@@ -57,6 +57,28 @@ import {
 
 const USER_COLUMNS = { id: true, name: true, email: true, image: true } as const;
 
+/**
+ * Recompute a task's `progress` (0-100) purely from its checklist: the
+ * share of items marked done. A task with no checklist items is 0%.
+ * Called after any checklist add/toggle/delete so the stored value the
+ * board card and detail sheet render stays in sync automatically.
+ */
+async function syncTaskProgressFromChecklist(taskId: string) {
+  const [row] = await db
+    .select({
+      total: sql<number>`count(*)`.mapWith(Number),
+      done: sql<number>`count(*) filter (where ${taskChecklistItems.done})`.mapWith(Number),
+    })
+    .from(taskChecklistItems)
+    .where(eq(taskChecklistItems.taskId, taskId));
+
+  const total = row?.total ?? 0;
+  const done = row?.done ?? 0;
+  const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  await db.update(tasks).set({ progress }).where(eq(tasks.id, taskId));
+}
+
 export const taskBoardRouter = createTRPCRouter({
   list: protectedProcedure.input(listTasksInput).query(async ({ ctx, input }) => {
     requireTaskBoardAccess(ctx.auth.userId, ctx.auth.role);
@@ -91,10 +113,27 @@ export const taskBoardRouter = createTRPCRouter({
 
     const commentCountMap = new Map(commentCounts.map((row) => [row.taskId, row.count]));
 
-    return rows.map((row) => ({
-      ...row,
-      commentCount: commentCountMap.get(row.id) ?? 0,
-    }));
+    const checklistCounts = await db
+      .select({
+        taskId: taskChecklistItems.taskId,
+        total: sql<number>`count(*)`.mapWith(Number),
+        done: sql<number>`count(*) filter (where ${taskChecklistItems.done})`.mapWith(Number),
+      })
+      .from(taskChecklistItems)
+      .where(inArray(taskChecklistItems.taskId, taskIds))
+      .groupBy(taskChecklistItems.taskId);
+
+    const checklistCountMap = new Map(checklistCounts.map((row) => [row.taskId, row]));
+
+    return rows.map((row) => {
+      const checklist = checklistCountMap.get(row.id);
+      return {
+        ...row,
+        commentCount: commentCountMap.get(row.id) ?? 0,
+        checklistTotal: checklist?.total ?? 0,
+        checklistDone: checklist?.done ?? 0,
+      };
+    });
   }),
 
   getById: protectedProcedure
@@ -716,6 +755,8 @@ export const taskBoardRouter = createTRPCRouter({
         position: (maxPositionRow?.max ?? -1) + 1,
       });
 
+      await syncTaskProgressFromChecklist(input.taskId);
+
       return db.query.taskChecklistItems.findFirst({
         where: eq(taskChecklistItems.id, id),
       });
@@ -740,6 +781,8 @@ export const taskBoardRouter = createTRPCRouter({
         .where(eq(taskChecklistItems.id, input.id))
         .returning();
 
+      await syncTaskProgressFromChecklist(item.taskId);
+
       return row;
     }),
 
@@ -757,6 +800,8 @@ export const taskBoardRouter = createTRPCRouter({
       await assertTaskOwnerAccess(item.taskId, ctx.auth.userId, ctx.auth.role);
 
       await db.delete(taskChecklistItems).where(eq(taskChecklistItems.id, input.id));
+
+      await syncTaskProgressFromChecklist(item.taskId);
 
       return { success: true };
     }),

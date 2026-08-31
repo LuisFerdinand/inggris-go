@@ -152,6 +152,7 @@ const COLUMN_LABELS: Record<string, string> = {
   "category.label": "Kategori",
   details: "Detail",
   status: "Status",
+  setupProgress: "Progress",
   batchCount: "Batch",
   packageCount: "Paket",
   startingPrice: "Harga",

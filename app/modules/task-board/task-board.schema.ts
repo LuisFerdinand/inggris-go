@@ -39,7 +39,6 @@ export const updateTaskInput = z.object({
   dueDate: z.coerce.date().nullable().optional(),
   coverImageUrl: z.string().url().nullable().optional(),
   link: z.preprocess(emptyToNull, z.string().trim().url("Link harus berupa URL yang valid").nullable().optional()),
-  progress: z.number().int().min(0).max(100).optional(),
 });
 
 export const moveTaskInput = z.object({

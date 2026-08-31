@@ -40,6 +40,23 @@ function TaskCardBody({ task }: { task: BoardTask }) {
         {task.title}
       </p>
 
+      {task.checklistTotal > 0 && (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-400">
+            <span>Progres</span>
+            <span>
+              {task.progress}% · {task.checklistDone}/{task.checklistTotal}
+            </span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className="h-full rounded-full bg-indigo-500 transition-all"
+              style={{ width: `${task.progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-1.5">
         <TaskPriorityBadge priority={task.priority} />
         {dueLabel && (

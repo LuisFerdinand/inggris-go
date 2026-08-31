@@ -187,7 +187,6 @@ export function TaskDetailSheet({
   const [showFixForm, setShowFixForm] = useState(false);
   const [commentBody, setCommentBody] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState<string[]>([]);
-  const [progress, setProgress] = useState(0);
   const [newChecklistText, setNewChecklistText] = useState("");
   const [checklistItems, setChecklistItems] = useState<NonNullable<typeof task>["checklistItems"]>([]);
   const [syncedChecklist, setSyncedChecklist] = useState<NonNullable<typeof task>["checklistItems"] | undefined>(
@@ -223,7 +222,6 @@ export function TaskDetailSheet({
     setFixNote("");
     setCommentBody("");
     setPendingAttachments([]);
-    setProgress(task.progress);
     setNewChecklistText("");
   }, [task]);
 
@@ -437,13 +435,11 @@ export function TaskDetailSheet({
     });
   }
 
-  function commitProgress() {
-    if (!task) return;
-    const clamped = Math.min(100, Math.max(0, Math.round(progress)));
-    setProgress(clamped);
-    if (clamped === task.progress) return;
-    updateMutation.mutate({ id: task.id, progress: clamped });
-  }
+  const checklistDoneCount = checklistItems.filter((i) => i.done).length;
+  const checklistProgress =
+    checklistItems.length > 0
+      ? Math.round((checklistDoneCount / checklistItems.length) * 100)
+      : 0;
 
   function submitChecklistItem() {
     if (!task) return;
@@ -908,32 +904,25 @@ export function TaskDetailSheet({
                 {task.verifier ? ` · Diverifikasi oleh ${task.verifier.name}` : ""}
               </p>
 
-              {/* Progress */}
+              {/* Progress — auto-calculated from checklist completion */}
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className={cn(fieldLabelClass, "mb-0")}>Progres</label>
-                  <span className="text-[11.5px] font-bold text-slate-500">{progress}%</span>
+                  <span className="text-[11.5px] font-bold text-slate-500">
+                    {checklistProgress}%
+                  </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
                   <div
                     className="h-full rounded-full bg-indigo-500 transition-all"
-                    style={{ width: `${progress}%` }}
+                    style={{ width: `${checklistProgress}%` }}
                   />
                 </div>
-                {canEdit && (
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={progress}
-                    onChange={(e) => setProgress(Number(e.target.value))}
-                    onMouseUp={commitProgress}
-                    onTouchEnd={commitProgress}
-                    onBlur={commitProgress}
-                    className="mt-2 w-full accent-indigo-600"
-                  />
-                )}
+                <p className="mt-1.5 text-[10.5px] text-slate-400">
+                  {checklistItems.length > 0
+                    ? `Terisi otomatis dari checklist — ${checklistDoneCount}/${checklistItems.length} selesai.`
+                    : "Terisi otomatis dari checklist. Tambahkan item checklist di bawah."}
+                </p>
               </div>
 
               {/* Checklist */}

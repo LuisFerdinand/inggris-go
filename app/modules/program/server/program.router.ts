@@ -57,6 +57,7 @@ export type FilteredProgram = {
   category: { id: string; label: string; slug: string } | null;
   batchCount: number;
   packageCount: number;
+  setupProgress: number;
 };
 
 export type DetailData = Awaited<ReturnType<typeof buildDetail>>;
@@ -703,26 +704,48 @@ export const programRouter = createTRPCRouter({
             select count(*) from ${programPackages}
             where ${programPackages.programId} = ${programs.id}
           )`.mapWith(Number),
+
+          sections: programContent.sections,
         })
         .from(programs)
         .leftJoin(
           programCategories,
           eq(programs.categoryId, programCategories.id),
         )
+        .leftJoin(programContent, eq(programContent.programId, programs.id))
         .where(conditions.length ? and(...conditions) : undefined)
         .orderBy(desc(programs.createdAt));
 
-      return rows.map(({ categoryId, categoryLabel, categorySlug, ...row }) => ({
-        ...row,
-        category:
-          categoryId && categoryLabel && categorySlug
-            ? {
-                id: categoryId,
-                label: categoryLabel,
-                slug: categorySlug,
-              }
-            : null,
-      }));
+      return rows.map(
+        ({ categoryId, categoryLabel, categorySlug, sections, ...row }) => {
+          const hasThumbnail = !!row.thumbnailUrl;
+          const hasPackages = row.packageCount > 0;
+          const hasBatches = row.batchCount > 0;
+          const hasActiveContent = visibleSectionsCount(sections) > 0;
+
+          const checks =
+            row.scheduleType === "scheduled"
+              ? [hasThumbnail, hasPackages, hasBatches, hasActiveContent]
+              : [hasThumbnail, hasPackages, hasActiveContent];
+
+          const setupProgress = Math.round(
+            (checks.filter(Boolean).length / checks.length) * 100,
+          );
+
+          return {
+            ...row,
+            setupProgress,
+            category:
+              categoryId && categoryLabel && categorySlug
+                ? {
+                    id: categoryId,
+                    label: categoryLabel,
+                    slug: categorySlug,
+                  }
+                : null,
+          };
+        },
+      );
     }),
 
   /* ────────────────────────────────────────────────────────
