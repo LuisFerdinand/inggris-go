@@ -58,13 +58,26 @@ import {
 const USER_COLUMNS = { id: true, name: true, email: true, image: true } as const;
 
 /**
- * Recompute a task's `progress` (0-100) purely from its checklist: the
- * share of items marked done. A task with no checklist items is 0%.
- * Called after any checklist add/toggle/delete so the stored value the
- * board card and detail sheet render stays in sync automatically.
+ * Recompute a task's `progress` (0-100) from its checklist — the share of
+ * items marked done — and auto-advance its board column to match:
+ *
+ *   - checklist reaches 100%  ->  an in-flight task ("direncanakan" or
+ *     "in_progress") moves to "review" (Menunggu Review).
+ *   - checklist drops below 100%  ->  a "review" task falls back to
+ *     "in_progress" (e.g. a new checklist item was just added).
+ *
+ * Every other status (pending_review, needs_fixing, done, rejected, the
+ * director-approval tiers) is left alone — those transitions are
+ * deliberate manual decisions. Called after any checklist add/toggle/delete.
  */
-async function syncTaskProgressFromChecklist(taskId: string) {
-  const [row] = await db
+async function syncTaskFromChecklist(taskId: string) {
+  const task = await db.query.tasks.findFirst({
+    where: eq(tasks.id, taskId),
+    columns: { id: true, status: true, progress: true },
+  });
+  if (!task) return;
+
+  const [counts] = await db
     .select({
       total: sql<number>`count(*)`.mapWith(Number),
       done: sql<number>`count(*) filter (where ${taskChecklistItems.done})`.mapWith(Number),
@@ -72,11 +85,32 @@ async function syncTaskProgressFromChecklist(taskId: string) {
     .from(taskChecklistItems)
     .where(eq(taskChecklistItems.taskId, taskId));
 
-  const total = row?.total ?? 0;
-  const done = row?.done ?? 0;
+  const total = counts?.total ?? 0;
+  const done = counts?.done ?? 0;
   const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+  const complete = total > 0 && done === total;
 
-  await db.update(tasks).set({ progress }).where(eq(tasks.id, taskId));
+  const updates: Partial<typeof tasks.$inferInsert> = { progress };
+
+  if (complete && (task.status === "direncanakan" || task.status === "in_progress")) {
+    updates.status = "review";
+  } else if (!complete && task.status === "review") {
+    updates.status = "in_progress";
+  }
+
+  if (updates.status) {
+    // Append to the end of the destination column so the task doesn't
+    // jump ahead of everything already queued there.
+    const [maxRow] = await db
+      .select({
+        max: sql<number>`coalesce(max(${tasks.position}), -1)`.mapWith(Number),
+      })
+      .from(tasks)
+      .where(eq(tasks.status, updates.status));
+    updates.position = (maxRow?.max ?? -1) + 1;
+  }
+
+  await db.update(tasks).set(updates).where(eq(tasks.id, taskId));
 }
 
 export const taskBoardRouter = createTRPCRouter({
@@ -755,7 +789,7 @@ export const taskBoardRouter = createTRPCRouter({
         position: (maxPositionRow?.max ?? -1) + 1,
       });
 
-      await syncTaskProgressFromChecklist(input.taskId);
+      await syncTaskFromChecklist(input.taskId);
 
       return db.query.taskChecklistItems.findFirst({
         where: eq(taskChecklistItems.id, id),
@@ -781,7 +815,7 @@ export const taskBoardRouter = createTRPCRouter({
         .where(eq(taskChecklistItems.id, input.id))
         .returning();
 
-      await syncTaskProgressFromChecklist(item.taskId);
+      await syncTaskFromChecklist(item.taskId);
 
       return row;
     }),
@@ -801,7 +835,7 @@ export const taskBoardRouter = createTRPCRouter({
 
       await db.delete(taskChecklistItems).where(eq(taskChecklistItems.id, input.id));
 
-      await syncTaskProgressFromChecklist(item.taskId);
+      await syncTaskFromChecklist(item.taskId);
 
       return { success: true };
     }),
