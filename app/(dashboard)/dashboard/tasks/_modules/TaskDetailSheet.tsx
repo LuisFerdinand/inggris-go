@@ -90,9 +90,15 @@ function SortableChecklistItem({
   onToggle: (done: boolean) => void;
   onDelete: () => void;
 }) {
+  // A "temp-" id is an optimistic row not yet persisted — let it render
+  // (so the list doesn't jump) but don't let it be toggled/dragged/deleted
+  // until the server hands back a real id.
+  const isPending = item.id.startsWith("temp-");
+  const interactive = canEdit && !isPending;
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
-    disabled: !canEdit,
+    disabled: !interactive,
   });
 
   return (
@@ -102,6 +108,7 @@ function SortableChecklistItem({
       className={cn(
         "flex items-center gap-2 rounded-lg border border-slate-100 bg-white px-2.5 py-1.5",
         isDragging && "z-10 shadow-md",
+        isPending && "opacity-60",
       )}
     >
       {canEdit && (
@@ -109,31 +116,42 @@ function SortableChecklistItem({
           type="button"
           {...attributes}
           {...listeners}
-          className="cursor-grab touch-none text-slate-300 hover:text-slate-400 active:cursor-grabbing"
+          disabled={!interactive}
+          className="cursor-grab touch-none text-slate-300 hover:text-slate-400 active:cursor-grabbing disabled:cursor-default"
+          aria-label="Ubah urutan"
         >
           <GripVertical className="size-3.5" />
         </button>
       )}
-      <input
-        type="checkbox"
-        checked={item.done}
-        disabled={!canEdit}
-        onChange={(e) => onToggle(e.target.checked)}
-        className="size-3.5 accent-indigo-600"
-      />
-      <span
+      <label
         className={cn(
-          "flex-1 text-[12.5px] text-slate-600",
-          item.done && "text-slate-400 line-through",
+          "flex flex-1 items-center gap-2",
+          interactive ? "cursor-pointer" : "cursor-default",
         )}
       >
-        {item.text}
-      </span>
+        <input
+          type="checkbox"
+          checked={item.done}
+          disabled={!interactive}
+          onChange={(e) => onToggle(e.target.checked)}
+          className="size-3.5 shrink-0 accent-indigo-600"
+        />
+        <span
+          className={cn(
+            "flex-1 text-[12.5px] text-slate-600",
+            item.done && "text-slate-400 line-through",
+          )}
+        >
+          {item.text}
+        </span>
+      </label>
       {canEdit && (
         <button
           type="button"
           onClick={onDelete}
-          className="text-slate-300 hover:text-red-500"
+          disabled={!interactive}
+          className="text-slate-300 hover:text-red-500 disabled:opacity-40 disabled:hover:text-slate-300"
+          aria-label="Hapus item"
         >
           <Trash2 className="size-3.5" />
         </button>
@@ -231,6 +249,32 @@ export function TaskDetailSheet({
     utils.taskBoard.list.invalidate();
     utils.taskBoard.badgeCounts.invalidate();
     if (taskId) utils.taskBoard.getById.invalidate({ id: taskId });
+  }
+
+  type ChecklistItem = NonNullable<typeof task>["checklistItems"][number];
+
+  /**
+   * Optimistically patch the open task's checklist in the query cache so
+   * the UI reacts instantly — the round-trip to persist + recompute
+   * progress/column happens in the background. Returns the pre-patch
+   * snapshot for rollback on error.
+   */
+  async function patchChecklistCache(
+    updater: (items: ChecklistItem[]) => ChecklistItem[],
+  ) {
+    if (!taskId) return { previous: undefined };
+    await utils.taskBoard.getById.cancel({ id: taskId });
+    const previous = utils.taskBoard.getById.getData({ id: taskId });
+    utils.taskBoard.getById.setData({ id: taskId }, (old) =>
+      old ? { ...old, checklistItems: updater(old.checklistItems) } : old,
+    );
+    return { previous };
+  }
+
+  function rollbackChecklistCache(previous: typeof task | undefined) {
+    if (previous && taskId) {
+      utils.taskBoard.getById.setData({ id: taskId }, previous);
+    }
   }
 
   const updateMutation = trpc.taskBoard.update.useMutation({
@@ -331,21 +375,47 @@ export function TaskDetailSheet({
   });
 
   const addChecklistItemMutation = trpc.taskBoard.addChecklistItem.useMutation({
-    onSuccess: () => {
-      invalidateAll();
+    onMutate: ({ text }) => {
       setNewChecklistText("");
+      return patchChecklistCache((items) => [
+        ...items,
+        {
+          id: `temp-${Date.now()}`,
+          taskId: taskId ?? "",
+          text,
+          done: false,
+          position: items.length,
+          createdAt: new Date(),
+        },
+      ]);
     },
-    onError: (err) => toast.error(err.message || "Gagal menambah item checklist"),
+    onError: (err, _vars, ctx) => {
+      toast.error(err.message || "Gagal menambah item checklist");
+      rollbackChecklistCache(ctx?.previous);
+    },
+    onSettled: () => invalidateAll(),
   });
 
   const toggleChecklistItemMutation = trpc.taskBoard.toggleChecklistItem.useMutation({
-    onSuccess: () => invalidateAll(),
-    onError: (err) => toast.error(err.message || "Gagal memperbarui item checklist"),
+    onMutate: ({ id, done }) =>
+      patchChecklistCache((items) =>
+        items.map((item) => (item.id === id ? { ...item, done } : item)),
+      ),
+    onError: (err, _vars, ctx) => {
+      toast.error(err.message || "Gagal memperbarui item checklist");
+      rollbackChecklistCache(ctx?.previous);
+    },
+    onSettled: () => invalidateAll(),
   });
 
   const deleteChecklistItemMutation = trpc.taskBoard.deleteChecklistItem.useMutation({
-    onSuccess: () => invalidateAll(),
-    onError: (err) => toast.error(err.message || "Gagal menghapus item checklist"),
+    onMutate: ({ id }) =>
+      patchChecklistCache((items) => items.filter((item) => item.id !== id)),
+    onError: (err, _vars, ctx) => {
+      toast.error(err.message || "Gagal menghapus item checklist");
+      rollbackChecklistCache(ctx?.previous);
+    },
+    onSettled: () => invalidateAll(),
   });
 
   const reorderChecklistItemsMutation = trpc.taskBoard.reorderChecklistItems.useMutation({

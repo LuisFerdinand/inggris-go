@@ -71,46 +71,56 @@ const USER_COLUMNS = { id: true, name: true, email: true, image: true } as const
  * deliberate manual decisions. Called after any checklist add/toggle/delete.
  */
 async function syncTaskFromChecklist(taskId: string) {
-  const task = await db.query.tasks.findFirst({
-    where: eq(tasks.id, taskId),
-    columns: { id: true, status: true, progress: true },
-  });
-  if (!task) return;
-
-  const [counts] = await db
+  // One round-trip: current status/progress + checklist tallies. Keeping
+  // this lean matters — it runs after every checklist keystroke and the
+  // DB is reached over HTTP (each query is a separate request).
+  const [row] = await db
     .select({
-      total: sql<number>`count(*)`.mapWith(Number),
-      done: sql<number>`count(*) filter (where ${taskChecklistItems.done})`.mapWith(Number),
+      status: tasks.status,
+      progress: tasks.progress,
+      total: sql<number>`count(${taskChecklistItems.id})`.mapWith(Number),
+      done: sql<number>`count(${taskChecklistItems.id}) filter (where ${taskChecklistItems.done})`.mapWith(Number),
     })
-    .from(taskChecklistItems)
-    .where(eq(taskChecklistItems.taskId, taskId));
+    .from(tasks)
+    .leftJoin(taskChecklistItems, eq(taskChecklistItems.taskId, tasks.id))
+    .where(eq(tasks.id, taskId))
+    .groupBy(tasks.id);
 
-  const total = counts?.total ?? 0;
-  const done = counts?.done ?? 0;
-  const progress = total > 0 ? Math.round((done / total) * 100) : 0;
-  const complete = total > 0 && done === total;
+  if (!row) return;
 
-  const updates: Partial<typeof tasks.$inferInsert> = { progress };
+  const progress = row.total > 0 ? Math.round((row.done / row.total) * 100) : 0;
+  const complete = row.total > 0 && row.done === row.total;
 
-  if (complete && (task.status === "direncanakan" || task.status === "in_progress")) {
-    updates.status = "review";
-  } else if (!complete && task.status === "review") {
-    updates.status = "in_progress";
+  let nextStatus = row.status;
+  if (complete && (row.status === "direncanakan" || row.status === "in_progress")) {
+    nextStatus = "review";
+  } else if (!complete && row.status === "review") {
+    nextStatus = "in_progress";
   }
 
-  if (updates.status) {
-    // Append to the end of the destination column so the task doesn't
-    // jump ahead of everything already queued there.
-    const [maxRow] = await db
-      .select({
-        max: sql<number>`coalesce(max(${tasks.position}), -1)`.mapWith(Number),
-      })
-      .from(tasks)
-      .where(eq(tasks.status, updates.status));
-    updates.position = (maxRow?.max ?? -1) + 1;
+  const statusChanged = nextStatus !== row.status;
+
+  // Nothing moved — skip the write entirely.
+  if (!statusChanged && progress === row.progress) return;
+
+  if (!statusChanged) {
+    await db.update(tasks).set({ progress }).where(eq(tasks.id, taskId));
+    return;
   }
 
-  await db.update(tasks).set(updates).where(eq(tasks.id, taskId));
+  // Column changed: append to the end of the destination column so the
+  // task doesn't jump ahead of everything already queued there.
+  const [maxRow] = await db
+    .select({
+      max: sql<number>`coalesce(max(${tasks.position}), -1)`.mapWith(Number),
+    })
+    .from(tasks)
+    .where(eq(tasks.status, nextStatus));
+
+  await db
+    .update(tasks)
+    .set({ progress, status: nextStatus, position: (maxRow?.max ?? -1) + 1 })
+    .where(eq(tasks.id, taskId));
 }
 
 export const taskBoardRouter = createTRPCRouter({
