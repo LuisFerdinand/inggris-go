@@ -8,6 +8,7 @@
 //   components/sections/home/CTASection.tsx
 //
 // Used both as the service-level merge fallback and as the seed payload.
+import { DEFAULT_PROGRAM_SHOWCASE } from "./program-showcase.templates";
 
 import type {
   AboutPageSettingsInsert,
@@ -15,6 +16,9 @@ import type {
   HomePageSettingsInsert,
   SiteCtaSettingsInsert,
 } from "@/app/db/schema/site-content";
+import type {
+  ProgramShowcase,
+} from "./site-content.types";
 
 /* =========================================================
    HOME
@@ -179,6 +183,8 @@ export const DEFAULT_HOME = {
       gradientKey: "navy",
     },
   ],
+
+  programShowcase: DEFAULT_PROGRAM_SHOWCASE as ProgramShowcase,
 
   isActive: true as boolean,
 } satisfies HomePageSettingsInsert;
@@ -406,7 +412,9 @@ export const DEFAULT_CONTACT = {
       a: "Kami percaya diri dengan kualitas program kami. Jika setelah sesi pertama kamu merasa tidak cocok, kami akan refund penuh tanpa pertanyaan. Kepuasan pelajar adalah prioritas utama kami.",
     },
   ],
-  faqSeeAllHref: "/faq",
+  // No public /faq page exists; the "Lihat semua FAQ" link only shows when an
+  // admin fills this in via the CMS.
+  faqSeeAllHref: "",
   sidebarCtaTitle: "Mau langsung mulai belajar?",
   sidebarCtaText:
     "Lihat program speaking dan English camp yang sudah diikuti lebih dari 1.200 pelajar.",

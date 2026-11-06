@@ -21,6 +21,7 @@ import {
   updateContactInput,
   updateCtaInput,
   updateHomeInput,
+  updateProgramShowcaseInput,
 } from "../site-content.schema";
 import type { Role } from "@/app/db/schema/roles";
 import type { TeamMember, TeamMemberOverrideMap } from "../site-content.types";
@@ -355,6 +356,29 @@ export const siteContentRouter = createTRPCRouter({
         .insert(homePageSettings)
         .values(values)
         .onConflictDoUpdate({ target: homePageSettings.id, set: values })
+        .returning();
+
+      safeRevalidate("/");
+      return row;
+    }),
+
+  updateProgramShowcase: protectedProcedure
+    .input(updateProgramShowcaseInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertCanManageSiteContent(ctx);
+
+      // Only this column is written, so the rest of the Beranda CMS is untouched.
+      const [row] = await db
+        .insert(homePageSettings)
+        .values({
+          id: SITE_CONTENT_ID,
+          programShowcase: input,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: homePageSettings.id,
+          set: { programShowcase: input, updatedAt: new Date() },
+        })
         .returning();
 
       safeRevalidate("/");

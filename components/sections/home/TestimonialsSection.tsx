@@ -1,6 +1,14 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   motion,
   useInView,
@@ -10,92 +18,74 @@ import {
   useTransform,
 } from "framer-motion";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
+import { trpc } from "@/lib/trpc/client";
+import type { HomeCatalog } from "@/app/modules/program/home-catalog.types";
 
 const EASE = [0.32, 0.72, 0, 1] as const;
 const EASE_OUT = [0.32, 0, 0.68, 0] as const;
 const AUTO_DELAY = 4800;
 
-/* ── Data ──────────────────────────────────────────────────────────── */
-const testimonials = [
-  {
-    initials: "RA",
-    name: "Rina Amelia",
-    role: "Mahasiswa",
-    location: "Jakarta",
-    program: "Speaking Challenge",
-    programColor: "#FF6B35",
-    programBg: "rgba(255,107,53,0.1)",
-    avatarBg: "#FF6B35",
-    rating: 5,
-    quote:
-      "Sebelumnya saya sangat takut speaking, tapi setelah ikut Speaking Challenge di Inggris Go, sekarang saya sudah berani ngobrol pakai bahasa Inggris! Metodenya praktis dan tutornya sabar banget.",
-  },
-  {
-    initials: "BH",
-    name: "Budi Hartono",
-    role: "Orang Tua",
-    location: "Surabaya",
-    program: "VIP English Camp",
-    programColor: "#2DB8B0",
-    programBg: "rgba(45,184,176,0.1)",
-    avatarBg: "#2DB8B0",
-    rating: 5,
-    quote:
-      "Anak saya ikut VIP English Camp dan pulang dengan perubahan luar biasa! Sekarang dia lebih percaya diri dan suka belajar bahasa Inggris. Terima kasih Inggris Go!",
-  },
-  {
-    initials: "SW",
-    name: "Sri Wahyuni, S.Pd",
-    role: "Kepala Sekolah SMP",
-    location: "Bandung",
-    program: "School Camp",
-    programColor: "#7C3AED",
-    programBg: "rgba(124,58,237,0.1)",
-    avatarBg: "#7C3AED",
-    rating: 5,
-    quote:
-      "Kami sudah bekerja sama dengan Inggris Go untuk English Camp sekolah kami 2 tahun berturut-turut. Programnya terstruktur dan siswa-siswa sangat antusias belajar di Pare!",
-  },
-  {
-    initials: "DK",
-    name: "Dian Kusuma",
-    role: "Profesional",
-    location: "Bandung",
-    program: "GoPrivate",
-    programColor: "#E8521C",
-    programBg: "rgba(232,82,28,0.1)",
-    avatarBg: "#E8521C",
-    rating: 5,
-    quote:
-      "GoPrivate benar-benar mengubah cara saya belajar. Tutor memahami kelemahan saya dan memberikan latihan yang tepat. Dalam 2 bulan, speaking saya meningkat drastis!",
-  },
-  {
-    initials: "AP",
-    name: "Anisa Putri",
-    role: "Ibu Rumah Tangga",
-    location: "Yogyakarta",
-    program: "Speaking Challenge",
-    programColor: "#10B981",
-    programBg: "rgba(16,185,129,0.1)",
-    avatarBg: "#10B981",
-    rating: 5,
-    quote:
-      "Awalnya ragu karena sudah lama tidak belajar bahasa Inggris. Tapi sistem challenge mingguan bikin saya tetap semangat. Sekarang saya tidak malu lagi kalau salah ngomong!",
-  },
-  {
-    initials: "AF",
-    name: "Ahmad Fauzi, M.Pd",
-    role: "Guru Bahasa Inggris",
-    location: "Semarang",
-    program: "School Camp",
-    programColor: "#F59E0B",
-    programBg: "rgba(245,158,11,0.1)",
-    avatarBg: "#F59E0B",
-    rating: 5,
-    quote:
-      "Program School Camp dari Inggris Go jauh melebihi ekspektasi. Siswa-siswa kami kembali dengan semangat belajar yang baru dan kepercayaan diri yang meningkat signifikan.",
-  },
-];
+/* ── Data ──────────────────────────────────────────────────────────────
+ * Testimonials are NOT typed here: they come from the "Testimoni" section of
+ * each program (Dashboard → Program → Konten), so the names and texts are
+ * edited in the program CMS and the Beranda follows.
+ * ──────────────────────────────────────────────────────────────────────── */
+type TestimonialItem = {
+  initials: string;
+  name: string;
+  role: string;
+  location: string;
+  program: string;
+  programColor: string;
+  programBg: string;
+  avatarBg: string;
+  rating: number;
+  quote: string;
+};
+
+const TestimonialsContext = createContext<TestimonialItem[]>([]);
+
+const PALETTE = ["#2DB8B0", "#FF6B35", "#7C3AED", "#F59E0B", "#10B981", "#E8521C"];
+
+function toRgba(hex: string, alpha: number) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}
+
+function initialsOf(name: string) {
+  const words = name
+    .replace(/^(ibu|bu|bapak|pak)s+/i, "")
+    .split(/s+/)
+    .filter(Boolean);
+  return (words[0]?.[0] ?? "?").concat(words[1]?.[0] ?? "").toUpperCase();
+}
+
+/** Programs' testimonials, interleaved so neighbours come from different programs. */
+function buildItems(catalog: HomeCatalog | undefined): TestimonialItem[] {
+  const groups = (catalog?.programs ?? []).filter((p) => p.testimonials.length > 0);
+  const out: TestimonialItem[] = [];
+  const longest = Math.max(0, ...groups.map((g) => g.testimonials.length));
+  for (let i = 0; i < longest; i++) {
+    groups.forEach((program, gi) => {
+      const t = program.testimonials[i];
+      if (!t) return;
+      const color = PALETTE[gi % PALETTE.length];
+      out.push({
+        initials: initialsOf(t.name),
+        name: t.name,
+        role: t.role,
+        location: t.meta,
+        program: program.title,
+        programColor: color,
+        programBg: toRgba(color, 0.1),
+        avatarBg: color,
+        rating: 5,
+        quote: t.quote,
+      });
+    });
+  }
+  return out;
+}
 
 /* ── Helpers ───────────────────────────────────────────────────────── */
 function mod(n: number, m: number) {
@@ -133,7 +123,7 @@ function QuoteMark({ color }: { color: string }) {
 
 /* ── Card ──────────────────────────────────────────────────────────── */
 interface CardProps {
-  t: (typeof testimonials)[0];
+  t: TestimonialItem;
   position: "center" | "side";
   onClick?: () => void;
 }
@@ -221,7 +211,7 @@ function TestimonialCard({ t, position, onClick }: CardProps) {
             {t.name}
           </p>
           <p style={{ fontSize: "0.75rem", color: "#94A3B8" }}>
-            {t.role} · {t.location}
+            {[t.role, t.location].filter(Boolean).join(" · ")}
           </p>
         </div>
       </div>
@@ -272,6 +262,8 @@ function DesktopCarousel({
   onNext: () => void;
   onManual: () => void;
 }) {
+  const testimonials = useContext(TestimonialsContext);
+
   const total = testimonials.length;
   const prevIdx = mod(current - 1, total);
   const nextIdx = mod(current + 1, total);
@@ -400,6 +392,8 @@ function TabletCarousel({
   onNext: () => void;
   onManual: () => void;
 }) {
+  const testimonials = useContext(TestimonialsContext);
+
   const total = testimonials.length;
   const nextIdx = mod(current + 1, total);
 
@@ -500,6 +494,8 @@ function MobileCarousel({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const testimonials = useContext(TestimonialsContext);
+
   const total = testimonials.length;
 
   const CARD_RATIO = 0.84; // fraction of container width
@@ -703,11 +699,13 @@ function NavButton({
 /* ══════════════════════════════════════════════════════════════════════
  * MAIN SECTION
  * ══════════════════════════════════════════════════════════════════════ */
-export default function TestimonialsSection() {
+function TestimonialsCarousel() {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
   const [direction, setDirection] = useState<1 | -1>(1);
+  const testimonials = useContext(TestimonialsContext);
+
   const total = testimonials.length;
 
   const effectivelyPaused = isPaused || userPaused;
@@ -875,5 +873,22 @@ export default function TestimonialsSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function TestimonialsSection() {
+  const { data: catalog } = trpc.publicPrograms.homeCatalog.useQuery(undefined, {
+    staleTime: 60_000,
+  });
+  const items = useMemo(() => buildItems(catalog), [catalog]);
+
+  // No testimonials written on any program → hide the section instead of
+  // showing invented people.
+  if (items.length === 0) return null;
+
+  return (
+    <TestimonialsContext.Provider value={items}>
+      <TestimonialsCarousel />
+    </TestimonialsContext.Provider>
   );
 }

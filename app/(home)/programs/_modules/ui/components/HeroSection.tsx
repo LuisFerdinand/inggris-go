@@ -1,10 +1,7 @@
 // app/(home)/programs/_modules/ui/components/HeroSection.tsx
 import { useCallback, useMemo, useRef, useState } from "react";
-import {
-  CATEGORIES,
-  CategoryMeta,
-  ProgramMeta,
-} from "../../../[categorySlug]/data";
+import { CategoryMeta, ProgramMeta } from "../../../[categorySlug]/data";
+import { useCatalog } from "../../catalog-context";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import {
   EASE,
@@ -26,7 +23,7 @@ export function HeroSection({
 }) {
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const categories = useMemo(() => Object.values(CATEGORIES), []);
+  const { list: categories } = useCatalog();
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -326,20 +323,6 @@ function HeroDesktopPanel({
         }}
       />
 
-      {/* ══ ZONE A — Social proof bubble (top 15%) ══ */}
-      <div
-        className=" z-20 flex justify-center items-end absolute top-30 left-30"
-        style={{ height: "15%", paddingBottom: "12px" }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: -14, scale: 0.94 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.55, duration: 0.55, ease: EASE }}
-        >
-          <SocialProofBubble />
-        </motion.div>
-      </div>
-
       {/* ══ ZONE B — Image + side cards (middle 70%) ══ */}
       <div
         className="relative flex-1 flex items-end justify-center overflow-visible"
@@ -618,119 +601,6 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
         >
           {price}
         </span>
-      </div>
-    </div>
-  );
-}
-
-function SocialProofBubble() {
-  return (
-    <div
-      style={{
-        position: "relative",
-        display: "flex",
-        alignItems: "flex-start",
-        gap: "12px",
-        padding: "14px 16px",
-        borderRadius: "20px",
-        maxWidth: "320px",
-        background: "rgba(255,255,255,0.94)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
-        border: "1.5px solid rgba(26,82,200,0.11)",
-        boxShadow:
-          "0 8px 32px rgba(10,45,135,0.09), 0 2px 8px rgba(0,0,0,0.04)",
-      }}
-    >
-      {/* Downward tail */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: -10,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 0,
-          height: 0,
-          borderLeft: "10px solid transparent",
-          borderRight: "10px solid transparent",
-          borderTop: "11px solid rgba(255,255,255,0.94)",
-        }}
-      />
-
-      {/* Avatar initial */}
-      <div
-        style={{
-          width: "34px",
-          height: "34px",
-          borderRadius: "50%",
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "rgba(26,82,200,0.09)",
-          color: "var(--blue)",
-          fontSize: "0.75rem",
-          fontWeight: 800,
-          border: "1.5px solid rgba(26,82,200,0.18)",
-          fontFamily: "var(--font-display)",
-        }}
-      >
-        A
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p
-          style={{
-            fontSize: "0.75rem",
-            fontStyle: "italic",
-            color: "var(--blue-navy)",
-            lineHeight: 1.55,
-            margin: "0 0 8px",
-          }}
-        >
-          "Akhirnya berani ngomong Inggris dengan percaya diri!"
-        </p>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "8px",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                fontSize: "0.625rem",
-                fontWeight: 700,
-                color: "var(--blue-navy)",
-                fontFamily: "var(--font-display)",
-              }}
-            >
-              Andi R.
-            </p>
-            <p
-              style={{
-                fontSize: "0.5625rem",
-                color: "var(--text-faint)",
-              }}
-            >
-              Mahasiswa, Surabaya
-            </p>
-          </div>
-          <div style={{ display: "flex", gap: "2px", flexShrink: 0 }}>
-            {[...Array(5)].map((_, i) => (
-              <svg
-                key={i}
-                viewBox="0 0 12 12"
-                style={{ width: "10px", height: "10px" }}
-                fill="#FBBF24"
-              >
-                <path d="M6 1l1.5 3 3.2.4-2.3 2.2.5 3.2L6 8.2l-2.9 1.6.5-3.2L1.3 4.4l3.2-.4z" />
-              </svg>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

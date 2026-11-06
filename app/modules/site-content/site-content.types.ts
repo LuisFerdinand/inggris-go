@@ -65,6 +65,112 @@ export type AdvantageFeature = {
   gradientKey: AdvantageGradientKey;
 };
 
+/* ── Beranda "Program Kami" (tabbed program showcase) ─────── */
+
+/**
+ * Layout used by one tab of the section.
+ *  - feature   → dark block + price card for ONE program (e.g. a starter program)
+ *  - cards     → grid of cards (programs of a category, packages of a program, or hand-made)
+ *  - spotlight → image + highlights for ONE program (e.g. a holiday camp)
+ *  - banner    → dark banner for ONE program/service (e.g. school groups)
+ */
+export type ShowcaseTemplate = "feature" | "cards" | "spotlight" | "banner";
+
+/** Where the cards of a `cards` tab come from. */
+export type ShowcaseCardSource = "category" | "program" | "manual";
+
+export type ShowcaseChip = {
+  /** Lucide icon name, e.g. "video". */
+  icon: string;
+  text: string;
+};
+
+export type ShowcaseTile = {
+  title: string;
+  desc: string;
+};
+
+export type ShowcaseHelpItem = {
+  label: string;
+  text: string;
+};
+
+/** One hand-made card of a `cards` tab (source = manual). */
+export type ShowcaseCard = {
+  /** Program this card links to and takes live prices from. */
+  programSlug: string;
+  /** Optional package of that program (title) to take the price from. */
+  packageTitle: string;
+  eyebrow: string;
+  badge: string;
+  title: string;
+  /** Leave empty to show the live price. */
+  price: string;
+  originalPrice: string;
+  meta: string;
+  desc: string;
+  chipsLabel: string;
+  chips: string[];
+  features: string[];
+  ctaLabel: string;
+  /** Empty = registration page of the program. */
+  ctaHref: string;
+  featured: boolean;
+};
+
+export type ShowcaseTab = {
+  id: string;
+  /** Text on the filter pill. */
+  label: string;
+  template: ShowcaseTemplate;
+
+  /** Single-program templates: which program to show. */
+  programSlug: string;
+
+  /** Group heading shown above the block. */
+  eyebrow: string;
+  heading: string;
+  description: string;
+
+  /* feature / spotlight / banner */
+  kicker: string;
+  badge: string;
+  headline: string;
+  body: string;
+  chips: ShowcaseChip[];
+  tiles: ShowcaseTile[];
+  /** feature: "Biaya 10 hari" */
+  priceLabel: string;
+  /** feature: lines under the price. */
+  priceNotes: string[];
+  /** Leave empty to show the live price. */
+  price: string;
+  originalPrice: string;
+  /** spotlight: photo. */
+  image: string;
+  ctaLabel: string;
+  ctaHref: string;
+  secondaryCtaLabel: string;
+  secondaryCtaHref: string;
+
+  /* cards */
+  cardSource: ShowcaseCardSource;
+  categorySlug: string;
+  cards: ShowcaseCard[];
+  helpTitle: string;
+  helpItems: ShowcaseHelpItem[];
+};
+
+export type ProgramShowcase = {
+  eyebrow: string;
+  title: string;
+  titleAccent: string;
+  description: string;
+  /** tabs = one group at a time (filter), stacked = all groups in a row. */
+  display: "tabs" | "stacked";
+  tabs: ShowcaseTab[];
+};
+
 /* ── About ───────────────────────────────────────────────── */
 
 export type AboutHeroEditorial = {

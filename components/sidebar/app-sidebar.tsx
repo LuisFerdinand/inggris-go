@@ -32,6 +32,7 @@ import {
   Info,
   Phone,
   Megaphone,
+  LayoutGrid,
 } from "lucide-react";
 
 import {
@@ -130,6 +131,7 @@ export const routes = {
     header: "/dashboard/settings/header",
     footer: "/dashboard/settings/footer",
     home: "/dashboard/settings/home",
+    homePrograms: "/dashboard/settings/home-programs",
     about: "/dashboard/settings/about",
     contact: "/dashboard/settings/contact",
     cta: "/dashboard/settings/cta",
@@ -458,6 +460,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: Home,
         url: routes.settings.home,
         isActive: isActive(pathname, routes.settings.home),
+        roles: ["admin", "super_admin"],
+      },
+      {
+        title: "CMS Program Beranda",
+        icon: LayoutGrid,
+        url: routes.settings.homePrograms,
+        isActive: isActive(pathname, routes.settings.homePrograms),
         roles: ["admin", "super_admin"],
       },
       {

@@ -135,7 +135,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     key: "lead",
     label: "Starter Program",
     shortLabel: "Starter",
-    href: "/programs/lead",
+    href: "/programs",
 
     icon: "zap",
     heroImage: "/images/categories/lead-hero.png",
@@ -284,7 +284,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     key: "online",
     label: "Program Online",
     shortLabel: "Online",
-    href: "/programs/online",
+    href: "/programs",
 
     icon: "book-open",
 
@@ -503,7 +503,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     label: "Program Offline",
     shortLabel: "Offline",
     heroImage: "/images/categories/offline-hero.png",
-    href: "/programs/offline",
+    href: "/programs",
 
     icon: "tent",
     theme: { primary: "#4da3ff" },
@@ -831,6 +831,10 @@ export type PricingPackage = {
   highlight?: string; // e.g. "Paling Populer"
   note?: string;
   features?: string[];
+  /** Registration link for this exact package (set from live program data). */
+  href?: string;
+  /** Text of the button that points to `href`. */
+  ctaLabel?: string;
 };
 
 export type PricingGroup = {
@@ -1054,6 +1058,10 @@ export type ProgramDetail = {
   batches?: ProgramBatch[];
   sections: ProgramSection[];
   packages?: PricingPackage[];
+  /** Where every "Daftar" button goes (external CMS link or /registrasi/<slug>). */
+  registerHref?: string;
+  /** Text of the "Daftar" buttons that point to registerHref. */
+  registerLabel?: string;
 };
 
 export const PROGRAM_DETAILS: Record<string, ProgramDetail> = {

@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ChevronDown,
   CircleDollarSign,
+  Copy,
   Edit3,
   Info,
   Layers,
@@ -31,6 +32,8 @@ import { cn, generateTheme } from "@/lib/utils";
 import { BatchForm } from "../ui/components/Batch/BatchForm";
 import { PackageForm } from "../ui/components/Package/PackageForm";
 import { DetailData, InfoNotice, MetaPill, ReadField } from "./detail";
+import { RegistrationMethodCard } from "./RegistrationMethodCard";
+import { SetupGuide } from "./SetupGuide";
 
 type DrawerState =
   | { kind: "batch"; mode: "create"; id?: never }
@@ -811,16 +814,20 @@ function PackageCard({
 function BatchCard({
   batch,
   onEditBatch,
+  onDuplicateBatch,
   onDeleteBatch,
   onAddPackage,
   onEditPackage,
   onDeletePackage,
   deletingBatch,
   deletingPackage,
+  duplicating,
   defaultOpen = true,
 }: {
   batch: any;
   onEditBatch: () => void;
+  onDuplicateBatch: () => void;
+  duplicating?: boolean;
   onDeleteBatch: () => void;
   onAddPackage: () => void;
   onEditPackage: (pkg: any) => void;
@@ -888,6 +895,18 @@ function BatchCard({
             <DetailButton variant="outline" onClick={onAddPackage}>
               <Plus className="size-3" />
               Paket
+            </DetailButton>
+            <DetailButton
+              variant="outline"
+              onClick={onDuplicateBatch}
+              disabled={duplicating}
+            >
+              {duplicating ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <Copy className="size-3" />
+              )}
+              Duplikat
             </DetailButton>
             <DetailButton
               variant="danger"
@@ -1542,6 +1561,17 @@ export default function CommerceTab({ programId }: { programId: string }) {
     onError: (err) => toast.error(err.message ?? "Gagal menghapus batch"),
   });
 
+  const duplicateBatch = trpc.batches.duplicate.useMutation({
+    onSuccess: (row) => {
+      utils.batches.listByProgram.invalidate({ programId });
+      utils.packages.listByProgram.invalidate({ programId });
+      utils.programs.getDetail.invalidate({ id: programId });
+      toast.success("Batch disalin sebagai draft. Atur tanggal barunya.");
+      if (row?.id) setDrawer({ kind: "batch", mode: "edit", id: row.id });
+    },
+    onError: (err) => toast.error(err.message ?? "Gagal menyalin batch"),
+  });
+
   const removePackage = trpc.packages.remove.useMutation({
     onSuccess: () => {
       utils.packages.listByProgram.invalidate({ programId });
@@ -1583,6 +1613,14 @@ export default function CommerceTab({ programId }: { programId: string }) {
   const directPackages = useMemo(
     () => (packagesQuery.data ?? []).filter((pkg: any) => !pkg.batchId),
     [packagesQuery.data],
+  );
+
+  const batchesWithoutPackages = useMemo(
+    () =>
+      (batchesQuery.data ?? []).filter(
+        (batch: any) => (batch.packages?.length ?? 0) === 0,
+      ),
+    [batchesQuery.data],
   );
 
   function closeDrawer() {
@@ -1733,7 +1771,24 @@ export default function CommerceTab({ programId }: { programId: string }) {
             />
           </motion.div>
 
-          ...
+          <motion.div variants={itemVariants}>
+            <SetupGuide
+              isScheduled={isScheduled}
+              isPublished={data.status === "published"}
+              batchCount={batchesQuery.data?.length ?? 0}
+              batchesWithoutPackages={batchesWithoutPackages.length}
+              firstBatchWithoutPackageId={batchesWithoutPackages[0]?.id ?? null}
+              directPackageCount={directPackages.length}
+              onCreateBatch={() => setDrawer({ kind: "batch", mode: "create" })}
+              onCreatePackage={(batchId) =>
+                setDrawer({ kind: "package", mode: "create", batchId })
+              }
+            />
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <RegistrationMethodCard programId={programId} data={data} />
+          </motion.div>
         </div>
 
         <motion.div variants={itemVariants}>
@@ -1774,6 +1829,13 @@ export default function CommerceTab({ programId }: { programId: string }) {
                       defaultOpen={i === 0}
                       deletingBatch={removeBatch.isPending}
                       deletingPackage={removePackage.isPending}
+                      duplicating={
+                        duplicateBatch.isPending &&
+                        duplicateBatch.variables?.id === batch.id
+                      }
+                      onDuplicateBatch={() =>
+                        duplicateBatch.mutate({ id: batch.id })
+                      }
                       onEditBatch={() =>
                         setDrawer({
                           kind: "batch",

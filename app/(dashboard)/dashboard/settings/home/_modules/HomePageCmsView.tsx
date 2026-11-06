@@ -2,9 +2,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import toast from "react-hot-toast";
 import {
+  ArrowRight,
   Home,
+  LayoutGrid,
   Loader2,
   MessageCircleQuestion,
   Route,
@@ -252,7 +255,7 @@ export function HomePageCmsView() {
           <PageHeader
             breadcrumbs={crumbs}
             title="CMS Beranda"
-            description="Kelola Hero, Masalah Umum, Metode, dan Keunggulan."
+            description="Kelola Hero, Masalah Umum, Metode, Program Kami, dan Keunggulan."
           />
         </PageNav>
         <div className="mx-4 flex min-h-[420px] items-center justify-center rounded-3xl border border-slate-200 bg-white shadow-sm lg:mx-6">
@@ -703,6 +706,21 @@ export function HomePageCmsView() {
                   />
                 </Field>
               </div>
+            </Section>
+
+            {/* PROGRAMS → dedicated CMS page */}
+            <Section
+              icon={LayoutGrid}
+              title="Program Kami"
+              description="Bagian “Program Kami” (tab filter, kartu program, banner) kini punya halaman CMS sendiri agar lebih mudah dikelola."
+            >
+              <Link
+                href="/dashboard/settings/home-programs"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-4 text-[13px] font-bold text-white transition-colors hover:bg-indigo-700"
+              >
+                Buka CMS Program Beranda
+                <ArrowRight className="size-4" />
+              </Link>
             </Section>
 
             {/* ADVANTAGES */}

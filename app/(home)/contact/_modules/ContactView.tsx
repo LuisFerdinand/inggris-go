@@ -743,7 +743,9 @@ export default function ContactView() {
       <section
         ref={formRef}
         id="contact-form"
-        className="mx-auto max-w-7xl scroll-mt-8 px-4 pb-16 sm:px-6 lg:px-8"
+        // overflow-x-clip: cards slide in from the right (Reveal from="right");
+        // without it the page widens by ~24px on phones while they animate.
+        className="mx-auto max-w-7xl scroll-mt-8 overflow-x-clip px-4 pb-16 sm:px-6 lg:px-8"
       >
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
           {/* FORM */}
@@ -914,8 +916,8 @@ export default function ContactView() {
                       </button>
 
                       <p className="text-center text-[11px] leading-snug text-slate-400">
-                        Dengan mengirim, kamu setuju bahwa kami membalas melalui
-                        email yang kamu berikan. Tidak ada spam, janji.
+                        Dengan mengirim formulir ini, Ayah/Bunda setuju kami
+                        membalas melalui email yang diberikan.
                       </p>
                     </form>
                   )}

@@ -906,7 +906,7 @@ function CTASection({ content, theme }: { content: Obj; theme: Theme }) {
         >
           <span className="h-2 w-2 rounded-full bg-green-400" />
           <span style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.65)" }}>
-            Admin siap membantu kamu sekarang
+            Admin siap membantu Ayah/Bunda
           </span>
         </div>
 

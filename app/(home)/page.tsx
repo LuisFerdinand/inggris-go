@@ -18,6 +18,7 @@ export default async function HomePage() {
     trpc.siteContent.getHome.prefetch(),
     trpc.siteContent.getSiteStats.prefetch(),
     trpc.siteContent.getCta.prefetch(),
+    trpc.publicPrograms.homeCatalog.prefetch(),
   ]);
 
   return (

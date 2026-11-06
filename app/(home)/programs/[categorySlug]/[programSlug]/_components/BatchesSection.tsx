@@ -111,6 +111,18 @@ function isExternalHref(href: string) {
   return /^https?:\/\//i.test(href);
 }
 
+/**
+ * Registration target for a batch/package. Internal `/registrasi/...` links get
+ * the batch/package id as a query param; external registration sites (e.g. the
+ * holiday camp site) are used exactly as configured in the CMS.
+ */
+function registrationTarget(
+  href: string,
+  params: Record<string, string | undefined>,
+) {
+  return isExternalHref(href) ? href : withQueryParams(href, params);
+}
+
 /* ─────────────────────────────────────────────────────────────
    BatchBanner — fixed top strip (height feeds --batch-banner-height)
    Hooks run unconditionally before the early return (Rules of Hooks).
@@ -120,10 +132,12 @@ export function BatchBanner({
   batches,
   theme,
   registerHref,
+  registerLabel,
 }: {
   batches: ProgramBatch[];
   theme: Theme;
   registerHref?: string;
+  registerLabel?: string;
 }) {
   const open = useMemo(() => batches.filter((b) => b.isOpen), [batches]);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -146,11 +160,11 @@ export function BatchBanner({
       : null;
 
   const ctaHref = registerHref
-    ? withQueryParams(registerHref, { batchId: batch.id })
+    ? registrationTarget(registerHref, { batchId: batch.id })
     : batch.primaryCtaHref ?? "#batches";
 
   const ctaLabel = registerHref
-    ? "Daftar Online"
+    ? (registerLabel ?? "Daftar Online")
     : batch.primaryCtaLabel ?? "Daftar Sekarang";
 
   return (
@@ -346,12 +360,14 @@ function BatchCard({
   theme,
   fallbackCtaHref,
   registerHref,
+  registerLabel,
   index,
 }: {
   batch: ProgramBatch;
   theme: Theme;
   fallbackCtaHref: string;
   registerHref?: string;
+  registerLabel?: string;
   index: number;
 }) {
   const cfg = STATUS_CONFIG[batch.status] ?? STATUS_CONFIG.closed;
@@ -379,11 +395,11 @@ function BatchCard({
       : null;
 
   const primaryHref = registerHref
-  ? withQueryParams(registerHref, { batchId: batch.id })
+  ? registrationTarget(registerHref, { batchId: batch.id })
   : batch.primaryCtaHref ?? fallbackCtaHref;
 
   const primaryLabel = registerHref
-    ? "Daftar Online"
+    ? (registerLabel ?? "Daftar Online")
     : batch.primaryCtaLabel ?? "Daftar Batch Ini";
 
   const primaryIcon = registerHref
@@ -665,7 +681,7 @@ function PackageCard({
         <motion.a
           href={
             registerHref
-              ? withQueryParams(registerHref, { packageId: pkg.id })
+              ? registrationTarget(registerHref, { packageId: pkg.id })
               : ctaHref
           }
           className="flex items-center justify-center gap-2 py-3 rounded-2xl font-display font-bold"
@@ -738,6 +754,7 @@ export function BatchesSection({
   mode = "scheduled",
   packages = [],
   registerHref,          // ← NEW: e.g. `/registrasi/${slug}`
+  registerLabel,
 }: {
   batches: ProgramBatch[];
   theme: Theme;
@@ -745,6 +762,7 @@ export function BatchesSection({
   mode?: "scheduled" | "permanent";
   packages?: PricingPackage[];
   registerHref?: string; // when set, cards link here instead of ctaHref
+  registerLabel?: string; // text of the sign-up buttons (follows the sign-up method)
 }) {
   const isPermanent = mode === "permanent";
 
@@ -817,6 +835,7 @@ export function BatchesSection({
                   theme={theme}
                   fallbackCtaHref={ctaHref}
                   registerHref={registerHref}
+                  registerLabel={registerLabel}
                   index={i}
                 />
               ))}

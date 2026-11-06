@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 
 import { trpc } from "@/lib/trpc/client";
 import type { Theme } from "@/lib/utils";
+import { buildWhatsappLink } from "@/lib/whatsapp";
 
 /* ─────────────────────────────────────────────────────────────
  * HELPERS
@@ -47,17 +48,20 @@ type Props = {
  * STEP INDICATOR
  * ───────────────────────────────────────────────────────────── */
 const STEPS = ["Pilih Program", "Isi Data", "Bayar"];
+const STEPS_WHATSAPP = ["Pilih Program", "Isi Data", "Kirim WhatsApp"];
 
 function StepIndicator({
   current,
   theme,
+  steps = STEPS,
 }: {
   current: 0 | 1 | 2;
   theme: Theme;
+  steps?: string[];
 }) {
   return (
     <div className="flex items-center justify-center gap-0 mb-8 select-none">
-      {STEPS.map((label, i) => {
+      {steps.map((label, i) => {
         const done = i < current;
         const active = i === current;
 
@@ -113,7 +117,7 @@ function StepIndicator({
               </span>
             </div>
 
-            {i < STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div
                 className="mx-2 mb-5 transition-all duration-500"
                 style={{
@@ -513,6 +517,8 @@ export function OnlineRegistrationForm({
 
   const data = optionsQuery.data;
   const isScheduled = data?.program.scheduleType === "scheduled";
+  // "whatsapp" = short form that opens WhatsApp instead of creating an order.
+  const isWhatsapp = data?.program.registrationMethod === "whatsapp";
 
   const [batchId, setBatchId] = useState<string>(initialBatchId ?? "");
   const [packageId, setPackageId] = useState<string>(initialPackageId ?? "");
@@ -525,6 +531,8 @@ export function OnlineRegistrationForm({
   );
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [note, setNote] = useState("");
+  const [waOpened, setWaOpened] = useState(false);
 
   // Pre-fill from user session, including saved phone and age.
   useEffect(() => {
@@ -597,26 +605,79 @@ export function OnlineRegistrationForm({
 
   const passwordValid = isLoggedIn || password.length >= 6;
 
-  const canSubmit =
-    !!data &&
-    !!packageId &&
-    (!isScheduled || !!batchId) &&
-    fullName.trim().length >= 2 &&
-    whatsapp.trim().length >= 6 &&
-    /\S+@\S+\.\S+/.test(email) &&
-    passwordValid &&
-    !register.isPending;
+  const hasValidSelection =
+    (packages.length === 0 || !!packageId) && (!isScheduled || !!batchId);
 
-  const step: 0 | 1 | 2 =
-    register.isPending || register.isSuccess
+  const canSubmit = isWhatsapp
+    ? !!data &&
+      hasValidSelection &&
+      fullName.trim().length >= 2 &&
+      whatsapp.trim().length >= 6
+    : !!data &&
+      !!packageId &&
+      (!isScheduled || !!batchId) &&
+      fullName.trim().length >= 2 &&
+      whatsapp.trim().length >= 6 &&
+      /\S+@\S+\.\S+/.test(email) &&
+      passwordValid &&
+      !register.isPending;
+
+  const step: 0 | 1 | 2 = isWhatsapp
+    ? waOpened
+      ? 2
+      : hasValidSelection
+        ? 1
+        : 0
+    : register.isPending || register.isSuccess
       ? 2
       : !!packageId && (!isScheduled || !!batchId)
         ? 1
         : 0;
 
+  function buildWhatsappMessage() {
+    if (!data) return "";
+
+    const lines = [
+      "Halo! 👋",
+      "",
+      `Saya ingin mendaftar program *${data.program.title}*.`,
+      "",
+    ];
+
+    if (selectedBatch) {
+      const when = formatDateID(selectedBatch.startDate);
+      lines.push(`*Batch:* ${selectedBatch.title}${when ? ` (${when})` : ""}`);
+    }
+    if (selectedPackage) {
+      lines.push(
+        `*Paket:* ${selectedPackage.title} — ${formatIDR(selectedPackage.price)}`,
+      );
+    }
+    lines.push(`*Nama:* ${fullName.trim()}`);
+    lines.push(`*No. WhatsApp:* ${whatsapp.trim()}`);
+    if (age) lines.push(`*Usia:* ${age}`);
+    if (note.trim()) lines.push("", `*Catatan:* ${note.trim()}`);
+    lines.push("", "Mohon info langkah pendaftaran selanjutnya. Terima kasih 🙏");
+
+    return lines.join(String.fromCharCode(10));
+  }
+
+  function whatsappHref() {
+    return data
+      ? buildWhatsappLink(data.program.whatsappNumber, buildWhatsappMessage())
+      : "#";
+  }
+
   function handleSubmit() {
     if (!canSubmit || !data) {
       toast.error("Lengkapi semua field yang diperlukan.");
+      return;
+    }
+
+    if (isWhatsapp) {
+      window.open(whatsappHref(), "_blank", "noopener,noreferrer");
+      setWaOpened(true);
+      toast.success("Membuka WhatsApp…");
       return;
     }
 
@@ -705,7 +766,11 @@ export function OnlineRegistrationForm({
 
   return (
     <div className="w-full">
-      <StepIndicator current={step} theme={theme} />
+      <StepIndicator
+        current={step}
+        theme={theme}
+        steps={isWhatsapp ? STEPS_WHATSAPP : STEPS}
+      />
 
       <div className="grid lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-start">
         <div className="space-y-6">
@@ -872,7 +937,7 @@ export function OnlineRegistrationForm({
                       key={p.id}
                       type="button"
                       onClick={() => setPackageId(p.id)}
-                      className="relative flex items-center justify-between gap-4 rounded-xl border p-4 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2"
+                      className="relative flex flex-col items-start gap-1.5 rounded-xl border p-4 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                       style={{
                         borderColor: active
                           ? theme.primary
@@ -911,9 +976,22 @@ export function OnlineRegistrationForm({
                             </span>
                           )}
                         </div>
+
+                        {p.description && (
+                          <p
+                            className="mt-1"
+                            style={{
+                              fontSize: "0.75rem",
+                              lineHeight: 1.5,
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            {p.description}
+                          </p>
+                        )}
                       </div>
 
-                      <div className="flex items-baseline gap-2 flex-shrink-0">
+                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 flex-shrink-0">
                         {p.originalPrice != null && p.originalPrice > p.price && (
                           <span
                             style={{
@@ -1008,6 +1086,7 @@ export function OnlineRegistrationForm({
                 />
               </Field>
 
+              {!isWhatsapp && (
               <Field
                 label="Email"
                 required
@@ -1028,8 +1107,26 @@ export function OnlineRegistrationForm({
                   disabled={isLoggedIn}
                 />
               </Field>
+              )}
 
-              {!isLoggedIn && (
+              {isWhatsapp && (
+                <Field
+                  label="Catatan / Pertanyaan"
+                  span2
+                  hint="Opsional. Akan ikut dikirim ke admin lewat WhatsApp."
+                >
+                  <textarea
+                    className={inputCls}
+                    style={inputStyle(theme)}
+                    rows={3}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Mis. Anak saya kelas 3 SD, bisa ikut batch ini?"
+                  />
+                </Field>
+              )}
+
+              {!isWhatsapp && !isLoggedIn && (
                 <Field
                   label="Password"
                   required
@@ -1072,10 +1169,39 @@ export function OnlineRegistrationForm({
             whileHover={canSubmit ? { scale: 1.01 } : undefined}
             whileTap={canSubmit ? { scale: 0.98 } : undefined}
           >
-            {register.isPending
-              ? "Memproses…"
-              : "Daftar & Lanjut ke Pembayaran"}
+            {isWhatsapp
+              ? waOpened
+                ? "Kirim Lagi via WhatsApp"
+                : "Kirim via WhatsApp"
+              : register.isPending
+                ? "Memproses…"
+                : "Daftar & Lanjut ke Pembayaran"}
           </motion.button>
+
+          {isWhatsapp && (
+            <p
+              className="text-center"
+              style={{ fontSize: "0.75rem", color: "var(--text-faint)" }}
+            >
+              {waOpened ? (
+                <>
+                  WhatsApp tidak terbuka?{" "}
+                  <a
+                    href={whatsappHref()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold underline"
+                    style={{ color: theme.primary }}
+                  >
+                    Klik di sini
+                  </a>
+                  . Admin akan membalas pesanmu untuk langkah selanjutnya.
+                </>
+              ) : (
+                "Datamu dikirim sebagai pesan WhatsApp ke admin program ini. Belum ada pembayaran di langkah ini."
+              )}
+            </p>
+          )}
         </div>
 
         <aside className="lg:sticky lg:top-[calc(var(--navbar-height,72px)+1.5rem)]">

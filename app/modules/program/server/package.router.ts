@@ -6,6 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { db } from "@/app/db/db";
 import { programs, programPackages } from "@/app/db/schema";
+import { syncProgramStartingPrice } from "./program.pricing";
 
 import { generateUniqueSlug, getNextOrder } from "./program.slug";
 import { packageInsertSchema, packageUpdateSchema } from "../package.schema";
@@ -142,6 +143,7 @@ export const packageRouter = createTRPCRouter({
         })
         .returning();
 
+      await syncProgramStartingPrice(input.programId);
       return row;
     }),
 
@@ -192,13 +194,23 @@ export const packageRouter = createTRPCRouter({
         .where(eq(programPackages.id, id))
         .returning();
 
+      // Re-price both programs if the package moved between programs.
+      await syncProgramStartingPrice(nextProgramId);
+      if (existing.programId !== nextProgramId) {
+        await syncProgramStartingPrice(existing.programId);
+      }
       return row;
     }),
 
   remove: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
+      const existing = await db.query.programPackages.findFirst({
+        where: eq(programPackages.id, input.id),
+        columns: { programId: true },
+      });
       await db.delete(programPackages).where(eq(programPackages.id, input.id));
+      if (existing) await syncProgramStartingPrice(existing.programId);
       return { success: true };
     }),
 });

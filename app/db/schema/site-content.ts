@@ -21,6 +21,7 @@ import type {
   FaqItem,
   HeroFloatingText,
   HeroStatLabel,
+  ProgramShowcase,
   IconTag,
   LabelValue,
   MethodStep,
@@ -80,6 +81,9 @@ export const homePageSettings = pgTable("home_page_settings", {
   advantageTitleAccent: text("advantage_title_accent"),
   advantageDescription: text("advantage_description"),
   advantageFeatures: jsonb("advantage_features").$type<AdvantageFeature[]>(),
+
+  /* Program showcase (Beranda "Program Kami": tabs + layouts) */
+  programShowcase: jsonb("program_showcase").$type<ProgramShowcase>(),
 
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

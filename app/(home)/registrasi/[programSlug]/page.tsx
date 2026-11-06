@@ -1,12 +1,14 @@
 // app/(home)/registrasi/[programSlug]/page.tsx
 
 import Link from "next/link";
-import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
 
 import { auth } from "@/lib/auth";
 import { generateTheme } from "@/lib/utils";
 import { db } from "@/app/db/db";
 import { user as userTable } from "@/app/db/schema/auth-schema";
+import { programs } from "@/app/db/schema";
 import { OnlineRegistrationForm } from "@/app/(home)/programs/[categorySlug]/[programSlug]/_components/OnlineRegistrationForm";
 
 type PageProps = {
@@ -23,6 +25,23 @@ export default async function RegistrationPage({
 }: PageProps) {
   const { programSlug } = await params;
   const sp = await searchParams;
+
+  // Sign-up method chosen by the admin (Dashboard → Program → Komersial).
+  const program = await db.query.programs.findFirst({
+    where: and(eq(programs.slug, programSlug), eq(programs.status, "published")),
+    columns: {
+      registrationMethod: true,
+      registrationLinkUrl: true,
+    },
+  });
+
+  // External sign-up (Google Form, another site, ...): old /registrasi links
+  // and bookmarks still land on the right place.
+  if (program?.registrationMethod === "link" && program.registrationLinkUrl) {
+    redirect(program.registrationLinkUrl);
+  }
+
+  const isWhatsapp = program?.registrationMethod === "whatsapp";
 
   const session = await auth();
 
@@ -137,7 +156,7 @@ export default async function RegistrationPage({
                   letterSpacing: "-0.025em",
                 }}
               >
-                Formulir Pendaftaran
+                {isWhatsapp ? "Daftar via WhatsApp" : "Formulir Pendaftaran"}
               </h1>
 
               <p
@@ -147,7 +166,9 @@ export default async function RegistrationPage({
                   marginTop: 4,
                 }}
               >
-                Lengkapi data di bawah — proses cepat, kurang dari 3 menit.
+                {isWhatsapp
+                  ? "Isi data singkat, lalu kami arahkan ke WhatsApp admin dengan pesan yang sudah siap dikirim."
+                  : "Lengkapi data di bawah — proses cepat, kurang dari 3 menit."}
               </p>
             </div>
           </div>

@@ -32,6 +32,7 @@ import {
   programFilterSchema,
   programInsertSchema,
   programUpdateSchema,
+  registrationMethodSchema,
 } from "../program.schema";
 
 import { generateUniqueSlug, getNextOrder } from "./program.slug";
@@ -489,6 +490,10 @@ async function buildDetail(id: string) {
 
     scheduleType: program.scheduleType,
     registrationType: program.registrationType,
+    registrationMethod: program.registrationMethod,
+    registrationWhatsapp: program.registrationWhatsapp,
+    registrationLinkUrl: program.registrationLinkUrl,
+    registrationLinkLabel: program.registrationLinkLabel,
     format: program.format,
     level: program.level,
     duration: program.duration,
@@ -1250,6 +1255,40 @@ export const programRouter = createTRPCRouter({
           duration: rest.duration ?? null,
         })
         .where(eq(programs.id, id))
+        .returning();
+
+      if (!row) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Program tidak ditemukan",
+        });
+      }
+
+      return row;
+    }),
+
+  updateRegistration: protectedProcedure
+    .input(registrationMethodSchema)
+    .mutation(async ({ input }) => {
+      const isWhatsapp = input.registrationMethod === "whatsapp";
+      const isLink = input.registrationMethod === "link";
+
+      const [row] = await db
+        .update(programs)
+        .set({
+          registrationMethod: input.registrationMethod,
+          // Keep only the settings that belong to the chosen method.
+          registrationWhatsapp: isWhatsapp
+            ? input.registrationWhatsapp?.trim() || null
+            : null,
+          registrationLinkUrl: isLink
+            ? input.registrationLinkUrl?.trim() || null
+            : null,
+          registrationLinkLabel: isLink
+            ? input.registrationLinkLabel?.trim() || null
+            : null,
+        })
+        .where(eq(programs.id, input.id))
         .returning();
 
       if (!row) {

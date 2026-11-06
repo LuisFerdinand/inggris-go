@@ -288,7 +288,11 @@ function LoginForm({ callbackUrl }: { callbackUrl: string }) {
 
     if (result?.error) {
       setLoading(false);
-      setError("Email atau password salah.");
+      setError(
+        result.code === "google_account"
+          ? "Akun ini terdaftar dengan Google. Silakan masuk dengan tombol Google."
+          : "Email atau password salah.",
+      );
       return;
     }
 

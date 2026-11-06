@@ -31,16 +31,10 @@ const NAV_LINKS = [
 
 const PROGRAM_LINKS = [
   {
-    label: "Starter Program",
-    href: "/programs/lead",
+    label: "Speaking Challenge",
+    href: "/programs/lead/speaking-challenge",
     tag: "Populer",
     icon: Zap,
-  },
-  {
-    label: "Daily Conversation",
-    href: "/programs/online/daily-conversation",
-    tag: "Terlaris",
-    icon: MessageCircle,
   },
   {
     label: "English for Kids",
@@ -49,14 +43,14 @@ const PROGRAM_LINKS = [
     icon: Star,
   },
   {
-    label: "Private Class",
-    href: "/programs/online/private-class",
+    label: "Private Class for Kids",
+    href: "/programs/online/private-class-for-kids",
     tag: "Fleksibel",
     icon: User,
   },
   {
     label: "VIP Kids Camp",
-    href: "/programs/offline/vip-kids",
+    href: "/programs/offline/vip-english-for-kids",
     tag: "Pare",
     icon: Tent,
   },

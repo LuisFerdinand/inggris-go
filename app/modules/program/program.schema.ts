@@ -7,7 +7,11 @@ import {
   PROGRAM_LEVEL,
   PROGRAM_SCHEDULE_TYPE,
 } from "@/lib/enums/enums";
-import { REGISTRATION_TYPE } from "@/app/db/schema/programs";
+import {
+  REGISTRATION_METHOD,
+  REGISTRATION_TYPE,
+} from "@/app/db/schema/programs";
+import { normalizeWhatsappNumber } from "@/lib/whatsapp";
 
 /* =========================================================
    FILTER INPUT  (used by programs.getFiltered)
@@ -85,3 +89,45 @@ export const programUpdateSchema = programInsertSchema
   .extend({ id: z.string().min(1) });
 
 export type ProgramFormValues = z.infer<typeof programInsertSchema>;
+
+/* ── Registration method (how visitors sign up) ─────────────── */
+
+export const registrationMethodSchema = z
+  .object({
+    id: z.string().min(1),
+    registrationMethod: z.enum(REGISTRATION_METHOD),
+    registrationWhatsapp: z.string().trim().max(40).nullable().optional(),
+    registrationLinkUrl: z.string().trim().max(1000).nullable().optional(),
+    registrationLinkLabel: z.string().trim().max(60).nullable().optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.registrationMethod === "whatsapp" && v.registrationWhatsapp) {
+      if (!normalizeWhatsappNumber(v.registrationWhatsapp)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["registrationWhatsapp"],
+          message: "Nomor WhatsApp tidak valid. Contoh: 0813 5311 6000",
+        });
+      }
+    }
+
+    if (v.registrationMethod === "link") {
+      const url = v.registrationLinkUrl ?? "";
+      let ok = false;
+      try {
+        const u = new URL(url);
+        ok = u.protocol === "https:" || u.protocol === "http:";
+      } catch {
+        ok = false;
+      }
+      if (!ok) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["registrationLinkUrl"],
+          message: "Isi link lengkap yang diawali https://",
+        });
+      }
+    }
+  });
+
+export type RegistrationMethodValues = z.infer<typeof registrationMethodSchema>;

@@ -95,6 +95,10 @@ export const DASHBOARD_ACCESS_RULES: AccessRule[] = [
     roles: ["admin", "super_admin"],
   },
   {
+    path: "/dashboard/settings/home-programs",
+    roles: ["admin", "super_admin"],
+  },
+  {
     path: "/dashboard/settings/about",
     roles: ["admin", "super_admin"],
   },

@@ -689,6 +689,16 @@ export const orderRouter = createTRPCRouter({
         });
       }
 
+      // The admin picked another sign-up method (WhatsApp / external link)
+      // for this program, so the built-in checkout must stay closed.
+      if (program.registrationMethod !== "form") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Program ini tidak memakai formulir pendaftaran website. Gunakan tombol daftar di halaman program.",
+        });
+      }
+
       const isScheduled = program.scheduleType === "scheduled";
 
       const pkg = await db.query.programPackages.findFirst({

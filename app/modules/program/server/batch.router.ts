@@ -5,9 +5,10 @@ import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "@/lib/trpc/init";
 import { db } from "@/app/db/db";
-import { programs, programBatches } from "@/app/db/schema";
+import { programs, programBatches, programPackages } from "@/app/db/schema";
 
 import { generateUniqueSlug, getNextOrder } from "./program.slug";
+import { syncProgramStartingPrice } from "./program.pricing";
 import { batchInsertSchema, batchUpdateSchema } from "../batch.schema";
 
 async function assertScheduledProgram(programId: string) {
@@ -147,10 +148,93 @@ export const batchRouter = createTRPCRouter({
       return row;
     }),
 
+  // Copy a batch (settings + its packages) as a new draft so admins can set
+  // up the next gelombang without retyping everything. Dates, participant
+  // count and the brochure are reset because they belong to the old cohort.
+  duplicate: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const source = await db.query.programBatches.findFirst({
+        where: eq(programBatches.id, input.id),
+        with: { packages: true },
+      });
+
+      if (!source) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Batch tidak ditemukan" });
+      }
+
+      await assertScheduledProgram(source.programId);
+
+      const title = `${source.title} (Salinan)`;
+      const slug = await generateUniqueSlug({
+        table: programBatches,
+        slugColumn: programBatches.slug,
+        title,
+      });
+      const order = await getNextOrder({
+        table: programBatches,
+        orderColumn: programBatches.order,
+        where: eq(programBatches.programId, source.programId),
+      });
+
+      const { packages, createdAt, updatedAt, ...rest } = source;
+      void createdAt;
+      void updatedAt;
+
+      const newId = crypto.randomUUID();
+
+      const [row] = await db
+        .insert(programBatches)
+        .values({
+          ...rest,
+          id: newId,
+          title,
+          slug,
+          order,
+          status: "draft",
+          startDate: null,
+          endDate: null,
+          registrationDeadline: null,
+          enrolledCount: 0,
+          brochureUrl: null,
+          brochureLabel: null,
+        })
+        .returning();
+
+      if (packages.length > 0) {
+        await db.insert(programPackages).values(
+          [...packages]
+            .sort((a, b) => a.order - b.order)
+            .map((pkg) => ({
+              id: crypto.randomUUID(),
+              programId: pkg.programId,
+              batchId: newId,
+              title: pkg.title,
+              slug: pkg.slug,
+              description: pkg.description,
+              price: pkg.price,
+              originalPrice: pkg.originalPrice,
+              isDefault: pkg.isDefault,
+              order: pkg.order,
+              features: pkg.features,
+            })),
+        );
+        await syncProgramStartingPrice(source.programId);
+      }
+
+      return row;
+    }),
+
   remove: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
+      const existing = await db.query.programBatches.findFirst({
+        where: eq(programBatches.id, input.id),
+        columns: { programId: true },
+      });
       await db.delete(programBatches).where(eq(programBatches.id, input.id));
+      // Batch packages cascade-delete with the batch → re-price the program.
+      if (existing) await syncProgramStartingPrice(existing.programId);
       return { success: true };
     }),
 

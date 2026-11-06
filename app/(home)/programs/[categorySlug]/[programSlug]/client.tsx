@@ -833,23 +833,6 @@ function HeroSection({
                   borderTop: "1px solid var(--border-soft)",
                 }}
               >
-                <div className="flex -space-x-2">
-                  {["A", "R", "S", "M", "B"].map((l, i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-full flex items-center justify-center font-display font-bold border-2"
-                      style={{
-                        background: theme.soft,
-                        borderColor: "var(--surface)",
-                        color: theme.primary,
-                        fontSize: "0.6875rem",
-                        zIndex: 5 - i,
-                      }}
-                    >
-                      {l}
-                    </div>
-                  ))}
-                </div>
                 <div>
                   {content.socialProof.count && (
                     <p
@@ -1024,17 +1007,6 @@ function ProgramVisualPanel({
         className="relative z-20 flex flex-col justify-center gap-3 px-2 pt-4"
         style={{ height: "26%" }}
       >
-        {/* Testimonial strip */}
-        {content.socialProof && (
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.75, duration: 0.5, ease: EASE }}
-          >
-            <TestimonialStrip content={content} theme={theme} />
-          </motion.div>
-        )}
-
         {/* Badge row */}
         <motion.div
           className="flex items-center justify-between gap-3"
@@ -1341,122 +1313,6 @@ function ProgramStepOrbs({
           </p>
         </motion.div>
       ))}
-    </div>
-  );
-}
-
-function TestimonialStrip({
-  content,
-  theme,
-}: {
-  content: HeroContent;
-  theme: Theme;
-}) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        padding: "12px 14px",
-        borderRadius: "16px",
-        background: "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        border: "1.5px solid rgba(26,82,200,0.10)",
-        boxShadow:
-          "0 6px 28px rgba(10,45,135,0.08), 0 2px 8px rgba(0,0,0,0.04)",
-      }}
-    >
-      {/* Avatar cluster */}
-      <div style={{ display: "flex", flexShrink: 0 }}>
-        {["A", "R", "S"].map((l, i) => (
-          <div
-            key={l}
-            style={{
-              width: "28px",
-              height: "28px",
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 800,
-              fontSize: "0.625rem",
-              background: theme.soft,
-              color: theme.primary,
-              border: "2px solid rgba(255,255,255,0.95)",
-              marginLeft: i > 0 ? "-8px" : 0,
-              zIndex: 3 - i,
-              position: "relative",
-              fontFamily: "var(--font-display)",
-            }}
-          >
-            {l}
-          </div>
-        ))}
-      </div>
-
-      {/* Divider */}
-      <div
-        style={{
-          width: "1px",
-          height: "28px",
-          background: "var(--border-soft)",
-          flexShrink: 0,
-        }}
-      />
-
-      {/* Quote + stars */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            marginBottom: "2px",
-          }}
-        >
-          {/* Stars */}
-          <div style={{ display: "flex", gap: "1px" }}>
-            {[...Array(5)].map((_, i) => (
-              <svg
-                key={i}
-                viewBox="0 0 12 12"
-                style={{ width: "10px", height: "10px" }}
-                fill="#FBBF24"
-              >
-                <path d="M6 1l1.5 3 3.2.4-2.3 2.2.5 3.2L6 8.2l-2.9 1.6.5-3.2L1.3 4.4l3.2-.4z" />
-              </svg>
-            ))}
-          </div>
-          <span
-            style={{
-              fontSize: "0.5625rem",
-              color: "var(--text-faint)",
-              fontWeight: 600,
-            }}
-          >
-            5.0
-          </span>
-        </div>
-        <p
-          style={{
-            fontSize: "0.6875rem",
-            fontStyle: "italic",
-            color: "var(--blue-navy)",
-            lineHeight: 1.45,
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}
-        >
-          "
-          {content.socialProof?.text ??
-            "Program ini benar-benar mengubah cara saya berbicara!"}
-          "
-        </p>
-      </div>
     </div>
   );
 }
@@ -2297,7 +2153,7 @@ function CTASection({
                 color: "rgba(255,255,255,0.6)",
               }}
             >
-              Admin siap membantu kamu sekarang
+              Admin siap membantu Ayah/Bunda
             </span>
           </div>
         </Reveal>
@@ -2458,7 +2314,6 @@ function CTASection({
             {[
               "Gratis konsultasi",
               "Tanpa komitmen",
-              "Respon cepat",
               "Tim berpengalaman",
             ].map((f) => (
               <div key={f} className="flex items-center gap-2">
@@ -3329,6 +3184,7 @@ function SectionRenderer({
   batches,
   ctaHref,
   registerHref,
+  registerLabel,
   mode,
   packages,
 }: {
@@ -3337,6 +3193,7 @@ function SectionRenderer({
   batches?: ProgramBatch[];
   ctaHref: string;
   registerHref: string;
+  registerLabel?: string;
   mode: "scheduled" | "permanent";
   packages?: ProgramDetail["packages"];
 }) {
@@ -3405,6 +3262,7 @@ function SectionRenderer({
           theme={theme}
           ctaHref={ctaHref}
           registerHref={registerHref}
+          registerLabel={registerLabel}
           mode={mode}
           packages={packages ?? []}
         />
@@ -3428,7 +3286,8 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
     ? "scheduled"
     : "permanent";
 
-  const registerHref = `/registrasi/${details.slug}`;
+  const registerHref = details.registerHref ?? `/registrasi/${details.slug}`;
+  const registerLabel = details.registerLabel;
 
   const hasBanner = !!(
     details.hasBatch &&
@@ -3523,6 +3382,7 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
             batches={details.batches}
             theme={theme}
             registerHref={registerHref}
+            registerLabel={registerLabel}
           />
         )}
 
@@ -3534,6 +3394,7 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
             batches={details.batches}
             ctaHref={ctaHref}
             registerHref={registerHref}
+            registerLabel={registerLabel}
             mode={batchMode}
             packages={details.packages}
           />
@@ -3550,6 +3411,7 @@ const ProgramDetailPageClient = ({ details }: { details: ProgramDetail }) => {
               theme={theme}
               ctaHref={ctaHref}
               registerHref={registerHref}
+              registerLabel={registerLabel}
               mode={batchMode}
               packages={details.packages}
             />

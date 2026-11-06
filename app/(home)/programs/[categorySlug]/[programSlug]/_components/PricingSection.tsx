@@ -631,7 +631,7 @@ function PackageCard({ pkg, theme }: { pkg: PricingPackage; theme: Theme }) {
 
       {pkg.highlight && (
         <span
-          className="absolute top-3 right-3 px-2.5 py-1 rounded-full font-display font-bold bg-white"
+          className="relative mb-2.5 inline-block px-2.5 py-1 rounded-full font-display font-bold bg-white"
           style={{
             fontSize: "0.5625rem",
             color: theme.primary,
@@ -643,7 +643,7 @@ function PackageCard({ pkg, theme }: { pkg: PricingPackage; theme: Theme }) {
         </span>
       )}
 
-      <div className="flex items-end gap-2 mb-1">
+      <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5 mb-1">
         <p
           className="font-display font-black"
           style={{
@@ -683,16 +683,70 @@ function PackageCard({ pkg, theme }: { pkg: PricingPackage; theme: Theme }) {
       {pkg.note && (
         <p
           style={{
-            fontSize: "0.6875rem",
+            fontSize: "0.75rem",
             color: isHighlighted
-              ? "rgba(255,255,255,0.6)"
-              : "var(--text-faint)",
-            marginTop: "3px",
-            lineHeight: "1.5",
+              ? "rgba(255,255,255,0.75)"
+              : "var(--text-muted)",
+            marginTop: "4px",
+            lineHeight: "1.55",
           }}
         >
           {pkg.note}
         </p>
+      )}
+
+      {pkg.features && pkg.features.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {pkg.features.slice(0, 6).map((feature, i) => (
+            <li
+              key={`${feature}-${i}`}
+              className="flex items-start gap-2"
+              style={{
+                fontSize: "0.75rem",
+                lineHeight: 1.5,
+                color: isHighlighted
+                  ? "rgba(255,255,255,0.85)"
+                  : "var(--text-muted)",
+              }}
+            >
+              <span className="mt-0.5 shrink-0">
+                <Check color={isHighlighted ? "white" : theme.primary} />
+              </span>
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {pkg.href && (
+        <a
+          href={pkg.href}
+          target={/^https?:\/\//i.test(pkg.href) ? "_blank" : undefined}
+          rel={
+            /^https?:\/\//i.test(pkg.href) ? "noopener noreferrer" : undefined
+          }
+          className="relative mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-display font-bold"
+          style={{
+            fontSize: "0.8125rem",
+            textDecoration: "none",
+            background: isHighlighted ? "white" : theme.primary,
+            color: isHighlighted ? theme.primary : "white",
+            boxShadow: isHighlighted
+              ? "0 4px 14px rgba(0,0,0,0.14)"
+              : `0 4px 14px ${theme.primary}33`,
+          }}
+        >
+          {pkg.ctaLabel ?? "Pilih Paket"}
+          <svg viewBox="0 0 14 14" className="h-3.5 w-3.5" fill="none">
+            <path
+              d="M2.5 7h9M7.5 3.5l3.5 3.5-3.5 3.5"
+              stroke="currentColor"
+              strokeWidth={1.7}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </a>
       )}
     </motion.div>
   );
@@ -785,8 +839,8 @@ function PricingGroupCard({
           <div className="flex-1" />
 
           <div className="space-y-3">
-            {group.packages.map((pkg) => (
-              <PackageCard key={pkg.label} pkg={pkg} theme={theme} />
+            {group.packages.map((pkg, i) => (
+              <PackageCard key={`${pkg.id ?? pkg.label}-${i}`} pkg={pkg} theme={theme} />
             ))}
           </div>
         </div>

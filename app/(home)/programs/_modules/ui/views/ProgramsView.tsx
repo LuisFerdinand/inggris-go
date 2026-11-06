@@ -10,10 +10,10 @@ import { SOCIAL_PROOF } from "@/constants";
 import { buildWhatsAppUrl } from "@/lib/config";
 import Image from "next/image";
 import {
-  CATEGORIES,
   CategoryMeta,
   ProgramMeta,
 } from "../../../[categorySlug]/data";
+import { useCatalog } from "../../catalog-context";
 import { HeroSection } from "../components/HeroSection";
 import { QuickDecisionSection } from "../components/QuickDecisionSection";
 
@@ -434,7 +434,7 @@ function CategoryCard({
               </p>
             </div>
             <motion.a
-              href={category.href}
+              href="#daftar-program"
               className="font-display font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 text-white"
               style={{
                 fontSize: "0.875rem",
@@ -475,7 +475,7 @@ function CategorySection({
   highlightKey: string | null;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const categories = useMemo(() => Object.values(CATEGORIES), []);
+  const { list: categories } = useCatalog();
 
   useEffect(() => {
     if (highlightKey) setSelected(highlightKey);
@@ -711,7 +711,7 @@ type ProgramTabEntry = {
 };
 
 function ProgramPreviewSection() {
-  const categories = useMemo(() => Object.values(CATEGORIES), []);
+  const { list: categories, map: catalogMap } = useCatalog();
   const [activeTab, setActiveTab] = useState<string>("all");
 
   const allPrograms: ProgramTabEntry[] = useMemo(
@@ -730,7 +730,7 @@ function ProgramPreviewSection() {
 
   const displayedPrograms: ProgramTabEntry[] = useMemo(() => {
     if (activeTab === "all") return allPrograms.slice(0, 8);
-    const cat = CATEGORIES[activeTab];
+    const cat = catalogMap[activeTab];
     if (!cat) return [];
     return cat.programs.map((p) => ({
       program: p,
@@ -741,11 +741,12 @@ function ProgramPreviewSection() {
     }));
   }, [activeTab, allPrograms]);
 
-  const activeCat = activeTab !== "all" ? CATEGORIES[activeTab] : null;
+  const activeCat = activeTab !== "all" ? catalogMap[activeTab] : null;
 
   return (
     <section
-      className="relative py-20 lg:py-28 overflow-hidden"
+      id="daftar-program"
+      className="relative py-20 lg:py-28 overflow-hidden scroll-mt-20"
       style={{ background: "var(--surface)" }}
     >
       <div
@@ -908,470 +909,8 @@ function ProgramPreviewSection() {
                 accentBorder={entry.accentBorder}
               />
             ))}
-
-            {/* See all tile */}
-            <motion.a
-              href={activeCat ? activeCat.href : "/programs"}
-              className="flex flex-col items-center justify-center rounded-2xl p-6 text-center"
-              style={{
-                background: activeCat
-                  ? generateTheme(activeCat.theme.primary).primary
-                  : "var(--surface-soft)",
-                border: `1.5px dashed ${activeCat ? generateTheme(activeCat.theme.primary).border : "var(--border)"}`,
-                minHeight: "200px",
-                textDecoration: "none",
-              }}
-              whileHover={{ scale: 1.025 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center mb-3"
-                style={{
-                  background: activeCat
-                    ? generateTheme(activeCat.theme.primary).strong
-                    : "var(--blue-navy)",
-                }}
-              >
-                <svg viewBox="0 0 16 16" className="w-5 h-5" fill="none">
-                  <path
-                    d="M8 3v10M3 8h10"
-                    stroke="white"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <p
-                className="font-display font-bold mb-1"
-                style={{
-                  fontSize: "0.9375rem",
-                  color: "var(--blue-navy)",
-                }}
-              >
-                Lihat Semua
-              </p>
-              <p
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--text-muted)",
-                }}
-              >
-                Program {activeCat ? activeCat.shortLabel : "Kami"}
-              </p>
-            </motion.a>
           </motion.div>
         </AnimatePresence>
-      </div>
-    </section>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════
- * SECTION 5: TESTIMONIALS (reworked — tabs + slider)
- * ══════════════════════════════════════════════════════════════ */
-type TestimonialEntry = {
-  quote: string;
-  name?: string;
-  role?: string;
-  categoryKey: string;
-  categoryLabel: string;
-  accent: string;
-  accentLight: string;
-  accentBorder: string;
-};
-
-const ALL_TESTIMONIALS: TestimonialEntry[] = Object.values(CATEGORIES).flatMap(
-  (cat) =>
-    (cat.socialProof || []).map((t) => ({
-      ...t,
-      categoryKey: cat.key,
-      categoryLabel: cat.shortLabel || cat.label,
-      accent: generateTheme(cat.theme.primary).primary,
-      accentLight: generateTheme(cat.theme.primary).soft,
-      accentBorder: generateTheme(cat.theme.primary).border,
-    })),
-);
-
-function TestimonialCard({ testimonial }: { testimonial: TestimonialEntry }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -16 }}
-      transition={{ duration: 0.42, ease: EASE }}
-      className="rounded-2xl p-6"
-      style={{
-        background: "var(--surface)",
-        border: `1.5px solid ${testimonial.accentBorder}`,
-        boxShadow: "var(--shadow-card-hover)",
-      }}
-    >
-      {/* Stars */}
-      <div className="flex gap-1 mb-4">
-        {[...Array(5)].map((_, i) => (
-          <svg key={i} viewBox="0 0 12 12" className="w-4 h-4" fill="#FBBF24">
-            <path d="M6 1l1.5 3 3.2.4-2.3 2.2.5 3.2L6 8.2l-2.9 1.6.5-3.2L1.3 4.4 4.5 4z" />
-          </svg>
-        ))}
-      </div>
-
-      {/* Quote */}
-      <p
-        className="italic mb-5"
-        style={{
-          fontSize: "1rem",
-          color: "var(--text-muted)",
-          lineHeight: "1.72",
-        }}
-      >
-        "{testimonial.quote}"
-      </p>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {/* Avatar placeholder */}
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center font-display font-bold"
-            style={{
-              background: testimonial.accentLight,
-              border: `1.5px solid ${testimonial.accentBorder}`,
-              color: testimonial.accent,
-              fontSize: "1rem",
-            }}
-          >
-            {testimonial.name ? testimonial.name[0] : "?"}
-          </div>
-          <div>
-            {testimonial.name && (
-              <p
-                className="font-display font-bold"
-                style={{
-                  fontSize: "0.875rem",
-                  color: "var(--blue-navy)",
-                }}
-              >
-                {testimonial.name}
-              </p>
-            )}
-            {testimonial.role && (
-              <p
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--text-faint)",
-                }}
-              >
-                {testimonial.role}
-              </p>
-            )}
-          </div>
-        </div>
-        <span
-          className="px-2.5 py-1 rounded-full font-display font-semibold"
-          style={{
-            fontSize: "0.625rem",
-            background: testimonial.accentLight,
-            color: testimonial.accent,
-            border: `1px solid ${testimonial.accentBorder}`,
-            letterSpacing: "0.05em",
-            textTransform: "uppercase",
-          }}
-        >
-          {testimonial.categoryLabel}
-        </span>
-      </div>
-    </motion.div>
-  );
-}
-
-function TestimonialsSection() {
-  const categories = useMemo(() => Object.values(CATEGORIES), []);
-  const [activeTab, setActiveTab] = useState<string>("all");
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const filtered: TestimonialEntry[] = useMemo(() => {
-    if (activeTab === "all") return ALL_TESTIMONIALS;
-    return ALL_TESTIMONIALS.filter((t) => t.categoryKey === activeTab);
-  }, [activeTab]);
-
-  const pair = useMemo(() => {
-    if (filtered.length === 0) return [];
-    return [
-      filtered[activeIndex % filtered.length],
-      filtered[(activeIndex + 1) % filtered.length],
-    ].filter(Boolean);
-  }, [filtered, activeIndex]);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [activeTab]);
-
-  const hasPrev = activeIndex > 0;
-  const hasNext = activeIndex + 2 < filtered.length;
-
-  const tabs = [
-    { key: "all", label: "Semua", icon: null },
-    ...categories.map((c) => ({
-      key: c.key,
-      label: c.shortLabel || c.label,
-      icon: c.icon,
-    })),
-  ];
-
-  return (
-    <section
-      className="relative py-20 lg:py-28 overflow-hidden"
-      style={{ background: "var(--bg-soft)" }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: `radial-gradient(ellipse 65% 45% at 50% 0%, rgba(255,107,53,0.035) 0%, transparent 60%)`,
-        }}
-      />
-
-      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <Reveal>
-            <Pill>✦ Cerita Nyata</Pill>
-          </Reveal>
-          <Reveal delay={0.07}>
-            <h2
-              className="font-display font-extrabold mt-5 mb-3 leading-[1.07]"
-              style={{
-                fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)",
-                letterSpacing: "-0.024em",
-                color: "var(--blue-navy)",
-              }}
-            >
-              Mereka sudah <GoldText>membuktikannya</GoldText>
-            </h2>
-          </Reveal>
-          <Reveal delay={0.12}>
-            <p
-              style={{
-                fontSize: "0.9375rem",
-                color: "var(--text-muted)",
-                maxWidth: "360px",
-                margin: "0 auto",
-              }}
-            >
-              Lebih dari {SOCIAL_PROOF.totalStudents} siswa dari berbagai jalur
-              — ini cerita mereka.
-            </p>
-          </Reveal>
-        </div>
-
-        {/* Tab bar */}
-        <Reveal delay={0.1}>
-          <div className="flex justify-center mb-10">
-            <div
-              className="flex p-1 gap-1 rounded-2xl flex-wrap justify-center"
-              style={{
-                background: "var(--surface)",
-                border: "1.5px solid var(--border-soft)",
-                boxShadow: "var(--shadow-badge)",
-              }}
-            >
-              {tabs.map((tab) => {
-                const isActive = activeTab === tab.key;
-                const cat = tab.key !== "all" ? CATEGORIES[tab.key] : null;
-                return (
-                  <motion.button
-                    key={tab.key}
-                    onClick={() => setActiveTab(tab.key)}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-display font-semibold"
-                    style={{
-                      fontSize: "0.875rem",
-                      cursor: "pointer",
-                      border: "none",
-                      background: isActive
-                        ? cat
-                          ? generateTheme(cat.theme.primary).soft
-                          : "var(--surface-soft)"
-                        : "transparent",
-                      color: isActive
-                        ? cat
-                          ? generateTheme(cat.theme.primary).primary
-                          : "var(--blue-navy)"
-                        : "var(--text-muted)",
-                      boxShadow: isActive ? "var(--shadow-badge)" : "none",
-                      transition: "all 0.2s ease",
-                    }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    {tab.icon ? (
-                      <Icon name={tab.icon as any} className="w-3.5 h-3.5" />
-                    ) : (
-                      <svg
-                        viewBox="0 0 16 16"
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                      >
-                        <rect
-                          x="1"
-                          y="1"
-                          width="6"
-                          height="6"
-                          rx="1.5"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        />
-                        <rect
-                          x="9"
-                          y="1"
-                          width="6"
-                          height="6"
-                          rx="1.5"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        />
-                        <rect
-                          x="1"
-                          y="9"
-                          width="6"
-                          height="6"
-                          rx="1.5"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        />
-                        <rect
-                          x="9"
-                          y="9"
-                          width="6"
-                          height="6"
-                          rx="1.5"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                        />
-                      </svg>
-                    )}
-                    {tab.label}
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-        </Reveal>
-
-        {/* Testimonial cards */}
-        {filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p style={{ color: "var(--text-faint)" }}>
-              Belum ada testimoni untuk kategori ini.
-            </p>
-          </div>
-        ) : (
-          <>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${activeTab}-${activeIndex}`}
-                className="grid sm:grid-cols-2 gap-5 max-w-4xl mx-auto"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                {pair.map((t, i) => (
-                  <TestimonialCard key={`${t.name}-${i}`} testimonial={t} />
-                ))}
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Navigation */}
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <motion.button
-                onClick={() => setActiveIndex((i) => Math.max(0, i - 2))}
-                disabled={!hasPrev}
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{
-                  background: hasPrev
-                    ? "var(--surface)"
-                    : "var(--surface-soft)",
-                  border: "1.5px solid var(--border-soft)",
-                  cursor: hasPrev ? "pointer" : "not-allowed",
-                  opacity: hasPrev ? 1 : 0.4,
-                }}
-                whileHover={hasPrev ? { scale: 1.08 } : {}}
-                whileTap={hasPrev ? { scale: 0.95 } : {}}
-              >
-                <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
-                  <path
-                    d="M10 4L6 8l4 4"
-                    stroke="var(--blue-navy)"
-                    strokeWidth={1.8}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </motion.button>
-
-              {/* Dots */}
-              <div className="flex items-center gap-2">
-                {Array.from({ length: Math.ceil(filtered.length / 2) }).map(
-                  (_, i) => (
-                    <motion.button
-                      key={i}
-                      onClick={() => setActiveIndex(i * 2)}
-                      className="rounded-full"
-                      style={{
-                        width: activeIndex / 2 === i ? "24px" : "8px",
-                        height: "8px",
-                        background:
-                          activeIndex / 2 === i
-                            ? "var(--blue-navy)"
-                            : "var(--border)",
-                        cursor: "pointer",
-                        border: "none",
-                        transition: "all 0.25s ease",
-                      }}
-                      whileTap={{ scale: 0.9 }}
-                    />
-                  ),
-                )}
-              </div>
-
-              <motion.button
-                onClick={() => setActiveIndex((i) => i + 2)}
-                disabled={!hasNext}
-                className="w-10 h-10 rounded-full flex items-center justify-center"
-                style={{
-                  background: hasNext
-                    ? "var(--surface)"
-                    : "var(--surface-soft)",
-                  border: "1.5px solid var(--border-soft)",
-                  cursor: hasNext ? "pointer" : "not-allowed",
-                  opacity: hasNext ? 1 : 0.4,
-                }}
-                whileHover={hasNext ? { scale: 1.08 } : {}}
-                whileTap={hasNext ? { scale: 0.95 } : {}}
-              >
-                <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
-                  <path
-                    d="M6 4l4 4-4 4"
-                    stroke="var(--blue-navy)"
-                    strokeWidth={1.8}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </motion.button>
-            </div>
-
-            <p
-              className="text-center mt-3"
-              style={{
-                fontSize: "0.75rem",
-                color: "var(--text-faint)",
-              }}
-            >
-              {Math.min(activeIndex + 2, filtered.length)} dari{" "}
-              {filtered.length} testimoni
-            </p>
-          </>
-        )}
       </div>
     </section>
   );
@@ -1459,7 +998,7 @@ function FinalCTASection({
             <span
               style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.65)" }}
             >
-              Admin siap membantu kamu sekarang
+              Admin siap membantu Ayah/Bunda
             </span>
           </div>
         </Reveal>
@@ -1562,7 +1101,6 @@ function FinalCTASection({
             {[
               "Gratis konsultasi",
               "Tanpa komitmen",
-              "Respon cepat",
               "Tim berpengalaman",
             ].map((f) => (
               <div key={f} className="flex items-center gap-1.5">
@@ -1633,7 +1171,6 @@ export default function ProgramsView() {
         highlightKey={highlightKey}
       />
       <ProgramPreviewSection />
-      <TestimonialsSection />
       <FinalCTASection onScrollToPrograms={scrollToPrograms} />
     </main>
   );

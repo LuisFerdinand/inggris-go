@@ -1,6 +1,6 @@
 // app/(home)/programs/_modules/ui/components/QuickDecisionSection.tsx
-import { useMemo, useState } from "react";
-import { CATEGORIES } from "../../../[categorySlug]/data";
+import { useState } from "react";
+import { useCatalog } from "../../catalog-context";
 import { EASE, Reveal } from "../views/ProgramsView";
 import { generateTheme } from "@/lib/utils";
 import { motion, useInView, AnimatePresence } from "framer-motion";
@@ -12,7 +12,7 @@ export function QuickDecisionSection({
   onSelect: (key: string) => void;
 }) {
   const [hovered, setHovered] = useState<string | null>(null);
-  const categories = useMemo(() => Object.values(CATEGORIES), []);
+  const { list: categories } = useCatalog();
 
   return (
     <section

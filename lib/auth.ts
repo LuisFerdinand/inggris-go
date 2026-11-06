@@ -1,5 +1,5 @@
 // lib/auth.ts
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
@@ -20,6 +20,15 @@ import {
 import { generateId } from "@/lib/utils";
 
 const ONE_HOUR = 60 * 60;
+
+/**
+ * Thrown when someone tries email + password on an account that was created
+ * with Google (no password stored). The login form reads `code` to tell them
+ * to use "Masuk dengan Google" instead of a misleading "wrong password".
+ */
+class GoogleOnlyAccountError extends CredentialsSignin {
+  code = "google_account";
+}
 
 function normalizeEmail(value: unknown) {
   if (typeof value !== "string") return null;
@@ -162,6 +171,14 @@ async function upsertGoogleUser(params: {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
+  logger: {
+    // A wrong password is an expected outcome, not a server fault — don't
+    // dump a stack trace into the console for it.
+    error(error) {
+      if (error instanceof CredentialsSignin) return;
+      console.error("[auth][error]", error);
+    },
+  },
   // Forced explicitly (rather than left to auto-detection) so the cookie
   // this sets and the "__Secure-" prefix getToken() looks for in proxy.ts
   // can never disagree about whether the deployment is HTTPS.
@@ -203,7 +220,8 @@ jwt: {
 
         const existingUser = await getDbUserByEmail(email);
 
-        if (!existingUser?.passwordHash) return null;
+        if (!existingUser) return null;
+        if (!existingUser.passwordHash) throw new GoogleOnlyAccountError();
 
         const validPassword = await bcrypt.compare(
           password,

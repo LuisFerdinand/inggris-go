@@ -67,6 +67,91 @@ const advantageFeature = z.object({
   gradientKey: z.enum(["blue", "navy", "gold", "sky"]).default("blue"),
 });
 
+/* ── Program showcase (Beranda "Program Kami") ─────────────── */
+
+const t = (max: number) => z.string().trim().max(max).default("");
+
+const showcaseCard = z.object({
+  programSlug: t(160),
+  packageTitle: t(200),
+  eyebrow: t(120),
+  badge: t(80),
+  title: t(200),
+  price: t(60),
+  originalPrice: t(60),
+  meta: t(200),
+  desc: t(1000),
+  chipsLabel: t(120),
+  chips: z.array(z.string().trim().max(120)).max(8).default([]),
+  features: z.array(z.string().trim().max(200)).max(10).default([]),
+  ctaLabel: t(120),
+  ctaHref: t(600),
+  featured: z.boolean().default(false),
+});
+
+const showcaseTab = z.object({
+  id: z.string().trim().min(1).max(40),
+  label: t(80),
+  template: z.enum(["feature", "cards", "spotlight", "banner"]),
+  programSlug: t(160),
+  eyebrow: t(160),
+  heading: t(200),
+  description: t(600),
+  kicker: t(80),
+  badge: t(80),
+  headline: t(300),
+  body: t(1500),
+  chips: z
+    .array(
+      z.object({
+        icon: z.string().trim().max(60).default(""),
+        text: z.string().trim().max(160).default(""),
+      }),
+    )
+    .max(8)
+    .default([]),
+  tiles: z
+    .array(
+      z.object({
+        title: z.string().trim().max(160).default(""),
+        desc: z.string().trim().max(300).default(""),
+      }),
+    )
+    .max(6)
+    .default([]),
+  priceLabel: t(80),
+  priceNotes: z.array(z.string().trim().max(160)).max(4).default([]),
+  price: t(60),
+  originalPrice: t(60),
+  image: t(600),
+  ctaLabel: t(120),
+  ctaHref: t(600),
+  secondaryCtaLabel: t(120),
+  secondaryCtaHref: t(600),
+  cardSource: z.enum(["category", "program", "manual"]).default("category"),
+  categorySlug: t(160),
+  cards: z.array(showcaseCard).max(8).default([]),
+  helpTitle: t(120),
+  helpItems: z
+    .array(
+      z.object({
+        label: z.string().trim().max(80).default(""),
+        text: z.string().trim().max(200).default(""),
+      }),
+    )
+    .max(6)
+    .default([]),
+});
+
+export const updateProgramShowcaseInput = z.object({
+  eyebrow: t(80),
+  title: t(200),
+  titleAccent: t(200),
+  description: t(600),
+  display: z.enum(["tabs", "stacked"]).default("tabs"),
+  tabs: z.array(showcaseTab).max(8),
+});
+
 export const updateHomeInput = z.object({
   heroBadgeText: shortStr,
   heroTitle: shortStr,

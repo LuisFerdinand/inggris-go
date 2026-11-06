@@ -189,6 +189,60 @@ function FormSection({
   );
 }
 
+const PACKAGE_TEMPLATES: {
+  label: string;
+  values: Pick<
+    PackageFormValues,
+    "title" | "description" | "price" | "originalPrice" | "features"
+  >;
+}[] = [
+  {
+    label: "Reguler",
+    values: {
+      title: "Reguler",
+      description: "Paket standar untuk mulai belajar.",
+      price: 0,
+      originalPrice: null,
+      features: ["Akses kelas live", "Materi pembelajaran", "Grup komunitas"],
+    },
+  },
+  {
+    label: "Premium",
+    values: {
+      title: "Premium",
+      description: "Paket lengkap dengan pendampingan lebih intens.",
+      price: 0,
+      originalPrice: null,
+      features: [
+        "Semua benefit paket Reguler",
+        "Rekaman kelas",
+        "Sertifikat",
+        "Feedback personal dari tutor",
+      ],
+    },
+  },
+  {
+    label: "Trial / Starter",
+    values: {
+      title: "Trial Class",
+      description: "Coba dulu sebelum ikut program penuh.",
+      price: 0,
+      originalPrice: null,
+      features: ["1 sesi percobaan", "Konsultasi level"],
+    },
+  },
+  {
+    label: "Hubungi Admin",
+    values: {
+      title: "Paket Khusus",
+      description: "Harga menyesuaikan kebutuhan. Hubungi admin untuk penawaran.",
+      price: 0,
+      originalPrice: null,
+      features: [],
+    },
+  },
+];
+
 interface PackageFormProps {
   mode: "create" | "edit";
   programId: string;
@@ -246,9 +300,50 @@ export function PackageForm({
     control,
     register,
     reset,
+    watch,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = form;
+
+  const priceValue = watch("price");
+  const originalPriceValue = watch("originalPrice");
+
+  // Existing packages of this program, offered as "copy from" sources.
+  const programPackagesQuery = trpc.packages.listByProgram.useQuery(
+    { programId },
+    { enabled: mode === "create" },
+  );
+  const copyableSources = (programPackagesQuery.data ?? []) as Array<{
+    id: string;
+    title: string;
+    description: string | null;
+    price: number;
+    originalPrice: number | null;
+    features: string[] | null;
+    batch?: { title: string } | null;
+  }>;
+
+  function applyValues(
+    values: Pick<
+      PackageFormValues,
+      "title" | "description" | "price" | "originalPrice" | "features"
+    >,
+  ) {
+    const opts = { shouldDirty: true, shouldValidate: true } as const;
+    setValue("title", values.title, opts);
+    setValue("description", values.description ?? "", opts);
+    setValue("price", values.price, opts);
+    setValue("originalPrice", values.originalPrice ?? null, opts);
+    setValue("features", values.features ?? [], opts);
+  }
+
+  const discountPercent =
+    originalPriceValue && priceValue > 0 && originalPriceValue > priceValue
+      ? Math.round(((originalPriceValue - priceValue) / originalPriceValue) * 100)
+      : null;
+  const originalPriceInvalid =
+    !!originalPriceValue && originalPriceValue <= (priceValue ?? 0);
 
   useEffect(() => {
     if (mode === "edit" && packageId && !defaultValues && !loadedValues) return;
@@ -304,6 +399,59 @@ export function PackageForm({
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <input type="hidden" {...register("programId")} />
       <input type="hidden" {...register("batchId")} />
+
+      {mode === "create" && (
+        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+          <p className="text-[12px] font-bold text-blue-800">Mulai cepat</p>
+          <p className="mt-0.5 text-[11.5px] leading-relaxed text-blue-700/80">
+            Pilih contoh untuk mengisi form otomatis, lalu sesuaikan harganya.
+          </p>
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {PACKAGE_TEMPLATES.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                onClick={() => applyValues(t.values)}
+                className="rounded-full border border-blue-200 bg-white px-3 py-1 text-[11.5px] font-medium text-blue-700 transition hover:border-blue-400 hover:bg-blue-50"
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {copyableSources.length > 0 && (
+            <div className="mt-3 flex flex-col gap-1.5">
+              <label className="text-[11.5px] font-semibold text-blue-800">
+                Atau salin dari paket yang sudah ada
+              </label>
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  const src = copyableSources.find((p) => p.id === e.target.value);
+                  if (!src) return;
+                  applyValues({
+                    title: src.title,
+                    description: src.description ?? "",
+                    price: src.price,
+                    originalPrice: src.originalPrice ?? null,
+                    features: src.features ?? [],
+                  });
+                  e.target.value = "";
+                }}
+                className="h-9 rounded-lg border border-blue-200 bg-white px-2.5 text-[12px] text-neutral-700 outline-none focus:border-blue-400"
+              >
+                <option value="">Pilih paket…</option>
+                {copyableSources.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                    {p.batch?.title ? ` — ${p.batch.title}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
 
       <FormSection
         icon={<Package className="size-4" />}
@@ -370,6 +518,25 @@ export function PackageForm({
               </FieldWrap>
             )}
           />
+
+          <div className="flex flex-col gap-1 sm:col-span-2">
+            {!priceValue && (
+              <p className="text-[11.5px] leading-relaxed text-amber-700">
+                Harga Rp 0 akan tampil sebagai “Hubungi Admin” di website dan
+                tidak dihitung sebagai “Harga mulai”.
+              </p>
+            )}
+            {discountPercent !== null && (
+              <p className="text-[11.5px] leading-relaxed text-emerald-700">
+                Diskon {discountPercent}% dari harga coret.
+              </p>
+            )}
+            {originalPriceInvalid && (
+              <p className="text-[11.5px] leading-relaxed text-red-600">
+                Harga coret harus lebih besar dari harga, atau kosongkan.
+              </p>
+            )}
+          </div>
         </div>
       </FormSection>
 

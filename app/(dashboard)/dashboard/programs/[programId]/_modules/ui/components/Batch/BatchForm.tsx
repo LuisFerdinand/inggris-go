@@ -46,6 +46,43 @@ const MODE_LABELS: Record<string, string> = {
   hybrid: "Hybrid",
 };
 
+const STATUS_HELP: Record<string, string> = {
+  draft: "Belum tampil di website. Cocok saat masih menyiapkan data.",
+  open: "Tampil di website dan peserta bisa mendaftar.",
+  ongoing: "Kelas sedang berjalan. Pendaftaran biasanya sudah ditutup.",
+  completed: "Kelas sudah selesai. Tetap tersimpan sebagai arsip.",
+  closed: "Pendaftaran ditutup walau kelas belum mulai atau masih berjalan.",
+};
+
+const MONTHS_ID = [
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
+];
+
+function suggestBatchTitles(count = 3) {
+  const now = new Date();
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    return `Batch ${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`;
+  });
+}
+
+function toTime(value: Date | string | null | undefined) {
+  if (!value) return null;
+  const t = (typeof value === "string" ? new Date(value) : value).getTime();
+  return Number.isNaN(t) ? null : t;
+}
+
 const emptyBatchValues: BatchFormValues = {
   programId: "",
   title: "",
@@ -162,9 +199,31 @@ export function BatchForm({
     control,
     register,
     reset,
+    watch,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = form;
+
+  const statusValue = watch("status");
+  const startTime = toTime(watch("startDate"));
+  const endTime = toTime(watch("endDate"));
+  const deadlineTime = toTime(watch("registrationDeadline"));
+
+  const dateWarnings: string[] = [];
+  if (startTime && endTime && endTime < startTime) {
+    dateWarnings.push("Tanggal selesai lebih awal dari tanggal mulai.");
+  }
+  if (startTime && deadlineTime && deadlineTime > startTime) {
+    dateWarnings.push(
+      "Batas pendaftaran setelah tanggal mulai. Biasanya pendaftaran ditutup sebelum kelas dimulai.",
+    );
+  }
+  if (statusValue === "open" && !startTime) {
+    dateWarnings.push(
+      "Status Open tanpa tanggal mulai akan tampil tanpa jadwal di website.",
+    );
+  }
 
   useEffect(() => {
     if (mode === "edit" && batchId && !defaultValues && !loadedValues) return;
@@ -231,6 +290,27 @@ export function BatchForm({
               {...register("title")}
             />
           </FieldWrap>
+
+          {mode === "create" && (
+            <div className="-mt-2 flex flex-wrap items-center gap-1.5 sm:col-span-2">
+              <span className="text-[11px] text-neutral-400">Saran judul:</span>
+              {suggestBatchTitles().map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() =>
+                    setValue("title", t, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                  className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[11px] font-medium text-neutral-600 transition hover:border-blue-300 hover:text-blue-700"
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
 
           <FieldWrap
             label="Deskripsi"
@@ -331,6 +411,13 @@ export function BatchForm({
               {...register("capacity")}
             />
           </FieldWrap>
+
+          <p className="rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2.5 text-[12px] leading-relaxed text-blue-700 sm:col-span-2">
+            <span className="font-semibold">
+              {STATUS_LABELS[statusValue] ?? statusValue}:
+            </span>{" "}
+            {STATUS_HELP[statusValue] ?? ""}
+          </p>
         </div>
       </FormSection>
 
@@ -393,6 +480,16 @@ export function BatchForm({
               </FieldWrap>
             )}
           />
+
+          {dateWarnings.length > 0 && (
+            <ul className="flex flex-col gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 sm:col-span-2">
+              {dateWarnings.map((w) => (
+                <li key={w} className="text-[12px] leading-relaxed text-amber-800">
+                  {w}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <FieldWrap label="Timezone" error={errors.timezone?.message}>
             <Input placeholder="WIB" className={inputCls} {...register("timezone")} />

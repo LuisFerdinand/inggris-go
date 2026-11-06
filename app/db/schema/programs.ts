@@ -62,6 +62,15 @@ export const registrationTypeEnum = pgEnum(
   REGISTRATION_TYPE,
 );
 
+/**
+ * How visitors sign up for a program:
+ *  - form     → built-in registration form on the website (account + payment)
+ *  - whatsapp → short form that opens WhatsApp to the program's admin number
+ *  - link     → any external link (Google Form, another site, ...)
+ */
+export const REGISTRATION_METHOD = ["form", "whatsapp", "link"] as const;
+export type RegistrationMethod = (typeof REGISTRATION_METHOD)[number];
+
 export const programScheduleTypeEnum = pgEnum(
   "program_schedule_type",
   PROGRAM_SCHEDULE_TYPE,
@@ -94,6 +103,16 @@ export const programs = pgTable("programs", {
     .notNull(),
 
   order: integer("order").default(0),
+
+  registrationMethod: text("registration_method")
+    .$type<RegistrationMethod>()
+    .default("form")
+    .notNull(),
+  // WhatsApp number that receives sign-ups (digits, any format). Empty =
+  // the site's default admin number.
+  registrationWhatsapp: text("registration_whatsapp"),
+  registrationLinkUrl: text("registration_link_url"),
+  registrationLinkLabel: text("registration_link_label"),
 
   startingPrice: integer("starting_price"),
   startingOriginalPrice: integer("starting_original_price"),

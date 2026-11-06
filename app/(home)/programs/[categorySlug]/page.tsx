@@ -1,41 +1,13 @@
 // app/(home)/programs/[categorySlug]/page.tsx
-import { notFound } from "next/navigation";
-
-import { CATEGORIES } from "./data";
-import CategoryPageClient from "./client";
-import { getPublicCaller, dbCategoryToMeta } from "./_adapters";
+import { permanentRedirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export default async function CategoryPage({
-  params,
-}: {
-  params: Promise<{ categorySlug: string }>;
-}) {
-  const { categorySlug } = await params;
-
-  let meta: ReturnType<typeof dbCategoryToMeta> | null = null;
-
-  // 1) Try the backend.
-  try {
-    const caller = await getPublicCaller();
-    const dbCategory = await caller.publicPrograms.categoryBySlug({
-      slug: categorySlug,
-    });
-
-    if (dbCategory) {
-      const dbPrograms = await caller.publicPrograms.programsByCategory({
-        categorySlug,
-      });
-      meta = dbCategoryToMeta(dbCategory, dbPrograms as any, categorySlug);
-    }
-  } catch {
-    // ignore → fall back to static
-  }
-
-  // 2) Static fallback.
-  const resolved = meta ?? CATEGORIES[categorySlug] ?? null;
-  if (!resolved) notFound();
-
-  return <CategoryPageClient meta={resolved} />;
+/**
+ * Category pages no longer exist: visitors open a program's own page
+ * (/programs/<category>/<program>) straight from the Beranda showcase or the
+ * /programs catalog. Old category links land on the catalog.
+ */
+export default function CategoryPage() {
+  permanentRedirect("/programs");
 }
