@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { ArrowLeft, Loader2, Trash2, Users } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Loader2, Pencil, Trash2, Users } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -20,6 +21,7 @@ import {
 import { PROJECT_STATUS, PROJECT_STATUS_LABEL, type ProjectStatus } from "@/lib/enums/enums";
 
 import { ProjectStatusBadge } from "../../_modules/project-badges";
+import { EditProjectSheet } from "../../_modules/EditProjectSheet";
 import { TaskBoardView } from "../../../tasks/_modules/TaskBoardView";
 import { initials } from "../../../tasks/_modules/helpers";
 
@@ -30,6 +32,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
   const canManage =
     role === "admin" || role === "super_admin" || role === "operational_manager";
 
+  const [editOpen, setEditOpen] = useState(false);
   const router = useRouter();
   const utils = trpc.useUtils();
   const projectQuery = trpc.projects.getById.useQuery({ id: projectId });
@@ -139,6 +142,17 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
             {canManage && (
               <button
                 type="button"
+                onClick={() => setEditOpen(true)}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-[12px] font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+              >
+                <Pencil className="size-3.5" />
+                Ubah
+              </button>
+            )}
+
+            {canManage && (
+              <button
+                type="button"
                 disabled={deleteMutation.isPending}
                 onClick={async () => {
                   if (
@@ -173,6 +187,10 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
           subtitle="Tugas dalam proyek ini."
         />
       </div>
+
+      {canManage && (
+        <EditProjectSheet project={project} open={editOpen} onOpenChange={setEditOpen} />
+      )}
     </div>
   );
 }
