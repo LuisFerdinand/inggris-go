@@ -1,4 +1,5 @@
 import { HydrateClient, trpc } from "@/lib/trpc/server";
+import { buildPageMetadata } from "@/lib/seo";
 
 import HeroAnimated from "@/components/sections/home/HeroAnimated";
 import ProblemSection from "@/components/sections/home/ProblemSection";
@@ -9,6 +10,10 @@ import TestimonialsSection from "@/components/sections/home/TestimonialsSection"
 import SharedCta from "@/components/sections/shared/SharedCta";
 
 export const dynamic = "force-dynamic";
+
+// Beranda keeps the site-wide title/description from the CMS; only its
+// canonical is declared here (every page now owns its canonical).
+export const generateMetadata = () => buildPageMetadata({ path: "/" });
 
 export default async function HomePage() {
   // Await so HydrateClient ships complete data — the client's first render is

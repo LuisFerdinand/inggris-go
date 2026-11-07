@@ -78,7 +78,7 @@ function SectionPill({
       className="inline-flex items-center gap-2 rounded-full font-display font-bold uppercase"
       style={{
         padding: "5px 16px",
-        fontSize: "0.625rem",
+        fontSize: "0.75rem",
         letterSpacing: "0.16em",
         background: theme.soft,
         border: `1.5px solid ${theme.border}`,
@@ -188,7 +188,7 @@ function MentorshipLightbox({
             <p
               className="font-display font-semibold uppercase mb-1"
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.4)",
                 letterSpacing: "0.14em",
               }}
@@ -238,7 +238,7 @@ function MentorshipLightbox({
                 <span
                   className="font-display font-semibold"
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "rgba(255,255,255,0.4)",
                     minWidth: 56,
                     textAlign: "center",
@@ -287,7 +287,7 @@ function MentorshipLightbox({
         <p
           className="sm:hidden mt-3 font-display"
           style={{
-            fontSize: "0.6875rem",
+            fontSize: "0.75rem",
             color: "rgba(255,255,255,0.25)",
             letterSpacing: "0.04em",
           }}
@@ -361,7 +361,7 @@ function MentorshipItemCard({
           </p>
           <p
             style={{
-              fontSize: "0.8rem",
+              fontSize: "0.875rem",
               color: "var(--text-muted)",
               lineHeight: "1.65",
             }}
@@ -524,7 +524,7 @@ function MentorshipCollage({
                     <span
                       className="font-display font-bold uppercase"
                       style={{
-                        fontSize: "0.5rem",
+                        fontSize: "0.75rem",
                         color: "#0a1628",
                         letterSpacing: "0.07em",
                       }}
@@ -543,7 +543,7 @@ function MentorshipCollage({
                     <span
                       className="font-display font-extrabold text-white leading-none"
                       style={{
-                        fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                        fontSize: "clamp(1.75rem, 3vw, 2rem)",
                         letterSpacing: "-0.02em",
                       }}
                     >
@@ -552,7 +552,7 @@ function MentorshipCollage({
                     <span
                       className="font-display font-semibold uppercase mt-1"
                       style={{
-                        fontSize: "0.5rem",
+                        fontSize: "0.75rem",
                         color: "rgba(255,255,255,0.55)",
                         letterSpacing: "0.14em",
                       }}
@@ -700,7 +700,7 @@ export function MentorshipSection({
                 <h2
                   className="font-display font-extrabold leading-[1.08]"
                   style={{
-                    fontSize: "clamp(1.6rem, 5vw, 2.25rem)",
+                    fontSize: "clamp(1.875rem, 5vw, 2.25rem)",
                     letterSpacing: "-0.025em",
                     color: "var(--blue-navy)",
                   }}
@@ -735,7 +735,7 @@ export function MentorshipSection({
                       padding: "10px 16px",
                       background: theme.soft,
                       border: `1.5px solid ${theme.border}`,
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       fontWeight: 600,
                       color: theme.primary,
                     }}
@@ -787,7 +787,7 @@ export function MentorshipSection({
                 <h2
                   className="font-display font-extrabold leading-[1.08]"
                   style={{
-                    fontSize: "clamp(1.75rem, 3.2vw, 2.5rem)",
+                    fontSize: "clamp(1.875rem, 3.2vw, 2.5rem)",
                     letterSpacing: "-0.026em",
                     color: "var(--blue-navy)",
                   }}
@@ -827,7 +827,7 @@ export function MentorshipSection({
                       padding: "10px 16px",
                       background: theme.soft,
                       border: `1.5px solid ${theme.border}`,
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       fontWeight: 600,
                       color: theme.primary,
                     }}

@@ -9,6 +9,13 @@ import toast from "react-hot-toast";
 import { trpc } from "@/lib/trpc/client";
 import type { Theme } from "@/lib/utils";
 import { buildWhatsappLink } from "@/lib/whatsapp";
+import {
+  formatStudySchedule,
+  STUDY_DAYS,
+  STUDY_TIME_SLOTS,
+  type StudyDay,
+  type StudyTimeSlot,
+} from "@/app/modules/order/study-schedule";
 
 /* ─────────────────────────────────────────────────────────────
  * HELPERS
@@ -28,6 +35,7 @@ function isBatchFull(batch: {
 /* ─────────────────────────────────────────────────────────────
  * TYPES
  * ───────────────────────────────────────────────────────────── */
+/** The logged-in parent's account. Only the parent's own data is pre-filled. */
 type InitialUser = {
   id: string;
   name?: string | null;
@@ -60,7 +68,7 @@ function StepIndicator({
   steps?: string[];
 }) {
   return (
-    <div className="flex items-center justify-center gap-0 mb-8 select-none">
+    <div className="flex items-start justify-center gap-0 mb-6 sm:mb-8 select-none">
       {steps.map((label, i) => {
         const done = i < current;
         const active = i === current;
@@ -92,8 +100,8 @@ function StepIndicator({
                   <span
                     className="font-display font-bold"
                     style={{
-                      fontSize: "0.6875rem",
-                      color: active ? "white" : "var(--text-faint)",
+                      fontSize: "0.75rem",
+                      color: active ? "white" : "var(--text-muted)",
                     }}
                   >
                     {i + 1}
@@ -104,12 +112,10 @@ function StepIndicator({
               <span
                 className="font-display font-semibold whitespace-nowrap"
                 style={{
-                  fontSize: "0.625rem",
+                  fontSize: "0.75rem",
                   color: active
                     ? theme.primary
-                    : done
-                      ? "var(--text-muted)"
-                      : "var(--text-faint)",
+                    : "var(--text-muted)",
                   letterSpacing: "0.02em",
                 }}
               >
@@ -119,10 +125,10 @@ function StepIndicator({
 
             {i < steps.length - 1 && (
               <div
-                className="mx-2 mb-5 transition-all duration-500"
+                className="mx-2 mt-4 transition-all duration-500"
                 style={{
                   height: "2px",
-                  width: "clamp(24px, 6vw, 56px)",
+                  width: "clamp(20px, 6vw, 56px)",
                   background: done ? theme.primary : "var(--border-soft)",
                   borderRadius: "1px",
                 }}
@@ -155,7 +161,7 @@ function Field({
     <div className={span2 ? "sm:col-span-2" : ""}>
       <label
         className="block font-display font-semibold mb-1.5"
-        style={{ fontSize: "0.8125rem", color: "var(--blue-navy)" }}
+        style={{ fontSize: "0.875rem", color: "var(--blue-navy)" }}
       >
         {label}
         {required && (
@@ -171,8 +177,8 @@ function Field({
         <p
           className="mt-1.5"
           style={{
-            fontSize: "0.6875rem",
-            color: "var(--text-faint)",
+            fontSize: "0.75rem",
+            color: "var(--text-muted)",
             lineHeight: "1.5",
           }}
         >
@@ -187,7 +193,8 @@ function Field({
  * INPUT STYLE
  * ───────────────────────────────────────────────────────────── */
 const inputCls =
-  "w-full rounded-xl border px-4 py-3 text-sm outline-none transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 focus:ring-2";
+  // 16px on phones (anything smaller makes iOS zoom in on focus), 14px from sm up.
+  "w-full min-h-12 rounded-xl border px-4 py-3 text-base sm:text-sm outline-none transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 focus:ring-2";
 
 function inputStyle(theme: Theme, disabled?: boolean) {
   return {
@@ -260,7 +267,7 @@ function OrderSummary({
       >
         <p
           className="font-display font-bold"
-          style={{ fontSize: "0.8125rem", color: theme.primary }}
+          style={{ fontSize: "0.875rem", color: theme.primary }}
         >
           Ringkasan Pendaftaran
         </p>
@@ -280,8 +287,8 @@ function OrderSummary({
           <div>
             <p
               style={{
-                fontSize: "0.6875rem",
-                color: "var(--text-faint)",
+                fontSize: "0.75rem",
+                color: "var(--text-muted)",
                 marginBottom: 4,
               }}
               className="uppercase tracking-widest font-display font-semibold"
@@ -324,7 +331,7 @@ function OrderSummary({
                 </div>
               </div>
             ) : (
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-faint)" }}>
+              <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
                 Belum dipilih
               </p>
             )}
@@ -334,8 +341,8 @@ function OrderSummary({
         <div>
           <p
             style={{
-              fontSize: "0.6875rem",
-              color: "var(--text-faint)",
+              fontSize: "0.75rem",
+              color: "var(--text-muted)",
               marginBottom: 4,
             }}
             className="uppercase tracking-widest font-display font-semibold"
@@ -351,7 +358,7 @@ function OrderSummary({
               {selectedPackage.title}
             </p>
           ) : (
-            <p style={{ fontSize: "0.8125rem", color: "var(--text-faint)" }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
               Belum dipilih
             </p>
           )}
@@ -366,14 +373,14 @@ function OrderSummary({
             {discount > 0 && (
               <>
                 <div className="flex justify-between items-center">
-                  <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                  <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
                     Harga normal
                   </p>
 
                   <p
                     style={{
-                      fontSize: "0.8125rem",
-                      color: "var(--text-faint)",
+                      fontSize: "0.875rem",
+                      color: "var(--text-muted)",
                       textDecoration: "line-through",
                     }}
                   >
@@ -386,7 +393,7 @@ function OrderSummary({
                     <span
                       className="px-2 py-0.5 rounded-full font-display font-bold"
                       style={{
-                        fontSize: "0.5625rem",
+                        fontSize: "0.75rem",
                         background: "#dcfce7",
                         color: "#15803d",
                       }}
@@ -394,14 +401,14 @@ function OrderSummary({
                       HEMAT
                     </span>
 
-                    <p style={{ fontSize: "0.8125rem", color: "#15803d" }}>
+                    <p style={{ fontSize: "0.875rem", color: "#15803d" }}>
                       Diskon
                     </p>
                   </div>
 
                   <p
                     className="font-display font-bold"
-                    style={{ fontSize: "0.8125rem", color: "#15803d" }}
+                    style={{ fontSize: "0.875rem", color: "#15803d" }}
                   >
                     − {formatIDR(discount)}
                   </p>
@@ -523,27 +530,31 @@ export function OnlineRegistrationForm({
   const [batchId, setBatchId] = useState<string>(initialBatchId ?? "");
   const [packageId, setPackageId] = useState<string>(initialPackageId ?? "");
 
-  const [fullName, setFullName] = useState(initialUser?.name ?? "");
+  // The child (the student).
+  const [childName, setChildName] = useState("");
+  const [childAgeOrGrade, setChildAgeOrGrade] = useState("");
+
+  // The parent (Ayah/Bunda) — the account owner. Only these two are
+  // pre-filled from the logged-in account; the child's data never is.
+  const [parentName, setParentName] = useState(initialUser?.name ?? "");
   const [whatsapp, setWhatsapp] = useState(initialUser?.phone ?? "");
   const [email, setEmail] = useState(initialUser?.email ?? "");
-  const [age, setAge] = useState(
-    initialUser?.age != null ? String(initialUser.age) : "",
-  );
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [note, setNote] = useState("");
   const [waOpened, setWaOpened] = useState(false);
 
-  // Pre-fill from user session, including saved phone and age.
+  // Private classes only: preferred study days + time of day.
+  const [studyDays, setStudyDays] = useState<StudyDay[]>([]);
+  const [timeSlot, setTimeSlot] = useState<StudyTimeSlot | "">("");
+
+  // Pre-fill the parent's own data from the account.
   useEffect(() => {
     if (!initialUser) return;
 
-    setFullName((c) => c || initialUser.name || "");
+    setParentName((c) => c || initialUser.name || "");
     setEmail((c) => c || initialUser.email || "");
     setWhatsapp((c) => c || initialUser.phone || "");
-    setAge((c) =>
-      c || (initialUser.age != null ? String(initialUser.age) : ""),
-    );
   }, [initialUser]);
 
   useEffect(() => {
@@ -608,19 +619,41 @@ export function OnlineRegistrationForm({
   const hasValidSelection =
     (packages.length === 0 || !!packageId) && (!isScheduled || !!batchId);
 
+  const needsSchedule = !!data?.program.requiresStudySchedule;
+  const scheduleValid = !needsSchedule || (studyDays.length > 0 && !!timeSlot);
+
+  const participantValid =
+    childName.trim().length >= 2 &&
+    childAgeOrGrade.trim().length >= 1 &&
+    parentName.trim().length >= 2 &&
+    whatsapp.trim().length >= 6 &&
+    scheduleValid;
+
   const canSubmit = isWhatsapp
-    ? !!data &&
-      hasValidSelection &&
-      fullName.trim().length >= 2 &&
-      whatsapp.trim().length >= 6
+    ? !!data && hasValidSelection && participantValid
     : !!data &&
       !!packageId &&
       (!isScheduled || !!batchId) &&
-      fullName.trim().length >= 2 &&
-      whatsapp.trim().length >= 6 &&
+      participantValid &&
       /\S+@\S+\.\S+/.test(email) &&
       passwordValid &&
       !register.isPending;
+
+  const studySchedule =
+    needsSchedule && studyDays.length > 0 && timeSlot
+      ? { days: studyDays, timeSlot }
+      : undefined;
+
+  function toggleStudyDay(day: StudyDay) {
+    setStudyDays((current) =>
+      current.includes(day)
+        ? current.filter((d) => d !== day)
+        : // keep Monday → Sunday order regardless of click order
+          STUDY_DAYS.map((d) => d.value).filter(
+            (d) => d === day || current.includes(d),
+          ),
+    );
+  }
 
   const step: 0 | 1 | 2 = isWhatsapp
     ? waOpened
@@ -653,9 +686,13 @@ export function OnlineRegistrationForm({
         `*Paket:* ${selectedPackage.title} — ${formatIDR(selectedPackage.price)}`,
       );
     }
-    lines.push(`*Nama:* ${fullName.trim()}`);
-    lines.push(`*No. WhatsApp:* ${whatsapp.trim()}`);
-    if (age) lines.push(`*Usia:* ${age}`);
+    lines.push(`*Nama anak:* ${childName.trim()}`);
+    lines.push(`*Usia / kelas anak:* ${childAgeOrGrade.trim()}`);
+    lines.push(`*Nama Ayah/Bunda:* ${parentName.trim()}`);
+    lines.push(`*No. WhatsApp orang tua:* ${whatsapp.trim()}`);
+    if (studySchedule) {
+      lines.push(`*Hari & jam belajar:* ${formatStudySchedule(studySchedule)}`);
+    }
     if (note.trim()) lines.push("", `*Catatan:* ${note.trim()}`);
     lines.push("", "Mohon info langkah pendaftaran selanjutnya. Terima kasih 🙏");
 
@@ -685,10 +722,12 @@ export function OnlineRegistrationForm({
       programId: data.program.id,
       packageId,
       batchId: isScheduled ? batchId : undefined,
-      fullName: fullName.trim(),
+      childName: childName.trim(),
+      childAgeOrGrade: childAgeOrGrade.trim(),
+      parentName: parentName.trim(),
       whatsapp: whatsapp.trim(),
       email: email.trim(),
-      age: age ? Number(age) : undefined,
+      studySchedule,
       password: isLoggedIn ? undefined : password,
     });
   }
@@ -773,19 +812,43 @@ export function OnlineRegistrationForm({
       />
 
       <div className="grid lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-start">
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {isScheduled && (
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="rounded-2xl border p-6"
+              className="rounded-2xl border p-4 sm:p-6"
               style={{
                 borderColor: theme.border,
                 background: "var(--surface)",
               }}
             >
               <SectionHeader number={1} title="Pilih Batch" theme={theme} />
+
+              {data.batches.length === 0 && (
+                <div
+                  className="rounded-xl border px-4 py-5 text-center"
+                  style={{
+                    borderColor: "var(--border-soft)",
+                    background: "var(--bg-soft)",
+                  }}
+                >
+                  <p
+                    className="font-display font-bold"
+                    style={{ fontSize: "0.9375rem", color: "var(--blue-navy)" }}
+                  >
+                    Belum ada batch yang dibuka
+                  </p>
+                  <p
+                    className="mt-1"
+                    style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}
+                  >
+                    Pendaftaran untuk program ini sedang ditutup. Hubungi admin
+                    untuk info jadwal batch berikutnya.
+                  </p>
+                </div>
+              )}
 
               <div className="grid sm:grid-cols-2 gap-3">
                 {data.batches.map((b) => {
@@ -880,8 +943,8 @@ export function OnlineRegistrationForm({
 
                         <span
                           style={{
-                            fontSize: "0.6875rem",
-                            color: "var(--text-faint)",
+                            fontSize: "0.75rem",
+                            color: "var(--text-muted)",
                           }}
                         >
                           {full
@@ -904,7 +967,7 @@ export function OnlineRegistrationForm({
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
-            className="rounded-2xl border p-6"
+            className="rounded-2xl border p-4 sm:p-6"
             style={{ borderColor: theme.border, background: "var(--surface)" }}
           >
             <SectionHeader
@@ -967,7 +1030,7 @@ export function OnlineRegistrationForm({
                             <span
                               className="rounded-full px-2 py-0.5 font-display font-bold"
                               style={{
-                                fontSize: "0.625rem",
+                                fontSize: "0.75rem",
                                 background: theme.soft,
                                 color: theme.primary,
                               }}
@@ -996,7 +1059,7 @@ export function OnlineRegistrationForm({
                           <span
                             style={{
                               fontSize: "0.75rem",
-                              color: "var(--text-faint)",
+                              color: "var(--text-muted)",
                               textDecoration: "line-through",
                             }}
                           >
@@ -1018,16 +1081,60 @@ export function OnlineRegistrationForm({
             )}
           </motion.div>
 
+          {/* ── Data anak ─────────────────────────────────────────── */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="rounded-2xl border p-6"
+            className="rounded-2xl border p-4 sm:p-6"
             style={{ borderColor: theme.border, background: "var(--surface)" }}
           >
             <SectionHeader
               number={isScheduled ? 3 : 2}
-              title="Data Peserta"
+              title="Data Anak"
+              theme={theme}
+            />
+
+            <div className="grid gap-4">
+              <Field label="Nama Anak" required>
+                <input
+                  className={inputCls}
+                  style={inputStyle(theme)}
+                  value={childName}
+                  onChange={(e) => setChildName(e.target.value)}
+                  placeholder="Nama lengkap anak"
+                  autoComplete="off"
+                />
+              </Field>
+
+              <Field
+                label="Usia / Kelas Anak"
+                required
+                hint="Boleh usia atau kelas, mis. 8 tahun atau Kelas 3 SD."
+              >
+                <input
+                  className={inputCls}
+                  style={inputStyle(theme)}
+                  value={childAgeOrGrade}
+                  onChange={(e) => setChildAgeOrGrade(e.target.value)}
+                  placeholder="Mis. 8 tahun / Kelas 3 SD"
+                  autoComplete="off"
+                />
+              </Field>
+            </div>
+          </motion.div>
+
+          {/* ── Data Ayah/Bunda ───────────────────────────────────── */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.12 }}
+            className="rounded-2xl border p-4 sm:p-6"
+            style={{ borderColor: theme.border, background: "var(--surface)" }}
+          >
+            <SectionHeader
+              number={isScheduled ? 4 : 3}
+              title="Data Ayah/Bunda"
               theme={theme}
             />
 
@@ -1041,30 +1148,35 @@ export function OnlineRegistrationForm({
               >
                 <p
                   className="font-display font-bold"
-                  style={{ fontSize: "0.8125rem", color: theme.primary }}
+                  style={{ fontSize: "0.875rem", color: theme.primary }}
                 >
-                  Kamu sudah login
+                  Ayah/Bunda sudah login
                 </p>
 
-                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Data akun kamu otomatis dipakai. Nomor WhatsApp dan usia yang
-                  kamu isi akan disimpan untuk pendaftaran berikutnya.
+                <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+                  Nama dan nomor WhatsApp diisi otomatis dari akun Ayah/Bunda
+                  dan bisa diubah. Data anak perlu diisi di atas.
                 </p>
               </div>
             )}
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <Field label="Nama Lengkap" required span2>
+            <div className="grid gap-4">
+              <Field label="Nama Ayah/Bunda" required>
                 <input
                   className={inputCls}
                   style={inputStyle(theme)}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Nama sesuai identitas"
+                  value={parentName}
+                  onChange={(e) => setParentName(e.target.value)}
+                  placeholder="Nama lengkap Ayah/Bunda"
+                  autoComplete="name"
                 />
               </Field>
 
-              <Field label="Nomor WhatsApp" required>
+              <Field
+                label="Nomor WhatsApp Orang Tua"
+                required
+                hint="Admin menghubungi Ayah/Bunda lewat nomor ini."
+              >
                 <input
                   className={inputCls}
                   style={inputStyle(theme)}
@@ -1072,47 +1184,68 @@ export function OnlineRegistrationForm({
                   onChange={(e) => setWhatsapp(e.target.value)}
                   placeholder="08xxxxxxxxxx"
                   inputMode="tel"
-                />
-              </Field>
-
-              <Field label="Usia" hint="Opsional, tapi akan disimpan jika diisi.">
-                <input
-                  className={inputCls}
-                  style={inputStyle(theme)}
-                  value={age}
-                  onChange={(e) => setAge(e.target.value.replace(/\D/g, ""))}
-                  placeholder="Mis. 21"
-                  inputMode="numeric"
+                  autoComplete="tel"
                 />
               </Field>
 
               {!isWhatsapp && (
-              <Field
-                label="Email"
-                required
-                span2
-                hint={
-                  isLoggedIn
-                    ? "Email mengikuti akun yang sedang login."
-                    : "Akun user akan dibuat memakai email ini."
-                }
-              >
-                <input
-                  className={inputCls}
-                  style={inputStyle(theme, isLoggedIn)}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@contoh.com"
-                  type="email"
-                  disabled={isLoggedIn}
-                />
-              </Field>
+                <Field
+                  label="Email"
+                  required
+                  hint={
+                    isLoggedIn
+                      ? "Email mengikuti akun yang sedang login."
+                      : "Akun untuk Ayah/Bunda akan dibuat memakai email ini."
+                  }
+                >
+                  <input
+                    className={inputCls}
+                    style={inputStyle(theme, isLoggedIn)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="email@contoh.com"
+                    type="email"
+                    autoComplete="email"
+                    disabled={isLoggedIn}
+                  />
+                </Field>
+              )}
+
+              {!isWhatsapp && !isLoggedIn && (
+                <Field
+                  label="Password"
+                  required
+                  hint="Minimal 6 karakter. Dipakai Ayah/Bunda untuk masuk ke akun."
+                >
+                  <div className="relative">
+                    <input
+                      className={`${inputCls} pr-16`}
+                      style={inputStyle(theme)}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Minimal 6 karakter"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-1 top-1/2 flex h-10 min-w-12 -translate-y-1/2 items-center justify-center px-3 text-sm font-display font-bold"
+                      style={{ color: theme.primary }}
+                      aria-label={
+                        showPassword ? "Sembunyikan password" : "Tampilkan password"
+                      }
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </Field>
               )}
 
               {isWhatsapp && (
                 <Field
                   label="Catatan / Pertanyaan"
-                  span2
                   hint="Opsional. Akan ikut dikirim ke admin lewat WhatsApp."
                 >
                   <textarea
@@ -1125,43 +1258,150 @@ export function OnlineRegistrationForm({
                   />
                 </Field>
               )}
-
-              {!isWhatsapp && !isLoggedIn && (
-                <Field
-                  label="Password"
-                  required
-                  span2
-                  hint="Minimal 6 karakter. Password ini dipakai untuk login ke akun user."
-                >
-                  <div className="relative">
-                    <input
-                      className={`${inputCls} pr-12`}
-                      style={inputStyle(theme)}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Minimal 6 karakter"
-                      type={showPassword ? "text" : "password"}
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-display font-bold"
-                      style={{ color: theme.primary }}
-                    >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </Field>
-              )}
             </div>
           </motion.div>
+
+          {/* ── Hari & jam belajar (Private) ──────────────────────── */}
+          {needsSchedule && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.14 }}
+              className="rounded-2xl border p-4 sm:p-6"
+              style={{
+                borderColor: theme.border,
+                background: "var(--surface)",
+              }}
+            >
+              <SectionHeader
+                number={isScheduled ? 5 : 4}
+                title="Hari & Jam Belajar"
+                theme={theme}
+              />
+
+              <p
+                className="mb-4"
+                style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}
+              >
+                Kelas private jadwalnya mengikuti keluarga. Pilih hari dan jam
+                yang paling nyaman — admin akan mengonfirmasi jadwal akhirnya.
+              </p>
+
+              <div className="space-y-5">
+                <div role="group" aria-labelledby="study-days-label">
+                  <p
+                    id="study-days-label"
+                    className="font-display font-semibold mb-2"
+                    style={{ fontSize: "0.875rem", color: "var(--blue-navy)" }}
+                  >
+                    Hari belajar{" "}
+                    <span style={{ color: "var(--color-error, #e53e3e)" }}>
+                      *
+                    </span>
+                    <span
+                      className="ml-2 font-normal"
+                      style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
+                    >
+                      Boleh pilih lebih dari satu
+                    </span>
+                  </p>
+
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+                    {STUDY_DAYS.map((d) => {
+                      const active = studyDays.includes(d.value);
+                      return (
+                        <button
+                          key={d.value}
+                          type="button"
+                          aria-pressed={active}
+                          aria-label={d.label}
+                          onClick={() => toggleStudyDay(d.value)}
+                          className="min-h-11 rounded-xl border px-2 text-sm font-display font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2"
+                          style={{
+                            borderColor: active
+                              ? theme.primary
+                              : "var(--border-soft)",
+                            background: active
+                              ? theme.primary
+                              : "var(--surface)",
+                            color: active ? "white" : "var(--blue-navy)",
+                            ["--tw-ring-color" as string]: `${theme.primary}40`,
+                          }}
+                        >
+                          <span className="sm:hidden">{d.short}</span>
+                          <span className="hidden sm:inline">{d.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div role="group" aria-labelledby="study-time-label">
+                  <p
+                    id="study-time-label"
+                    className="font-display font-semibold mb-2"
+                    style={{ fontSize: "0.875rem", color: "var(--blue-navy)" }}
+                  >
+                    Jam belajar{" "}
+                    <span style={{ color: "var(--color-error, #e53e3e)" }}>
+                      *
+                    </span>
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {STUDY_TIME_SLOTS.map((t) => {
+                      const active = timeSlot === t.value;
+                      return (
+                        <button
+                          key={t.value}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => setTimeSlot(t.value)}
+                          className="flex min-h-14 flex-col items-center justify-center rounded-xl border px-2 py-2 text-center transition-all duration-200 focus:outline-none focus-visible:ring-2"
+                          style={{
+                            borderColor: active
+                              ? theme.primary
+                              : "var(--border-soft)",
+                            background: active
+                              ? `${theme.primary}10`
+                              : "var(--surface)",
+                            boxShadow: active
+                              ? `0 0 0 1.5px ${theme.primary}`
+                              : "none",
+                            ["--tw-ring-color" as string]: `${theme.primary}40`,
+                          }}
+                        >
+                          <span
+                            className="font-display font-bold"
+                            style={{
+                              fontSize: "0.875rem",
+                              color: "var(--blue-navy)",
+                            }}
+                          >
+                            {t.label}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "var(--text-muted)",
+                            }}
+                          >
+                            {t.hours}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           <motion.button
             type="button"
             disabled={!canSubmit}
             onClick={handleSubmit}
-            className="w-full py-4 rounded-2xl font-display font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-full min-h-14 py-4 rounded-2xl font-display font-bold text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             style={{
               background: theme.primary,
               boxShadow: `0 8px 28px ${theme.primary}35`,
@@ -1181,7 +1421,7 @@ export function OnlineRegistrationForm({
           {isWhatsapp && (
             <p
               className="text-center"
-              style={{ fontSize: "0.75rem", color: "var(--text-faint)" }}
+              style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}
             >
               {waOpened ? (
                 <>
@@ -1195,10 +1435,10 @@ export function OnlineRegistrationForm({
                   >
                     Klik di sini
                   </a>
-                  . Admin akan membalas pesanmu untuk langkah selanjutnya.
+                  . Admin akan membalas pesan Ayah/Bunda untuk langkah selanjutnya.
                 </>
               ) : (
-                "Datamu dikirim sebagai pesan WhatsApp ke admin program ini. Belum ada pembayaran di langkah ini."
+                "Data Ayah/Bunda dikirim sebagai pesan WhatsApp ke admin program ini. Belum ada pembayaran di langkah ini."
               )}
             </p>
           )}

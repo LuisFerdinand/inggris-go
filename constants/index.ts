@@ -145,8 +145,27 @@ export const NAV_ICONS: Record<string, React.ElementType> = {
 
 export const SOCIAL_PROOF = {
   totalStudents: 2000,
-  activeStudents: 247,
+  activeStudents: 2000,
   parentsTrusted: 500,
 };
+
+/**
+ * Indonesian thousands separator ("2000" -> "2.000"). Done by hand instead of
+ * `toLocaleString` so the server and browser always render the same string
+ * (no hydration mismatch, and no "2,000" when ICU data is the en-US default).
+ */
+export function formatCount(n: number): string {
+  return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/** The one student figure shown across every public page: "2.000+". */
+export const STUDENT_COUNT_LABEL = `${formatCount(SOCIAL_PROOF.totalStudents)}+`;
+
+/**
+ * The 4.9★ rating is hidden on all public pages. The CMS field cannot be
+ * emptied yet, so this flag is the single switch — set it to `true` to show
+ * the rating again (hero, footer stats band, blog).
+ */
+export const SHOW_PUBLIC_RATING = false;
 
 export const DEFAULT_LIMIT = 4;

@@ -11,7 +11,7 @@ import {
   Reveal,
 } from "../views/ProgramsView";
 import { buildWhatsAppUrl } from "@/lib/config";
-import { SOCIAL_PROOF } from "@/constants";
+import { STUDENT_COUNT_LABEL } from "@/constants";
 import Image from "next/image";
 import { generateTheme } from "@/lib/utils";
 import { Icon } from "@/components/Icon";
@@ -95,7 +95,7 @@ export function HeroSection({
           {/* ══ LEFT — Text ══ */}
           <div className="flex flex-col">
             <Reveal delay={0}>
-              <Pill>✦ Temukan Jalur Belajarmu</Pill>
+              <Pill>✦ Temukan Jalur Belajar Ayah/Bunda</Pill>
             </Reveal>
 
             <Reveal delay={0.07}>
@@ -122,8 +122,9 @@ export function HeroSection({
                   marginBottom: "2rem",
                 }}
               >
-                Tenang — kamu tidak sendirian. Dalam 30 detik, temukan program
-                yang paling cocok dengan kondisi dan tujuanmu sekarang.
+                Tenang — Ayah/Bunda tidak sendirian. Dalam 30 detik, temukan program
+                yang paling cocok dengan kondisi dan tujuan belajar anak.
+
               </p>
             </Reveal>
 
@@ -144,7 +145,7 @@ export function HeroSection({
                   whileTap={{ scale: 0.97 }}
                   transition={{ duration: 0.2, ease: EASE }}
                 >
-                  Temukan Program Kamu
+                  Temukan Program Ayah/Bunda
                   <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none">
                     <path
                       d="M3 8h10M9 4l4 4-4 4"
@@ -191,12 +192,11 @@ export function HeroSection({
                 }}
               >
                 {[
-                  { n: SOCIAL_PROOF.activeStudents, label: "Siswa Aktif" },
+                  { n: STUDENT_COUNT_LABEL, label: "Siswa Aktif" },
                   { n: "3", label: "Jalur Belajar" },
-                  { n: "98%", label: "Puas Belajar" },
                 ].map((item) => (
                   <div
-                    key={String(item.n)}
+                    key={item.label}
                     className="flex items-baseline gap-2"
                   >
                     <span
@@ -211,7 +211,7 @@ export function HeroSection({
                     </span>
                     <span
                       style={{
-                        fontSize: "0.8125rem",
+                        fontSize: "0.875rem",
                         color: "var(--text-faint)",
                       }}
                     >
@@ -238,7 +238,7 @@ export function HeroSection({
       >
         <span
           style={{
-            fontSize: "0.5625rem",
+            fontSize: "0.75rem",
             letterSpacing: "0.14em",
             color: "var(--text-faint)",
             textTransform: "uppercase",
@@ -447,7 +447,7 @@ function HeroDesktopPanel({
               <span
                 className="font-display font-semibold"
                 style={{
-                  fontSize: "0.625rem",
+                  fontSize: "0.75rem",
                   letterSpacing: "0.05em",
                   color: i === 0 ? "var(--blue)" : "var(--text-faint)",
                   fontWeight: i === 0 ? 700 : 500,
@@ -482,11 +482,11 @@ function HeroDesktopPanel({
           <span
             className="font-display font-bold"
             style={{
-              fontSize: "0.6875rem",
+              fontSize: "0.75rem",
               color: "var(--blue-navy)",
             }}
           >
-            {SOCIAL_PROOF.activeStudents}+ siswa aktif
+            {STUDENT_COUNT_LABEL} siswa aktif
           </span>
         </motion.div>
       </div>
@@ -549,7 +549,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
         <div style={{ minWidth: 0 }}>
           <p
             style={{
-              fontSize: "0.8125rem",
+              fontSize: "0.875rem",
               fontWeight: 700,
               color: theme.primary,
               fontFamily: "var(--font-display)",
@@ -559,7 +559,7 @@ function HeroFloatCard({ category }: { category: CategoryMeta }) {
           </p>
           <p
             style={{
-              fontSize: "0.5625rem",
+              fontSize: "0.75rem",
               color: "var(--text-faint)",
             }}
           >

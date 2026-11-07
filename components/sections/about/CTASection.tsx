@@ -23,7 +23,7 @@ import Link from "next/link";
       <h2
         className="font-display font-extrabold text-white mb-4 leading-[1.08]"
         style={{
-          fontSize: "clamp(1.75rem, 4vw, 2.75rem)",
+          fontSize: "clamp(1.875rem, 4vw, 2.75rem)",
           letterSpacing: "-0.022em",
         }}
       >

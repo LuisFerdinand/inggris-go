@@ -1,4 +1,5 @@
 import { HydrateClient, trpc } from "@/lib/trpc/server";
+import { buildPageMetadata } from "@/lib/seo";
 
 import { HeroSection } from "@/components/sections/about/HeroSection";
 import { CompanySection } from "@/components/sections/about/CompanySection";
@@ -6,6 +7,14 @@ import { VisionMissionSection } from "@/components/sections/about/VisionMissionS
 import SharedCta from "@/components/sections/shared/SharedCta";
 
 export const dynamic = "force-dynamic";
+
+export const generateMetadata = () =>
+  buildPageMetadata({
+    path: "/about",
+    title: "Tentang Kami",
+    description:
+      "Kenali Inggris Go: lembaga belajar bahasa Inggris dari Kampung Inggris Pare, Kediri — cerita, tim, visi, dan misi kami.",
+  });
 
 export default async function AboutPage() {
   await Promise.all([
@@ -16,12 +25,12 @@ export default async function AboutPage() {
 
   return (
     <HydrateClient>
-      <main className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white">
         <HeroSection />
         <CompanySection />
         <VisionMissionSection />
         <SharedCta />
-      </main>
+      </div>
     </HydrateClient>
   );
 }

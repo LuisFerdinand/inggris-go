@@ -20,6 +20,13 @@ import {
   getAdminUserIds,
   notifyUsers,
 } from "@/app/modules/notifications/server/create-notification";
+import {
+  formatStudySchedule,
+  isPrivateProgram,
+  parseChildAge,
+  STUDY_DAY_VALUES,
+  STUDY_TIME_SLOT_VALUES,
+} from "@/app/modules/order/study-schedule";
 
 const DEFAULT_REGISTERED_ROLE_NAME = "student" as const;
 const REGISTRABLE_BATCH_STATUSES = new Set(["open", "ongoing"]);
@@ -79,10 +86,29 @@ const registerOnlineInput = z.object({
   packageId: z.string().trim().min(1),
   batchId: z.string().trim().min(1).optional(),
 
-  fullName: z.string().trim().min(2, "Nama minimal 2 karakter"),
+  // Kids registration: the child, and the parent (Ayah/Bunda) who signs up.
+  childName: z.string().trim().min(2, "Nama anak minimal 2 karakter").max(120),
+  childAgeOrGrade: z
+    .string()
+    .trim()
+    .min(1, "Usia atau kelas anak wajib diisi")
+    .max(40, "Usia / kelas anak terlalu panjang"),
+  parentName: z
+    .string()
+    .trim()
+    .min(2, "Nama Ayah/Bunda minimal 2 karakter")
+    .max(120),
+  // Parent's WhatsApp number.
   whatsapp: z.string().trim().min(6, "Nomor WhatsApp tidak valid"),
   email: z.string().trim().email("Email tidak valid"),
-  age: z.coerce.number().int().positive().optional(),
+
+  // Private classes only (checked against the program below).
+  studySchedule: z
+    .object({
+      days: z.array(z.enum(STUDY_DAY_VALUES)).min(1, "Pilih minimal satu hari"),
+      timeSlot: z.enum(STUDY_TIME_SLOT_VALUES),
+    })
+    .optional(),
 
   password: z
     .preprocess((value) => {
@@ -671,7 +697,11 @@ export const orderRouter = createTRPCRouter({
       const sessionUserId = sessionUser?.id;
 
       const email = normalizeEmail(input.email);
-      const fullName = input.fullName.trim();
+      // `fullName` is the parent (Ayah/Bunda): the account owner and payer.
+      const fullName = input.parentName.trim();
+      const childName = input.childName.trim();
+      const childAgeOrGrade = input.childAgeOrGrade.trim();
+      const childAge = parseChildAge(childAgeOrGrade);
       const whatsapp = input.whatsapp.trim();
 
       const program = await db.query.programs.findFirst({
@@ -700,6 +730,17 @@ export const orderRouter = createTRPCRouter({
       }
 
       const isScheduled = program.scheduleType === "scheduled";
+
+      // Private classes have no fixed batch: the parent tells us which days
+      // and time of day suit the family.
+      const needsStudySchedule = isPrivateProgram(program);
+      if (needsStudySchedule && !input.studySchedule) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Pilih hari dan jam belajar terlebih dahulu.",
+        });
+      }
+      const studySchedule = needsStudySchedule ? input.studySchedule : undefined;
 
       const pkg = await db.query.programPackages.findFirst({
         where: and(
@@ -849,7 +890,6 @@ export const orderRouter = createTRPCRouter({
               passwordHash,
               emailVerified: false,
               phone: whatsapp,
-              age: input.age ?? null,
             })
             .returning();
 
@@ -879,13 +919,13 @@ export const orderRouter = createTRPCRouter({
         });
       }
 
-      // Save latest registration contact data to user profile.
+      // Save the parent's latest contact data to the account profile. The
+      // child's age/grade belongs to the enrollment, not to the parent.
       await db
         .update(user)
         .set({
           name: fullName,
           phone: whatsapp,
-          age: input.age ?? null,
         })
         .where(eq(user.id, account.id));
 
@@ -934,10 +974,13 @@ export const orderRouter = createTRPCRouter({
           isDefault: pkg.isDefault,
         },
 
+        // customerName / phone = the parent ("Wali" in the dashboard);
+        // childName / age = the student.
         customerName: fullName,
         phone: whatsapp,
         email: enrollmentEmail,
-        age: input.age ?? null,
+        childName,
+        age: childAge,
 
         data: {
           type: "online",
@@ -947,7 +990,13 @@ export const orderRouter = createTRPCRouter({
           fullName,
           whatsapp,
           email: enrollmentEmail,
-          age: input.age,
+          age: childAge ?? undefined,
+          childName,
+          childAgeOrGrade,
+          parentName: fullName,
+          studySchedule,
+          registeredWithSession: !!sessionUserId,
+          registeredUserId: account.id,
         },
 
         discountAmount: discount,
@@ -1029,7 +1078,11 @@ export const orderRouter = createTRPCRouter({
         category: "order",
         type: "order_new",
         title: "Pendaftaran baru",
-        body: `${fullName} mendaftar ke ${program.title}`,
+        body:
+          `${childName} (wali: ${fullName}) mendaftar ke ${program.title}` +
+          (studySchedule
+            ? ` — jadwal diminta: ${formatStudySchedule(studySchedule)}`
+            : ""),
         link: "/dashboard/orders",
       });
 

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
 import { trpc } from "@/lib/trpc/client";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { Icon } from "@/components/Icon";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { DEFAULT_HOME } from "@/app/modules/site-content/site-content.defaults";
@@ -138,7 +139,7 @@ export default function ProblemSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full overflow-hidden bg-background py-24 lg:py-36"
+      className="relative w-full overflow-hidden bg-background py-16 sm:py-20 lg:py-32"
     >
       <div
         aria-hidden
@@ -151,48 +152,13 @@ export default function ProblemSection() {
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 xl:px-12">
-        <div className="mb-16 text-center lg:mb-20">
-          <Reveal>
-            <div className="mb-6 inline-flex items-center gap-2">
-              <span
-                className="rounded-full px-4 py-1.5 font-display text-xs font-bold uppercase tracking-tight"
-                style={{
-                  background: BRAND.background,
-                  color: BRAND.blueNavy,
-                  border: `1px solid ${BRAND.border}`,
-                }}
-              >
-                {eyebrow}
-              </span>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.08}>
-            <h2
-              className="mx-auto mb-6 font-display font-extrabold leading-[1.07]"
-              style={{
-                fontSize: "clamp(1rem, 4.5vw, 3rem)",
-                color: BRAND.blueNavy,
-                letterSpacing: "-0.025em",
-                maxWidth: "720px",
-              }}
-            >
-              {title}{" "}
-              {titleAccent && (
-                <span style={GRADIENT_GOLD_TEXT}>{titleAccent}</span>
-              )}
-            </h2>
-          </Reveal>
-
-          <Reveal delay={0.16}>
-            <p
-              className="mx-auto text-lg leading-relaxed"
-              style={{ color: BRAND.textMuted, maxWidth: "520px" }}
-            >
-              {description}
-            </p>
-          </Reveal>
-        </div>
+        <SectionHeading
+          className="mb-10 sm:mb-14 lg:mb-20"
+          eyebrow={eyebrow}
+          title={title}
+          accent={titleAccent}
+          description={description}
+        />
 
         <div className="mb-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((p, i) => (

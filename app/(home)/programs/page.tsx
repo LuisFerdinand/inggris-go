@@ -1,10 +1,19 @@
 // app/(home)/programs/page.tsx
 import { HydrateClient } from "@/lib/trpc/server";
+import { buildPageMetadata } from "@/lib/seo";
 import ProgramsView from "./_modules/ui/views/ProgramsView";
 import { CatalogProvider } from "./_modules/catalog-context";
 import { dbCategoryToMeta, getPublicCaller } from "./[categorySlug]/_adapters";
 
 export const dynamic = "force-dynamic";
+
+export const generateMetadata = () =>
+  buildPageMetadata({
+    path: "/programs",
+    title: "Program Belajar Bahasa Inggris untuk Anak",
+    description:
+      "Pilih program Inggris Go: English for Kids dan Private Class online, atau VIP English for Kids camp di Kampung Inggris Pare.",
+  });
 
 // Display order of the known categories; anything else follows alphabetically.
 const CATEGORY_ORDER = ["lead", "online", "offline"];

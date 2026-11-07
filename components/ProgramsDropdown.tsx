@@ -195,7 +195,7 @@ function LeadProgramCard({
             <span
               className="font-semibold leading-tight truncate transition-colors duration-150"
               style={{
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
                 color: hovered ? theme.primary : "#0F2340",
               }}
             >
@@ -235,7 +235,7 @@ function LeadProgramCard({
         >
           <span
             className="font-bold"
-            style={{ fontSize: "0.6875rem", color: theme.text }}
+            style={{ fontSize: "0.75rem", color: theme.text }}
           >
             Mulai Sekarang
           </span>
@@ -286,7 +286,7 @@ function NavItem({
           <span
             className="font-medium leading-tight truncate transition-colors duration-150"
             style={{
-              fontSize: "0.78125rem",
+              fontSize: "0.875rem",
               color: hovered ? theme.strong : "#1E293B",
             }}
           >
@@ -296,7 +296,7 @@ function NavItem({
         {item.desc && (
           <span
             style={{
-              fontSize: "0.65625rem",
+              fontSize: "0.75rem",
               color: "#94A3B8",
               marginTop: "1px",
               lineHeight: "1.4",
@@ -396,7 +396,7 @@ function CategoryGroup({
             <p
               className="font-semibold leading-tight transition-colors duration-150"
               style={{
-                fontSize: "0.72rem",
+                fontSize: "0.75rem",
                 color: headerHovered || open ? theme.strong : "#0F2340",
               }}
             >
@@ -404,7 +404,7 @@ function CategoryGroup({
             </p>
             <p
               style={{
-                fontSize: "0.625rem",
+                fontSize: "0.75rem",
                 color: open ? theme.primary : "#94A3B8",
                 lineHeight: "1.35",
                 transition: "color 0.15s ease",
@@ -495,7 +495,7 @@ function CategoryGroup({
             >
               <span
                 className="font-semibold transition-colors duration-150 group-hover/see:underline"
-                style={{ fontSize: "0.6875rem", color: theme.primary }}
+                style={{ fontSize: "0.75rem", color: theme.primary }}
               >
                 Lihat semua {col.shortLabel}
               </span>
@@ -585,7 +585,7 @@ export function ProgramsDropdown({
               />
               <p
                 className="font-bold uppercase tracking-[0.1em]"
-                style={{ fontSize: "0.5625rem", color: lTheme.primary }}
+                style={{ fontSize: "0.75rem", color: lTheme.primary }}
               >
                 Mulai dari Sini
               </p>
@@ -595,7 +595,7 @@ export function ProgramsDropdown({
                 onClick={onClose}
                 className="ml-auto flex items-center gap-0.5 font-semibold transition-all duration-150 hover:opacity-70"
                 style={{
-                  fontSize: "0.5625rem",
+                  fontSize: "0.75rem",
                   color: lTheme.primary,
                   textDecoration: "none",
                   letterSpacing: "0.04em",
@@ -631,7 +631,7 @@ export function ProgramsDropdown({
               <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-slate-300" />
               <p
                 className="font-bold uppercase tracking-[0.1em]"
-                style={{ fontSize: "0.5625rem", color: "#94A3B8" }}
+                style={{ fontSize: "0.75rem", color: "#94A3B8" }}
               >
                 Semua Program
               </p>
@@ -654,7 +654,7 @@ export function ProgramsDropdown({
             background: "#FAFAFA",
           }}
         >
-          <p style={{ fontSize: "0.6875rem", color: "#94A3B8" }}>
+          <p style={{ fontSize: "0.75rem", color: "#94A3B8" }}>
             Bingung pilih yang mana?
           </p>
           <Link
@@ -662,7 +662,7 @@ export function ProgramsDropdown({
             onClick={onClose}
             className="inline-flex items-center gap-1 font-semibold transition-all duration-150 hover:gap-[7px]"
             style={{
-              fontSize: "0.6875rem",
+              fontSize: "0.75rem",
               color: BRAND.blue,
               textDecoration: "none",
             }}

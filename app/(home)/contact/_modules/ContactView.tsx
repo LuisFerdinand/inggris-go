@@ -23,6 +23,7 @@ import {
 
 import { trpc } from "@/lib/trpc/client";
 import { Icon } from "@/components/Icon";
+import SectionHeading from "@/components/ui/SectionHeading";
 import SharedCta from "@/components/sections/shared/SharedCta";
 import { DEFAULT_CONTACT } from "@/app/modules/site-content/site-content.defaults";
 import type {
@@ -151,14 +152,14 @@ function Field({
       <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-slate-600">
         {label}
         {required && (
-          <span className="text-[10px] font-normal normal-case text-red-500">
+          <span className="text-xs font-normal normal-case text-red-500">
             *
           </span>
         )}
       </label>
       {children}
       {hint && !error && (
-        <p className="text-[11px] leading-snug text-slate-400">{hint}</p>
+        <p className="text-xs leading-snug text-slate-400">{hint}</p>
       )}
       <div
         style={{
@@ -169,7 +170,7 @@ function Field({
         }}
       >
         {error && (
-          <p className="flex items-center gap-1 pt-0.5 text-[11px] text-red-500">
+          <p className="flex items-center gap-1 pt-0.5 text-xs text-red-500">
             <AlertCircle className="h-3 w-3 flex-shrink-0" />
             {error}
           </p>
@@ -359,7 +360,7 @@ function SuccessScreen({ onReset }: { onReset: () => void }) {
 
 function OnlineBadge() {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-700">
       <span className="relative flex h-1.5 w-1.5">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75" />
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
@@ -558,7 +559,7 @@ export default function ContactView() {
                   transform: heroVisible ? "translateY(0)" : "translateY(20px)",
                   transition:
                     "opacity .65s .1s ease, transform .65s .1s ease",
-                  fontSize: "clamp(1.75rem, 4.5vw, 3rem)",
+                  fontSize: "clamp(1.875rem, 4.5vw, 3rem)",
                 }}
                 className="mb-5 font-extrabold leading-[1.1] tracking-tight text-white"
               >
@@ -674,15 +675,12 @@ export default function ContactView() {
 
       {/* ═══ CONTACT OPTIONS ═══ */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <Reveal className="mb-8 text-center">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-blue-500">
-            {methodsEyebrow}
-          </p>
-          <h2 className="text-2xl font-extrabold text-slate-800">
-            {methodsTitle}
-          </h2>
-          <p className="mt-1 text-sm text-slate-400">{methodsSubtitle}</p>
-        </Reveal>
+        <SectionHeading
+          className="mb-8 sm:mb-10"
+          eyebrow={methodsEyebrow}
+          title={methodsTitle}
+          description={methodsSubtitle}
+        />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {methods.map((opt, i) => {
@@ -693,7 +691,7 @@ export default function ContactView() {
                   className={`group relative flex h-full flex-col rounded-2xl border p-6 ${cc.bgColor} transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg`}
                 >
                   {opt.badge && (
-                    <span className="absolute right-4 top-4 rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                    <span className="absolute right-4 top-4 rounded-full bg-green-500 px-2 py-0.5 text-xs font-bold text-white">
                       {opt.badge}
                     </span>
                   )}
@@ -704,7 +702,7 @@ export default function ContactView() {
                     <Icon name={opt.icon} className="h-5 w-5" />
                   </div>
 
-                  <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-widest text-slate-400">
                     Gunakan ini jika…
                   </p>
                   <h3 className="mb-1 text-base font-bold text-slate-800">
@@ -760,13 +758,13 @@ export default function ContactView() {
                   }}
                 >
                   <div className="relative">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-blue-200/55">
+                    <p className="mb-1 text-xs font-bold uppercase tracking-widest text-blue-100">
                       {formEyebrow}
                     </p>
-                    <h2 className="text-xl font-extrabold text-white">
+                    <h2 className="text-2xl font-extrabold text-white">
                       {formTitle}
                     </h2>
-                    <p className="mt-1 text-xs text-blue-100/55">
+                    <p className="mt-1 text-sm text-blue-100">
                       {formSubtitle}
                     </p>
                   </div>
@@ -915,7 +913,7 @@ export default function ContactView() {
                         )}
                       </button>
 
-                      <p className="text-center text-[11px] leading-snug text-slate-400">
+                      <p className="text-center text-xs leading-snug text-slate-400">
                         Dengan mengirim formulir ini, Ayah/Bunda setuju kami
                         membalas melalui email yang diberikan.
                       </p>
@@ -931,7 +929,7 @@ export default function ContactView() {
             <Reveal delay={80} from="right">
               <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
                     Info Kontak
                   </p>
                   <OnlineBadge />
@@ -947,7 +945,7 @@ export default function ContactView() {
                         <Icon name={info.icon} className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
                           {info.label}
                         </p>
                         {info.href ? (
@@ -963,7 +961,7 @@ export default function ContactView() {
                           </p>
                         )}
                         {info.sub && (
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-xs text-slate-400">
                             {info.sub}
                           </p>
                         )}
@@ -976,7 +974,7 @@ export default function ContactView() {
 
             <Reveal delay={150} from="right">
               <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-                <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <p className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
                   Pertanyaan yang Sering Ditanya
                 </p>
                 <FaqAccordion items={faqItems} seeAllHref={faqSeeAllHref} />
@@ -1019,19 +1017,12 @@ export default function ContactView() {
         }}
       >
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <Reveal className="mb-10 text-center">
-            {whyBadge && (
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-600">
-                <Icon name="shield" className="h-3.5 w-3.5" /> {whyBadge}
-              </div>
-            )}
-            <h2 className="text-2xl font-extrabold text-slate-800">
-              {whyTitle}
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
-              {whyDescription}
-            </p>
-          </Reveal>
+          <SectionHeading
+            className="mb-8 sm:mb-10"
+            eyebrow={whyBadge || undefined}
+            title={whyTitle}
+            description={whyDescription}
+          />
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {whyItems.map((it, i) => {

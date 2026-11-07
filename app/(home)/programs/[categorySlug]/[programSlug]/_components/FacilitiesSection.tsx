@@ -170,7 +170,7 @@ function FacilityLightbox({
             <p
               className="font-display font-semibold uppercase mb-1"
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.4)",
                 letterSpacing: "0.14em",
               }}
@@ -221,7 +221,7 @@ function FacilityLightbox({
                 <span
                   className="font-display font-semibold"
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "rgba(255,255,255,0.4)",
                     minWidth: 56,
                     textAlign: "center",
@@ -271,7 +271,7 @@ function FacilityLightbox({
         <p
           className="sm:hidden mt-3 font-display"
           style={{
-            fontSize: "0.6875rem",
+            fontSize: "0.75rem",
             color: "rgba(255,255,255,0.25)",
             letterSpacing: "0.04em",
           }}
@@ -353,7 +353,7 @@ function VisualCell({
             <p
               className="font-display font-bold text-center leading-snug"
               style={{
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
                 color: "var(--blue-navy)",
                 maxWidth: "9rem",
               }}
@@ -407,7 +407,7 @@ function VisualCell({
             <span
               className="font-display font-extrabold text-white leading-none"
               style={{
-                fontSize: "clamp(1.5rem, 3vw, 2rem)",
+                fontSize: "clamp(1.75rem, 3vw, 2rem)",
                 letterSpacing: "-0.02em",
               }}
             >
@@ -416,7 +416,7 @@ function VisualCell({
             <span
               className="font-display font-semibold uppercase mt-1"
               style={{
-                fontSize: "0.5rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.55)",
                 letterSpacing: "0.14em",
               }}
@@ -471,7 +471,7 @@ function VisualCell({
             <span
               className="font-display font-bold"
               style={{
-                fontSize: "0.5rem",
+                fontSize: "0.75rem",
                 color: "#0a1628",
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
@@ -599,7 +599,7 @@ function FacilityListItem({
             <p
               className="mt-0.5"
               style={{
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
                 color: "var(--text-muted)",
                 lineHeight: "1.65",
               }}
@@ -626,7 +626,7 @@ function SectionPill({
     <div
       className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-display font-semibold"
       style={{
-        fontSize: "0.8125rem",
+        fontSize: "0.875rem",
         background: theme.soft,
         border: `1.5px solid ${theme.border}`,
         color: theme.primary,
@@ -740,7 +740,7 @@ export function FacilitiesSection({
                 <h2
                   className="font-display font-extrabold leading-[1.07]"
                   style={{
-                    fontSize: "clamp(1.6rem, 5vw, 2.25rem)",
+                    fontSize: "clamp(1.875rem, 5vw, 2.25rem)",
                     letterSpacing: "-0.025em",
                     color: "var(--blue-navy)",
                   }}
@@ -832,7 +832,7 @@ export function FacilitiesSection({
                 <h2
                   className="font-display font-extrabold leading-[1.07]"
                   style={{
-                    fontSize: "clamp(1.75rem, 3.2vw, 2.625rem)",
+                    fontSize: "clamp(1.875rem, 3.2vw, 2.625rem)",
                     letterSpacing: "-0.026em",
                     color: "var(--blue-navy)",
                   }}

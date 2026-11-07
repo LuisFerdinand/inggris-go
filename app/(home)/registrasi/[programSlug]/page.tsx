@@ -4,7 +4,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 
+import type { Metadata } from "next";
+
 import { auth } from "@/lib/auth";
+import { buildPageMetadata } from "@/lib/seo";
 import { generateTheme } from "@/lib/utils";
 import { db } from "@/app/db/db";
 import { user as userTable } from "@/app/db/schema/auth-schema";
@@ -18,6 +21,18 @@ type PageProps = {
     packageId?: string;
   }>;
 };
+
+export async function generateMetadata({
+  params,
+}: Pick<PageProps, "params">): Promise<Metadata> {
+  const { programSlug } = await params;
+
+  // The canonical is the clean address without ?batchId= / ?packageId=.
+  return buildPageMetadata({
+    path: `/registrasi/${programSlug}`,
+    title: "Pendaftaran Program",
+  });
+}
 
 export default async function RegistrationPage({
   params,
@@ -77,7 +92,7 @@ export default async function RegistrationPage({
           <nav
             className="flex items-center gap-2 mb-6"
             aria-label="Breadcrumb"
-            style={{ fontSize: "0.8125rem", color: "var(--text-faint)" }}
+            style={{ fontSize: "0.875rem", color: "var(--text-faint)" }}
           >
             <Link
               href="/"
@@ -176,7 +191,7 @@ export default async function RegistrationPage({
       </div>
 
       {/* ── Form content ── */}
-      <main className="max-w-5xl mx-auto px-5 sm:px-8 py-10 lg:py-14">
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10 lg:py-14">
         <OnlineRegistrationForm
           programSlug={programSlug}
           theme={theme}
@@ -194,7 +209,7 @@ export default async function RegistrationPage({
               : undefined
           }
         />
-      </main>
+      </div>
     </>
   );
 }

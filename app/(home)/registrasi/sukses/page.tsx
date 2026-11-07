@@ -187,7 +187,7 @@ export default async function RegistrasiSuksesPage({ searchParams }: PageProps) 
           >
             {programTitle && (
               <>
-                <p style={{ fontSize: "0.6875rem", color: "var(--text-faint)" }}>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-faint)" }}>
                   Program
                 </p>
                 <p
@@ -202,7 +202,7 @@ export default async function RegistrasiSuksesPage({ searchParams }: PageProps) 
               <>
                 <p
                   className="mt-2"
-                  style={{ fontSize: "0.6875rem", color: "var(--text-faint)" }}
+                  style={{ fontSize: "0.75rem", color: "var(--text-faint)" }}
                 >
                   Nomor Invoice
                 </p>

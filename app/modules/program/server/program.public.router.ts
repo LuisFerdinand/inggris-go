@@ -14,6 +14,7 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, baseProcedure } from "@/lib/trpc/init";
 import { siteConfig } from "@/lib/config";
 import { normalizeWhatsappNumber } from "@/lib/whatsapp";
+import { isPrivateProgram } from "@/app/modules/order/study-schedule";
 import { db } from "@/app/db/db";
 import {
   programs,
@@ -455,8 +456,13 @@ export const programPublicRouter = createTRPCRouter({
       }
 
       const [batches, packages] = await Promise.all([
+        // The form only lists batches that are still open for sign-ups:
+        // draft / full / closed / finished batches never show up here.
         db.query.programBatches.findMany({
-          where: eq(programBatches.programId, program.id),
+          where: and(
+            eq(programBatches.programId, program.id),
+            eq(programBatches.status, "open"),
+          ),
           orderBy: [asc(programBatches.order)],
           with: { packages: true },
         }),
@@ -472,6 +478,8 @@ export const programPublicRouter = createTRPCRouter({
           slug: program.slug,
           title: program.title,
           scheduleType: program.scheduleType,
+          // Private classes ask for preferred study days/time.
+          requiresStudySchedule: isPrivateProgram(program),
           categoryId: program.categoryId,
           registrationMethod: program.registrationMethod,
           // WhatsApp sign-ups go to this program's number, else the site default.

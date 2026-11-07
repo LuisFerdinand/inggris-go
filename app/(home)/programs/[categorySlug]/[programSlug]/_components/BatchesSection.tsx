@@ -201,7 +201,7 @@ export function BatchBanner({
             >
               <span
                 className="font-display font-bold text-white truncate"
-                style={{ fontSize: "0.8125rem" }}
+                style={{ fontSize: "0.875rem" }}
               >
                 {batch.label}
               </span>
@@ -218,7 +218,7 @@ export function BatchBanner({
               {spotsLeft !== null && spotsLeft > 0 && spotsLeft <= 10 && (
                 <span
                   className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-white/20 flex-shrink-0 text-white font-display font-bold"
-                  style={{ fontSize: "0.6875rem" }}
+                  style={{ fontSize: "0.75rem" }}
                 >
                   {spotsLeft} kursi tersisa
                 </span>
@@ -333,7 +333,7 @@ function SectionHeader({
         viewport={{ once: true }}
         transition={{ duration: 0.5, delay: 0.07 }}
         className="font-display font-extrabold mb-4"
-        style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", color: "var(--blue-navy)", lineHeight: 1.15 }}
+        style={{ fontSize: "clamp(1.875rem, 4vw, 2.5rem)", color: "var(--blue-navy)", lineHeight: 1.15 }}
       >
         {title} <span style={{ color: theme.primary }}>{titleAccent}</span>
       </motion.h2>
@@ -428,7 +428,7 @@ function BatchCard({
       <div className="px-6 pt-5 pb-4" style={{ borderBottom: "1px solid var(--border-soft)" }}>
         <span
           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-display font-bold"
-          style={{ fontSize: "0.625rem", letterSpacing: "0.04em", background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.text }}
+          style={{ fontSize: "0.75rem", letterSpacing: "0.04em", background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.text }}
         >
           <span className="w-1.5 h-1.5 rounded-full" style={{ background: cfg.dot }} />
           {cfg.label}
@@ -467,7 +467,7 @@ function BatchCard({
               style={{ background: batch.isOpen ? theme.primary : "var(--text-faint)", color: "white" }}
             >
               <span style={{ fontSize: "0.9375rem", display: "block" }}>{durationDays}</span>
-              <span style={{ fontSize: "0.5625rem", opacity: 0.85, letterSpacing: "0.06em" }}>HARI</span>
+              <span style={{ fontSize: "0.75rem", opacity: 0.85, letterSpacing: "0.06em" }}>HARI</span>
             </span>
           )}
         </div>
@@ -476,7 +476,7 @@ function BatchCard({
         {batch.price && (
           <div className="flex items-end justify-between gap-2">
             <div>
-              <p style={{ fontSize: "0.6875rem", color: "var(--text-faint)", marginBottom: "1px" }}>Biaya program</p>
+              <p style={{ fontSize: "0.75rem", color: "var(--text-faint)", marginBottom: "1px" }}>Biaya program</p>
               <div className="flex items-baseline gap-2">
                 <span className="font-display font-extrabold leading-none" style={{ fontSize: "1.5rem", color: theme.primary, letterSpacing: "-0.02em" }}>
                   {batch.price}
@@ -545,7 +545,7 @@ function BatchCard({
                 target={batch.secondaryCtaHref!.startsWith("http") ? "_blank" : undefined}
                 rel={batch.secondaryCtaHref!.startsWith("http") ? "noopener noreferrer" : undefined}
                 className="flex items-center justify-center gap-2 py-3 rounded-2xl font-display font-semibold"
-                style={{ fontSize: "0.8125rem", color: theme.primary, background: `${theme.primary}10`, border: `1.5px solid ${theme.primary}28`, textDecoration: "none" }}
+                style={{ fontSize: "0.875rem", color: theme.primary, background: `${theme.primary}10`, border: `1.5px solid ${theme.primary}28`, textDecoration: "none" }}
                 whileHover={{ scale: 1.02, backgroundColor: `${theme.primary}1c` }}
                 whileTap={{ scale: 0.97 }}
               >
@@ -616,7 +616,7 @@ function PackageCard({
       {featured && (
         <div
           className="text-center py-1.5 font-display font-bold text-white"
-          style={{ fontSize: "0.6875rem", letterSpacing: "0.06em", background: theme.primary }}
+          style={{ fontSize: "0.75rem", letterSpacing: "0.06em", background: theme.primary }}
         >
           {pkg.highlight}
         </div>
@@ -719,7 +719,7 @@ function EvergreenCTA({ theme, ctaHref }: { theme: Theme; ctaHref: string }) {
         style={{ background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.28)" }}
       >
         <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#16a34a" }} />
-        <span className="font-display font-bold" style={{ fontSize: "0.6875rem", color: "#15803d", letterSpacing: "0.04em" }}>
+        <span className="font-display font-bold" style={{ fontSize: "0.75rem", color: "#15803d", letterSpacing: "0.04em" }}>
           Pendaftaran selalu terbuka
         </span>
       </div>
@@ -847,7 +847,7 @@ export function BatchesSection({
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-10 text-center"
-              style={{ fontSize: "0.8125rem", color: "var(--text-faint)" }}
+              style={{ fontSize: "0.875rem", color: "var(--text-faint)" }}
             >
               Batch dibuka secara berkala — pendaftaran bisa ditutup sewaktu-waktu jika kuota penuh.
             </motion.p>

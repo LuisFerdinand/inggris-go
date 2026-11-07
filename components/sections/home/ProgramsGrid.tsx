@@ -12,6 +12,7 @@ import { ArrowRight } from "lucide-react";
 import { buildWhatsAppUrl } from "@/lib/config";
 import { BRAND } from "@/constants/brand";
 import { trpc } from "@/lib/trpc/client";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { DEFAULT_HOME } from "@/app/modules/site-content/site-content.defaults";
 import ProgramShowcase, {
   ShowcaseHeading,
@@ -75,51 +76,14 @@ export default function ProgramsGrid() {
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 xl:px-12">
         {/* ── Header ────────────────────────────────────────── */}
-        <div className="mb-8 max-w-3xl sm:mb-10 lg:mb-12">
-          {section.eyebrow && (
-            <Reveal>
-              <span
-                className="inline-block rounded-full px-4 py-1.5 font-display text-xs font-bold uppercase tracking-tight"
-                style={{
-                  background: "#fff",
-                  color: BRAND.blueNavy,
-                  border: `1px solid ${BRAND.border}`,
-                }}
-              >
-                {section.eyebrow}
-              </span>
-            </Reveal>
-          )}
-          <Reveal delay={0.07}>
-            <h2
-              className="mt-4 font-display font-extrabold leading-[1.08]"
-              style={{
-                fontSize: "clamp(1.75rem, 3.6vw, 2.75rem)",
-                letterSpacing: "-0.022em",
-                color: BRAND.blueNavy,
-              }}
-            >
-              <ShowcaseHeading
-                title={section.title}
-                accent={section.titleAccent}
-              />
-            </h2>
-          </Reveal>
-          {section.description && (
-            <Reveal delay={0.13}>
-              <p
-                className="mt-3 leading-relaxed"
-                style={{
-                  fontSize: "0.9375rem",
-                  color: "var(--text-muted)",
-                  maxWidth: "560px",
-                }}
-              >
-                {section.description}
-              </p>
-            </Reveal>
-          )}
-        </div>
+        <SectionHeading
+          className="mb-8 max-w-3xl sm:mb-10 lg:mb-12"
+          align="left"
+          eyebrow={section.eyebrow}
+          title={section.title}
+          accent={section.titleAccent}
+          description={section.description}
+        />
 
         <Reveal delay={0.1}>
           <ProgramShowcase section={section} catalog={catalog} />

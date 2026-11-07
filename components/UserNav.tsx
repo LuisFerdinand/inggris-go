@@ -280,7 +280,7 @@ export function UserNav({ onOpenAuthModal }: UserNavProps) {
                     {user.email}
                   </p>
 
-                  <p className="mt-1 inline-flex rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--blue-navy)]">
+                  <p className="mt-1 inline-flex rounded-full bg-[var(--surface-soft)] px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-[var(--blue-navy)]">
                     {user.role ?? "user"}
                   </p>
                 </div>

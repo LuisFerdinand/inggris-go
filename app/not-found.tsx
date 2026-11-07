@@ -330,7 +330,7 @@ function FourOhFour() {
       {/* Label */}
       <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap">
         <span
-          className="text-[10px] font-semibold tracking-[0.22em] uppercase"
+          className="text-xs font-semibold tracking-[0.22em] uppercase"
           style={{ color: "rgba(58,143,245,0.55)" }}
         >
           Page Not Found
@@ -455,7 +455,7 @@ export default function NotFound() {
             <Link
               key={l.href}
               href={l.href}
-              className="text-[13px] font-medium text-blue-200/65 hover:text-white px-3 py-1.5 rounded-lg transition-all hover:bg-white/[0.05]"
+              className="text-sm font-medium text-blue-200/65 hover:text-white px-3 py-1.5 rounded-lg transition-all hover:bg-white/[0.05]"
             >
               {l.label}
             </Link>
@@ -476,7 +476,7 @@ export default function NotFound() {
           {/* Badge */}
           <div className="e e2 mb-4">
             <span
-              className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-widest uppercase px-3 py-1.5 rounded-full"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase px-3 py-1.5 rounded-full"
               style={{
                 background: "rgba(255,193,7,.09)",
                 border: "1px solid rgba(255,193,7,.22)",
@@ -519,14 +519,14 @@ export default function NotFound() {
             <div className="e e6 flex flex-col sm:flex-row items-center lg:items-start gap-2.5">
               <Link
                 href="/"
-                className="btn-gold inline-flex items-center gap-2 text-[13px] font-bold text-[#060f2e] px-5 py-2.5 rounded-full w-full sm:w-auto justify-center"
+                className="btn-gold inline-flex items-center gap-2 text-sm font-bold text-[#060f2e] px-5 py-2.5 rounded-full w-full sm:w-auto justify-center"
               >
                 <Home size={14} strokeWidth={2.5} />
                 Ke Beranda
               </Link>
               <Link
                 href="/contact"
-                className="btn-ghost inline-flex items-center gap-2 text-[13px] font-semibold text-white px-5 py-2.5 rounded-full w-full sm:w-auto justify-center"
+                className="btn-ghost inline-flex items-center gap-2 text-sm font-semibold text-white px-5 py-2.5 rounded-full w-full sm:w-auto justify-center"
               >
                 <MessageCircle size={14} strokeWidth={2} />
                 Konsultasi Gratis
@@ -549,7 +549,7 @@ export default function NotFound() {
           {/* Pages */}
           <div className="e e5">
             <p
-              className="text-[10px] font-semibold tracking-[0.18em] uppercase mb-2 flex items-center gap-2"
+              className="text-xs font-semibold tracking-[0.18em] uppercase mb-2 flex items-center gap-2"
               style={{ color: "#3a8ff5" }}
             >
               <span
@@ -578,7 +578,7 @@ export default function NotFound() {
                           style={{ color: "#3a8ff5" }}
                         />
                       </div>
-                      <span className="text-[13px] font-medium text-white/75 group-hover:text-white transition-colors">
+                      <span className="text-sm font-medium text-white/75 group-hover:text-white transition-colors">
                         {l.label}
                       </span>
                     </div>
@@ -596,7 +596,7 @@ export default function NotFound() {
           {/* Programs */}
           <div className="e e6">
             <p
-              className="text-[10px] font-semibold tracking-[0.18em] uppercase mb-2 flex items-center gap-2"
+              className="text-xs font-semibold tracking-[0.18em] uppercase mb-2 flex items-center gap-2"
               style={{ color: "#ffc107" }}
             >
               <span
@@ -625,12 +625,12 @@ export default function NotFound() {
                           style={{ color: "#ffc107" }}
                         />
                       </div>
-                      <span className="text-[13px] font-medium text-white/75 group-hover:text-white transition-colors">
+                      <span className="text-sm font-medium text-white/75 group-hover:text-white transition-colors">
                         {p.label}
                       </span>
                     </div>
                     <span
-                      className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0"
+                      className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
                       style={{
                         background: "rgba(255,193,7,.11)",
                         color: "#ffc107",
@@ -652,12 +652,12 @@ export default function NotFound() {
         className="e e1 relative z-10 px-5 lg:px-10 py-3 flex items-center justify-between"
         style={{ borderTop: "1px solid rgba(255,255,255,.05)" }}
       >
-        <p className="text-[11px]" style={{ color: "rgba(122,144,184,.55)" }}>
+        <p className="text-xs" style={{ color: "rgba(122,144,184,.55)" }}>
           © {new Date().getFullYear()} Inggris Go! — Kampung Inggris Pare
         </p>
         <Link
           href="/programs"
-          className="inline-flex items-center gap-1 text-[11px] font-semibold transition-colors hover:text-white"
+          className="inline-flex items-center gap-1 text-xs font-semibold transition-colors hover:text-white"
           style={{ color: "rgba(58,143,245,.65)" }}
         >
           Semua Program <ArrowRight size={10} strokeWidth={2.5} />

@@ -11,6 +11,7 @@ import {
 } from "framer-motion";
 
 import { trpc } from "@/lib/trpc/client";
+import { formatCount, SHOW_PUBLIC_RATING } from "@/constants";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { DEFAULT_HOME } from "@/app/modules/site-content/site-content.defaults";
 import type {
@@ -34,7 +35,7 @@ const item = {
 function formatStat(key: HeroStatLabel["key"], stats: SiteStats): string {
   switch (key) {
     case "alumni":
-      return `${stats.alumni.toLocaleString("en-US")}+`;
+      return `${formatCount(stats.alumni)}+`;
     case "rating":
       return `${stats.rating}★`;
     case "years":
@@ -161,7 +162,7 @@ function SpeechBubble({ floating }: { floating: HeroFloatingText }) {
         <div>
           <p
             className="font-bold leading-none"
-            style={{ fontSize: "0.6875rem", color: BRAND.blueNavy }}
+            style={{ fontSize: "0.75rem", color: BRAND.blueNavy }}
           >
             {floating.speechName}
           </p>
@@ -171,7 +172,7 @@ function SpeechBubble({ floating }: { floating: HeroFloatingText }) {
 
       <p
         style={{
-          fontSize: "0.6875rem",
+          fontSize: "0.75rem",
           color: BRAND.textMuted,
           lineHeight: 1.55,
           fontStyle: "italic",
@@ -246,7 +247,7 @@ function ActiveStudentsBadge({
       </span>
       <p
         className="font-bold text-white leading-none"
-        style={{ fontSize: "0.6875rem" }}
+        style={{ fontSize: "0.75rem" }}
       >
         {activeCount}+ {text}
       </p>
@@ -286,7 +287,7 @@ function ConversationCard({ floating }: { floating: HeroFloatingText }) {
         <p
           className="font-bold"
           style={{
-            fontSize: "0.5875rem",
+            fontSize: "0.75rem",
             color: BRAND.textFaint,
             letterSpacing: "0.06em",
           }}
@@ -303,7 +304,7 @@ function ConversationCard({ floating }: { floating: HeroFloatingText }) {
             <span
               className="px-2.5 py-1.5 rounded-xl text-white"
               style={{
-                fontSize: "0.625rem",
+                fontSize: "0.75rem",
                 background: msg.align === "right" ? BRAND.blue : BRAND.blueNavy,
                 borderRadius:
                   msg.align === "right"
@@ -379,10 +380,11 @@ export default function HeroAnimated() {
     ...DEFAULT_HOME.heroFloatingText,
     ...(c.heroFloatingText ?? {}),
   };
-  const statLabels =
+  const statLabels = (
     c.heroStatLabels && c.heroStatLabels.length > 0
       ? c.heroStatLabels
-      : DEFAULT_HOME.heroStatLabels;
+      : DEFAULT_HOME.heroStatLabels
+  ).filter((s) => SHOW_PUBLIC_RATING || s.key !== "rating");
 
   const statColors = [BRAND.blue, BRAND.blueVivid, BRAND.blueNavy];
 
@@ -477,15 +479,15 @@ export default function HeroAnimated() {
             <motion.p
               variants={item}
               className="text-base leading-relaxed mb-9 max-w-[480px]"
-              style={{ color: BRAND.textFaint }}
+              style={{ color: BRAND.textMuted }}
             >
               {description}
             </motion.p>
 
-            <motion.div variants={item} className="flex flex-wrap gap-3 mb-10">
+            <motion.div variants={item} className="flex flex-col gap-3 mb-10 sm:flex-row sm:flex-wrap">
               <Link
                 href={primaryHref}
-                className="inline-flex items-center gap-2 font-bold text-base rounded-full px-8 py-4 transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
+                className="inline-flex min-h-12 items-center justify-center gap-2 font-bold text-base rounded-full px-8 py-4 transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
                 style={{
                   background: BRAND.gradientGold,
                   boxShadow: primaryHovered
@@ -510,7 +512,7 @@ export default function HeroAnimated() {
 
               <a
                 href={secondaryHref}
-                className="inline-flex items-center font-bold text-base text-white rounded-full px-8 py-4 transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
+                className="inline-flex min-h-12 items-center justify-center font-bold text-base text-white rounded-full px-8 py-4 transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
                 style={{
                   background: BRAND.gradientNavy,
                   boxShadow: secondaryHovered
@@ -554,7 +556,7 @@ export default function HeroAnimated() {
                     >
                       {formatStat(stat.key, stats)}
                     </p>
-                    <p className="text-sm" style={{ color: BRAND.textFaint }}>
+                    <p className="text-sm" style={{ color: BRAND.textMuted }}>
                       {stat.label}
                     </p>
                   </div>

@@ -1,5 +1,6 @@
 // app/modules/site-header/server/site-header.service.ts
 
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/app/db/db";
@@ -43,7 +44,9 @@ export const DEFAULT_SITE_HEADER_SETTINGS = {
   updatedAt: new Date(),
 };
 
-export async function getSiteHeaderSettings() {
+// Wrapped in `cache` so the root layout, `generateMetadata` and each page's
+// metadata share one DB read per request instead of one each.
+export const getSiteHeaderSettings = cache(async () => {
   const [row] = await db
     .select()
     .from(siteHeaderSettings)
@@ -54,4 +57,4 @@ export async function getSiteHeaderSettings() {
     ...DEFAULT_SITE_HEADER_SETTINGS,
     ...row,
   };
-}
+});

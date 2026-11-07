@@ -61,7 +61,7 @@ export default function CTASection() {
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-7
               font-display font-semibold text-white"
             style={{
-              fontSize: "0.8125rem",
+              fontSize: "0.875rem",
               background: "rgba(255,255,255,0.18)",
               border: "1px solid rgba(255,255,255,0.28)",
               backdropFilter: "blur(4px)",
@@ -178,7 +178,7 @@ export default function CTASection() {
         <Reveal delay={0.26}>
           <p
             className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-1"
-            style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.6)" }}
+            style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)" }}
           >
             <span className="flex items-center gap-1.5">
               <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">

@@ -45,7 +45,7 @@ function SectionPill({
     <span
       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold uppercase"
       style={{
-        fontSize: "0.5875rem",
+        fontSize: "0.75rem",
         letterSpacing: "0.18em",
         background: theme.soft,
         color: theme.primary,
@@ -294,7 +294,7 @@ function BonusCard({
                 <span
                   className="inline-flex items-center shrink-0 px-2.5 py-0.5 rounded-full font-display font-bold"
                   style={{
-                    fontSize: "0.5rem",
+                    fontSize: "0.75rem",
                     letterSpacing: "0.07em",
                     background: theme.primary,
                     color: "white",
@@ -308,7 +308,7 @@ function BonusCard({
               {bonus.description && (
                 <p
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "var(--text-muted)",
                     lineHeight: "1.65",
                   }}
@@ -374,7 +374,7 @@ function BonusCard({
               <span
                 className="inline-flex items-center shrink-0 px-2 py-0.5 rounded-full font-display font-bold"
                 style={{
-                  fontSize: "0.5rem",
+                  fontSize: "0.75rem",
                   letterSpacing: "0.07em",
                   background: theme.primary,
                   color: "white",
@@ -502,7 +502,7 @@ function BonusSection({
               <StarAccent size={8} color={theme.primary} opacity={0.6} />
               <p
                 style={{
-                  fontSize: "0.6875rem",
+                  fontSize: "0.75rem",
                   color: "var(--text-faint)",
                 }}
               >
@@ -586,7 +586,7 @@ function BonusSection({
 
               <p
                 style={{
-                  fontSize: "0.8125rem",
+                  fontSize: "0.875rem",
                   color: "var(--text-muted)",
                   lineHeight: "1.68",
                 }}
@@ -633,7 +633,7 @@ function PackageCard({ pkg, theme }: { pkg: PricingPackage; theme: Theme }) {
         <span
           className="relative mb-2.5 inline-block px-2.5 py-1 rounded-full font-display font-bold bg-white"
           style={{
-            fontSize: "0.5625rem",
+            fontSize: "0.75rem",
             color: theme.primary,
             letterSpacing: "0.06em",
             boxShadow: `0 2px 8px rgba(0,0,0,0.12)`,
@@ -673,7 +673,7 @@ function PackageCard({ pkg, theme }: { pkg: PricingPackage; theme: Theme }) {
       <p
         className="font-display font-semibold"
         style={{
-          fontSize: "0.8125rem",
+          fontSize: "0.875rem",
           color: isHighlighted ? "rgba(255,255,255,0.85)" : "var(--text-muted)",
         }}
       >
@@ -727,7 +727,7 @@ function PackageCard({ pkg, theme }: { pkg: PricingPackage; theme: Theme }) {
           }
           className="relative mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 font-display font-bold"
           style={{
-            fontSize: "0.8125rem",
+            fontSize: "0.875rem",
             textDecoration: "none",
             background: isHighlighted ? "white" : theme.primary,
             color: isHighlighted ? theme.primary : "white",
@@ -965,7 +965,7 @@ export function PricingSection({
                   <Check color={theme.primary} />
                 </div>
                 <p
-                  style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}
+                  style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}
                 >
                   {content.globalNote}
                 </p>
@@ -989,7 +989,7 @@ export function PricingSection({
                 />
                 <p
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "#dc2626",
                     fontWeight: 600,
                   }}

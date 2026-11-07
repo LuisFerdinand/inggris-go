@@ -54,11 +54,11 @@ function SectionPill({
     <div
       className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 font-semibold"
       style={{
-        fontSize: "0.6875rem",
+        fontSize: "0.75rem",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         background: theme.soft,
-        color: theme.primary,
+        color: theme.strong,
         border: `1px solid ${theme.border}`,
       }}
     >
@@ -84,7 +84,7 @@ function SectionHeading({
     <h2
       className="font-display font-extrabold leading-[1.07]"
       style={{
-        fontSize: "clamp(1.6rem, 3vw, 2.5rem)",
+        fontSize: "clamp(1.875rem, 3vw, 2.5rem)",
         letterSpacing: "-0.025em",
         color: "var(--blue-navy, #0a1628)",
         textAlign: align,
@@ -226,7 +226,7 @@ export function Lightbox({
             <p
               className="font-semibold uppercase mb-1"
               style={{
-                fontSize: "0.5rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.4)",
                 letterSpacing: "0.14em",
               }}
@@ -271,7 +271,7 @@ export function Lightbox({
                   <span
                     className="font-semibold"
                     style={{
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       color: "rgba(255,255,255,0.4)",
                       minWidth: 56,
                       textAlign: "center",
@@ -303,7 +303,7 @@ export function Lightbox({
         <p
           className="sm:hidden mt-3"
           style={{
-            fontSize: "0.6875rem",
+            fontSize: "0.75rem",
             color: "rgba(255,255,255,0.25)",
             letterSpacing: "0.04em",
           }}
@@ -334,7 +334,7 @@ function ImgOverlay({ caption, tag }: { caption?: string; tag?: string }) {
             <p
               className="mb-0.5 font-semibold uppercase"
               style={{
-                fontSize: "0.5rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.55)",
                 letterSpacing: "0.12em",
               }}
@@ -426,7 +426,7 @@ function CollageRow({
                   <span
                     className="font-semibold uppercase tracking-widest mt-1"
                     style={{
-                      fontSize: "0.5rem",
+                      fontSize: "0.75rem",
                       color: "rgba(255,255,255,0.55)",
                     }}
                   >
@@ -513,7 +513,7 @@ function CollageDesktop({
               </span>
               <span
                 className="font-semibold uppercase tracking-widest mt-0.5"
-                style={{ fontSize: "0.5rem", color: "rgba(255,255,255,0.55)" }}
+                style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.55)" }}
               >
                 foto lagi
               </span>
@@ -680,7 +680,7 @@ function BenefitCard({
           {item.description && (
             <p
               style={{
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
                 color: "var(--text-muted, #64748b)",
                 lineHeight: "1.65",
               }}
@@ -695,7 +695,7 @@ function BenefitCard({
           className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center relative z-10"
           style={{
             background: theme.soft,
-            fontSize: "0.625rem",
+            fontSize: "0.75rem",
             fontWeight: 700,
             color: theme.primary,
             opacity: 0.6,

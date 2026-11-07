@@ -18,6 +18,8 @@ import {
   useTransform,
 } from "framer-motion";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
+import { STUDENT_COUNT_LABEL } from "@/constants";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { trpc } from "@/lib/trpc/client";
 import type { HomeCatalog } from "@/app/modules/program/home-catalog.types";
 
@@ -150,7 +152,7 @@ function TestimonialCard({ t, position, onClick }: CardProps) {
         <span
           className="px-2.5 py-1 rounded-full font-display font-semibold"
           style={{
-            fontSize: "0.625rem",
+            fontSize: "0.75rem",
             letterSpacing: "0.04em",
             color: t.programColor,
             background: t.programBg,
@@ -196,7 +198,7 @@ function TestimonialCard({ t, position, onClick }: CardProps) {
       <div className="flex items-center gap-3">
         <div
           className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-white flex-shrink-0"
-          style={{ fontSize: "0.6875rem", background: t.avatarBg }}
+          style={{ fontSize: "0.75rem", background: t.avatarBg }}
         >
           {t.initials}
         </div>
@@ -625,41 +627,19 @@ function MobileCarousel({
   );
 }
 
-/* ── Progress dots with animated active pill ──────────────────────── */
-function ProgressDots({
-  total,
-  current,
-  onGoTo,
-  onManual,
-}: {
-  total: number;
-  current: number;
-  onGoTo: (i: number) => void;
-  onManual: () => void;
-}) {
+/* ── Position counter ("3 / 13") ───────────────────────────────────────
+ * Replaces the row of 13 seven-pixel dots, which were impossible to tap on a
+ * phone. Moving between testimonials is done with the two big arrows. */
+function ProgressCounter({ total, current }: { total: number; current: number }) {
   return (
-    <div className="flex items-center gap-1.5">
-      {Array.from({ length: total }).map((_, i) => (
-        <motion.button
-          key={i}
-          onClick={() => {
-            onGoTo(i);
-            onManual();
-          }}
-          aria-label={`Testimonial ${i + 1}`}
-          className="rounded-full"
-          animate={{
-            width: i === current ? 22 : 7,
-            background:
-              i === current
-                ? `linear-gradient(135deg, ${BRAND.blue} 0%, ${BRAND.blueNavy} 100%)`
-                : "rgba(15,35,64,0.14)",
-          }}
-          transition={{ duration: 0.3, ease: EASE }}
-          style={{ height: 7, border: "none", padding: 0, cursor: "pointer" }}
-        />
-      ))}
-    </div>
+    <p
+      className="min-w-16 text-center font-display text-base font-bold tabular-nums"
+      style={{ color: BRAND.blueNavy }}
+      aria-live="polite"
+    >
+      {current + 1}
+      <span style={{ color: BRAND.textMuted }}> / {total}</span>
+    </p>
   );
 }
 
@@ -684,9 +664,9 @@ function NavButton({
       }}
       whileTap={{ scale: 0.94 }}
       transition={{ duration: 0.15 }}
-      className="w-9 h-9 rounded-full flex items-center justify-center"
+      className="w-12 h-12 rounded-full flex items-center justify-center"
       style={{
-        border: "1.5px solid rgba(15,35,64,0.14)",
+        border: "1.5px solid rgba(15,35,64,0.25)",
         background: "white",
         cursor: "pointer",
       }}
@@ -752,48 +732,14 @@ function TestimonialsCarousel() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 xl:px-12">
         {/* ── Header ────────────────────────────────────────────── */}
-        <div className="flex flex-col items-center text-center mb-12 lg:mb-16">
-          <Reveal>
-            <div className="inline-flex items-center gap-2 mb-6">
-              <span
-                className="px-4 py-1.5 rounded-full text-xs font-display font-bold tracking-tight uppercase"
-                style={{
-                  background: BRAND.background,
-                  color: BRAND.blueNavy,
-                  border: `1px solid ${BRAND.border}`,
-                }}
-              >
-                Testimoni
-              </span>
-            </div>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <h2
-              className="font-display font-extrabold leading-[1.08] mb-4"
-              style={{
-                fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
-                letterSpacing: "-0.022em",
-                color: BRAND.blueNavy,
-              }}
-            >
-              Apa Kata Mereka Tentang{" "}
-              <span style={GRADIENT_GOLD_TEXT}>Inggris Go</span>?
-            </h2>
-          </Reveal>
-          <Reveal delay={0.15}>
-            <p
-              style={{
-                fontSize: "0.9375rem",
-                color: BRAND.blueAbyss,
-                maxWidth: "400px",
-              }}
-              className="leading-relaxed"
-            >
-              Lebih dari 500 siswa sudah merasakan manfaatnya — ini cerita
-              mereka.
-            </p>
-          </Reveal>
-        </div>
+        <SectionHeading
+          className="mb-10 lg:mb-16"
+          eyebrow="Testimoni"
+          title="Apa Kata Mereka Tentang"
+          accent="Inggris Go"
+          titleSuffix="?"
+          description={`${STUDENT_COUNT_LABEL} siswa sudah merasakan manfaatnya — ini cerita mereka.`}
+        />
 
         {/* ── DESKTOP ───────────────────────────────────────────── */}
         <Reveal delay={0.1} className="hidden lg:block mb-10">
@@ -827,15 +773,15 @@ function TestimonialsCarousel() {
         </div>
 
         {/* ── Controls ──────────────────────────────────────────── */}
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-5">
           <NavButton
-            label="Previous"
+            label="Testimoni sebelumnya"
             onClick={() => {
               prev();
               handleManual();
             }}
           >
-            <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
+            <svg viewBox="0 0 16 16" fill="none" className="w-5 h-5">
               <path
                 d="M10 4L6 8l4 4"
                 stroke="#0F2340"
@@ -846,21 +792,16 @@ function TestimonialsCarousel() {
             </svg>
           </NavButton>
 
-          <ProgressDots
-            total={total}
-            current={current}
-            onGoTo={goTo}
-            onManual={handleManual}
-          />
+          <ProgressCounter total={total} current={current} />
 
           <NavButton
-            label="Next"
+            label="Testimoni berikutnya"
             onClick={() => {
               next();
               handleManual();
             }}
           >
-            <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
+            <svg viewBox="0 0 16 16" fill="none" className="w-5 h-5">
               <path
                 d="M6 4l4 4-4 4"
                 stroke="#0F2340"

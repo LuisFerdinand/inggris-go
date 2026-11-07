@@ -422,7 +422,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
       {
         title: "Kurikulum Jelas",
         description:
-          "Setiap sesi punya tujuan terstruktur. Kamu selalu tahu posisi dan progress-mu.",
+          "Setiap sesi punya tujuan terstruktur. Ayah/Bunda selalu tahu posisi dan progress belajar anak.",
         icon: "layout",
       },
       {
@@ -436,7 +436,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     steps: [
       {
         title: "Pilih Program",
-        description: "Pilih kelas yang sesuai dengan level dan tujuanmu",
+        description: "Pilih kelas yang sesuai dengan level dan tujuan belajar anak",
       },
       {
         title: "Join Zoom",
@@ -487,7 +487,7 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     cta: {
       title: "Masih bingung pilih kelas?",
       description:
-        "Kami bantu rekomendasikan program yang paling pas untuk level dan tujuanmu. Gratis, tanpa tekanan.",
+        "Kami bantu rekomendasikan program yang paling pas untuk level dan tujuan belajar anak. Gratis, tanpa tekanan.",
       primaryLabel: "Lihat Semua Program Online",
       primaryHref: "#program-list",
       secondaryLabel: "Konsultasi Gratis",

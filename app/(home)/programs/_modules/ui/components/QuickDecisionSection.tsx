@@ -5,6 +5,7 @@ import { EASE, Reveal } from "../views/ProgramsView";
 import { generateTheme } from "@/lib/utils";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Icon } from "@/components/Icon";
+import SectionHeading from "@/components/ui/SectionHeading";
 
 export function QuickDecisionSection({
   onSelect,
@@ -40,46 +41,13 @@ export function QuickDecisionSection({
         <div></div>
       </div>
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        <Reveal>
-          <div className="text-center mb-12">
-            <div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5"
-              style={{
-                background: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.14)",
-              }}
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{ background: "#4ade80" }}
-              />
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  color: "rgba(255,255,255,0.6)",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Pilih kondisi kamu
-              </span>
-            </div>
-            <p
-              className="font-display font-black mb-2 leading-tight"
-              style={{
-                fontSize: "clamp(1.6rem, 2.8vw, 2.2rem)",
-                color: "white",
-                letterSpacing: "-0.022em",
-              }}
-            >
-              Masih bingung? Jawab ini:
-            </p>
-            <p
-              style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.45)" }}
-            >
-              Klik yang paling mencerminkan situasimu sekarang
-            </p>
-          </div>
-        </Reveal>
+        <SectionHeading
+          tone="dark"
+          className="mb-10 sm:mb-12"
+          eyebrow="Pilih kondisi Ayah/Bunda"
+          title="Masih bingung? Jawab ini:"
+          description="Klik yang paling mencerminkan situasi Ayah/Bunda sekarang."
+        />
 
         <div className="grid sm:grid-cols-3 gap-5">
           {categories.map((cat, i) => {
@@ -158,7 +126,7 @@ export function QuickDecisionSection({
                           background: theme.soft,
                           color: theme.primary,
                           border: `1px solid ${theme.border}`,
-                          fontSize: "0.5875rem",
+                          fontSize: "0.75rem",
                           letterSpacing: "0.06em",
                           textTransform: "uppercase",
                         }}
@@ -169,7 +137,7 @@ export function QuickDecisionSection({
 
                     <p
                       style={{
-                        fontSize: "0.8125rem",
+                        fontSize: "0.875rem",
                         color: "rgba(255,255,255,0.5)",
                         lineHeight: "1.55",
                         marginBottom: "1.25rem",

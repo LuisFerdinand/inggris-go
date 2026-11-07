@@ -147,7 +147,7 @@ function MobileCategoryGroup({
         <div
           className="flex items-center justify-between transition-colors duration-150"
           style={{
-            padding: "9px 10px 9px 12px",
+            padding: "12px 8px 12px 12px",
             background: open ? theme.soft : "transparent",
             transition: "background 0.15s ease",
           }}
@@ -184,7 +184,7 @@ function MobileCategoryGroup({
               <p
                 className="font-semibold leading-tight transition-colors duration-150"
                 style={{
-                  fontSize: "0.75rem",
+                  fontSize: "0.9375rem",
                   color: open ? theme.strong : "#0F2340",
                 }}
               >
@@ -192,9 +192,9 @@ function MobileCategoryGroup({
               </p>
               <p
                 style={{
-                  fontSize: "0.625rem",
-                  color: open ? theme.primary : "#94A3B8",
-                  lineHeight: "1.35",
+                  fontSize: "0.875rem",
+                  color: open ? theme.primary : "#64748B",
+                  lineHeight: "1.4",
                   transition: "color 0.15s ease",
                 }}
               >
@@ -208,7 +208,7 @@ function MobileCategoryGroup({
             <span
               className="font-semibold transition-all duration-150"
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 padding: "2px 6px",
                 borderRadius: "999px",
                 background: open ? theme.soft : "rgba(15,35,64,0.06)",
@@ -224,7 +224,7 @@ function MobileCategoryGroup({
 
             <button
               onClick={() => setOpen((o) => !o)}
-              className="flex items-center justify-center w-6 h-6 rounded-md transition-all duration-150"
+              className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-150"
               style={{
                 background: open ? theme.softStrong : "transparent",
                 border: `1px solid ${open ? theme.border : "transparent"}`,
@@ -238,9 +238,9 @@ function MobileCategoryGroup({
               >
                 <ChevronDown
                   style={{
-                    width: "0.75rem",
-                    height: "0.75rem",
-                    color: open ? theme.primary : "#CBD5E1",
+                    width: "1rem",
+                    height: "1rem",
+                    color: open ? theme.primary : "#94A3B8",
                     transition: "color 0.15s ease",
                   }}
                 />
@@ -275,7 +275,7 @@ function MobileCategoryGroup({
                     onClick={onClose}
                     className="flex items-center justify-between transition-all duration-150"
                     style={{
-                      padding: "8px 10px 8px 12px",
+                      padding: "12px 10px 12px 12px",
                       background: isActive ? theme.soft : "transparent",
                       borderBottom:
                         ii < col.items.length - 1
@@ -292,7 +292,7 @@ function MobileCategoryGroup({
                         <span
                           className="font-medium leading-tight transition-colors duration-150"
                           style={{
-                            fontSize: "0.8125rem",
+                            fontSize: "0.9375rem",
                             color: isActive ? theme.primary : "#1E293B",
                           }}
                         >
@@ -302,9 +302,9 @@ function MobileCategoryGroup({
                       {item.desc && (
                         <span
                           style={{
-                            fontSize: "0.6875rem",
-                            color: "#94A3B8",
-                            marginTop: "1px",
+                            fontSize: "0.875rem",
+                            color: "#64748B",
+                            marginTop: "2px",
                             lineHeight: "1.4",
                           }}
                         >
@@ -332,7 +332,7 @@ function MobileCategoryGroup({
                 onClick={onClose}
                 className="flex items-center justify-between"
                 style={{
-                  padding: "8px 10px 8px 12px",
+                  padding: "12px 10px 12px 12px",
                   background: theme.soft,
                   borderTop: `1px solid ${theme.border}`,
                   textDecoration: "none",
@@ -340,7 +340,7 @@ function MobileCategoryGroup({
               >
                 <span
                   className="font-semibold"
-                  style={{ fontSize: "0.6875rem", color: theme.primary }}
+                  style={{ fontSize: "0.875rem", color: theme.strong }}
                 >
                   Lihat semua {col.shortLabel}
                 </span>
@@ -374,10 +374,10 @@ function MobileProgramPanel({
   const { leadHref, leadTheme, leadPrograms, rightColumns: rCols } = data;
 
   return (
-    <div className="pb-3 pl-4">
+    <div className="pb-3">
       {/* ══ Lead programs ══════════════════════════════════════ */}
       <div
-        className="mx-4 my-2 rounded-xl overflow-hidden"
+        className="my-2 rounded-xl overflow-hidden"
         style={{
           background: leadTheme.soft,
           border: `1px solid ${leadTheme.border}`,
@@ -395,7 +395,7 @@ function MobileProgramPanel({
             />
             <p
               className="font-bold uppercase tracking-[0.12em]"
-              style={{ fontSize: "0.5625rem", color: leadTheme.primary }}
+              style={{ fontSize: "0.75rem", color: leadTheme.primary }}
             >
               Mulai dari Sini
             </p>
@@ -405,7 +405,7 @@ function MobileProgramPanel({
             onClick={onClose}
             className="flex items-center gap-0.5 font-semibold transition-opacity duration-150 hover:opacity-70"
             style={{
-              fontSize: "0.5625rem",
+              fontSize: "0.75rem",
               color: leadTheme.primary,
               textDecoration: "none",
               letterSpacing: "0.04em",
@@ -470,7 +470,7 @@ function MobileProgramPanel({
                       <p
                         className="font-semibold leading-tight"
                         style={{
-                          fontSize: "0.875rem",
+                          fontSize: "0.9375rem",
                           color: isActive ? leadTheme.primary : "#0F2340",
                         }}
                       >
@@ -495,17 +495,17 @@ function MobileProgramPanel({
       </div>
 
       {/* ══ All programs (category accordions) ════════════════ */}
-      <div className="flex items-center gap-2 px-4 mb-2">
+      <div className="flex items-center gap-2 px-1 mt-4 mb-2">
         <div className="w-1.5 h-1.5 rounded-full bg-slate-300 flex-shrink-0" />
         <p
           className="font-bold uppercase tracking-[0.12em]"
-          style={{ fontSize: "0.5625rem", color: "#94A3B8" }}
+          style={{ fontSize: "0.75rem", color: "#64748B" }}
         >
           Semua Program
         </p>
       </div>
 
-      <div className="px-4 space-y-2">
+      <div className="space-y-2">
         {rCols.map((col, ci) => (
           <MobileCategoryGroup
             key={col.id}
@@ -519,10 +519,10 @@ function MobileProgramPanel({
 
       {/* ══ Consult nudge ══════════════════════════════════════ */}
       <div
-        className="flex items-center justify-between mx-4 mt-2 pt-2"
+        className="flex items-center justify-between gap-3 mx-1 mt-3 pt-3"
         style={{ borderTop: "1px solid rgba(15,35,64,0.06)" }}
       >
-        <p style={{ fontSize: "0.75rem", color: "#94A3B8" }}>
+        <p style={{ fontSize: "0.875rem", color: "#64748B" }}>
           Bingung pilih yang mana?
         </p>
         <Link
@@ -530,7 +530,7 @@ function MobileProgramPanel({
           onClick={onClose}
           className="inline-flex items-center gap-1 font-semibold"
           style={{
-            fontSize: "0.75rem",
+            fontSize: "0.875rem",
             color: BRAND.blue,
             textDecoration: "none",
           }}
@@ -593,7 +593,7 @@ export function MobileDrawer({
         transition={{ type: "spring", damping: 28, stiffness: 230 }}
         className="fixed top-0 right-0 bottom-0 z-[2000] lg:hidden flex flex-col"
         style={{
-          width: "min(85vw, 320px)",
+          width: "min(92vw, 380px)",
           background: "white",
           boxShadow: "-12px 0 50px rgba(15,35,64,0.12)",
         }}
@@ -698,7 +698,7 @@ export function MobileDrawer({
           </Button>
           <p
             className="text-center"
-            style={{ fontSize: "0.6875rem", color: "#94A3B8" }}
+            style={{ fontSize: "0.75rem", color: "#94A3B8" }}
           >
             Respon cepat · Konsultasi gratis · Tanpa syarat
           </p>

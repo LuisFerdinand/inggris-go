@@ -97,7 +97,7 @@ function ClassCard({
           <div
             className="absolute top-4 right-4 px-2.5 py-1 rounded-full font-display font-bold z-10"
             style={{
-              fontSize: "0.5625rem",
+              fontSize: "0.75rem",
               background: theme.primary,
               color: "white",
               letterSpacing: "0.06em",
@@ -131,7 +131,7 @@ function ClassCard({
           {item.duration && (
             <p
               className="font-display font-bold uppercase tracking-wider mb-2.5"
-              style={{ fontSize: "0.6875rem", color: theme.primary }}
+              style={{ fontSize: "0.75rem", color: theme.primary }}
             >
               {item.duration}
             </p>
@@ -150,7 +150,7 @@ function ClassCard({
             <span
               className="inline-block px-3 py-1 rounded-full font-display font-bold mb-3.5"
               style={{
-                fontSize: "0.6875rem",
+                fontSize: "0.75rem",
                 background: theme.soft,
                 color: theme.primary,
                 border: `1px solid ${theme.border}`,
@@ -182,7 +182,7 @@ function ClassCard({
                   key={s}
                   className="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl"
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "var(--blue-navy)",
                     fontWeight: 500,
                     background: "var(--surface-2, #f8fafc)",
@@ -210,7 +210,7 @@ function ClassCard({
                 >
                   <p
                     style={{
-                      fontSize: "0.5875rem",
+                      fontSize: "0.75rem",
                       color: "var(--text-faint)",
                       textTransform: "uppercase",
                       letterSpacing: "0.09em",
@@ -222,7 +222,7 @@ function ClassCard({
                   <p
                     className="font-display font-bold"
                     style={{
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       color: "var(--blue-navy)",
                     }}
                   >
@@ -278,7 +278,7 @@ function InfoBar({ info }: { info: { label: string; value: string }[] }) {
             )}
             <p
               className="font-display font-bold uppercase tracking-widest mb-1.5"
-              style={{ fontSize: "0.625rem", color: "var(--text-faint)" }}
+              style={{ fontSize: "0.75rem", color: "var(--text-faint)" }}
             >
               {item.label}
             </p>

@@ -516,7 +516,7 @@ function AuthedPanel({
         {user.name ?? "User"}
       </p>
       {user.email && <p className="text-xs text-slate-500">{user.email}</p>}
-      <p className="mt-2 inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#0d2d87]">
+      <p className="mt-2 inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-[#0d2d87]">
         {user.role ?? "user"}
       </p>
 
@@ -619,7 +619,7 @@ function LoginInner() {
         <div className="relative z-10 flex h-full justify-center flex-col p-10 xl:p-12">
           <Link
             href="/"
-            className="mb-10 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-[13px] font-semibold text-white/80 backdrop-blur-sm transition hover:border-[#ffc107]/35 hover:text-white"
+            className="mb-10 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white/80 backdrop-blur-sm transition hover:border-[#ffc107]/35 hover:text-white"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Beranda
@@ -668,7 +668,7 @@ function LoginInner() {
                     <span className="block text-sm font-bold text-white">
                       {b.title}
                     </span>
-                    <span className="block text-[13px] leading-snug text-blue-200/60">
+                    <span className="block text-sm leading-snug text-blue-200/60">
                       {b.desc}
                     </span>
                   </span>
@@ -697,7 +697,7 @@ function LoginInner() {
         <div className="flex items-center justify-between px-6 pt-6 lg:hidden">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 transition hover:text-[#0d2d87]"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 transition hover:text-[#0d2d87]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Beranda

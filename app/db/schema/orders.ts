@@ -68,6 +68,7 @@ export type OnlineEnrollmentData = {
 
   /* -----------------------------------------
      Participant
+     fullName / whatsapp = the parent (Ayah/Bunda) who registers.
   ----------------------------------------- */
 
   fullName: string;
@@ -77,6 +78,23 @@ export type OnlineEnrollmentData = {
   email?: string;
 
   age?: number;
+
+  /* -----------------------------------------
+     Child + parent (kids registration form)
+  ----------------------------------------- */
+
+  childName?: string;
+
+  // Free text: "8 tahun", "Kelas 3 SD", ...
+  childAgeOrGrade?: string;
+
+  parentName?: string;
+
+  // Private classes only: preferred study days and time of day.
+  studySchedule?: {
+    days: string[];
+    timeSlot: string;
+  };
 
   /* -----------------------------------------
      Session / Account Context

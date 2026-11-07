@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 
 import { Toaster } from "react-hot-toast";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -15,6 +14,7 @@ import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { TRPCProvider } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import { getSiteHeaderSettings } from "@/app/modules/site-header/server/site-header.service";
+import { getSiteOrigin } from "@/lib/seo";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -30,7 +30,12 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = settings.metaDescription;
 
   return {
-    title,
+    // Child pages set a short title ("Tentang Kami") and get the site name
+    // appended; pages without one fall back to the full meta title.
+    title: {
+      default: title,
+      template: `%s | ${settings.siteName || "Inggris Go"}`,
+    },
     description,
     keywords: settings.metaKeywords
       ? settings.metaKeywords
@@ -39,15 +44,13 @@ export async function generateMetadata(): Promise<Metadata> {
           .filter(Boolean)
       : undefined,
 
-    metadataBase: settings.canonicalUrl
-      ? new URL(settings.canonicalUrl)
-      : undefined,
-
-    alternates: settings.canonicalUrl
-      ? {
-          canonical: settings.canonicalUrl,
-        }
-      : undefined,
+    // The CMS "Canonical URL" is the site's domain. It is only the *base*
+    // that relative urls resolve against. It must NOT be set as a global
+    // `alternates.canonical` — that made every page claim the Beranda as its
+    // canonical. Each page declares its own via `buildPageMetadata()`
+    // (lib/seo.ts). Parsed leniently so a half-typed value cannot take the
+    // whole site down.
+    metadataBase: getSiteOrigin(settings.canonicalUrl),
 
     openGraph: {
       title: settings.ogTitle || title,

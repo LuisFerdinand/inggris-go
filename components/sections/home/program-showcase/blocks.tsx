@@ -140,7 +140,7 @@ export function GroupHeader({
     <div className="mb-5 sm:mb-6">
       {eyebrow && (
         <p
-          className="font-display text-[0.6875rem] font-extrabold uppercase sm:text-xs"
+          className="font-display text-xs font-extrabold uppercase sm:text-xs"
           style={{ letterSpacing: "0.12em", color: "var(--blue)" }}
         >
           {eyebrow}
@@ -150,7 +150,7 @@ export function GroupHeader({
         <h3
           className="mt-1.5 font-display font-extrabold leading-tight"
           style={{
-            fontSize: "clamp(1.5rem, 3vw, 2.125rem)",
+            fontSize: "clamp(1.75rem, 3vw, 2.125rem)",
             letterSpacing: "-0.022em",
             color: NAVY,
           }}
@@ -191,7 +191,7 @@ export function FeatureBlock({ view }: { view: FeatureView }) {
             <div className="flex flex-wrap items-center gap-2">
               {view.kicker && (
                 <span
-                  className="font-display text-[0.6875rem] font-extrabold uppercase"
+                  className="font-display text-xs font-extrabold uppercase"
                   style={{ letterSpacing: "0.12em", color: "var(--gold-vivid)" }}
                 >
                   {view.kicker}
@@ -199,7 +199,7 @@ export function FeatureBlock({ view }: { view: FeatureView }) {
               )}
               {view.badge && (
                 <span
-                  className="rounded-full px-2.5 py-1 font-display text-[0.6875rem] font-extrabold uppercase"
+                  className="rounded-full px-2.5 py-1 font-display text-xs font-extrabold uppercase"
                   style={{ background: GOLD_BG, color: NAVY, letterSpacing: "0.06em" }}
                 >
                   {view.badge}
@@ -238,7 +238,7 @@ export function FeatureBlock({ view }: { view: FeatureView }) {
                   style={{
                     background: "rgba(255,255,255,0.09)",
                     border: "1px solid rgba(255,255,255,0.12)",
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     fontWeight: 600,
                   }}
                 >
@@ -299,14 +299,14 @@ function ProgramCardItem({ card }: { card: CardView }) {
       {(card.eyebrow || card.badge) && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <span
-            className="font-display text-[0.6875rem] font-extrabold uppercase"
+            className="font-display text-xs font-extrabold uppercase"
             style={{ letterSpacing: "0.1em", color: "var(--blue)" }}
           >
             {card.eyebrow}
           </span>
           {card.badge && (
             <span
-              className="rounded-full px-2.5 py-1 font-display text-[0.625rem] font-extrabold uppercase"
+              className="rounded-full px-2.5 py-1 font-display text-xs font-extrabold uppercase"
               style={{
                 background: "rgba(255,193,7,0.22)",
                 color: "#7a5300",
@@ -519,8 +519,9 @@ export function SpotlightBlock({ view }: { view: SpotlightView }) {
             </p>
           )}
 
+          {/* Tiles are always stacked: three side by side were too narrow next to the photo and cut the words off. */}
           {view.tiles.length > 0 && (
-            <ul className="mt-5 grid gap-2.5 sm:grid-cols-3">
+            <ul className="mt-5 grid gap-2.5">
               {view.tiles.slice(0, 3).map((tile) => (
                 <li
                   key={tile.title}
@@ -531,7 +532,7 @@ export function SpotlightBlock({ view }: { view: SpotlightView }) {
                     {tile.title}
                   </p>
                   {tile.desc && (
-                    <p className="mt-0.5 text-xs leading-snug" style={{ color: "var(--text-muted)" }}>
+                    <p className="mt-0.5 text-sm leading-snug" style={{ color: "var(--text-muted)" }}>
                       {tile.desc}
                     </p>
                   )}

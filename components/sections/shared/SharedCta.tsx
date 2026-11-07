@@ -82,13 +82,13 @@ export default function SharedCta() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-3xl px-5 py-20 text-center sm:px-8 lg:py-28">
+      <div className="relative z-10 mx-auto max-w-3xl px-5 py-16 text-center sm:px-8 sm:py-20 lg:py-28">
         {eyebrow && (
           <Reveal>
             <span
               className="mb-7 inline-flex items-center gap-2 rounded-full px-4 py-1.5 font-display font-semibold text-white"
               style={{
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
                 background: "rgba(255,255,255,0.18)",
                 border: "1px solid rgba(255,255,255,0.28)",
                 backdropFilter: "blur(4px)",
@@ -134,11 +134,11 @@ export default function SharedCta() {
         )}
 
         <Reveal delay={0.2}>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4">
             {primaryLabel && (
               <Link
                 href={primaryHref || "/programs"}
-                className="inline-flex items-center rounded-full font-display font-bold transition-all duration-200 hover:-translate-y-0.5"
+                className="inline-flex min-h-12 items-center justify-center rounded-full font-display font-bold transition-all duration-200 hover:-translate-y-0.5"
                 style={{
                   fontSize: "0.9375rem",
                   background: "white",
@@ -156,7 +156,7 @@ export default function SharedCta() {
                 href={secondaryHref}
                 target={cta.secondaryIsWhatsapp ? "_blank" : undefined}
                 rel={cta.secondaryIsWhatsapp ? "noopener noreferrer" : undefined}
-                className="inline-flex items-center gap-2 rounded-full font-display font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full font-display font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
                 style={{
                   fontSize: "0.9375rem",
                   background: "transparent",
@@ -174,15 +174,15 @@ export default function SharedCta() {
           <Reveal delay={0.26}>
             <p
               className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-1"
-              style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.6)" }}
+              style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.95)" }}
             >
               {trustPoints.map((point) => (
                 <span key={point} className="flex items-center gap-1.5">
-                  <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5">
+                  <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4 flex-shrink-0">
                     <path
                       d="M3 8l3.5 3.5L13 4"
-                      stroke="white"
-                      strokeWidth={1.8}
+                      stroke="#fbbf24"
+                      strokeWidth={2}
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />

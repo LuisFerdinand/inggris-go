@@ -465,6 +465,25 @@ function CharBadge({
   );
 }
 
+/**
+ * Hostname for the previews. The Canonical URL field is typed letter by
+ * letter, so it is often incomplete ("http", "https://", "inggris"):
+ * `new URL()` throws on those, which used to crash the whole page. Fall back
+ * to the raw text instead of throwing.
+ */
+function safeHostname(raw: string): string {
+  const value = raw.trim();
+  if (!value) return "your-domain.com";
+  try {
+    const hostname = new URL(
+      /^https?:\/\//i.test(value) ? value : `https://${value}`,
+    ).hostname;
+    return hostname || value;
+  } catch {
+    return value;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────
  * GOOGLE SERP PREVIEW
  * ───────────────────────────────────────────────────────────── */
@@ -534,7 +553,7 @@ function OgPreview({
         )}
         <div className="border-t border-slate-200 bg-slate-50 px-3 py-2.5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-            {url ? new URL(url.startsWith("http") ? url : `https://${url}`).hostname : "your-domain.com"}
+            {safeHostname(url)}
           </p>
           <p className="line-clamp-1 text-[12.5px] font-black text-slate-800">
             {title || "Open Graph title belum diisi"}

@@ -1,6 +1,7 @@
 "use client";
 
 import Reveal from "@/components/ui/Reveal";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { trpc } from "@/lib/trpc/client";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { Eye, Target } from "lucide-react";
@@ -40,35 +41,11 @@ export const VisionMissionSection = () => {
   return (
     <section className="py-16 lg:py-24" style={{ background: BRAND.background }}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 xl:px-12">
-        <Reveal className="text-center mb-12">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: BRAND.blueNavy }}
-            />
-            <span
-              className="font-display font-bold"
-              style={{
-                fontSize: "0.6875rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "#94A3B8",
-              }}
-            >
-              {eyebrow}
-            </span>
-          </div>
-          <h2
-            className="font-display font-extrabold"
-            style={{
-              fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-              letterSpacing: "-0.022em",
-              color: BRAND.blueNavy,
-            }}
-          >
-            <AccentTitle title={title} accent={titleAccent} />
-          </h2>
-        </Reveal>
+        <SectionHeading
+          className="mb-10 sm:mb-12"
+          eyebrow={eyebrow}
+          title={<AccentTitle title={title} accent={titleAccent} />}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
           {/* VISION */}
@@ -150,7 +127,7 @@ export const VisionMissionSection = () => {
                     <p
                       className="font-display font-bold"
                       style={{
-                        fontSize: "0.625rem",
+                        fontSize: "0.75rem",
                         letterSpacing: "0.14em",
                         textTransform: "uppercase",
                         color: BRAND.goldVivid,
@@ -189,7 +166,7 @@ export const VisionMissionSection = () => {
                     <span
                       className="font-display font-bold"
                       style={{
-                        fontSize: "0.6875rem",
+                        fontSize: "0.75rem",
                         letterSpacing: "0.1em",
                         textTransform: "uppercase",
                         color: BRAND.goldVivid,
@@ -277,7 +254,7 @@ export const VisionMissionSection = () => {
                   <p
                     className="font-display font-bold text-white"
                     style={{
-                      fontSize: "0.625rem",
+                      fontSize: "0.75rem",
                       letterSpacing: "0.14em",
                       textTransform: "uppercase",
                       opacity: 0.5,

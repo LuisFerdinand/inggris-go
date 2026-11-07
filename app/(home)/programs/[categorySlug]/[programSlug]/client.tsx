@@ -106,10 +106,10 @@ function GallerySectionPill({
     <span
       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold uppercase"
       style={{
-        fontSize: "0.5875rem",
-        letterSpacing: "0.18em",
+        fontSize: "0.75rem",
+        letterSpacing: "0.12em",
         background: theme.soft,
-        color: theme.primary,
+        color: theme.strong,
         border: `1.5px solid ${theme.border}`,
         boxShadow: `0 2px 16px ${theme.border}`,
       }}
@@ -185,7 +185,7 @@ function TrustBar({ signals, theme }: { signals: string[]; theme: Theme }) {
             <span
               className="inline-flex items-center gap-1.5 font-display font-semibold"
               style={{
-                fontSize: "0.6875rem",
+                fontSize: "0.75rem",
                 color: theme.primary,
                 letterSpacing: "0.01em",
               }}
@@ -237,10 +237,10 @@ export function SectionPill({
     <span
       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-display font-bold uppercase"
       style={{
-        fontSize: "0.5875rem",
-        letterSpacing: "0.18em",
+        fontSize: "0.75rem",
+        letterSpacing: "0.12em",
         background: theme.soft,
-        color: theme.primary,
+        color: theme.strong,
         border: `1.5px solid ${theme.border}`,
         boxShadow: `0 2px 16px ${theme.border}`,
       }}
@@ -720,7 +720,7 @@ function HeroSection({
                     key={tag.title}
                     className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl font-display font-semibold"
                     style={{
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       background: theme.soft,
                       color: "var(--blue-navy)",
                       border: `1px solid ${theme.border}`,
@@ -896,7 +896,7 @@ function HeroSection({
         </motion.div>
         <span
           style={{
-            fontSize: "0.5625rem",
+            fontSize: "0.75rem",
             letterSpacing: "0.14em",
             color: "var(--text-faint)",
             textTransform: "uppercase",
@@ -1034,7 +1034,7 @@ function ProgramVisualPanel({
             <span
               className="font-display font-bold"
               style={{
-                fontSize: "0.6875rem",
+                fontSize: "0.75rem",
                 color: "var(--blue-navy)",
               }}
             >
@@ -1064,7 +1064,7 @@ function ProgramVisualPanel({
               </span>
               <span
                 style={{
-                  fontSize: "0.5875rem",
+                  fontSize: "0.75rem",
                   color: "var(--text-faint)",
                   lineHeight: 1.3,
                 }}
@@ -1141,7 +1141,7 @@ function ProgramGlanceCard({
           </div>
           <p
             style={{
-              fontSize: "0.8125rem",
+              fontSize: "0.875rem",
               fontWeight: 700,
               color: "var(--blue-navy)",
               fontFamily: "var(--font-display)",
@@ -1154,7 +1154,7 @@ function ProgramGlanceCard({
         {/* "Aktif" chip */}
         <span
           style={{
-            fontSize: "0.5625rem",
+            fontSize: "0.75rem",
             color: "#16a34a",
             background: "rgba(22,163,74,0.08)",
             border: "1px solid rgba(22,163,74,0.2)",
@@ -1194,7 +1194,7 @@ function ProgramGlanceCard({
                 gap: "5px",
                 padding: "4px 10px",
                 borderRadius: "8px",
-                fontSize: "0.6875rem",
+                fontSize: "0.75rem",
                 fontWeight: 600,
                 color: theme.primary,
                 background: theme.soft,
@@ -1284,7 +1284,7 @@ function ProgramStepOrbs({
           >
             <span
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 fontWeight: 900,
                 color: i === 0 ? "white" : theme.primary,
                 fontFamily: "var(--font-display)",
@@ -1297,7 +1297,7 @@ function ProgramStepOrbs({
           {/* Label */}
           <p
             style={{
-              fontSize: "0.5rem",
+              fontSize: "0.75rem",
               fontWeight: 600,
               color: i === 0 ? theme.primary : "var(--text-faint)",
               letterSpacing: "0.06em",
@@ -1405,7 +1405,7 @@ function ProgramImageMobile({
         />
         <span
           style={{
-            fontSize: "0.625rem",
+            fontSize: "0.75rem",
             fontWeight: 700,
             color: "var(--blue-navy)",
             fontFamily: "var(--font-display)",
@@ -1564,7 +1564,7 @@ function StepsSection({
                   </p>
                   <p
                     style={{
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       color: "var(--text-muted)",
                       lineHeight: "1.68",
                       maxWidth: "200px",
@@ -1576,7 +1576,7 @@ function StepsSection({
                   <div
                     className="mt-4 px-3 py-1 rounded-full font-display font-semibold"
                     style={{
-                      fontSize: "0.5625rem",
+                      fontSize: "0.75rem",
                       background: theme.soft,
                       color: theme.primary,
                       border: `1px solid ${theme.border}`,
@@ -1729,7 +1729,7 @@ function TestimonialsSection({
                       {item.role && (
                         <p
                           style={{
-                            fontSize: "0.6875rem",
+                            fontSize: "0.75rem",
                             color: "var(--text-faint)",
                           }}
                         >
@@ -1739,7 +1739,7 @@ function TestimonialsSection({
                       {item.meta && (
                         <span
                           style={{
-                            fontSize: "0.6875rem",
+                            fontSize: "0.75rem",
                             color: "var(--text-faint)",
                           }}
                         >
@@ -1836,7 +1836,7 @@ function TestimonialsSection({
               <p
                 className="text-center mt-4"
                 style={{
-                  fontSize: "0.6875rem",
+                  fontSize: "0.75rem",
                   color: "var(--text-faint)",
                 }}
               >
@@ -2025,7 +2025,7 @@ function FAQSection({
               </p>
               <p
                 style={{
-                  fontSize: "0.8125rem",
+                  fontSize: "0.875rem",
                   color: "var(--text-muted)",
                   marginTop: "2px",
                 }}
@@ -2149,7 +2149,7 @@ function CTASection({
             />
             <span
               style={{
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
                 color: "rgba(255,255,255,0.6)",
               }}
             >
@@ -2301,7 +2301,7 @@ function CTASection({
                 animate={{ opacity: [1, 0.3, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
-              <p style={{ fontSize: "0.8125rem", color: "#fca5a5" }}>
+              <p style={{ fontSize: "0.875rem", color: "#fca5a5" }}>
                 {content.urgency}
               </p>
             </div>
@@ -2333,7 +2333,7 @@ function CTASection({
                 </div>
                 <span
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "rgba(255,255,255,0.4)",
                   }}
                 >
@@ -2416,7 +2416,7 @@ function ImgOverlay({ photo }: { photo: GalleryPhoto }) {
             <p
               className="mb-0.5 font-display font-semibold uppercase"
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.6)",
                 letterSpacing: "0.12em",
               }}
@@ -2453,7 +2453,7 @@ function FeaturedBadge() {
       <span
         className="font-display font-bold"
         style={{
-          fontSize: "0.5625rem",
+          fontSize: "0.75rem",
           color: "#0a1628",
           letterSpacing: "0.06em",
         }}
@@ -2528,7 +2528,7 @@ function EmptyState({ theme }: { theme: Theme }) {
           className="inline-flex items-center gap-2 font-display font-bold rounded-xl"
           style={{
             padding: "0.625rem 1.25rem",
-            fontSize: "0.8125rem",
+            fontSize: "0.875rem",
             color: theme.primary,
             background: "var(--surface)",
             border: `1.5px solid ${theme.border}`,
@@ -2688,7 +2688,7 @@ function MosaicLayout({
             transition={{ duration: 0.22, ease: EASE }}
             className="inline-flex items-center gap-2 font-display font-semibold rounded-xl"
             style={{
-              fontSize: "0.8125rem",
+              fontSize: "0.875rem",
               padding: "0.5rem 1.25rem",
               color: theme.primary,
               background: theme.soft,
@@ -2757,7 +2757,7 @@ function MosaicLayout({
                     </span>
                     <span
                       className="font-display font-semibold text-white/65 uppercase tracking-widest"
-                      style={{ fontSize: "0.5rem" }}
+                      style={{ fontSize: "0.75rem" }}
                     >
                       foto lagi
                     </span>
@@ -2801,7 +2801,7 @@ function ConversionNudge({ theme }: { theme: Theme }) {
               <span
                 className="font-display font-medium"
                 style={{
-                  fontSize: "0.8125rem",
+                  fontSize: "0.875rem",
                   color: "var(--text-muted)",
                 }}
               >
@@ -2912,7 +2912,7 @@ function Lightbox({
             <p
               className="font-display font-semibold uppercase mb-1"
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.4)",
                 letterSpacing: "0.14em",
               }}
@@ -2960,7 +2960,7 @@ function Lightbox({
                 <span
                   className="font-display font-semibold"
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "rgba(255,255,255,0.4)",
                     minWidth: 56,
                     textAlign: "center",
@@ -3010,7 +3010,7 @@ function Lightbox({
         <p
           className="sm:hidden mt-3 font-display"
           style={{
-            fontSize: "0.6875rem",
+            fontSize: "0.75rem",
             color: "rgba(255,255,255,0.25)",
             letterSpacing: "0.04em",
           }}
@@ -3106,7 +3106,7 @@ export function GallerySection({
                 <h2
                   className="font-display font-extrabold leading-[1.07]"
                   style={{
-                    fontSize: "clamp(1.75rem, 3.2vw, 2.625rem)",
+                    fontSize: "clamp(1.875rem, 3.2vw, 2.625rem)",
                     letterSpacing: "-0.026em",
                     color: "var(--blue-navy)",
                   }}

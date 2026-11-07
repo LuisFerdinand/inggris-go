@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
 import { trpc } from "@/lib/trpc/client";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { Icon } from "@/components/Icon";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { DEFAULT_HOME } from "@/app/modules/site-content/site-content.defaults";
@@ -20,6 +21,9 @@ const STYLES = [
   { squareBg: BRAND.gradientBlue, accentBg: BRAND.gradientNavy, rotate: "6deg" },
 ];
 const styleFor = (i: number) => STYLES[i % STYLES.length];
+
+/** Dark amber for the tag chips: the bright brand gold on its own pale-gold tint was ~1.7:1; this is ~5:1. */
+const CHIP_TEXT = "#8a5a00";
 
 function Reveal({
   children,
@@ -101,9 +105,9 @@ function DesktopStepCard({ step, index }: { step: Step; index: number }) {
       <span
         className="mb-1 font-display font-semibold uppercase transition-colors duration-200"
         style={{
-          fontSize: "0.6875rem",
+          fontSize: "0.75rem",
           letterSpacing: "0.08em",
-          color: BRAND.textFaint,
+          color: BRAND.textMuted,
         }}
       >
         {step.subtitle}
@@ -118,7 +122,7 @@ function DesktopStepCard({ step, index }: { step: Step; index: number }) {
 
       <p
         className="mb-4 leading-relaxed"
-        style={{ fontSize: "0.8125rem", color: BRAND.textMuted, maxWidth: "176px" }}
+        style={{ fontSize: "0.875rem", color: BRAND.textMuted, maxWidth: "200px" }}
       >
         {step.body}
       </p>
@@ -129,9 +133,9 @@ function DesktopStepCard({ step, index }: { step: Step; index: number }) {
             key={tag}
             className="translate-y-2 rounded-full px-2.5 py-1 font-medium opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100"
             style={{
-              fontSize: "0.6875rem",
+              fontSize: "0.75rem",
               background: BRAND.overlayGoldIcon,
-              color: BRAND.goldMid,
+              color: CHIP_TEXT,
               border: `1px solid var(--overlay-gold-blob)`,
               transitionDelay: "40ms",
             }}
@@ -224,9 +228,9 @@ function MobileStep({
         <span
           className="mb-1 block font-display font-semibold uppercase"
           style={{
-            fontSize: "0.6875rem",
+            fontSize: "0.75rem",
             letterSpacing: "0.08em",
-            color: BRAND.textFaint,
+            color: BRAND.textMuted,
           }}
         >
           Langkah {step.num} · {step.subtitle}
@@ -241,7 +245,7 @@ function MobileStep({
 
         <p
           className="mb-3 leading-relaxed"
-          style={{ fontSize: "0.8125rem", color: BRAND.textMuted }}
+          style={{ fontSize: "0.875rem", color: BRAND.textMuted }}
         >
           {step.body}
         </p>
@@ -252,9 +256,9 @@ function MobileStep({
               key={tag}
               className="rounded-full px-2.5 py-1 font-medium"
               style={{
-                fontSize: "0.6875rem",
+                fontSize: "0.75rem",
                 background: BRAND.overlayGoldIcon,
-                color: BRAND.goldMid,
+                color: CHIP_TEXT,
                 border: `1px solid var(--overlay-gold-blob)`,
               }}
             >
@@ -299,51 +303,13 @@ export default function MethodSection() {
       />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 lg:px-10 xl:px-12">
-        <div className="mb-14 flex flex-col items-center text-center lg:mb-20">
-          <Reveal>
-            <div className="mb-6 inline-flex items-center gap-2">
-              <span
-                className="rounded-full px-4 py-1.5 font-display text-xs font-bold uppercase tracking-tight"
-                style={{
-                  background: BRAND.background,
-                  color: BRAND.blueNavy,
-                  border: `1px solid ${BRAND.border}`,
-                }}
-              >
-                {eyebrow}
-              </span>
-            </div>
-          </Reveal>
-
-          <Reveal delay={0.08}>
-            <h2
-              className="mb-4 font-display font-extrabold leading-[1.08]"
-              style={{
-                fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)",
-                letterSpacing: "-0.022em",
-                color: BRAND.blueNavy,
-              }}
-            >
-              {title}{" "}
-              {titleAccent && (
-                <span style={GRADIENT_GOLD_TEXT}>{titleAccent}</span>
-              )}
-            </h2>
-          </Reveal>
-
-          <Reveal delay={0.15}>
-            <p
-              className="leading-relaxed"
-              style={{
-                fontSize: "0.9375rem",
-                color: BRAND.textMuted,
-                maxWidth: "420px",
-              }}
-            >
-              {description}
-            </p>
-          </Reveal>
-        </div>
+        <SectionHeading
+          className="mb-12 lg:mb-20"
+          eyebrow={eyebrow}
+          title={title}
+          accent={titleAccent}
+          description={description}
+        />
 
         <div className="hidden items-start justify-center gap-0 lg:flex">
           {steps.map((step, i) => (
@@ -392,7 +358,7 @@ export default function MethodSection() {
               />
               <p
                 className="text-center font-display font-medium"
-                style={{ fontSize: "0.8125rem", color: BRAND.textFaint }}
+                style={{ fontSize: "0.875rem", color: BRAND.textMuted }}
               >
                 {fnPrefix}{" "}
                 <span style={{ color: BRAND.goldVivid, fontWeight: 700 }}>

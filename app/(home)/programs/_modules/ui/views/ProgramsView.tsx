@@ -5,8 +5,9 @@ import { useRef, useState, useEffect, useCallback, useMemo, act } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 
 import { Icon } from "@/components/Icon";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { generateTheme } from "@/lib/utils";
-import { SOCIAL_PROOF } from "@/constants";
+import { STUDENT_COUNT_LABEL } from "@/constants";
 import { buildWhatsAppUrl } from "@/lib/config";
 import Image from "next/image";
 import {
@@ -59,12 +60,11 @@ export function Reveal({
 export function Pill({ children }: { children: React.ReactNode }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-display font-bold uppercase"
+      className="inline-flex max-w-full items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-[0.8125rem] font-display font-bold uppercase"
       style={{
-        background: "var(--surface)",
-        color: "var(--blue-navy)",
-        border: "1.5px solid var(--border-soft)",
-        boxShadow: "var(--shadow-badge)",
+        background: "var(--blue-navy)",
+        color: "#ffffff",
+        boxShadow: "var(--shadow-glow-blue-btn)",
         letterSpacing: "0.1em",
       }}
     >
@@ -149,11 +149,11 @@ function HeroMobileVisual() {
         <span
           className="font-display font-bold"
           style={{
-            fontSize: "0.625rem",
+            fontSize: "0.75rem",
             color: "var(--blue-navy)",
           }}
         >
-          {SOCIAL_PROOF.activeStudents}+ siswa aktif
+          {STUDENT_COUNT_LABEL} siswa aktif
         </span>
       </motion.div>
     </div>
@@ -271,7 +271,7 @@ function CategoryCard({
                 color: theme.primary,
                 border: `1px solid ${theme.border}`,
                 letterSpacing: "0.07em",
-                fontSize: "0.5875rem",
+                fontSize: "0.75rem",
                 display: "inline-block",
               }}
             >
@@ -329,7 +329,7 @@ function CategoryCard({
                 letterSpacing: "0.1em",
               }}
             >
-              Cocok untuk kamu yang…
+              Cocok untuk Ayah/Bunda yang…
             </p>
             <ul className="space-y-2">
               {forWhoItems.slice(0, 3).map((item: string, i: number) => (
@@ -354,7 +354,7 @@ function CategoryCard({
                   </span>
                   <span
                     style={{
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       color: "var(--text-muted)",
                       lineHeight: "1.55",
                     }}
@@ -385,7 +385,7 @@ function CategoryCard({
                     <p
                       className="font-display font-bold leading-tight mb-0.5"
                       style={{
-                        fontSize: "0.6875rem",
+                        fontSize: "0.75rem",
                         color: "var(--blue-navy)",
                       }}
                     >
@@ -393,7 +393,7 @@ function CategoryCard({
                     </p>
                     <p
                       style={{
-                        fontSize: "0.5875rem",
+                        fontSize: "0.75rem",
                         color: "var(--text-faint)",
                         lineHeight: "1.4",
                       }}
@@ -416,7 +416,7 @@ function CategoryCard({
             <div>
               <p
                 style={{
-                  fontSize: "0.625rem",
+                  fontSize: "0.75rem",
                   color: "var(--text-faint)",
                 }}
               >
@@ -495,36 +495,13 @@ function CategorySection({
       />
 
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
-        <div className="flex flex-col items-center text-center mb-14">
-          <Reveal>
-            <Pill>✦ Pilih Jalur Belajarmu</Pill>
-          </Reveal>
-          <Reveal delay={0.07}>
-            <h2
-              className="font-display font-extrabold mt-5 mb-4 leading-[1.07]"
-              style={{
-                fontSize: "clamp(1.8rem, 3.5vw, 2.75rem)",
-                letterSpacing: "-0.024em",
-                color: "var(--blue-navy)",
-              }}
-            >
-              Tiga jalur, <GoldText>satu tujuan yang sama</GoldText>
-            </h2>
-          </Reveal>
-          <Reveal delay={0.13}>
-            <p
-              style={{
-                fontSize: "0.9375rem",
-                color: "var(--text-muted)",
-                maxWidth: "460px",
-                lineHeight: "1.72",
-              }}
-            >
-              Setiap jalur dirancang untuk kebutuhan yang berbeda. Pilih yang
-              paling mencerminkan situasimu.
-            </p>
-          </Reveal>
-        </div>
+        <SectionHeading
+          className="mb-10 sm:mb-14"
+          eyebrow="Pilih Jalur Belajar Ayah/Bunda"
+          title="Tiga jalur,"
+          accent="satu tujuan yang sama"
+          description="Setiap jalur dirancang untuk kebutuhan yang berbeda. Pilih yang paling mencerminkan situasi Ayah/Bunda."
+        />
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {categories.map((cat, i) => (
@@ -611,7 +588,7 @@ function ProgramCard({
               <span
                 className="inline-block mt-0.5 px-2 py-0.5 rounded-full font-display font-semibold"
                 style={{
-                  fontSize: "0.5875rem",
+                  fontSize: "0.75rem",
                   background: accentLight,
                   color: accent,
                   border: `1px solid ${accentBorder}`,
@@ -628,7 +605,7 @@ function ProgramCard({
           <p
             className="mb-3"
             style={{
-              fontSize: "0.8125rem",
+              fontSize: "0.875rem",
               color: "var(--text-muted)",
               lineHeight: "1.55",
             }}
@@ -643,7 +620,7 @@ function ProgramCard({
               key={tag}
               className="px-2 py-0.5 rounded-full"
               style={{
-                fontSize: "0.625rem",
+                fontSize: "0.75rem",
                 background: "var(--surface-soft)",
                 color: "var(--text-muted)",
                 border: "1px solid var(--border-soft)",
@@ -662,7 +639,7 @@ function ProgramCard({
           <div>
             <p
               style={{
-                fontSize: "0.5875rem",
+                fontSize: "0.75rem",
                 color: "var(--text-faint)",
               }}
             >
@@ -681,7 +658,7 @@ function ProgramCard({
           </div>
           <motion.div
             className="flex items-center gap-1 font-display font-semibold"
-            style={{ fontSize: "0.8125rem", color: accent }}
+            style={{ fontSize: "0.875rem", color: accent }}
             animate={hovered ? { x: 4 } : { x: 0 }}
             transition={{ duration: 0.2 }}
           >
@@ -759,37 +736,13 @@ function ProgramPreviewSection() {
       <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
-          <div>
-            <Reveal>
-              <Pill>✦ Program Nyata</Pill>
-            </Reveal>
-            <Reveal delay={0.07}>
-              <h2
-                className="font-display font-extrabold mt-4 leading-[1.07]"
-                style={{
-                  fontSize: "clamp(1.8rem, 3vw, 2.5rem)",
-                  letterSpacing: "-0.024em",
-                  color: "var(--blue-navy)",
-                }}
-              >
-                Bukan sekadar janji —<br />
-                <GoldText>ini programnya</GoldText>
-              </h2>
-            </Reveal>
-            <Reveal delay={0.12}>
-              <p
-                className="mt-3"
-                style={{
-                  fontSize: "0.9375rem",
-                  color: "var(--text-muted)",
-                  maxWidth: "400px",
-                }}
-              >
-                Program konkret yang siap membantu kamu. Klik untuk detail
-                lengkap.
-              </p>
-            </Reveal>
-          </div>
+          <SectionHeading
+            align="left"
+            eyebrow="Program Nyata"
+            title="Bukan sekadar janji —"
+            accent="ini programnya"
+            description="Program konkret yang siap membantu Ayah/Bunda. Klik untuk detail lengkap."
+          />
 
           {/* Tab switcher with "All" */}
           <Reveal delay={0.1}>
@@ -996,7 +949,7 @@ function FinalCTASection({
               }}
             />
             <span
-              style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.65)" }}
+              style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.9)" }}
             >
               Admin siap membantu Ayah/Bunda
             </span>
@@ -1029,14 +982,14 @@ function FinalCTASection({
           <p
             style={{
               fontSize: "clamp(0.9375rem, 1.5vw, 1.125rem)",
-              color: "rgba(255,255,255,0.6)",
+              color: "rgba(255,255,255,0.88)",
               maxWidth: "480px",
               margin: "0 auto 2.5rem",
               lineHeight: "1.72",
             }}
           >
             Kami bantu rekomendasikan program yang paling cocok untuk tujuan dan
-            kondisimu. Gratis, tanpa tekanan, tanpa basa-basi.
+            kondisi Ayah/Bunda. Gratis, tanpa tekanan, tanpa basa-basi.
           </p>
         </Reveal>
 
@@ -1126,7 +1079,7 @@ function FinalCTASection({
                 </svg>
                 <span
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "rgba(255,255,255,0.5)",
                   }}
                 >

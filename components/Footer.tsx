@@ -4,11 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { SOCIAL_PROOF } from "@/constants";
+import { formatCount, SHOW_PUBLIC_RATING, SOCIAL_PROOF } from "@/constants";
 import { siteConfig, navLinks, buildWhatsAppUrl } from "@/lib/config";
 import { trpc } from "@/lib/trpc/client";
 
-import MapWrapper from "./Map/MapWrapper";
+import MapEmbed from "./Map/MapEmbed";
 
 /* ─────────────────────────────────────────────────────────────
    Types
@@ -190,11 +190,11 @@ function StatItem({
   return (
     <div className="flex flex-col items-center gap-0.5">
       <span className="text-2xl font-bold text-white tabular-nums">
-        {stat.decimal ? (count / 10).toFixed(1) : count.toLocaleString()}
+        {stat.decimal ? (count / 10).toFixed(1) : formatCount(count)}
         <span style={{ color: "var(--gold-vivid)" }}>{stat.suffix}</span>
       </span>
 
-      <span className="text-white/40 text-xs uppercase tracking-widest">
+      <span className="text-white/60 text-xs uppercase tracking-widest">
         {stat.label}
       </span>
     </div>
@@ -365,12 +365,17 @@ export default function Footer() {
       value: settings?.statYearsOverride ?? 8,
       suffix: "+",
     },
-    {
-      label: "Rating",
-      value: Number(settings?.statRatingOverride ?? 4.9),
-      suffix: "★",
-      decimal: true,
-    },
+    // Rating is hidden site-wide while SHOW_PUBLIC_RATING is false.
+    ...(SHOW_PUBLIC_RATING
+      ? [
+          {
+            label: "Rating",
+            value: Number(settings?.statRatingOverride ?? 4.9),
+            suffix: "★",
+            decimal: true,
+          },
+        ]
+      : []),
   ];
 
   useEffect(() => {
@@ -419,7 +424,13 @@ export default function Footer() {
         style={{ background: "rgba(245,168,0,0.05)" }}
       >
         <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-10">
-          <div className="grid grid-cols-2 gap-6 divide-x-0 divide-white/10 sm:grid-cols-4 sm:divide-x">
+          <div
+            className={`grid gap-6 divide-x-0 divide-white/10 sm:divide-x ${
+              stats.length >= 4
+                ? "grid-cols-2 sm:grid-cols-4"
+                : "grid-cols-3"
+            }`}
+          >
             {stats.map((stat) => (
               <StatItem
                 key={stat.label}
@@ -460,21 +471,21 @@ export default function Footer() {
                     {siteConfig.name}
                   </span>
                   {footerTagline ? (
-                    <span className="text-[11px] font-medium text-white/35">
+                    <span className="text-xs font-medium text-white/60">
                       {footerTagline}
                     </span>
                   ) : null}
                 </div>
               </Link>
 
-              <p className="text-sm leading-relaxed text-white/50">
+              <p className="text-sm leading-relaxed text-white/70">
                 {footerDescription}
               </p>
 
               {/* Social icons */}
               {socials.length > 0 ? (
                 <div>
-                  <p className="mb-3 text-[10px] uppercase tracking-widest text-white/25">
+                  <p className="mb-3 text-xs uppercase tracking-widest text-white/60">
                     Ikuti Kami
                   </p>
 
@@ -487,7 +498,7 @@ export default function Footer() {
                         rel="noopener noreferrer"
                         aria-label={s.label}
                         title={s.label}
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl bg-white/6 text-white/50 transition-all duration-200 hover:scale-110 hover:text-white hover:shadow-lg ${s.color}`}
+                        className={`flex h-11 w-11 items-center justify-center rounded-xl bg-white/6 text-white/70 sm:h-9 sm:w-9 transition-all duration-200 hover:scale-110 hover:text-white hover:shadow-lg ${s.color}`}
                       >
                         {s.icon}
                       </a>
@@ -513,7 +524,7 @@ export default function Footer() {
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                 </svg>
 
-                <span className="text-xs text-white/40">
+                <span className="text-xs text-white/65">
                   {footerLocationTagline}
                 </span>
               </div>
@@ -521,7 +532,7 @@ export default function Footer() {
 
             {/* Program links */}
             <div className="lg:col-span-2">
-              <p className="mb-5 text-[10px] uppercase tracking-widest text-white/25">
+              <p className="mb-5 text-xs uppercase tracking-widest text-white/60">
                 Program
               </p>
 
@@ -530,7 +541,7 @@ export default function Footer() {
                   <li key={`${link.href}-${link.label}`}>
                     <Link
                       href={link.href}
-                      className="group flex items-center gap-2 text-sm text-white/50 transition-colors duration-200 hover:text-white"
+                      className="group flex items-center gap-2 text-sm text-white/70 transition-colors duration-200 hover:text-white"
                     >
                       <span
                         className="h-1 w-1 flex-shrink-0 rounded-full transition-all duration-200 group-hover:bg-[var(--gold-vivid)]"
@@ -548,7 +559,7 @@ export default function Footer() {
 
             {/* Contact */}
             <div className="lg:col-span-2">
-              <p className="mb-5 text-[10px] uppercase tracking-widest text-white/25">
+              <p className="mb-5 text-xs uppercase tracking-widest text-white/60">
                 Kontak
               </p>
 
@@ -558,7 +569,7 @@ export default function Footer() {
                     href={contactWhatsAppHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center gap-2.5 text-sm text-white/50 transition-colors duration-200 hover:text-white"
+                    className="group flex items-center gap-2.5 text-sm text-white/70 transition-colors duration-200 hover:text-white"
                   >
                     <span
                       className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg transition-colors duration-200"
@@ -575,7 +586,7 @@ export default function Footer() {
                   <li>
                     <a
                       href={`mailto:${footerEmail}`}
-                      className="group flex items-center gap-2.5 text-sm text-white/50 transition-colors duration-200 hover:text-white"
+                      className="group flex items-center gap-2.5 text-sm text-white/70 transition-colors duration-200 hover:text-white"
                     >
                       <span
                         className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg transition-colors duration-200 group-hover:bg-[rgba(26,82,200,0.25)]"
@@ -605,7 +616,7 @@ export default function Footer() {
                 <li>
                   <Link
                     href={contactHref}
-                    className="group flex items-center gap-2.5 text-sm text-white/50 transition-colors duration-200 hover:text-white"
+                    className="group flex items-center gap-2.5 text-sm text-white/70 transition-colors duration-200 hover:text-white"
                   >
                     <span
                       className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg transition-colors duration-200 group-hover:bg-[rgba(26,82,200,0.25)]"
@@ -636,7 +647,7 @@ export default function Footer() {
             {/* Map */}
             <div className="lg:col-span-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[10px] uppercase tracking-widest text-white/25">
+                <p className="text-xs uppercase tracking-widest text-white/60">
                   Lokasi Kami
                 </p>
 
@@ -644,8 +655,8 @@ export default function Footer() {
                   href={footerMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[10px] transition-colors"
-                  style={{ color: "rgba(245,168,0,0.6)" }}
+                  className="flex min-h-8 items-center gap-1 text-xs font-medium transition-colors hover:underline"
+                  style={{ color: "var(--gold-vivid)" }}
                 >
                   Buka di Maps
 
@@ -681,7 +692,7 @@ export default function Footer() {
                     border: "1px solid rgba(214,232,255,0.08)",
                   }}
                 >
-                  <MapWrapper />
+                  <MapEmbed />
 
                   <div
                     className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -702,7 +713,7 @@ export default function Footer() {
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                   </svg>
 
-                  <span className="text-xs leading-relaxed text-white/35">
+                  <span className="text-sm leading-relaxed text-white/65">
                     {footerLocationAddress}
                   </span>
                 </div>
@@ -718,7 +729,7 @@ export default function Footer() {
         style={{ background: "rgba(245,168,0,0.04)" }}
       >
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-5 sm:flex-row sm:px-8 lg:px-10">
-          <p className="text-center text-sm text-white/50 sm:text-left">
+          <p className="text-center text-sm text-white/70 sm:text-left">
             {ctaText}
           </p>
 
@@ -743,26 +754,26 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="py-5">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 sm:flex-row sm:px-8 lg:px-10">
-          <p className="text-xs text-white/25">
+          <p className="text-xs text-white/55">
             © {new Date().getFullYear()} {siteConfig.name}. All rights reserved.
           </p>
 
           <div className="flex items-center gap-4">
             <Link
               href={privacyHref}
-              className="text-xs text-white/20 transition-colors hover:text-white/50"
+              className="text-xs text-white/55 transition-colors hover:text-white"
             >
               {privacyLabel}
             </Link>
 
             <Link
               href={termsHref}
-              className="text-xs text-white/20 transition-colors hover:text-white/50"
+              className="text-xs text-white/55 transition-colors hover:text-white"
             >
               {termsLabel}
             </Link>
 
-            <span className="text-xs text-white/15">
+            <span className="text-xs text-white/45">
               {footerLocationTagline}
             </span>
           </div>

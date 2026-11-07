@@ -4,6 +4,7 @@ import Image from "next/image";
 
 import Reveal from "@/components/ui/Reveal";
 import { Icon } from "@/components/Icon";
+import SectionHeading from "@/components/ui/SectionHeading";
 import { trpc } from "@/lib/trpc/client";
 import { BRAND } from "@/constants/brand";
 import { DEFAULT_ABOUT } from "@/app/modules/site-content/site-content.defaults";
@@ -40,40 +41,19 @@ export const CompanySection = () => {
           {/* ── LEFT ── */}
           <Reveal>
             <div className="flex flex-col h-full">
-              <div className="flex items-center gap-2 mb-5">
-                <div
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: BRAND.blueNavy }}
-                />
-                <span
-                  className="font-display font-bold"
-                  style={{
-                    fontSize: "0.6875rem",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#94A3B8",
-                  }}
-                >
-                  {eyebrow}
-                </span>
-              </div>
-
-              <h2
-                className="font-display font-extrabold mb-5 leading-[1.1]"
-                style={{
-                  fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-                  letterSpacing: "-0.022em",
-                  color: BRAND.blueNavy,
-                }}
-              >
-                {title}
-              </h2>
+              <SectionHeading
+                as="h2"
+                align="left"
+                className="mb-6"
+                eyebrow={eyebrow}
+                title={title}
+              />
 
               <div
                 className="space-y-4 flex-1"
                 style={{
-                  fontSize: "0.9375rem",
-                  color: "#475569",
+                  fontSize: "1rem",
+                  color: "#334155",
                   lineHeight: "1.75",
                 }}
               >
@@ -90,7 +70,7 @@ export const CompanySection = () => {
                     style={{
                       background: BRAND.background,
                       border: "1px solid rgba(255,107,53,0.14)",
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       color: BRAND.blueNavy,
                     }}
                   >
@@ -207,7 +187,7 @@ export const CompanySection = () => {
 
                   <p
                     style={{
-                      fontSize: "0.8125rem",
+                      fontSize: "0.875rem",
                       color: "rgba(255,255,255,0.38)",
                       lineHeight: "1.6",
                     }}
@@ -226,7 +206,7 @@ export const CompanySection = () => {
                       />
                     ) : (
                       <div
-                        className="flex size-8 items-center justify-center rounded-full text-[10px] font-black text-white"
+                        className="flex size-8 items-center justify-center rounded-full text-xs font-black text-white"
                         style={{ background: "#1B4FDB" }}
                       >
                         {founderInitials}
@@ -260,7 +240,7 @@ export const CompanySection = () => {
                   />
                   <p
                     style={{
-                      fontSize: "0.6875rem",
+                      fontSize: "0.75rem",
                       color: "rgba(255,255,255,0.25)",
                       letterSpacing: "0.03em",
                     }}

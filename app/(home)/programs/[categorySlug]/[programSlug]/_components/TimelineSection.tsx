@@ -110,7 +110,7 @@ function ScheduleCard({ week, theme }: { week: TimelineWeek; theme: Theme }) {
             <p
               className="font-display font-bold uppercase"
               style={{
-                fontSize: "0.625rem",
+                fontSize: "0.75rem",
                 letterSpacing: "0.14em",
                 color: theme.primary,
                 marginBottom: 2,
@@ -201,7 +201,7 @@ function ScheduleCard({ week, theme }: { week: TimelineWeek; theme: Theme }) {
                       className="inline-flex items-center gap-1 rounded-full mb-2.5"
                       style={{
                         padding: "4px 10px",
-                        fontSize: "0.6875rem",
+                        fontSize: "0.75rem",
                         fontWeight: 700,
                         letterSpacing: "0.01em",
                         background: isHighlight ? "#fff7ed" : theme.soft,
@@ -229,7 +229,7 @@ function ScheduleCard({ week, theme }: { week: TimelineWeek; theme: Theme }) {
                     <p
                       className="font-display font-semibold leading-snug"
                       style={{
-                        fontSize: "0.8125rem",
+                        fontSize: "0.875rem",
                         color: isHighlight ? "#c2410c" : "var(--blue-navy)",
                         lineHeight: 1.35,
                       }}
@@ -242,7 +242,7 @@ function ScheduleCard({ week, theme }: { week: TimelineWeek; theme: Theme }) {
                       <span
                         className="mt-2 px-2 py-0.5 rounded-full font-display font-bold"
                         style={{
-                          fontSize: "0.5rem",
+                          fontSize: "0.75rem",
                           background: "#f97316",
                           color: "white",
                           letterSpacing: "0.06em",
@@ -389,7 +389,7 @@ function MetaLightbox({
             <p
               className="font-display font-semibold uppercase mb-1"
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 color: "rgba(255,255,255,0.4)",
                 letterSpacing: "0.14em",
               }}
@@ -440,7 +440,7 @@ function MetaLightbox({
                 <span
                   className="font-display font-semibold"
                   style={{
-                    fontSize: "0.8125rem",
+                    fontSize: "0.875rem",
                     color: "rgba(255,255,255,0.4)",
                     minWidth: 56,
                     textAlign: "center",
@@ -490,7 +490,7 @@ function MetaLightbox({
         <p
           className="sm:hidden mt-3 font-display"
           style={{
-            fontSize: "0.6875rem",
+            fontSize: "0.75rem",
             color: "rgba(255,255,255,0.25)",
             letterSpacing: "0.04em",
           }}
@@ -559,7 +559,7 @@ function ImageMetaCard({
               <span
                 className="font-display font-bold"
                 style={{
-                  fontSize: "0.5rem",
+                  fontSize: "0.75rem",
                   color: "#0a1628",
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
@@ -720,7 +720,7 @@ function ImageMetaSection({
                   <span
                     className="font-display font-extrabold text-white leading-none"
                     style={{
-                      fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
+                      fontSize: "clamp(1.75rem, 2.5vw, 2rem)",
                       letterSpacing: "-0.02em",
                     }}
                   >
@@ -729,7 +729,7 @@ function ImageMetaSection({
                   <span
                     className="font-display font-semibold uppercase mt-1"
                     style={{
-                      fontSize: "0.5rem",
+                      fontSize: "0.75rem",
                       color: "rgba(255,255,255,0.55)",
                       letterSpacing: "0.12em",
                     }}
@@ -821,7 +821,7 @@ function IconMetaSection({
                 <p
                   className="truncate"
                   style={{
-                    fontSize: "0.625rem",
+                    fontSize: "0.75rem",
                     color: "var(--text-faint)",
                   }}
                 >
@@ -881,7 +881,7 @@ function MetaArea({ meta, theme }: { meta: TimelineMetaItem[]; theme: Theme }) {
             <span
               className="font-display font-semibold uppercase"
               style={{
-                fontSize: "0.5625rem",
+                fontSize: "0.75rem",
                 letterSpacing: "0.12em",
                 color: "var(--text-faint)",
               }}
@@ -955,7 +955,7 @@ function WeekCard({
             <p
               className="font-display font-bold uppercase"
               style={{
-                fontSize: "0.625rem",
+                fontSize: "0.75rem",
                 letterSpacing: "0.14em",
                 color: theme.primary,
               }}
@@ -1048,7 +1048,7 @@ function WeekCard({
                   <span
                     className="ml-auto px-2 py-0.5 rounded-full font-display font-bold flex-shrink-0"
                     style={{
-                      fontSize: "0.5625rem",
+                      fontSize: "0.75rem",
                       background: theme.primary,
                       color: "white",
                     }}
@@ -1163,7 +1163,7 @@ function SectionPill({
     <div
       className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-display font-semibold"
       style={{
-        fontSize: "0.8125rem",
+        fontSize: "0.875rem",
         background: theme.soft,
         border: `1.5px solid ${theme.border}`,
         color: theme.primary,
@@ -1187,7 +1187,7 @@ function SectionHeading({
     <h2
       className="font-display font-extrabold leading-[1.07]"
       style={{
-        fontSize: "clamp(1.75rem, 3.2vw, 2.625rem)",
+        fontSize: "clamp(1.875rem, 3.2vw, 2.625rem)",
         letterSpacing: "-0.026em",
         color: "var(--blue-navy)",
       }}

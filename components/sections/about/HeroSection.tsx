@@ -2,6 +2,7 @@
 
 import Reveal from "@/components/ui/Reveal";
 import { trpc } from "@/lib/trpc/client";
+import { formatCount, SHOW_PUBLIC_RATING } from "@/constants";
 import { BRAND, GRADIENT_GOLD_TEXT } from "@/constants/brand";
 import { DEFAULT_ABOUT } from "@/app/modules/site-content/site-content.defaults";
 import type {
@@ -27,7 +28,7 @@ const STAT_META: Record<
 const AVATAR_BG = ["#1B4FDB", "#0D9488", "#E8521C", "#7C3AED", "#0EA5E9"];
 
 function statValue(key: HeroStatLabel["key"], s: SiteStats): string {
-  if (key === "alumni") return `${s.alumni.toLocaleString("en-US")}+`;
+  if (key === "alumni") return `${formatCount(s.alumni)}+`;
   if (key === "years") return `${s.years}+`;
   if (key === "rating") return `${s.rating}`;
   return `${s.programs}`;
@@ -186,8 +187,9 @@ function StatsPill({
 }) {
   return (
     <div
-      className="inline-flex flex-wrap justify-center sm:flex-nowrap rounded-2xl overflow-hidden mx-auto"
+      className="mx-auto grid w-full max-w-md overflow-hidden rounded-2xl sm:inline-flex sm:w-auto sm:max-w-none"
       style={{
+        gridTemplateColumns: `repeat(${Math.max(labels.length, 1)}, minmax(0, 1fr))`,
         border: `1.5px solid rgba(15,35,64,0.08)`,
         background: "white",
         boxShadow: "0 6px 32px rgba(15,35,64,0.07)",
@@ -196,43 +198,37 @@ function StatsPill({
       {labels.map((s, i) => {
         const meta = STAT_META[s.key];
         return (
-          <div key={s.key} className="flex items-center">
-            {i > 0 && (
-              <div
-                style={{
-                  width: 1,
-                  height: 52,
-                  background: "rgba(15,35,64,0.07)",
-                  flexShrink: 0,
-                }}
-              />
-            )}
+          <div
+            key={s.key}
+            className="flex items-stretch"
+            style={i > 0 ? { borderLeft: "1px solid rgba(15,35,64,0.07)" } : undefined}
+          >
             <motion.div
-              className="flex items-center gap-3 px-5 py-4 sm:px-7"
+              className="flex w-full flex-col items-center justify-center gap-2 px-2 py-4 text-center sm:flex-row sm:gap-3 sm:px-7 sm:text-left"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.28 + i * 0.08, ease }}
             >
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
                 style={{ background: `${meta.accent}14` }}
               >
                 <meta.Icon
                   style={{ color: meta.accent, width: 18, height: 18 }}
                 />
               </div>
-              <div className="text-left">
+              <div>
                 <p
                   className="font-display font-extrabold leading-none"
                   style={{
-                    fontSize: "1.5rem",
+                    fontSize: "clamp(1.25rem, 5vw, 1.5rem)",
                     color: BRAND.blueNavy,
                     letterSpacing: "-0.03em",
                   }}
                 >
                   {statValue(s.key, stats)}
                 </p>
-                <p style={{ fontSize: "0.6875rem", color: "#94A3B8", marginTop: 2 }}>
+                <p style={{ fontSize: "0.75rem", color: "#475569", marginTop: 4 }}>
                   {s.label}
                 </p>
               </div>
@@ -263,7 +259,7 @@ function TeamStrip({
             title={`${a.name} — ${a.title}`}
             className="w-11 h-11 rounded-full border-[2.5px] border-white flex items-center justify-center font-display font-black text-white cursor-default select-none"
             style={{
-              fontSize: "0.625rem",
+              fontSize: "0.75rem",
               background: AVATAR_BG[i % AVATAR_BG.length],
               zIndex: shown.length - i,
               boxShadow: "0 2px 10px rgba(0,0,0,0.14)",
@@ -279,7 +275,7 @@ function TeamStrip({
           <motion.div
             className="w-11 h-11 rounded-full border-[2.5px] border-white flex items-center justify-center font-display font-bold select-none"
             style={{
-              fontSize: "0.625rem",
+              fontSize: "0.75rem",
               background: "#F1F5F9",
               color: "#64748B",
               boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
@@ -370,7 +366,7 @@ function EditorialBand({ editorial }: { editorial: typeof DEFAULT_ABOUT.heroEdit
                 className="w-9 h-9 rounded-full flex items-center justify-center font-display font-black text-white flex-shrink-0"
                 style={{
                   background: "#1B4FDB",
-                  fontSize: "0.625rem",
+                  fontSize: "0.75rem",
                   border: "2px solid rgba(255,255,255,0.25)",
                 }}
               >
@@ -379,13 +375,13 @@ function EditorialBand({ editorial }: { editorial: typeof DEFAULT_ABOUT.heroEdit
               <div>
                 <p
                   className="font-display font-semibold text-white"
-                  style={{ fontSize: "0.8125rem", opacity: 0.9 }}
+                  style={{ fontSize: "0.875rem", opacity: 0.9 }}
                 >
                   {editorial.authorName}
                 </p>
                 <p
                   style={{
-                    fontSize: "0.6875rem",
+                    fontSize: "0.75rem",
                     color: "rgba(255,255,255,0.45)",
                   }}
                 >
@@ -419,7 +415,7 @@ function EditorialBand({ editorial }: { editorial: typeof DEFAULT_ABOUT.heroEdit
           >
             <p
               style={{
-                fontSize: "0.5875rem",
+                fontSize: "0.75rem",
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
                 color: "rgba(13,148,136,0.75)",
@@ -468,10 +464,11 @@ export const HeroSection = () => {
   const description = c.heroDescription || DEFAULT_ABOUT.heroDescription;
   const teamStripLabel =
     c.heroTeamStripLabel || DEFAULT_ABOUT.heroTeamStripLabel;
-  const statLabels =
+  const statLabels = (
     c.heroStatLabels && c.heroStatLabels.length > 0
       ? c.heroStatLabels
-      : DEFAULT_ABOUT.heroStatLabels;
+      : (DEFAULT_ABOUT.heroStatLabels as HeroStatLabel[])
+  ).filter((s) => SHOW_PUBLIC_RATING || s.key !== "rating");
   const editorial = { ...DEFAULT_ABOUT.heroEditorial, ...(c.heroEditorial ?? {}) };
   const team: TeamMember[] = data?.team ?? [];
 
@@ -554,7 +551,7 @@ export const HeroSection = () => {
             <p
               className="font-display font-bold uppercase tracking-widest mb-4"
               style={{
-                fontSize: "0.6875rem",
+                fontSize: "0.75rem",
                 color: "#94A3B8",
                 letterSpacing: "0.2em",
               }}
